@@ -5,6 +5,9 @@
   interface ModalProps {
     open: boolean;
     onclose?: () => void;
+    /** Accessible name for the dialog (omit when the content provides a
+     *  heading you reference some other way). */
+    ariaLabel?: string;
     class?: string;
     children?: Snippet;
   }
@@ -12,6 +15,7 @@
   let {
     open = $bindable(false),
     onclose,
+    ariaLabel,
     class: passedClasses = "",
     children,
   }: ModalProps = $props();
@@ -41,6 +45,7 @@
 
 <dialog
   bind:this={dialogEl}
+  aria-label={ariaLabel}
   onclose={close}
   onclick={handleBackdropClick}
   class="bg-transparent p-0 max-w-lg w-full mx-4 backdrop:bg-black/50 backdrop:backdrop-blur-sm open:animate-[fade-in_200ms_ease-out]"
