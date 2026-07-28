@@ -92,7 +92,11 @@
   </div>
   <TransitionOverlay />
   <LandscapeModal />
-  <AppointmentModal />
+  <!-- The id makes the CTA's `#appointment` anchor target real for prerender
+       validation and no-JS clicks (which land harmlessly at the document end —
+       /contact-us covers no-JS users); JS clicks are intercepted above to open
+       the modal. -->
+  <div id="appointment"><AppointmentModal /></div>
 {/if}
 {#if data.isPreviewSession}
   <PrismicPreview {repositoryName} />
