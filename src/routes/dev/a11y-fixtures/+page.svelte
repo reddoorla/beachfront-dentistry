@@ -304,7 +304,7 @@
       />
       <button
         type="submit"
-        class="px-4 py-2 bg-primary text-white rounded bump"
+        class="px-4 py-2 bg-primary-deep text-white rounded bump"
       >
         Send
       </button>
@@ -339,7 +339,7 @@
       />
       <button
         type="submit"
-        class="px-4 py-2 bg-primary text-white rounded bump"
+        class="px-4 py-2 bg-primary-deep text-white rounded bump"
       >
         Send
       </button>

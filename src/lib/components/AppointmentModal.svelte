@@ -91,7 +91,7 @@
 
       <button
         type="submit"
-        class="w-full rounded bg-primary px-6 py-3 text-white"
+        class="w-full rounded bg-primary-deep px-6 py-3 text-white"
       >
         Request Appointment
       </button>

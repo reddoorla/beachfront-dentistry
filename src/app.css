@@ -23,6 +23,12 @@
   /* Beachfront Dentistry palette (from the live Webflow CSS, 2026-07-27) */
   --color-light: #fafafa;
   --color-primary: #129ecc;
+  /* The brand hue darkened until white text clears WCAG AA with margin
+     (5.10:1 white-on-it and it-on-white; #129ecc itself is only 3.09:1 —
+     the live Webflow site ships that pairing but the fleet a11y gate
+     correctly refuses it). Use -deep wherever primary meets normal-size
+     text; plain primary stays for decorative fills and large/bold type. */
+  --color-primary-deep: #0e7799;
   --color-dark: #222222;
   --color-secondary: #5d6c7b;
   --color-accent: #b6aa91;

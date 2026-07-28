@@ -72,10 +72,11 @@
   </nav>
 {:else}
   <!-- site-config (#71) chrome: logo + dropdown nav. Beachfront's live nav is a
-       solid brand-blue band with a white wordmark — bg-primary/text-white here,
+       solid brand-blue band with a white wordmark — primary-deep/text-white here
+       (plain primary is only 3.09:1 under white text; -deep clears AA at 5.10:1),
        not the translucent bg-background/95 band the unstyled starter shipped. -->
   <nav
-    class="fixed top-0 left-0 z-50 flex w-full items-center justify-between bg-primary px-8 py-4 text-white"
+    class="fixed top-0 left-0 z-50 flex w-full items-center justify-between bg-primary-deep px-8 py-4 text-white"
   >
     <a href="/" class="flex items-center text-lg font-bold">
       {#if logo}
@@ -108,7 +109,7 @@
               <li class="group relative">
                 <button
                   type="button"
-                  class="flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary focus-visible:outline-hidden"
+                  class="flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
                   aria-expanded={openDesktopIndex === i}
                   aria-controls="nav-dropdown-{i}"
                   onclick={() =>
@@ -145,7 +146,7 @@
               <li>
                 <a
                   href={item.href}
-                  class="hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary focus-visible:outline-hidden"
+                  class="hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
                   >{item.label}</a
                 >
               </li>
@@ -157,8 +158,8 @@
 
         <!-- Phone + appointment/payment CTAs — desktop only; mirrored in the
              mobile menu below (the two clusters carry the same links — edit
-             them together). The band itself is primary blue, so the "solid"
-             CTA needs to be white-on-blue to read as solid there (bg-primary
+             them together). The band itself is deep brand blue, so the "solid"
+             CTA needs to be white-on-blue to read as solid there (a blue fill
              would vanish into the band), and the outline CTA needs a white
              ring instead of the brand-color ring that reads on a light bg.
              The phone number is xl-only (xl = Tailwind's default 1280px — the
@@ -169,17 +170,17 @@
         <div class="hidden items-center gap-4 lg:flex">
           <a
             href={PHONE.href}
-            class="hidden font-slab focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary focus-visible:outline-hidden xl:inline"
+            class="hidden font-slab focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden xl:inline"
             >{PHONE.display}</a
           >
           <a
             href="#appointment"
-            class="rounded-full bg-white px-5 py-2 font-semibold text-primary hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary focus-visible:outline-hidden"
+            class="rounded-full bg-white px-5 py-2 font-semibold text-primary-deep hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
             >Request Appointment</a
           >
           <a
             href={MODENTO_URL}
-            class="rounded-full border border-white px-5 py-2 text-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary focus-visible:outline-hidden"
+            class="rounded-full border border-white px-5 py-2 text-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
             target="_blank"
             rel="noopener">Make a Payment</a
           >
@@ -293,12 +294,12 @@
       >
       <a
         href="#appointment"
-        class="rounded-full bg-primary px-6 py-3 font-semibold text-white"
+        class="rounded-full bg-primary-deep px-6 py-3 font-semibold text-white"
         onclick={closeMenu}>Request Appointment</a
       >
       <a
         href={MODENTO_URL}
-        class="rounded-full border border-primary px-6 py-3 text-primary"
+        class="rounded-full border border-primary-deep px-6 py-3 text-primary-deep"
         target="_blank"
         rel="noopener"
         onclick={closeMenu}>Make a Payment</a

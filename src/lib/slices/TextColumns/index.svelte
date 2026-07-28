@@ -73,7 +73,7 @@
           {#if column.title}
             <svelte:element
               this={titleTag}
-              class="mb-2 text-lg font-semibold text-primary"
+              class="mb-2 text-lg font-semibold text-primary-deep"
             >
               {column.title}
             </svelte:element>
