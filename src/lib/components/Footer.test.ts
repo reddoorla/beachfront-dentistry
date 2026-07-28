@@ -176,4 +176,88 @@ describe("Footer", () => {
     // The brand glyph still renders.
     expect(container.querySelector("svg")).toBeTruthy();
   });
+
+  // --- beachfront chrome (wave + ink columns) ---
+
+  // Mirrors the real src/lib/blux/site-config.json footer.columns: services +
+  // payment links, office hours (plain text), phone/address/reviews/directions.
+  const beachfrontColumns = [
+    {
+      items: [
+        { text: "Your First Visit", href: "/your-first-visit" },
+        { text: "Our Team", href: "/our-team" },
+        { text: "Services", href: "/services" },
+        { text: "Ask the Doctor", href: "/ask-the-doctor" },
+        {
+          text: "Make a Payment",
+          href: "https://app.modento.io/beachfront-dentistry",
+        },
+      ],
+    },
+    {
+      items: [
+        { text: "OFFICE HOURS" },
+        { text: "Monday - Thursday / 7am - 5pm" },
+        { text: "Friday / 7am - 2pm" },
+      ],
+    },
+    {
+      items: [
+        { text: "(310) 378-9241", href: "tel:+13103789241" },
+        { text: "1706 S Elena Ave. Suite B" },
+        { text: "Redondo Beach, CA 90277" },
+        {
+          text: "Yelp Reviews",
+          href: "https://www.yelp.com/biz/beachfront-dentistry-redondo-beach",
+        },
+        {
+          text: "Get Directions",
+          href: "https://maps.app.goo.gl/u3xjEEDSV9KmAnMq9",
+        },
+      ],
+    },
+  ];
+
+  it("renders the OFFICE HOURS heading and address lines as plain text", () => {
+    const { getByText } = render(Footer, {
+      props: { columns: beachfrontColumns },
+    });
+    expect(getByText("OFFICE HOURS")).toBeTruthy();
+    expect(getByText("1706 S Elena Ave. Suite B")).toBeTruthy();
+    expect(getByText("Redondo Beach, CA 90277")).toBeTruthy();
+  });
+
+  it("renders the Modento payment link", () => {
+    const { getByRole } = render(Footer, {
+      props: { columns: beachfrontColumns },
+    });
+    const link = getByRole("link", { name: "Make a Payment" });
+    expect(link.getAttribute("href")).toBe(
+      "https://app.modento.io/beachfront-dentistry",
+    );
+  });
+
+  it("renders a wave divider at the footer's top edge", () => {
+    const { container } = render(Footer, {
+      props: { columns: beachfrontColumns },
+    });
+    const wave = container.querySelector("[aria-hidden='true'] svg");
+    expect(wave).toBeTruthy();
+  });
+
+  it("wave fill defaults to surface-light and is overridable via waveFill", () => {
+    const light = render(Footer, { props: { columns: beachfrontColumns } });
+    expect(light.container.querySelector("path")?.getAttribute("fill")).toBe(
+      "var(--color-light)",
+    );
+    cleanup();
+
+    // A page ending in a dark band passes its own fill through.
+    const dark = render(Footer, {
+      props: { columns: beachfrontColumns, waveFill: "var(--color-dark)" },
+    });
+    expect(dark.container.querySelector("path")?.getAttribute("fill")).toBe(
+      "var(--color-dark)",
+    );
+  });
 });

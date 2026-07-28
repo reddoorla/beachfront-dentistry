@@ -128,7 +128,16 @@ const config = {
         ...(wantsMapsCsp ? { "worker-src": ["self", "blob:"] } : {}),
         // Google Fonts stylesheet host — frozen Blux sites load their type from
         // fonts.googleapis.com (paired with fonts.gstatic.com under font-src).
-        "style-src": ["self", "unsafe-inline", "https://fonts.googleapis.com"],
+        // Adobe Typekit stylesheet hosts — museo-sans/museo-slab (see app.html).
+        // The kit css at use.typekit.net chain-loads p.css from p.typekit.net,
+        // so both hosts need style-src (p.typekit.net also serves fonts).
+        "style-src": [
+          "self",
+          "unsafe-inline",
+          "https://fonts.googleapis.com",
+          "https://use.typekit.net",
+          "https://p.typekit.net",
+        ],
         "img-src": [
           "self",
           "data:",
@@ -165,7 +174,14 @@ const config = {
               ]
             : []),
         ],
-        "font-src": ["self", "data:", "https://fonts.gstatic.com"],
+        // Typekit serves its font files from use.typekit.net and p.typekit.net.
+        "font-src": [
+          "self",
+          "data:",
+          "https://fonts.gstatic.com",
+          "https://use.typekit.net",
+          "https://p.typekit.net",
+        ],
         "base-uri": ["self"],
         "form-action": ["self"],
         "frame-ancestors": ["self"],

@@ -114,7 +114,7 @@
       <button
         type="submit"
         disabled={submitting}
-        class="px-4 py-2 bg-primary text-white rounded bump disabled:opacity-60"
+        class="px-4 py-2 bg-primary-deep text-white rounded bump disabled:opacity-60"
       >
         {submitting ? "Sending…" : "Send message"}
       </button>

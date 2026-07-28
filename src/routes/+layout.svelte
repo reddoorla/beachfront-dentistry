@@ -8,9 +8,11 @@
   import { composeTitle, DEFAULT_OG_IMAGE } from "$lib/seo";
   import LandscapeModal from "$lib/components/LandscapeModal.svelte";
   import TransitionOverlay from "$lib/components/TransitionOverlay.svelte";
+  import AppointmentModal from "$lib/components/AppointmentModal.svelte";
   import Nav from "$lib/components/Nav.svelte";
   import Footer from "$lib/components/Footer.svelte";
   import { loadSiteConfig, footerColumns } from "$lib/blux/site-config";
+  import { appointmentOpen } from "$lib/stores/appointment";
   import {
     disableSmoothScroll,
     restoreSmoothScroll,
@@ -27,6 +29,17 @@
   // instantly instead of gliding under app.css's smooth-scroll. See the util.
   beforeNavigate(disableSmoothScroll);
   afterNavigate(restoreSmoothScroll);
+
+  // Delegated so any anchor with href="#appointment" — including ones from
+  // ordinary Prismic link fields, not just hardcoded CTAs — opens the global
+  // appointment modal instead of navigating to a same-page hash.
+  const interceptAppointment = (e: MouseEvent) => {
+    const a = (e.target as HTMLElement).closest?.('a[href="#appointment"]');
+    if (a) {
+      e.preventDefault();
+      appointmentOpen.set(true);
+    }
+  };
 </script>
 
 <!-- Single head source for the whole app. Static routes feed their title
@@ -47,7 +60,7 @@
 {:else}
   <a
     href="#main-content"
-    class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-100 focus:bg-white focus:text-primary focus:px-4 focus:py-2 focus:rounded focus:shadow"
+    class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-100 focus:bg-white focus:text-primary-deep focus:px-4 focus:py-2 focus:rounded focus:shadow"
   >
     Skip to main content
   </a>
@@ -56,7 +69,11 @@
        (`blux convert` fills it; empty stub → Nav logo-only + Footer default).
        Each component applies its own page-data-over-config precedence, so
        existing routes are unaffected. -->
-  <div class="flex flex-col min-h-screen">
+  <!-- Purely delegating click-to-open for #appointment anchors; the anchors
+       themselves are keyboard-activatable, so the wrapper adds no new
+       interaction and needs no keyboard handler or interactive role of its own. -->
+  <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+  <div class="flex flex-col min-h-screen" onclick={interceptAppointment}>
     <Nav
       navLinks={page.data.navLinks}
       items={siteConfig.nav.items}
@@ -75,6 +92,11 @@
   </div>
   <TransitionOverlay />
   <LandscapeModal />
+  <!-- The id makes the CTA's `#appointment` anchor target real for prerender
+       validation and no-JS clicks (which land harmlessly at the document end —
+       /contact-us covers no-JS users); JS clicks are intercepted above to open
+       the modal. -->
+  <div id="appointment"><AppointmentModal /></div>
 {/if}
 {#if data.isPreviewSession}
   <PrismicPreview {repositoryName} />
