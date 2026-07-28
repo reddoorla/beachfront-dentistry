@@ -75,7 +75,20 @@ const config = {
           `${status} ${path}${referrer ? ` (linked from ${referrer})` : ""}: ${message}`,
         );
       },
-      handleMissingId: isFrozenSite ? "warn" : "fail",
+      // `/dev/*` fidelity gates prerender foreign fixture content (e.g. the
+      // the-pointe catalog gate) whose in-page anchors (`/#n`) target ids that
+      // exist on that content's own origin, not on this site's home. Those
+      // routes are robots-excluded dev tooling, so a missing id is tolerated
+      // only when every referrer is a dev gate — content routes keep failing
+      // loudly on genuine broken anchors. (Latent until a native site first
+      // prerendered `/` with real content: placeholder builds 404 `/`, so the
+      // id check never ran against it.)
+      handleMissingId: isFrozenSite
+        ? "warn"
+        : ({ referrers, message }) => {
+            if (referrers.every((r) => r.startsWith("/dev/"))) return;
+            throw new Error(message);
+          },
     },
     alias: {
       $components: "src/lib/components",
