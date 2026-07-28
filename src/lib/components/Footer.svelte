@@ -16,13 +16,22 @@
     socials?: FooterSocial[];
     /** The copyright / rights line; falls back to a generic notice. */
     text?: string;
+    /** Fill for the top-edge wave — match the section ABOVE the footer
+     * (defaults to this site's surface-light; override on pages ending in a
+     * dark band). */
+    waveFill?: string;
   }
 
   // Placeholder styling — restyle per project. `columns` (the shape the Blux
   // catalog pipeline emits in site-config.json) wins when a migrated site
   // supplies it; otherwise the site-config socials + rights line render (the
   // fleet default chrome).
-  let { columns, socials = [], text }: Props = $props();
+  let {
+    columns,
+    socials = [],
+    text,
+    waveFill = "var(--color-light)",
+  }: Props = $props();
 
   const isImage = (i: FooterItem): i is FooterImage => "image" in i;
 
@@ -82,7 +91,7 @@
        reads as ITS bottom edge dipping into the dark footer, not as something
        the footer owns — fill matches that neighbour, per WaveDivider's own
        contract, and it sits flush at the very top before any footer padding. -->
-  <WaveDivider fill="var(--color-light)" />
+  <WaveDivider fill={waveFill} />
 
   <div class="px-8 pt-8 pb-12">
     {#if columns?.length}

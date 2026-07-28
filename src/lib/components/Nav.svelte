@@ -99,14 +99,16 @@
              click toggles it (aria-expanded), and hover/focus-within also reveal it
              for pointer/keyboard-tab users. Keyed by index: nav labels/hrefs aren't
              unique (two "" heading hrefs or repeated labels would collide and Svelte
-             throws each_key_duplicate at hydration). -->
-        <ul class="hidden items-center gap-8 lg:flex">
+             throws each_key_duplicate at hydration). gap-4 until xl: measured at a
+             1024px viewport (real museo fonts) the items + both pills fill the band
+             to 0px slack at gap-8 and 1px at gap-6 — gap-4 buys ~33px headroom. -->
+        <ul class="hidden items-center gap-4 lg:flex xl:gap-8">
           {#each items as item, i (i)}
             {#if item.children && item.children.length > 0}
               <li class="group relative">
                 <button
                   type="button"
-                  class="flex items-center gap-1"
+                  class="flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary focus-visible:outline-hidden"
                   aria-expanded={openDesktopIndex === i}
                   aria-controls="nav-dropdown-{i}"
                   onclick={() =>
@@ -141,7 +143,11 @@
               </li>
             {:else if item.href}
               <li>
-                <a href={item.href} class="hover:opacity-80">{item.label}</a>
+                <a
+                  href={item.href}
+                  class="hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary focus-visible:outline-hidden"
+                  >{item.label}</a
+                >
               </li>
             {:else}
               <li><span>{item.label}</span></li>
@@ -150,20 +156,30 @@
         </ul>
 
         <!-- Phone + appointment/payment CTAs — desktop only; mirrored in the
-             mobile menu below. The band itself is primary blue, so the "solid"
+             mobile menu below (the two clusters carry the same links — edit
+             them together). The band itself is primary blue, so the "solid"
              CTA needs to be white-on-blue to read as solid there (bg-primary
              would vanish into the band), and the outline CTA needs a white
-             ring instead of the brand-color ring that reads on a light bg. -->
+             ring instead of the brand-color ring that reads on a light bg.
+             The phone number is xl-only (xl = Tailwind's default 1280px — the
+             theme's --screen-* vars are width utilities, not breakpoints):
+             measured at a 1024px viewport the items + both pills alone leave
+             ~33px slack, so adding the phone would force the item labels to
+             wrap inside the band. -->
         <div class="hidden items-center gap-4 lg:flex">
-          <a href={PHONE.href} class="font-slab">{PHONE.display}</a>
+          <a
+            href={PHONE.href}
+            class="hidden font-slab focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary focus-visible:outline-hidden xl:inline"
+            >{PHONE.display}</a
+          >
           <a
             href="#appointment"
-            class="rounded-full bg-white px-5 py-2 font-semibold text-primary hover:bg-white/90"
+            class="rounded-full bg-white px-5 py-2 font-semibold text-primary hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary focus-visible:outline-hidden"
             >Request Appointment</a
           >
           <a
             href={MODENTO_URL}
-            class="rounded-full border border-white px-5 py-2 text-white hover:bg-white/10"
+            class="rounded-full border border-white px-5 py-2 text-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary focus-visible:outline-hidden"
             target="_blank"
             rel="noopener">Make a Payment</a
           >
@@ -267,15 +283,17 @@
         {/if}
       {/each}
 
-      <!-- Phone + CTAs mirrored from the desktop band. This menu sits on the
-           light default background, so these use the brand-solid/brand-outline
+      <!-- Phone + CTAs mirrored from the desktop band (the two clusters carry
+           the same links — edit them together; only the color context and
+           touch sizing differ deliberately). This menu sits on the light
+           default background, so these use the brand-solid/brand-outline
            pairing directly — no white-on-band override needed here. -->
       <a href={PHONE.href} class="px-4 py-3 font-slab" onclick={closeMenu}
         >{PHONE.display}</a
       >
       <a
         href="#appointment"
-        class="rounded-full bg-primary px-6 py-3 text-white"
+        class="rounded-full bg-primary px-6 py-3 font-semibold text-white"
         onclick={closeMenu}>Request Appointment</a
       >
       <a

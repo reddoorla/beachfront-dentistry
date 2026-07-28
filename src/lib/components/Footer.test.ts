@@ -244,4 +244,20 @@ describe("Footer", () => {
     const wave = container.querySelector("[aria-hidden='true'] svg");
     expect(wave).toBeTruthy();
   });
+
+  it("wave fill defaults to surface-light and is overridable via waveFill", () => {
+    const light = render(Footer, { props: { columns: beachfrontColumns } });
+    expect(light.container.querySelector("path")?.getAttribute("fill")).toBe(
+      "var(--color-light)",
+    );
+    cleanup();
+
+    // A page ending in a dark band passes its own fill through.
+    const dark = render(Footer, {
+      props: { columns: beachfrontColumns, waveFill: "var(--color-dark)" },
+    });
+    expect(dark.container.querySelector("path")?.getAttribute("fill")).toBe(
+      "var(--color-dark)",
+    );
+  });
 });
