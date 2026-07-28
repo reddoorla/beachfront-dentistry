@@ -218,6 +218,98 @@ describe("Nav — mobile menu", () => {
   });
 });
 
+// Beachfront's real site-config nav: 5 flat items (no dropdowns), plus the
+// phone + appointment/payment CTAs the live site's nav band carries. Exercises
+// the same `items` branch as the dropdown fixtures above, alongside the new
+// phone/CTA chrome.
+const beachfrontItems = [
+  { label: "First Visit", href: "/your-first-visit" },
+  { label: "Meet Our Team", href: "/our-team" },
+  { label: "Services", href: "/services" },
+  { label: "Ask the Doctor", href: "/ask-the-doctor" },
+  { label: "Contact", href: "/contact-us" },
+];
+const beachfrontLogo = { url: "/logo-white.svg", maxWidth: "180px" };
+
+describe("Nav — beachfront chrome (siteConfig items + phone/payment CTAs)", () => {
+  it("renders the 5 config items as links", () => {
+    const { getByRole } = render(Nav, {
+      items: beachfrontItems,
+      logo: beachfrontLogo,
+    });
+    for (const item of beachfrontItems) {
+      expect(getByRole("link", { name: item.label }).getAttribute("href")).toBe(
+        item.href,
+      );
+    }
+  });
+
+  it("renders the resolved logo image using the provided url", () => {
+    const { getByAltText } = render(Nav, {
+      items: beachfrontItems,
+      logo: beachfrontLogo,
+    });
+    const img = getByAltText("Home") as HTMLImageElement;
+    expect(img.getAttribute("src")).toBe("/logo-white.svg");
+  });
+
+  it("renders a tel: phone link on desktop", () => {
+    const { getByText } = render(Nav, {
+      items: beachfrontItems,
+      logo: beachfrontLogo,
+    });
+    const phone = getByText("(310) 378-9241");
+    expect(phone.tagName).toBe("A");
+    expect(phone.getAttribute("href")).toBe("tel:+13103789241");
+  });
+
+  it("renders a Request Appointment CTA linking to #appointment", () => {
+    const { getByRole } = render(Nav, {
+      items: beachfrontItems,
+      logo: beachfrontLogo,
+    });
+    const cta = getByRole("link", { name: "Request Appointment" });
+    expect(cta.getAttribute("href")).toBe("#appointment");
+  });
+
+  it("renders a Make a Payment CTA to Modento in a new tab", () => {
+    const { getByRole } = render(Nav, {
+      items: beachfrontItems,
+      logo: beachfrontLogo,
+    });
+    const cta = getByRole("link", { name: "Make a Payment" });
+    expect(cta.getAttribute("href")).toBe(
+      "https://app.modento.io/beachfront-dentistry",
+    );
+    expect(cta.getAttribute("target")).toBe("_blank");
+    expect(cta.getAttribute("rel")).toBe("noopener");
+  });
+
+  it("mirrors the phone + CTA links in the mobile menu", async () => {
+    const { getByLabelText, getByRole } = render(Nav, {
+      items: beachfrontItems,
+      logo: beachfrontLogo,
+    });
+    await fireEvent.click(getByLabelText("Open menu"));
+    await frame();
+
+    const dialog = getByRole("dialog");
+    const links = Array.from(dialog.querySelectorAll("a"));
+
+    const phone = links.find((a) => a.textContent === "(310) 378-9241");
+    expect(phone?.getAttribute("href")).toBe("tel:+13103789241");
+
+    const request = links.find((a) => a.textContent === "Request Appointment");
+    expect(request?.getAttribute("href")).toBe("#appointment");
+
+    const payment = links.find((a) => a.textContent === "Make a Payment");
+    expect(payment?.getAttribute("href")).toBe(
+      "https://app.modento.io/beachfront-dentistry",
+    );
+    expect(payment?.getAttribute("target")).toBe("_blank");
+  });
+});
+
 // The flat-links chrome a migrated Blux site renders when it passes `navLinks`
 // via page data. Distinct code path from the `items` dropdown nav above.
 describe("Nav — navLinks (page-data) mode", () => {
