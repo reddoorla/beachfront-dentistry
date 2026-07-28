@@ -2,12 +2,27 @@ import { describe, it, expect } from "vitest";
 import { loadSiteConfig, footerColumns, type SiteConfig } from "./site-config";
 
 describe("loadSiteConfig", () => {
-  it("returns a well-formed config from the checked-in stub", () => {
+  it("returns a well-formed config", () => {
     const config = loadSiteConfig();
-    // The starter ships an empty stub; the shape must always be safe to spread
-    // into <Nav items> / <Footer socials> without guards at the call site.
+    // The shape must always be safe to spread into <Nav items> /
+    // <Footer socials> without guards at the call site.
     expect(Array.isArray(config.nav.items)).toBe(true);
     expect(Array.isArray(config.footer.socials)).toBe(true);
+  });
+
+  it("loads the Beachfront chrome data and satisfies SiteConfig", () => {
+    // Typecheck-level assertion: this only compiles if the checked-in JSON
+    // conforms to the SiteConfig shape.
+    const config: SiteConfig = loadSiteConfig();
+
+    expect(config.nav.items).toHaveLength(5);
+    expect(config.nav.items.map((item) => item.href)).toEqual([
+      "/your-first-visit",
+      "/our-team",
+      "/services",
+      "/ask-the-doctor",
+      "/contact-us",
+    ]);
   });
 });
 
@@ -33,6 +48,13 @@ describe("footerColumns", () => {
   });
 
   it("returns undefined when neither supplies columns (fresh site → Footer placeholder)", () => {
-    expect(footerColumns(undefined, loadSiteConfig())).toBeUndefined();
+    // A fresh (unconverted) site's config has no footer.columns — modeled
+    // here explicitly, since this repo's checked-in site-config.json now
+    // carries Beachfront's real chrome data.
+    const freshSiteConfig: SiteConfig = {
+      nav: { items: [] },
+      footer: { socials: [] },
+    };
+    expect(footerColumns(undefined, freshSiteConfig)).toBeUndefined();
   });
 });

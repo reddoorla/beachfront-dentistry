@@ -1,4 +1,57 @@
 {
-  "nav": { "items": [] },
-  "footer": { "socials": [] }
+  "nav": {
+    "logo": { "url": "/logo-white.svg", "maxWidth": "180px" },
+    "items": [
+      { "label": "First Visit", "href": "/your-first-visit" },
+      { "label": "Meet Our Team", "href": "/our-team" },
+      { "label": "Services", "href": "/services" },
+      { "label": "Ask the Doctor", "href": "/ask-the-doctor" },
+      { "label": "Contact", "href": "/contact-us" }
+    ]
+  },
+  "footer": {
+    "socials": [
+      {
+        "network": "facebook",
+        "href": "https://www.facebook.com/RedondoDentists"
+      }
+    ],
+    "columns": [
+      {
+        "items": [
+          { "text": "Your First Visit", "href": "/your-first-visit" },
+          { "text": "Our Team", "href": "/our-team" },
+          { "text": "Services", "href": "/services" },
+          { "text": "Ask the Doctor", "href": "/ask-the-doctor" },
+          {
+            "text": "Make a Payment",
+            "href": "https://app.modento.io/beachfront-dentistry"
+          }
+        ]
+      },
+      {
+        "items": [
+          { "text": "OFFICE HOURS" },
+          { "text": "Monday - Thursday / 7am - 5pm" },
+          { "text": "Friday / 7am - 2pm" }
+        ]
+      },
+      {
+        "items": [
+          { "text": "(310) 378-9241", "href": "tel:+13103789241" },
+          { "text": "1706 S Elena Ave. Suite B" },
+          { "text": "Redondo Beach, CA 90277" },
+          {
+            "text": "Yelp Reviews",
+            "href": "https://www.yelp.com/biz/beachfront-dentistry-redondo-beach"
+          },
+          {
+            "text": "Get Directions",
+            "href": "https://maps.app.goo.gl/u3xjEEDSV9KmAnMq9"
+          }
+        ]
+      }
+    ],
+    "text": "© Beachfront Dentistry"
+  }
 }
