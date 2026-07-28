@@ -69,7 +69,7 @@
           };
         }}
       >
-        <!-- Anti-bot contract mirrored from src/routes/contact/+page.svelte:
+        <!-- Anti-bot contract mirrored from src/routes/contact-us/+page.svelte:
              a per-request timing token + a hidden honeypot, screened centrally
              by createIngestAction (bot-field / ts field names, 800ms min fill). -->
         <input type="hidden" name="ts" value={openedAt} />
