@@ -89,6 +89,20 @@ const config = {
             if (referrers.every((r) => r.startsWith("/dev/"))) return;
             throw new Error(message);
           },
+      // A malformed URL in CMS-pasted rich text (e.g. a school name typed into a
+      // hyperlink) is unparseable — it can never be a real route to crawl, and
+      // one editor's typo must not fail the whole build. Warn (so it surfaces
+      // for cleanup) and keep prerendering. Unlike handleHttpError's fail-loud
+      // 404 policy, an invalid URL has no valid interpretation to preserve.
+      // (Latent until /our-team's team grid began linking into team-member bios
+      // that carry such migrated artifacts.)
+      handleInvalidUrl: ({ href, referrer, message }) => {
+        console.warn(
+          `[prerender] skipped invalid URL ${JSON.stringify(href)}` +
+            `${referrer ? ` (linked from ${referrer})` : ""} — fix the CMS link` +
+            `${message ? ` [${message}]` : ""}`,
+        );
+      },
     },
     alias: {
       $components: "src/lib/components",
