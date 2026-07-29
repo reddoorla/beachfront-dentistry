@@ -28,6 +28,48 @@ describe("collectionTypesOf", () => {
     ];
     expect(collectionTypesOf(slices as never)).toEqual([]);
   });
+
+  it("maps question_list slices to news_article (fixed entity type — no author-editable collection_type field)", () => {
+    const slices = [{ slice_type: "question_list", primary: {} }];
+    expect(collectionTypesOf(slices as never)).toEqual(["news_article"]);
+  });
+
+  it("maps service_category_band slices to collection_item (fixed entity type)", () => {
+    const slices = [{ slice_type: "service_category_band", primary: {} }];
+    expect(collectionTypesOf(slices as never)).toEqual(["collection_item"]);
+  });
+
+  it("collection_list slices contribute their own primary.collection_type, same as blux_collection (predates this plan — verifying it still works)", () => {
+    const slices = [
+      {
+        slice_type: "collection_list",
+        primary: { collection_type: "product" },
+      },
+    ];
+    expect(collectionTypesOf(slices as never)).toEqual(["product"]);
+  });
+
+  it("collects unique types across blux_collection, collection_list, question_list, and service_category_band together, deduping when two slices resolve to the same type", () => {
+    const slices = [
+      {
+        slice_type: "blux_collection",
+        primary: { collection_type: "product" },
+      },
+      { slice_type: "question_list", primary: {} },
+      {
+        slice_type: "collection_list",
+        primary: { collection_type: "collection_item" },
+      },
+      // Resolves to "collection_item" too — already collected via collection_list above.
+      { slice_type: "service_category_band", primary: {} },
+      { slice_type: "question_list", primary: {} },
+    ];
+    expect(collectionTypesOf(slices as never)).toEqual([
+      "product",
+      "news_article",
+      "collection_item",
+    ]);
+  });
 });
 
 describe("loadCollections", () => {
