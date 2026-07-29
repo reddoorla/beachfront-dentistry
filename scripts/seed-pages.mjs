@@ -36,7 +36,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const authHeaders = { repository: REPO, Authorization: `Bearer ${TOKEN}` };
 const jsonHeaders = { ...authHeaders, "Content-Type": "application/json" };
 
-async function fetchWithRetry(url, opts, label) {
+async function fetchWithRetry(url, opts) {
   for (let i = 0; i < 4; i++) {
     const res = await fetch(url, opts);
     if (res.status !== 429) return res;
