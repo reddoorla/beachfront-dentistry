@@ -1,0 +1,31 @@
+{
+  "id": "service_category_band",
+  "type": "SharedSlice",
+  "name": "ServiceCategoryBand",
+  "description": "The /services index page's per-category band: intro text plus a linked panel of matching service detail pages",
+  "variations": [
+    {
+      "id": "default",
+      "name": "Default",
+      "docURL": "...",
+      "version": "initial",
+      "description": "Intro column + brand-blue panel of category-tagged service links",
+      "imageUrl": "",
+      "primary": {
+        "category_tag": {
+          "type": "Text",
+          "config": { "label": "category tag (matches collection_item tags)" }
+        },
+        "heading": {
+          "type": "StructuredText",
+          "config": { "label": "heading", "single": "heading3" }
+        },
+        "intro": {
+          "type": "StructuredText",
+          "config": { "label": "intro" }
+        }
+      },
+      "items": {}
+    }
+  ]
+}

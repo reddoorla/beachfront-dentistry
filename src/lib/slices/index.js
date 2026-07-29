@@ -24,6 +24,7 @@ import MediaText from "./MediaText/index.svelte";
 import QuestionList from "./QuestionList/index.svelte";
 import RichText from "./RichText/index.svelte";
 import SectionGrid from "./SectionGrid/index.svelte";
+import ServiceCategoryBand from "./ServiceCategoryBand/index.svelte";
 import SplitFeature from "./SplitFeature/index.svelte";
 import TextColumns from "./TextColumns/index.svelte";
 import TitleBand from "./TitleBand/index.svelte";
@@ -53,6 +54,7 @@ export const components = {
   question_list: QuestionList,
   rich_text: RichText,
   section_grid: SectionGrid,
+  service_category_band: ServiceCategoryBand,
   split_feature: SplitFeature,
   text_columns: TextColumns,
   title_band: TitleBand,
