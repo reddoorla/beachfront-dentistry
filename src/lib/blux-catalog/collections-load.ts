@@ -45,7 +45,12 @@ export async function loadCollections(
     types.map(async (type): Promise<[string, unknown[]]> => {
       try {
         return [type, await client.getAllByType(type)];
-      } catch {
+      } catch (err) {
+        // Tolerant by design (a repo without this custom type gets an empty
+        // list) — but say so in the logs: a TRANSIENT fetch failure here at
+        // prerender time would otherwise silently ship a sitemap/page missing
+        // real published docs with no build signal.
+        console.warn(`[collections-load] getAllByType(${type}) failed:`, err);
         return [type, []];
       }
     }),

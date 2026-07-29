@@ -1,19 +1,14 @@
 import { createClient, isFrozenSite, isPlaceholderRepo } from "$lib/prismicio";
 import { frozenUids } from "$lib/blux-frozen/load";
 import { loadCollections } from "$lib/blux-catalog/collections-load";
+import { ENTITY_ROUTE_PREFIX } from "$lib/blux-catalog/entity-routes";
 import type { RequestHandler } from "./$types";
 
 export const prerender = true;
 
-// Entity types with their own detail route (services/[slug], questions/[slug],
-// team-members/[slug]) — the same doc-type → prefix mapping CollectionList's
-// hrefFor uses, so every card the catalog slices link to also gets a sitemap
-// entry.
-const ENTITY_PREFIXES: Record<string, string> = {
-  person: "/team-members/",
-  news_article: "/questions/",
-  collection_item: "/services/",
-};
+// Every card the catalog slices link to also gets a sitemap entry — the
+// shared ENTITY_ROUTE_PREFIX map keeps this route and CollectionList's
+// hrefFor from drifting apart.
 
 export const GET: RequestHandler = async ({ fetch, url }) => {
   const origin = url.origin;
@@ -47,12 +42,12 @@ export const GET: RequestHandler = async ({ fetch, url }) => {
     // collections-load.ts already gives the catalog slices' load path.
     const entityDocs = await loadCollections(
       client,
-      Object.keys(ENTITY_PREFIXES),
+      Object.keys(ENTITY_ROUTE_PREFIX),
     );
     const entityEntries = Object.entries(entityDocs).flatMap(([type, docs]) =>
       (docs as { uid: string; last_publication_date?: string | null }[]).map(
         (doc) => ({
-          path: `${ENTITY_PREFIXES[type]}${doc.uid}`,
+          path: `${ENTITY_ROUTE_PREFIX[type]}${doc.uid}`,
           lastmod: new Date(
             doc.last_publication_date ?? Date.now(),
           ).toISOString(),

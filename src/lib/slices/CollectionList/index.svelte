@@ -1,6 +1,7 @@
 <script lang="ts">
   import { PrismicImage, PrismicRichText } from "@prismicio/svelte";
   import type { Content, ImageField, RichTextField } from "@prismicio/client";
+  import { ENTITY_ROUTE_PREFIX } from "$lib/blux-catalog/entity-routes";
 
   type CollectionDoc = {
     uid: string;
@@ -39,16 +40,10 @@
   // Doc-type → detail-route prefix — mirrors the individual detail routes
   // (services/[slug], questions/[slug], team-members/[slug]) and the same
   // per-type href idiom already in ServiceCategoryBand/QuestionList/
-  // BluxCollection. A doc whose `type` isn't in this map (or has none) renders
-  // unlinked, same as this slice's card behavior before links existed.
-  const HREF_PREFIX: Record<string, string> = {
-    person: "/team-members/",
-    news_article: "/questions/",
-    collection_item: "/services/",
-  };
-
+  // BluxCollection. A doc whose `type` isn't in the shared map (or has none)
+  // renders unlinked, same as this slice's card behavior before links existed.
   const hrefFor = (doc: CollectionDoc): string | undefined => {
-    const prefix = doc.type ? HREF_PREFIX[doc.type] : undefined;
+    const prefix = doc.type ? ENTITY_ROUTE_PREFIX[doc.type] : undefined;
     return prefix ? `${prefix}${doc.uid}` : undefined;
   };
 </script>
