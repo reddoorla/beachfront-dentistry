@@ -19,9 +19,17 @@ import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 
 const REPO = "48bb12d1";
-const env = readFileSync(`${homedir()}/Documents/GitHub/reddoor-starter/.env`, "utf8");
-const TOKEN = env.match(/^BEACHFRONT_DENTISTRY_WRITE_TOKEN=(.+)$/m)?.[1]?.trim();
-if (!TOKEN) throw new Error("BEACHFRONT_DENTISTRY_WRITE_TOKEN not found in reddoor-starter/.env");
+const env = readFileSync(
+  `${homedir()}/Documents/GitHub/reddoor-starter/.env`,
+  "utf8",
+);
+const TOKEN = env
+  .match(/^BEACHFRONT_DENTISTRY_WRITE_TOKEN=(.+)$/m)?.[1]
+  ?.trim();
+if (!TOKEN)
+  throw new Error(
+    "BEACHFRONT_DENTISTRY_WRITE_TOKEN not found in reddoor-starter/.env",
+  );
 
 const THROTTLE_MS = 1200;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -37,23 +45,46 @@ async function fetchWithRetry(url, opts, label) {
   return fetch(url, opts);
 }
 async function expectOk(res, label) {
-  if (!res.ok) throw new Error(`${label}: ${res.status} ${(await res.text()).slice(0, 300)}`);
+  if (!res.ok)
+    throw new Error(
+      `${label}: ${res.status} ${(await res.text()).slice(0, 300)}`,
+    );
   return res;
 }
 
 // ---- rich text (StructuredText) builders -------------------------------------
 const para = (text, spans = []) => ({ type: "paragraph", text, spans });
-const head = (level, text, spans = []) => ({ type: `heading${level}`, text, spans });
+const head = (level, text, spans = []) => ({
+  type: `heading${level}`,
+  text,
+  spans,
+});
 // a heading/paragraph with one phrase emphasized strong
 function withStrong(block, phrase) {
   const start = block.text.indexOf(phrase);
   if (start < 0) return block;
-  return { ...block, spans: [...block.spans, { start, end: start + phrase.length, type: "strong" }] };
+  return {
+    ...block,
+    spans: [
+      ...block.spans,
+      { start, end: start + phrase.length, type: "strong" },
+    ],
+  };
 }
 // a paragraph containing a hyperlink span over `phrase` → url
 function paraLink(text, phrase, url) {
   const start = text.indexOf(phrase);
-  const spans = start < 0 ? [] : [{ start, end: start + phrase.length, type: "hyperlink", data: { link_type: "Web", url } }];
+  const spans =
+    start < 0
+      ? []
+      : [
+          {
+            start,
+            end: start + phrase.length,
+            type: "hyperlink",
+            data: { link_type: "Web", url },
+          },
+        ];
   return { type: "paragraph", text, spans };
 }
 const webLink = (url) => ({ link_type: "Web", url });
@@ -67,7 +98,13 @@ function stripEmpty(v) {
     const out = {};
     for (const [k, val] of Object.entries(v)) {
       const c = stripEmpty(val);
-      if (c && typeof c === "object" && !Array.isArray(c) && Object.keys(c).length === 0) continue;
+      if (
+        c &&
+        typeof c === "object" &&
+        !Array.isArray(c) &&
+        Object.keys(c).length === 0
+      )
+        continue;
       out[k] = c;
     }
     return out;
@@ -83,22 +120,28 @@ async function listExistingAssets() {
     const u = new URL("https://asset-api.prismic.io/assets");
     u.searchParams.set("limit", "1000");
     if (cursor) u.searchParams.set("cursor", cursor);
-    const res = await expectOk(await fetchWithRetry(u, { headers: authHeaders }), "list assets");
+    const res = await expectOk(
+      await fetchWithRetry(u, { headers: authHeaders }),
+      "list assets",
+    );
     const json = await res.json();
-    for (const a of json.items ?? []) byFilename.set(a.filename, { id: a.id, url: a.url });
+    for (const a of json.items ?? [])
+      byFilename.set(a.filename, { id: a.id, url: a.url });
     cursor = json.cursor;
     if (!cursor || (json.items ?? []).length === 0) break;
   }
   return byFilename;
 }
 
-const filenameOf = (url) => decodeURIComponent(url.split("/").pop().split("?")[0]);
+const filenameOf = (url) =>
+  decodeURIComponent(url.split("/").pop().split("?")[0]);
 
 // Resolve a set of remote image URLs → Map<url, {id}>, uploading only the
 // filenames not already in the library.
 async function resolveAssets(urls, existing) {
   const idByUrl = new Map();
-  let uploaded = 0, reused = 0;
+  let uploaded = 0,
+    reused = 0;
   for (const url of urls) {
     const filename = filenameOf(url);
     const known = existing.get(filename);
@@ -107,11 +150,17 @@ async function resolveAssets(urls, existing) {
       reused++;
       continue;
     }
-    const blob = await (await expectOk(await fetch(url), `fetch ${filename}`)).blob();
+    const blob = await (
+      await expectOk(await fetch(url), `fetch ${filename}`)
+    ).blob();
     const form = new FormData();
     form.append("file", blob, filename);
     const res = await expectOk(
-      await fetchWithRetry("https://asset-api.prismic.io/assets", { method: "POST", headers: authHeaders, body: form }),
+      await fetchWithRetry("https://asset-api.prismic.io/assets", {
+        method: "POST",
+        headers: authHeaders,
+        body: form,
+      }),
       `upload ${filename}`,
     );
     const created = await res.json();
@@ -159,11 +208,46 @@ const IMG = {
 // Shared review carousel items (verbatim quotes off the live site; truncated
 // exactly as the live teaser cards show them, linking out to Yelp/Google).
 const REVIEWS = [
-  { quote: "This is my favorite dentistry team to date! The office was clean and the rooms had TVs everywhere (even on the ceiling). The staff was excellent. Front desk team was super nice. Both Stacey (hygienest) and Dr. Quan were absolutely...", reviewer_name: "Paul K.", reviewer_place: "Redondo Beach, CA", photo: IMG.rvPaul, url: "https://www.yelp.com/biz/beachfront-dentistry-redondo-beach?hrid=BFXba7Bhp7KMgaFkJdBc7w&utm_campaign=www_review_share_popup&utm_medium=copy_link&utm_source=(direct)" },
-  { quote: "The best care with all the technology but it's the people that make this office what it is! From the front office, dental hygienist, dental assistant, and of course the dentists themselves I actually like going to get my checkups and cleani", reviewer_name: "Tonya S.", reviewer_place: "Hermosa Beach, CA", photo: IMG.rvTonya, url: "https://www.yelp.com/biz/beachfront-dentistry-redondo-beach?hrid=pDz_x-aGJx-qe__EadRGNw&utm_campaign=www_review_share_popup&utm_medium=copy_link&utm_source=(direct)" },
-  { quote: "I am so glad I found this dentist office through Yelp! Their amazing reviews do not lie! The service is 10/10 I was lucky to have Stacey as my dental hygienist! She is such a sweet heart she made me feel comfortable the whole time...", reviewer_name: "Melissa R.", reviewer_place: "", photo: IMG.rvMelissa, url: "https://www.yelp.com/biz/beachfront-dentistry-redondo-beach?hrid=BXZVdhsXqpvW_ylTj1Kfiw&utm_campaign=www_review_share_popup&utm_medium=copy_link&utm_source=(direct)" },
-  { quote: "As a fairly recent transplant to the South Bay, one of our concerns was finding a new dentist office. I will unequivocally say that this is no longer a concern. From location, to Dr. Quan, to the staff, Beachfront Dentistry is 5 stars...", reviewer_name: "Jay. N", reviewer_place: "Redondo Beach", photo: IMG.rvJay, url: "https://maps.app.goo.gl/u3xjEEDSV9KmAnMq9" },
-  { quote: "Finally I found the right dentist! I am so happy I found such a wonderful overall practice. I received the best most thorough care. Both the Dr. Quan and my hygienist walked me thru all details and were gentle and made sure I was...", reviewer_name: "Leigh L.", reviewer_place: "Redondo Beach", photo: IMG.rvLeigh, url: "https://maps.app.goo.gl/mqZFMifn4U4MF92C8" },
+  {
+    quote:
+      "This is my favorite dentistry team to date! The office was clean and the rooms had TVs everywhere (even on the ceiling). The staff was excellent. Front desk team was super nice. Both Stacey (hygienest) and Dr. Quan were absolutely...",
+    reviewer_name: "Paul K.",
+    reviewer_place: "Redondo Beach, CA",
+    photo: IMG.rvPaul,
+    url: "https://www.yelp.com/biz/beachfront-dentistry-redondo-beach?hrid=BFXba7Bhp7KMgaFkJdBc7w&utm_campaign=www_review_share_popup&utm_medium=copy_link&utm_source=(direct)",
+  },
+  {
+    quote:
+      "The best care with all the technology but it's the people that make this office what it is! From the front office, dental hygienist, dental assistant, and of course the dentists themselves I actually like going to get my checkups and cleani",
+    reviewer_name: "Tonya S.",
+    reviewer_place: "Hermosa Beach, CA",
+    photo: IMG.rvTonya,
+    url: "https://www.yelp.com/biz/beachfront-dentistry-redondo-beach?hrid=pDz_x-aGJx-qe__EadRGNw&utm_campaign=www_review_share_popup&utm_medium=copy_link&utm_source=(direct)",
+  },
+  {
+    quote:
+      "I am so glad I found this dentist office through Yelp! Their amazing reviews do not lie! The service is 10/10 I was lucky to have Stacey as my dental hygienist! She is such a sweet heart she made me feel comfortable the whole time...",
+    reviewer_name: "Melissa R.",
+    reviewer_place: "",
+    photo: IMG.rvMelissa,
+    url: "https://www.yelp.com/biz/beachfront-dentistry-redondo-beach?hrid=BXZVdhsXqpvW_ylTj1Kfiw&utm_campaign=www_review_share_popup&utm_medium=copy_link&utm_source=(direct)",
+  },
+  {
+    quote:
+      "As a fairly recent transplant to the South Bay, one of our concerns was finding a new dentist office. I will unequivocally say that this is no longer a concern. From location, to Dr. Quan, to the staff, Beachfront Dentistry is 5 stars...",
+    reviewer_name: "Jay. N",
+    reviewer_place: "Redondo Beach",
+    photo: IMG.rvJay,
+    url: "https://maps.app.goo.gl/u3xjEEDSV9KmAnMq9",
+  },
+  {
+    quote:
+      "Finally I found the right dentist! I am so happy I found such a wonderful overall practice. I received the best most thorough care. Both the Dr. Quan and my hygienist walked me thru all details and were gentle and made sure I was...",
+    reviewer_name: "Leigh L.",
+    reviewer_place: "Redondo Beach",
+    photo: IMG.rvLeigh,
+    url: "https://maps.app.goo.gl/mqZFMifn4U4MF92C8",
+  },
 ];
 const reviewItems = (img) =>
   REVIEWS.map((r) => ({
@@ -194,7 +278,9 @@ const teamTeaser = (img) => ({
   primary: {
     heading: [head(2, "Meet Our Team")],
     body: [
-      para("We love caring for our patients and we also love the beach, read a little about each of our team members and see their favorite beach beyond the South Bay."),
+      para(
+        "We love caring for our patients and we also love the beach, read a little about each of our team members and see their favorite beach beyond the South Bay.",
+      ),
       paraLink("Meet our team →", "Meet our team →", "/our-team"),
     ],
     media: img(IMG.quan),
@@ -212,7 +298,12 @@ function assemblies(img) {
         slice_type: "hero",
         variation: "default",
         primary: {
-          heading: [head(1, "Have a relaxed dental experience where you are known and cared for at Beachfront Dentistry")],
+          heading: [
+            head(
+              1,
+              "Have a relaxed dental experience where you are known and cared for at Beachfront Dentistry",
+            ),
+          ],
           body: [],
           cta_label: "Make Appointment",
           cta_link: webLink("#appointment"),
@@ -227,16 +318,41 @@ function assemblies(img) {
           columns: 3,
         },
         items: [
-          { item_heading: [head(4, "Comfort")], item_body: [para("Our dental care integrates all oral health needs with goals of establishing life-long and healthy habits")], item_media: img(IMG.comfort), item_link: {} },
-          { item_heading: [head(4, "Comprehensive")], item_body: [para("Our focus on preventative and restorative dental treatments ensures that you receive long-lasting, quality care")], item_media: img(IMG.comprehensive), item_link: {} },
-          { item_heading: [head(4, "Caring")], item_body: [], item_media: img(IMG.caring), item_link: {} },
+          {
+            item_heading: [head(4, "Comfort")],
+            item_body: [
+              para(
+                "Our dental care integrates all oral health needs with goals of establishing life-long and healthy habits",
+              ),
+            ],
+            item_media: img(IMG.comfort),
+            item_link: {},
+          },
+          {
+            item_heading: [head(4, "Comprehensive")],
+            item_body: [
+              para(
+                "Our focus on preventative and restorative dental treatments ensures that you receive long-lasting, quality care",
+              ),
+            ],
+            item_media: img(IMG.comprehensive),
+            item_link: {},
+          },
+          {
+            item_heading: [head(4, "Caring")],
+            item_body: [],
+            item_media: img(IMG.caring),
+            item_link: {},
+          },
         ],
       },
       teamTeaser(img),
       {
         slice_type: "carousel",
         variation: "review",
-        primary: { heading: [head(2, "Serving the South Bay for over 40 years")] },
+        primary: {
+          heading: [head(2, "Serving the South Bay for over 40 years")],
+        },
         items: reviewItems(img),
       },
       {
@@ -244,9 +360,24 @@ function assemblies(img) {
         variation: "default",
         primary: { heading: [head(2, "Your Path to Oral Health")], columns: 3 },
         items: [
-          { item_heading: [head(4, "Book an Appointment")], item_body: [], item_media: {}, item_link: {} },
-          { item_heading: [head(4, "Have a Complete Exam")], item_body: [], item_media: {}, item_link: {} },
-          { item_heading: [head(4, "Receive a No-Pressure Plan")], item_body: [], item_media: {}, item_link: {} },
+          {
+            item_heading: [head(4, "Book an Appointment")],
+            item_body: [],
+            item_media: {},
+            item_link: {},
+          },
+          {
+            item_heading: [head(4, "Have a Complete Exam")],
+            item_body: [],
+            item_media: {},
+            item_link: {},
+          },
+          {
+            item_heading: [head(4, "Receive a No-Pressure Plan")],
+            item_body: [],
+            item_media: {},
+            item_link: {},
+          },
         ],
       },
       {
@@ -257,15 +388,34 @@ function assemblies(img) {
           columns: 3,
         },
         items: [
-          { item_heading: [head(4, "Cosmetic Dentistry")], item_body: [], item_media: {}, item_link: webLink("/services") },
-          { item_heading: [head(4, "Implant Dentistry")], item_body: [], item_media: {}, item_link: webLink("/services") },
-          { item_heading: [head(4, "General Dentistry")], item_body: [], item_media: {}, item_link: webLink("/services") },
+          {
+            item_heading: [head(4, "Cosmetic Dentistry")],
+            item_body: [],
+            item_media: {},
+            item_link: webLink("/services"),
+          },
+          {
+            item_heading: [head(4, "Implant Dentistry")],
+            item_body: [],
+            item_media: {},
+            item_link: webLink("/services"),
+          },
+          {
+            item_heading: [head(4, "General Dentistry")],
+            item_body: [],
+            item_media: {},
+            item_link: webLink("/services"),
+          },
         ],
       },
       {
         slice_type: "question_list",
         variation: "teaser",
-        primary: { heading: [head(2, "Ask the Doctor")], side_image: img(IMG.quan), max_items: 6 },
+        primary: {
+          heading: [head(2, "Ask the Doctor")],
+          side_image: img(IMG.quan),
+          max_items: 6,
+        },
         items: [],
       },
       ctaHero(),
@@ -277,7 +427,11 @@ function assemblies(img) {
         variation: "default",
         primary: {
           heading: [head(1, "We are excited to meet and care for you.")],
-          body: [para("We want you to feel comfortable before your first visit. Here some ways to give you a clear idea of what to expect:")],
+          body: [
+            para(
+              "We want you to feel comfortable before your first visit. Here some ways to give you a clear idea of what to expect:",
+            ),
+          ],
           cta_label: "Book an Appointment",
           cta_link: webLink("#appointment"),
         },
@@ -287,7 +441,16 @@ function assemblies(img) {
         slice_type: "carousel",
         variation: "photos",
         primary: { heading: [head(2, "Office Tour")], label: "Office Tour" },
-        items: [IMG.tour1, IMG.tour2, IMG.tour3, IMG.tour4, IMG.tour5, IMG.tour6, IMG.tour7, IMG.tour8].map((u) => ({ image: img(u), caption: "" })),
+        items: [
+          IMG.tour1,
+          IMG.tour2,
+          IMG.tour3,
+          IMG.tour4,
+          IMG.tour5,
+          IMG.tour6,
+          IMG.tour7,
+          IMG.tour8,
+        ].map((u) => ({ image: img(u), caption: "" })),
       },
       teamTeaser(img),
       {
@@ -296,21 +459,43 @@ function assemblies(img) {
         primary: {
           content: [
             head(3, "First Exam"),
-            para("To be a long term health partner we need to really understand your current dental condition. We ask for 2 hours of your time. We are gentle but thorough to give you the best plan for the future. Here are the basic steps to that first exam:"),
-            withStrong(para("15 min — Registration Forms"), "15 min — Registration Forms"),
-            para("That necessary step to understand your history and your dental helath goals and is completed before appointment"),
+            para(
+              "To be a long term health partner we need to really understand your current dental condition. We ask for 2 hours of your time. We are gentle but thorough to give you the best plan for the future. Here are the basic steps to that first exam:",
+            ),
+            withStrong(
+              para("15 min — Registration Forms"),
+              "15 min — Registration Forms",
+            ),
+            para(
+              "That necessary step to understand your history and your dental helath goals and is completed before appointment",
+            ),
             withStrong(para("10 min — Check-in"), "10 min — Check-in"),
-            para("Our front office staff will get you checked in and make sure all your paperwork is in order and gives you an expectation of payment."),
-            withStrong(para("15 min — X-rays and Imaging"), "15 min — X-rays and Imaging"),
-            para("We are do our best to make you comfortable, like turn on your ceiling TV to your favorite channel, while we take photos and x-rays of your current condition."),
+            para(
+              "Our front office staff will get you checked in and make sure all your paperwork is in order and gives you an expectation of payment.",
+            ),
+            withStrong(
+              para("15 min — X-rays and Imaging"),
+              "15 min — X-rays and Imaging",
+            ),
+            para(
+              "We are do our best to make you comfortable, like turn on your ceiling TV to your favorite channel, while we take photos and x-rays of your current condition.",
+            ),
             withStrong(para("20 min — Exam"), "20 min — Exam"),
-            para("Both our hygienist and dentist will conduct a thorough exam of your x-rays and current dental condition, including a cancer and gum disease screening."),
+            para(
+              "Both our hygienist and dentist will conduct a thorough exam of your x-rays and current dental condition, including a cancer and gum disease screening.",
+            ),
             withStrong(para("30 min — Cleaning"), "30 min — Cleaning"),
-            para("Your hygienist will conduct a thorough dental cleaning using the latest techniques and highest safety precautions. Read our yelp reviews to see how other patients love our hygienists."),
+            para(
+              "Your hygienist will conduct a thorough dental cleaning using the latest techniques and highest safety precautions. Read our yelp reviews to see how other patients love our hygienists.",
+            ),
             withStrong(para("15 min — Dental Plan"), "15 min — Dental Plan"),
-            para("Dr. Quan or Dr. Hopkins will review their findings of the exam. If any long term dental is needed he will present the options you have and relative timelines and priorities. Answering any questions you may have so you are empowered to take control of your own long-term dental health."),
+            para(
+              "Dr. Quan or Dr. Hopkins will review their findings of the exam. If any long term dental is needed he will present the options you have and relative timelines and priorities. Answering any questions you may have so you are empowered to take control of your own long-term dental health.",
+            ),
             withStrong(para("05 min — Check out"), "05 min — Check out"),
-            para("You then have a chance to schedule any future visits and take care of any cost questions about future work."),
+            para(
+              "You then have a chance to schedule any future visits and take care of any cost questions about future work.",
+            ),
           ],
         },
         items: [],
@@ -318,7 +503,9 @@ function assemblies(img) {
       {
         slice_type: "carousel",
         variation: "review",
-        primary: { heading: [head(2, "Serving the South Bay for over 40 years")] },
+        primary: {
+          heading: [head(2, "Serving the South Bay for over 40 years")],
+        },
         items: reviewItems(img),
       },
       ctaHero(),
@@ -330,7 +517,11 @@ function assemblies(img) {
         variation: "default",
         primary: {
           eyebrow: "Meet Our Team",
-          body: [para("We love caring for our patients and we also love the beach, read a little about each of our team members and see their favorite beach beyond the South Bay.")],
+          body: [
+            para(
+              "We love caring for our patients and we also love the beach, read a little about each of our team members and see their favorite beach beyond the South Bay.",
+            ),
+          ],
         },
         items: [],
       },
@@ -349,7 +540,11 @@ function assemblies(img) {
         variation: "default",
         primary: {
           eyebrow: "Services",
-          body: [para("We offer a wide array of services in cosmetic, implant, and general dentistry. From present issues like discoloration, decay and misalignment to preventative measures for oral cancer and enamel loss- we have you covered.")],
+          body: [
+            para(
+              "We offer a wide array of services in cosmetic, implant, and general dentistry. From present issues like discoloration, decay and misalignment to preventative measures for oral cancer and enamel loss- we have you covered.",
+            ),
+          ],
         },
         items: [],
       },
@@ -359,7 +554,11 @@ function assemblies(img) {
         primary: {
           category_tag: "Cosmetic Dentistry",
           heading: [head(3, "Cosmetic Dentistry")],
-          intro: [para("Cosmetic dentistry focuses on improving the appearance of your smile. If discoloration, a need for whitening and brightening or veneer replacements are causing you to lack confidence in your smile, take a look at our options below.")],
+          intro: [
+            para(
+              "Cosmetic dentistry focuses on improving the appearance of your smile. If discoloration, a need for whitening and brightening or veneer replacements are causing you to lack confidence in your smile, take a look at our options below.",
+            ),
+          ],
         },
         items: [],
       },
@@ -369,7 +568,11 @@ function assemblies(img) {
         primary: {
           category_tag: "Restore Your Smile",
           heading: [head(3, "Restore Your Smile")],
-          intro: [para("With solutions in implant dentistry, you no longer have to feel embarrassed by gaps and missing or dead teeth. Dental implants are the next best thing to your natural teeth, which makes them your best long-term, cost-effective solution. Talk to our team about the restorative options that are best for you.")],
+          intro: [
+            para(
+              "With solutions in implant dentistry, you no longer have to feel embarrassed by gaps and missing or dead teeth. Dental implants are the next best thing to your natural teeth, which makes them your best long-term, cost-effective solution. Talk to our team about the restorative options that are best for you.",
+            ),
+          ],
         },
         items: [],
       },
@@ -379,7 +582,11 @@ function assemblies(img) {
         primary: {
           category_tag: "General Dentistry",
           heading: [head(3, "General Dentistry")],
-          intro: [para("Regular check-ups and cleanings are necessary for the prevention, diagnosis, and treatment of conditions that affect your gums, teeth, and oral cavity. Making a plan for prevention is equally as important as treatment for larger issues and can save you thousands in more invasive treatments down the road.")],
+          intro: [
+            para(
+              "Regular check-ups and cleanings are necessary for the prevention, diagnosis, and treatment of conditions that affect your gums, teeth, and oral cavity. Making a plan for prevention is equally as important as treatment for larger issues and can save you thousands in more invasive treatments down the road.",
+            ),
+          ],
         },
         items: [],
       },
@@ -389,7 +596,11 @@ function assemblies(img) {
         primary: {
           category_tag: "Specialty Services",
           heading: [head(3, "Specialty Services")],
-          intro: [para("Take a look at our products that allow for quality at-home care in whitening, enamel-loss prevention, tooth sensitivity relief, and more! Including Invisalign, which is a series of virtually invisible aligners. Wire-free and bracket-free, you could have straight teeth within 12 months!")],
+          intro: [
+            para(
+              "Take a look at our products that allow for quality at-home care in whitening, enamel-loss prevention, tooth sensitivity relief, and more! Including Invisalign, which is a series of virtually invisible aligners. Wire-free and bracket-free, you could have straight teeth within 12 months!",
+            ),
+          ],
         },
         items: [],
       },
@@ -428,7 +639,11 @@ const TITLES = {
 async function lookupPageIds() {
   const api = await (await fetch(`https://${REPO}.prismic.io/api/v2`)).json();
   const ref = api.refs.find((r) => r.isMasterRef).ref;
-  const q = await (await fetch(`https://${REPO}.prismic.io/api/v2/documents/search?ref=${ref}&pageSize=100`)).json();
+  const q = await (
+    await fetch(
+      `https://${REPO}.prismic.io/api/v2/documents/search?ref=${ref}&pageSize=100`,
+    )
+  ).json();
   const byUid = new Map();
   for (const d of q.results) if (d.type === "page") byUid.set(d.uid, d.id);
   return byUid;
@@ -450,7 +665,8 @@ async function main() {
   const asm = assemblies(img);
   const pageIds = await lookupPageIds();
 
-  let updated = 0, created = 0;
+  let updated = 0,
+    created = 0;
   for (const [uid, slices] of Object.entries(asm)) {
     const body = JSON.stringify({
       type: "page",
@@ -461,18 +677,28 @@ async function main() {
     });
     // POST first; on "already exists", PUT by the master doc id (the stubs are
     // published, so the id resolves).
-    const res = await fetchWithRetry("https://migration.prismic.io/documents", { method: "POST", headers: jsonHeaders, body });
+    const res = await fetchWithRetry("https://migration.prismic.io/documents", {
+      method: "POST",
+      headers: jsonHeaders,
+      body,
+    });
     if (res.ok) {
       created++;
       console.log(`created ${uid} (${slices.length} slices)`);
     } else {
       const text = await res.text();
-      if (!/already exists/i.test(text)) throw new Error(`create ${uid}: ${res.status} ${text.slice(0, 300)}`);
+      if (!/already exists/i.test(text))
+        throw new Error(`create ${uid}: ${res.status} ${text.slice(0, 300)}`);
       const id = pageIds.get(uid);
-      if (!id) throw new Error(`update ${uid}: no master id (publish stub first?)`);
+      if (!id)
+        throw new Error(`update ${uid}: no master id (publish stub first?)`);
       await sleep(THROTTLE_MS);
       await expectOk(
-        await fetchWithRetry(`https://migration.prismic.io/documents/${id}`, { method: "PUT", headers: jsonHeaders, body }),
+        await fetchWithRetry(`https://migration.prismic.io/documents/${id}`, {
+          method: "PUT",
+          headers: jsonHeaders,
+          body,
+        }),
         `update ${uid}`,
       );
       updated++;
@@ -480,7 +706,9 @@ async function main() {
     }
     await sleep(THROTTLE_MS);
   }
-  console.log(`\nDONE: ${created} created, ${updated} updated. Publish the Migration release to go live.`);
+  console.log(
+    `\nDONE: ${created} created, ${updated} updated. Publish the Migration release to go live.`,
+  );
 }
 
 main().catch((e) => {
