@@ -51,6 +51,12 @@
             "collection_list": {
               "type": "SharedSlice"
             },
+            "question_list": {
+              "type": "SharedSlice"
+            },
+            "service_category_band": {
+              "type": "SharedSlice"
+            },
             "grid_band": {
               "type": "SharedSlice"
             },
