@@ -124,6 +124,7 @@
                   {#if isFilled.image(item.reviewer_photo)}
                     <PrismicImage
                       field={item.reviewer_photo}
+                      fallbackAlt=""
                       class="h-12 w-12 rounded-full object-cover"
                     />
                   {/if}
@@ -148,6 +149,7 @@
                 {#if isFilled.image(item.image)}
                   <PrismicImage
                     field={item.image}
+                    fallbackAlt=""
                     class="h-auto w-full object-cover"
                   />
                 {/if}
