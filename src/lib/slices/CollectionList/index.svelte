@@ -1,10 +1,22 @@
 <script lang="ts">
   import { PrismicImage, PrismicRichText } from "@prismicio/svelte";
   import type { Content, ImageField, RichTextField } from "@prismicio/client";
+  import { ENTITY_ROUTE_PREFIX } from "$lib/blux-catalog/entity-routes";
 
   type CollectionDoc = {
     uid: string;
-    data: { title: unknown; media?: { url?: string; alt?: string | null } };
+    // Real Prismic documents (getAllByType/getByUID) carry `type`; test mocks
+    // may omit it, in which case the doc renders card-only, same as any
+    // other type this slice doesn't recognize (see HREF_PREFIX below).
+    type?: string;
+    data: {
+      title: unknown;
+      // Comma-separated string field, not a Prismic tags array — same shape
+      // ServiceCategoryBand/QuestionList/the person/collection_item detail
+      // routes already read. Doubles as the team grid's Name + role line.
+      tags?: string | null;
+      media?: { url?: string; alt?: string | null };
+    };
   };
 
   interface Props {
@@ -24,7 +36,32 @@
       ? "flex flex-col gap-6"
       : "grid grid-cols-1 gap-8 md:grid-cols-3",
   );
+
+  // Doc-type → detail-route prefix — mirrors the individual detail routes
+  // (services/[slug], questions/[slug], team-members/[slug]) and the same
+  // per-type href idiom already in ServiceCategoryBand/QuestionList/
+  // BluxCollection. A doc whose `type` isn't in the shared map (or has none)
+  // renders unlinked, same as this slice's card behavior before links existed.
+  const hrefFor = (doc: CollectionDoc): string | undefined => {
+    const prefix = doc.type ? ENTITY_ROUTE_PREFIX[doc.type] : undefined;
+    return prefix ? `${prefix}${doc.uid}` : undefined;
+  };
 </script>
+
+{#snippet card(doc: CollectionDoc)}
+  <article>
+    {#if doc.data.media?.url}
+      <PrismicImage
+        field={doc.data.media as unknown as ImageField}
+        class="mb-3 h-auto w-full rounded"
+      />
+    {/if}
+    <PrismicRichText field={doc.data.title as RichTextField} />
+    {#if doc.data.tags}
+      <p class="text-secondary mt-1 text-sm">{doc.data.tags}</p>
+    {/if}
+  </article>
+{/snippet}
 
 <section
   data-slice-type={slice.slice_type}
@@ -34,15 +71,17 @@
   <PrismicRichText field={slice.primary.heading} />
   <div class="mt-8 {listClass}">
     {#each docs as doc (doc.uid)}
-      <article>
-        {#if doc.data.media?.url}
-          <PrismicImage
-            field={doc.data.media as unknown as ImageField}
-            class="mb-3 h-auto w-full rounded"
-          />
-        {/if}
-        <PrismicRichText field={doc.data.title as RichTextField} />
-      </article>
+      {@const href = hrefFor(doc)}
+      {#if href}
+        <a
+          {href}
+          class="focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
+        >
+          {@render card(doc)}
+        </a>
+      {:else}
+        {@render card(doc)}
+      {/if}
     {/each}
   </div>
 </section>

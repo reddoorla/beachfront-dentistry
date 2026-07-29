@@ -3,6 +3,21 @@
  * `getAllByType` and hands the documents to every slice through SliceZone
  * `context.collections` (slices never fetch). */
 
+/** Slices whose entity type is author-picked per instance via their own
+ * primary.collection_type field (blux_collection's catalog-spec band and
+ * collection_list's linked-Custom-Type picker share this field name). */
+const READS_COLLECTION_TYPE_FIELD = new Set([
+  "blux_collection",
+  "collection_list",
+]);
+
+/** Slices whose entity type is fixed by the slice's own shape — there's no
+ * per-instance field for the author to set, so the mapping lives here. */
+const FIXED_ENTITY_TYPE: Record<string, string> = {
+  question_list: "news_article",
+  service_category_band: "collection_item",
+};
+
 /** The collection types a page's slice zone queries: unique, ordered. */
 export function collectionTypesOf(
   slices: {
@@ -12,8 +27,9 @@ export function collectionTypesOf(
 ): string[] {
   const types: string[] = [];
   for (const slice of slices) {
-    if (slice.slice_type !== "blux_collection") continue;
-    const type = slice.primary?.collection_type;
+    const type = READS_COLLECTION_TYPE_FIELD.has(slice.slice_type)
+      ? slice.primary?.collection_type
+      : FIXED_ENTITY_TYPE[slice.slice_type];
     if (type && !types.includes(type)) types.push(type);
   }
   return types;
@@ -29,7 +45,12 @@ export async function loadCollections(
     types.map(async (type): Promise<[string, unknown[]]> => {
       try {
         return [type, await client.getAllByType(type)];
-      } catch {
+      } catch (err) {
+        // Tolerant by design (a repo without this custom type gets an empty
+        // list) — but say so in the logs: a TRANSIENT fetch failure here at
+        // prerender time would otherwise silently ship a sitemap/page missing
+        // real published docs with no build signal.
+        console.warn(`[collections-load] getAllByType(${type}) failed:`, err);
         return [type, []];
       }
     }),

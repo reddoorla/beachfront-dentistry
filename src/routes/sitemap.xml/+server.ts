@@ -1,8 +1,14 @@
 import { createClient, isFrozenSite, isPlaceholderRepo } from "$lib/prismicio";
 import { frozenUids } from "$lib/blux-frozen/load";
+import { loadCollections } from "$lib/blux-catalog/collections-load";
+import { ENTITY_ROUTE_PREFIX } from "$lib/blux-catalog/entity-routes";
 import type { RequestHandler } from "./$types";
 
 export const prerender = true;
+
+// Every card the catalog slices link to also gets a sitemap entry — the
+// shared ENTITY_ROUTE_PREFIX map keeps this route and CollectionList's
+// hrefFor from drifting apart.
 
 export const GET: RequestHandler = async ({ fetch, url }) => {
   const origin = url.origin;
@@ -11,20 +17,46 @@ export const GET: RequestHandler = async ({ fetch, url }) => {
   // committed frozen artifacts (home renders at "/"), never native `page` docs —
   // list those so the sitemap robots.txt advertises isn't silently empty. Build
   // time stands in for a frozen page's lastmod (it is rebaked whenever its
-  // content republishes).
-  const entries: { path: string; lastmod: string }[] = isFrozenSite
-    ? frozenUids().map((uid) => ({
-        path: uid === "home" ? "/" : `/${uid}`,
-        lastmod: new Date().toISOString(),
-      }))
-    : isPlaceholderRepo
-      ? []
-      : (await createClient({ fetch }).getAllByType("page")).map((page) => ({
-          path: page.uid === "home" ? "/" : `/${page.uid}`,
+  // content republishes). A frozen site's Prismic holds no
+  // person/news_article/collection_item docs either, so it skips the entity
+  // fetch entirely — same reasoning as `[uid]/+page.server.ts`'s `entries()`.
+  let entries: { path: string; lastmod: string }[];
+
+  if (isFrozenSite) {
+    entries = frozenUids().map((uid) => ({
+      path: uid === "home" ? "/" : `/${uid}`,
+      lastmod: new Date().toISOString(),
+    }));
+  } else if (isPlaceholderRepo) {
+    entries = [];
+  } else {
+    const client = createClient({ fetch });
+
+    const pageEntries = (await client.getAllByType("page")).map((page) => ({
+      path: page.uid === "home" ? "/" : `/${page.uid}`,
+      lastmod: new Date(page.last_publication_date ?? Date.now()).toISOString(),
+    }));
+
+    // Tolerates a repo that hasn't provisioned one of these custom types yet
+    // (empty list, not a build-breaking 500) — the same contract
+    // collections-load.ts already gives the catalog slices' load path.
+    const entityDocs = await loadCollections(
+      client,
+      Object.keys(ENTITY_ROUTE_PREFIX),
+    );
+    const entityEntries = Object.entries(entityDocs).flatMap(([type, docs]) =>
+      (docs as { uid: string; last_publication_date?: string | null }[]).map(
+        (doc) => ({
+          path: `${ENTITY_ROUTE_PREFIX[type]}${doc.uid}`,
           lastmod: new Date(
-            page.last_publication_date ?? Date.now(),
+            doc.last_publication_date ?? Date.now(),
           ).toISOString(),
-        }));
+        }),
+      ),
+    );
+
+    entries = [...pageEntries, ...entityEntries];
+  }
 
   const urls = entries.map(
     ({ path, lastmod }) => `  <url>

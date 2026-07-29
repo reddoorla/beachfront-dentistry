@@ -156,6 +156,14 @@ const config = {
           "https://player.vimeo.com",
           // Cloudflare Turnstile renders its challenge in an iframe from this host.
           "https://challenges.cloudflare.com",
+          // YouTube embeds on the services detail route (collection_item's
+          // `link` field, when it's a youtube.com/embed URL).
+          "https://www.youtube.com",
+          // Simple Google Maps embed iframe (MapEmbed.svelte, /contact-us) —
+          // needs no API key, so it stays unconditional. Unlike the Maps-JS
+          // wildcard below (gated because it widens script/img/connect-src
+          // too), this is frame-src only and a single host.
+          "https://www.google.com",
           // Google Maps JS may frame google.com surfaces (per its CSP doc).
           ...(wantsMapsCsp ? ["https://*.google.com"] : []),
         ],

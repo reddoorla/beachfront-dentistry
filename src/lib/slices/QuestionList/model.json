@@ -1,0 +1,47 @@
+{
+  "id": "question_list",
+  "type": "SharedSlice",
+  "name": "QuestionList",
+  "description": "Ask-the-Doctor question lists (news_article docs)",
+  "variations": [
+    {
+      "id": "teaser",
+      "name": "Teaser",
+      "docURL": "...",
+      "version": "initial",
+      "description": "Homepage teaser with floating doctor image",
+      "imageUrl": "",
+      "primary": {
+        "heading": {
+          "type": "StructuredText",
+          "config": { "label": "heading", "single": "heading2" }
+        },
+        "side_image": {
+          "type": "Image",
+          "config": {
+            "label": "side image",
+            "constraint": {},
+            "thumbnails": []
+          }
+        },
+        "max_items": { "type": "Number", "config": { "label": "max items" } }
+      },
+      "items": {}
+    },
+    {
+      "id": "numbered",
+      "name": "Numbered",
+      "docURL": "...",
+      "version": "initial",
+      "description": "Full numbered expandable list",
+      "imageUrl": "",
+      "primary": {
+        "heading": {
+          "type": "StructuredText",
+          "config": { "label": "heading", "single": "heading2" }
+        }
+      },
+      "items": {}
+    }
+  ]
+}

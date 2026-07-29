@@ -35,6 +35,68 @@
           }
         }
       }
+    },
+    {
+      "id": "review",
+      "name": "Review",
+      "docURL": "...",
+      "version": "initial",
+      "description": "Quote carousel with reviewer attribution",
+      "imageUrl": "",
+      "primary": {
+        "heading": {
+          "type": "StructuredText",
+          "config": { "label": "heading", "single": "heading2" }
+        }
+      },
+      "items": {
+        "quote": { "type": "Text", "config": { "label": "quote" } },
+        "reviewer_name": {
+          "type": "Text",
+          "config": { "label": "reviewer name" }
+        },
+        "reviewer_place": {
+          "type": "Text",
+          "config": { "label": "reviewer place" }
+        },
+        "reviewer_photo": {
+          "type": "Image",
+          "config": {
+            "label": "reviewer photo",
+            "constraint": {},
+            "thumbnails": []
+          }
+        },
+        "review_url": {
+          "type": "Link",
+          "config": { "label": "review url", "allowTargetBlank": true }
+        }
+      }
+    },
+    {
+      "id": "photos",
+      "name": "Photos",
+      "docURL": "...",
+      "version": "initial",
+      "description": "Photo slider with own images",
+      "imageUrl": "",
+      "primary": {
+        "heading": {
+          "type": "StructuredText",
+          "config": { "label": "heading", "single": "heading2" }
+        },
+        "label": {
+          "type": "Text",
+          "config": { "label": "accessible label" }
+        }
+      },
+      "items": {
+        "image": {
+          "type": "Image",
+          "config": { "label": "image", "constraint": {}, "thumbnails": [] }
+        },
+        "caption": { "type": "Text", "config": { "label": "caption" } }
+      }
     }
   ]
 }

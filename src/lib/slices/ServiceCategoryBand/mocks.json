@@ -1,0 +1,31 @@
+[
+  {
+    "__TYPE__": "SharedSliceContent",
+    "variation": "default",
+    "primary": {
+      "category_tag": {
+        "__TYPE__": "FieldContent",
+        "type": "Text",
+        "value": "Cosmetic Dentistry"
+      },
+      "heading": {
+        "__TYPE__": "StructuredTextContent",
+        "value": [
+          { "type": "heading3", "content": { "text": "Cosmetic Dentistry" } }
+        ]
+      },
+      "intro": {
+        "__TYPE__": "StructuredTextContent",
+        "value": [
+          {
+            "type": "paragraph",
+            "content": {
+              "text": "Smile-focused treatments designed around comfort and lasting results."
+            }
+          }
+        ]
+      }
+    },
+    "items": []
+  }
+]

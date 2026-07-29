@@ -46,5 +46,60 @@
       }
     },
     "items": []
+  },
+  {
+    "__TYPE__": "SharedSliceContent",
+    "variation": "cta",
+    "primary": {
+      "heading": {
+        "__TYPE__": "StructuredTextContent",
+        "value": [
+          {
+            "type": "heading2",
+            "content": { "text": "Ready for great dental health?" }
+          }
+        ]
+      },
+      "body": {
+        "__TYPE__": "StructuredTextContent",
+        "value": [
+          {
+            "type": "paragraph",
+            "content": {
+              "text": "Book online or give us a call — our Redondo Beach team can't wait to see your smile."
+            }
+          }
+        ]
+      },
+      "background_image": {
+        "__TYPE__": "ImageContent",
+        "url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
+        "origin": {
+          "id": "main",
+          "url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
+          "width": 1600,
+          "height": 900
+        },
+        "width": 1600,
+        "height": 900,
+        "edit": {
+          "background": "transparent",
+          "zoom": 1,
+          "crop": { "x": 0, "y": 0 }
+        },
+        "thumbnails": {},
+        "alt": "Sunny beach near the office"
+      },
+      "cta_label": {
+        "__TYPE__": "FieldContent",
+        "type": "Text",
+        "value": "Book an Appointment"
+      },
+      "cta_link": {
+        "__TYPE__": "LinkContent",
+        "value": { "__TYPE__": "ExternalLink", "url": "#appointment" }
+      }
+    },
+    "items": []
   }
 ]
