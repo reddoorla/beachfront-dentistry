@@ -156,6 +156,9 @@ const config = {
           "https://player.vimeo.com",
           // Cloudflare Turnstile renders its challenge in an iframe from this host.
           "https://challenges.cloudflare.com",
+          // YouTube embeds on the services detail route (collection_item's
+          // `link` field, when it's a youtube.com/embed URL).
+          "https://www.youtube.com",
           // Google Maps JS may frame google.com surfaces (per its CSP doc).
           ...(wantsMapsCsp ? ["https://*.google.com"] : []),
         ],
