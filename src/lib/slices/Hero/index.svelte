@@ -102,7 +102,7 @@
     sliceType={slice.slice_type}
     variation={slice.variation}
     fallbackHeight={hasImage ? "45vh" : undefined}
-    sectionClass="hero-band relative isolate overflow-hidden bg-neutral-900 text-white"
+    sectionClass="hero-band relative isolate overflow-hidden bg-dark text-white"
     contentClass="relative z-10 max-w-4xl px-6 py-24 text-center"
   >
     {#snippet background()}
@@ -118,7 +118,7 @@
     {#if slice.primary.cta_label && slice.primary.cta_link}
       <PrismicLink
         field={slice.primary.cta_link}
-        class="mt-6 inline-block bg-white px-6 py-3 font-medium text-black"
+        class="mt-6 inline-block bg-white px-6 py-3 font-medium text-primary-deep"
       >
         {slice.primary.cta_label}
       </PrismicLink>

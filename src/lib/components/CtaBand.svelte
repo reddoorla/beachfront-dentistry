@@ -47,7 +47,7 @@
 <!-- Photo CTA band: the site's recurring "Ready for great dental health?"
      band — full-bleed photo, dark scrim, centered slab heading (h1/h2 pick
      up font-slab globally, see app.css), pill CTA, wave divider at the TOP
-     only. bg-neutral-900 (the same dark canvas Hero's default photo path
+     only. bg-dark (the same dark-canvas token Hero's default photo path
      already sits on) shows through the WaveDivider's transparent negative
      space, so — per WaveDivider's fill-matches-neighbour contract — the
      white fill reads as the light page above seaming into this band. The
@@ -60,15 +60,15 @@
      (bg-primary-deep text-white would still clear AA on its own, but white
      reads as the stronger "solid" affordance against a photo, and matches
      the CTA everywhere else it already appears in chrome). The focus
-     ring's offset is neutral-900 rather than Nav's primary-deep — Nav's
+     ring's offset is bg-dark rather than Nav's primary-deep — Nav's
      ring-offset matches its own solid-color band; this band's real
-     backdrop behind the pill is the photo+scrim, and neutral-900 (this
+     backdrop behind the pill is the photo+scrim, and bg-dark (this
      section's own canvas color) is the closer neighbour than an unrelated
      brand blue. -->
 <section
   data-slice-type={sliceType}
   data-slice-variation={sliceVariation}
-  class="relative isolate w-full overflow-hidden bg-neutral-900 text-white"
+  class="relative isolate w-full overflow-hidden bg-dark text-white"
 >
   <WaveDivider fill="white" flip />
   <div class="relative w-full" style="min-height: 45vh;">
@@ -87,7 +87,7 @@
       {#if ctaLabel && ctaLink}
         <PrismicLink
           field={ctaLink}
-          class="mt-6 inline-block rounded-full bg-white px-8 py-3 font-semibold text-primary-deep focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 focus-visible:outline-hidden"
+          class="mt-6 inline-block rounded-full bg-white px-8 py-3 font-semibold text-primary-deep focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-dark focus-visible:outline-hidden"
         >
           {ctaLabel}
         </PrismicLink>
