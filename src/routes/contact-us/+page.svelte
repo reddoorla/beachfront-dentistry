@@ -2,6 +2,8 @@
   import { enhance } from "$app/forms";
   import Field from "$lib/components/Field.svelte";
   import TurnstileWidget from "$lib/components/TurnstileWidget.svelte";
+  import MapEmbed from "$lib/components/MapEmbed.svelte";
+  import { ADDRESS, HOURS, PHONE } from "$lib/site";
   import type { ActionData, PageData } from "./$types";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -25,99 +27,137 @@
   Requires FORMS_INGEST_URL + FORMS_INGEST_TOKEN in the deployed site's env (see .env.example).
 -->
 
-<main class="max-w-2xl mx-auto px-8 py-16 space-y-8">
+<main class="max-w-5xl mx-auto px-8 py-16 space-y-10">
   <header class="space-y-2">
-    <h1 class="text-3xl font-bold">Contact us</h1>
+    <h1 class="text-3xl font-bold">Contact Us</h1>
     <p class="text-secondary">Send us a message and we'll get back to you.</p>
   </header>
 
-  <!-- One-and-done: on success the form unmounts. To allow another submission, keep the form mounted and reset the field state instead. -->
-  {#if form?.success}
-    <p
-      role="status"
-      class="border-2 border-green-600 bg-green-50 rounded p-4 text-green-900"
-    >
-      Thanks — your message is on its way. We'll be in touch soon.
-    </p>
-  {:else}
-    <form
-      method="POST"
-      class="space-y-4"
-      use:enhance={() => {
-        submitting = true;
-        return async ({ update }) => {
-          await update();
-          submitting = false;
-        };
-      }}
-    >
-      <!-- Single top-level error; for multi-field validation summaries see $lib/components/Form.svelte. -->
-      {#if form?.error}
+  <div class="grid grid-cols-1 gap-12 md:grid-cols-2">
+    <div class="space-y-8">
+      <!-- One-and-done: on success the form unmounts. To allow another submission, keep the form mounted and reset the field state instead. -->
+      {#if form?.success}
         <p
-          role="alert"
-          class="border-2 border-red-600 bg-red-50 rounded p-4 text-red-900"
+          role="status"
+          class="border-2 border-green-600 bg-green-50 rounded p-4 text-green-900"
         >
-          {form.error}
+          Thanks — we'll reach out to schedule your visit.
         </p>
+      {:else}
+        <form
+          method="POST"
+          class="space-y-4"
+          use:enhance={() => {
+            submitting = true;
+            return async ({ update }) => {
+              await update();
+              submitting = false;
+            };
+          }}
+        >
+          <!-- Single top-level error; for multi-field validation summaries see $lib/components/Form.svelte. -->
+          {#if form?.error}
+            <p
+              role="alert"
+              class="border-2 border-red-600 bg-red-50 rounded p-4 text-red-900"
+            >
+              {form.error}
+            </p>
+          {/if}
+
+          <!-- Anti-bot: per-request timing token + a hidden honeypot. Naive bots
+               fill the honeypot; a too-fast fill is caught by the timing screen. -->
+          <input type="hidden" name="ts" value={data.formTs} />
+          <input
+            type="text"
+            name="bot-field"
+            tabindex="-1"
+            autocomplete="off"
+            aria-hidden="true"
+            class="hidden"
+          />
+
+          <Field
+            name="name"
+            label="Name"
+            autocomplete="name"
+            required
+            bind:value={name}
+          />
+          <Field
+            name="email"
+            label="Email"
+            type="email"
+            autocomplete="email"
+            required
+            bind:value={email}
+          />
+          <Field
+            name="phone"
+            label="Phone"
+            type="tel"
+            autocomplete="tel"
+            bind:value={phone}
+          />
+          <Field
+            name="message"
+            label="Message"
+            type="textarea"
+            maxlength={5000}
+            required
+            bind:value={message}
+          />
+
+          <!-- Optional Cloudflare Turnstile (dark until PUBLIC_TURNSTILE_SITE_KEY is
+               set — the component gates itself). Mounted inside the form so the widget
+               injects a hidden `cf-turnstile-response` input here, which
+               createIngestAction reads and forwards. Verification is central (the
+               dashboard holds TURNSTILE_SECRET_KEY; sites carry only the public key). -->
+          <TurnstileWidget />
+
+          <button
+            type="submit"
+            disabled={submitting}
+            class="px-4 py-2 bg-primary-deep text-white rounded bump disabled:opacity-60"
+          >
+            {submitting ? "Sending…" : "Send message"}
+          </button>
+        </form>
       {/if}
+    </div>
 
-      <!-- Anti-bot: per-request timing token + a hidden honeypot. Naive bots
-           fill the honeypot; a too-fast fill is caught by the timing screen. -->
-      <input type="hidden" name="ts" value={data.formTs} />
-      <input
-        type="text"
-        name="bot-field"
-        tabindex="-1"
-        autocomplete="off"
-        aria-hidden="true"
-        class="hidden"
-      />
+    <div class="space-y-8">
+      <div>
+        <h2 class="text-xl font-semibold">Office Hours</h2>
+        <dl class="mt-3 space-y-1">
+          {#each HOURS as [days, time] (days)}
+            <div class="flex justify-between gap-4">
+              <dt>{days}</dt>
+              <dd class="text-secondary">{time}</dd>
+            </div>
+          {/each}
+        </dl>
+      </div>
 
-      <Field
-        name="name"
-        label="Name"
-        autocomplete="name"
-        required
-        bind:value={name}
-      />
-      <Field
-        name="email"
-        label="Email"
-        type="email"
-        autocomplete="email"
-        required
-        bind:value={email}
-      />
-      <Field
-        name="phone"
-        label="Phone"
-        type="tel"
-        autocomplete="tel"
-        bind:value={phone}
-      />
-      <Field
-        name="message"
-        label="Message"
-        type="textarea"
-        maxlength={5000}
-        required
-        bind:value={message}
-      />
+      <div>
+        <h2 class="text-xl font-semibold">Address</h2>
+        <address class="mt-3 not-italic">
+          <p>{ADDRESS.line1}</p>
+          <p>{ADDRESS.line2}</p>
+        </address>
+      </div>
 
-      <!-- Optional Cloudflare Turnstile (dark until PUBLIC_TURNSTILE_SITE_KEY is
-           set — the component gates itself). Mounted inside the form so the widget
-           injects a hidden `cf-turnstile-response` input here, which
-           createIngestAction reads and forwards. Verification is central (the
-           dashboard holds TURNSTILE_SECRET_KEY; sites carry only the public key). -->
-      <TurnstileWidget />
+      <div>
+        <h2 class="text-xl font-semibold">Phone</h2>
+        <a
+          href={PHONE.href}
+          class="mt-3 inline-block text-primary-deep underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
+        >
+          {PHONE.display}
+        </a>
+      </div>
 
-      <button
-        type="submit"
-        disabled={submitting}
-        class="px-4 py-2 bg-primary-deep text-white rounded bump disabled:opacity-60"
-      >
-        {submitting ? "Sending…" : "Send message"}
-      </button>
-    </form>
-  {/if}
+      <MapEmbed />
+    </div>
+  </div>
 </main>

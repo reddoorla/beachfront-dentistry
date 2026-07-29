@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { loadSiteConfig, type FooterText } from "./blux/site-config";
-import { PHONE, MODENTO_URL } from "./site";
+import { ADDRESS, HOURS, PHONE, MODENTO_URL } from "./site";
 
 // The practice phone + Modento payment URL live in BOTH src/lib/site.ts (nav
 // CTAs, routes) and site-config.json's footer columns (the Blux chrome shape).
@@ -20,5 +20,18 @@ describe("site constants stay in sync with site-config.json", () => {
   it("footer Make a Payment link matches MODENTO_URL", () => {
     const payment = items.find((i) => i.text === "Make a Payment");
     expect(payment?.href).toBe(MODENTO_URL);
+  });
+
+  it("footer office-hours lines match HOURS ('<day> / <time>', same order)", () => {
+    const texts = items.map((i) => i.text);
+    for (const [day, time] of HOURS) {
+      expect(texts).toContain(`${day} / ${time}`);
+    }
+  });
+
+  it("footer address lines match ADDRESS", () => {
+    const texts = items.map((i) => i.text);
+    expect(texts).toContain(ADDRESS.line1);
+    expect(texts).toContain(ADDRESS.line2);
   });
 });
