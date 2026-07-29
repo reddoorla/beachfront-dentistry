@@ -21,6 +21,7 @@ import LeadText from "./LeadText/index.svelte";
 import LocationMap from "./LocationMap/index.svelte";
 import MediaFull from "./MediaFull/index.svelte";
 import MediaText from "./MediaText/index.svelte";
+import QuestionList from "./QuestionList/index.svelte";
 import RichText from "./RichText/index.svelte";
 import SectionGrid from "./SectionGrid/index.svelte";
 import SplitFeature from "./SplitFeature/index.svelte";
@@ -49,6 +50,7 @@ export const components = {
   location_map: LocationMap,
   media_full: MediaFull,
   media_text: MediaText,
+  question_list: QuestionList,
   rich_text: RichText,
   section_grid: SectionGrid,
   split_feature: SplitFeature,

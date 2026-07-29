@@ -1,0 +1,48 @@
+[
+  {
+    "__TYPE__": "SharedSliceContent",
+    "variation": "teaser",
+    "primary": {
+      "heading": {
+        "__TYPE__": "StructuredTextContent",
+        "value": [
+          { "type": "heading2", "content": { "text": "Ask the Doctor" } }
+        ]
+      },
+      "side_image": {
+        "__TYPE__": "ImageContent",
+        "url": "https://images.unsplash.com/photo-1622253692010-333f2da6031d",
+        "origin": {
+          "id": "main",
+          "url": "https://images.unsplash.com/photo-1622253692010-333f2da6031d",
+          "width": 900,
+          "height": 1200
+        },
+        "width": 900,
+        "height": 1200,
+        "edit": {
+          "background": "transparent",
+          "zoom": 1,
+          "crop": { "x": 0, "y": 0 }
+        },
+        "thumbnails": {},
+        "alt": "Dr. Smith reviewing a patient's chart"
+      },
+      "max_items": { "__TYPE__": "FieldContent", "type": "Number", "value": 6 }
+    },
+    "items": []
+  },
+  {
+    "__TYPE__": "SharedSliceContent",
+    "variation": "numbered",
+    "primary": {
+      "heading": {
+        "__TYPE__": "StructuredTextContent",
+        "value": [
+          { "type": "heading2", "content": { "text": "All questions" } }
+        ]
+      }
+    },
+    "items": []
+  }
+]
