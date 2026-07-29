@@ -61,6 +61,7 @@
         >
           <PrismicImage
             field={item.item_media}
+            fallbackAlt=""
             class="max-h-16 w-auto object-contain"
           />
         </PrismicLink>
@@ -75,6 +76,7 @@
         <PrismicLink field={item.item_link} class="block">
           <PrismicImage
             field={item.item_media}
+            fallbackAlt=""
             class="mb-4 aspect-[4/3] w-full object-cover"
           />
           <PrismicRichText field={item.item_heading} />
@@ -100,6 +102,7 @@
             {#if hasMedia(item)}
               <PrismicImage
                 field={item.item_media}
+                fallbackAlt=""
                 class="mt-2 h-auto w-auto"
               />
             {/if}
@@ -111,6 +114,7 @@
         {#each mediaItems as item, i (item)}
           <PrismicImage
             field={item.item_media}
+            fallbackAlt=""
             class="h-auto {isSmall(item) ? 'w-auto' : 'w-full'} {i % 2 === 1
               ? 'lg:ml-12 lg:max-w-[85%]'
               : ''}"

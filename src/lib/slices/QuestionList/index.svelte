@@ -93,7 +93,11 @@
       <!-- Decorative doctor image: floats along to track the topmost visible
            .qa-item as the question list scrolls (ports floating-doc.js). -->
       <div use:floatAlong={{ itemSelector: ".qa-item" }}>
-        <PrismicImage field={slice.primary.side_image} class="h-auto w-full" />
+        <PrismicImage
+          field={slice.primary.side_image}
+          fallbackAlt=""
+          class="h-auto w-full"
+        />
       </div>
     {/if}
   </section>
