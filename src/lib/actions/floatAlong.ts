@@ -21,6 +21,15 @@ export function floatAlong(
   const parent = node.parentElement;
   if (!parent) return;
 
+  // The image's own resting offsetTop. `transform` is visual only and never
+  // changes layout, so offsetTop stays constant — capture it once. Both this
+  // and the items' offsetTop are measured from the same offsetParent (the
+  // teaser's plain-div grid resolves that to <body>), so the DIFFERENCE is the
+  // item's position relative to where the image naturally sits. Translating by
+  // the raw item.offsetTop instead would double-count the section's own page
+  // offset and fling the image a full page-height down the document.
+  const base = node.offsetTop;
+
   let ticking = false;
 
   const align = () => {
@@ -28,12 +37,10 @@ export function floatAlong(
     const items = [...parent.querySelectorAll<HTMLElement>(itemSelector)];
     const top =
       items.find((el) => el.getBoundingClientRect().bottom > 0) ?? items[0];
-    // offsetTop is relative to the item's offsetParent while the transform is
-    // relative to the node's own resting spot — the alignment only holds while
-    // node and items share an offsetParent (true for the teaser's plain-div
-    // grid). If a positioned ancestor ever splits them the image drifts
-    // silently, which is an acceptable failure for a pure decoration.
-    if (top) node.style.transform = `translateY(${top.offsetTop}px)`;
+    // Move the image's top to the topmost visible item's top. If a positioned
+    // ancestor ever splits their shared offsetParent the image drifts silently,
+    // which is an acceptable failure for a pure decoration.
+    if (top) node.style.transform = `translateY(${top.offsetTop - base}px)`;
   };
 
   const onScroll = () => {
