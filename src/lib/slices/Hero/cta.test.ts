@@ -59,12 +59,13 @@ describe("Hero cta variation", () => {
     expect(link.getAttribute("href")).toBe("#appointment");
   });
 
-  it("renders exactly one wave divider (decorative, hidden from AT)", () => {
+  it("renders no wave divider — the photo band seams straight (live), Footer owns the wave", () => {
     const { container } = render(Hero, { props: { slice } });
-    // TOP wave only. The band closes every page and Footer renders
-    // immediately after with its own top wave, which owns the bottom seam —
-    // a second wave here would stack two dividers at that boundary.
+    // Live seams the white closing section straight into the FIJI photo (no
+    // wave on either edge of the band), and the Footer that renders right after
+    // carries the single pale wave at that boundary — so the cta band draws
+    // none itself. A wave here would be an extra seam live doesn't have.
     const waveSvgs = container.querySelectorAll("[aria-hidden='true'] svg");
-    expect(waveSvgs.length).toBe(1);
+    expect(waveSvgs.length).toBe(0);
   });
 });

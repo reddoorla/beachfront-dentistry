@@ -1,7 +1,6 @@
 <script lang="ts">
   import HeroBackgroundImage from "$lib/components/HeroBackgroundImage.svelte";
   import RichTextBody from "$lib/components/RichTextBody.svelte";
-  import WaveDivider from "$lib/components/WaveDivider.svelte";
   import { PrismicLink, PrismicRichText } from "@prismicio/svelte";
   import type { ImageField, LinkField, RichTextField } from "@prismicio/client";
   import { Plus } from "@lucide/svelte";
@@ -56,10 +55,10 @@
         140px/w100 size) on the plain white page, with a ghost-pill CTA.
      2. A separate full-bleed photo band underneath carrying only the small
         location caption (the live "FIJI ISLANDS" whimsy) — no heading over it.
-     The photo band uses bg-dark behind the WaveDivider's transparent negative
-     space so the white fill reads as the white section above seaming into it
-     (WaveDivider's fill-matches-neighbour contract). The Footer renders right
-     after with its own top wave, so this band has no bottom wave. -->
+     The photo band has a straight top edge (matching live — the white section
+     seams into the photo with no wave), and no bottom wave: the Footer renders
+     right after and carries the only wave here, its pale edge dipping up into
+     the photo. -->
 <section
   data-slice-type={sliceType}
   data-slice-variation={sliceVariation}
@@ -93,8 +92,7 @@
   </div>
 
   {#if hasImage}
-    <div class="relative isolate w-full overflow-hidden bg-dark">
-      <WaveDivider fill="white" flip />
+    <div class="relative isolate w-full overflow-hidden">
       <div class="relative w-full" style="min-height: 42vh;">
         <HeroBackgroundImage image={backgroundImage} preload={false} />
         {#if caption}

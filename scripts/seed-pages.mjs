@@ -269,7 +269,7 @@ const teamTeaser = () => ({
   slice_type: "collection_list",
   variation: "team",
   primary: {
-    heading: [head(2, "Meet Our Team")],
+    heading: [head(2, "Meet Your Team")],
     collection_type: "person",
     max_items: 24,
   },
@@ -287,9 +287,12 @@ function assemblies(img) {
         variation: "default",
         primary: {
           heading: [
-            head(
-              1,
-              "Have a relaxed dental experience where you are known and cared for at Beachfront Dentistry",
+            withStrong(
+              head(
+                1,
+                "Have a relaxed dental experience where you are known and cared for at Beachfront Dentistry",
+              ),
+              "Beachfront Dentistry",
             ),
           ],
           body: [],

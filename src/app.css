@@ -238,6 +238,15 @@ main :where(h1, h2, h3) {
   line-height: 1.05;
 }
 
+/* Emphasis inside a slab heading (live bolds "Beachfront Dentistry" in the hero
+   h1) reads as a true bold against the light 300 display weight — Tailwind's
+   preflight `strong { font-weight: bolder }` only lifts 300→400, too faint.
+   Unlayered so it beats that base-layer reset. */
+main :where(h1, h2, h3) strong,
+.display-xl strong {
+  font-weight: 700;
+}
+
 /* Content body copy: light, generous leading, ~18–20px like the original. */
 main :where(p) {
   font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.1875rem);

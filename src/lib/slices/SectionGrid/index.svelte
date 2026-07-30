@@ -100,9 +100,10 @@
 </script>
 
 {#if layout === "services"}
-  <!-- Teal→sand gradient services band: a wave seam top & bottom (fill = the
-       white neighbours above/below) with a badge straddling the top wave.
-       Ports the live Services section. -->
+  <!-- Teal→sand gradient services band: a wave seam at the TOP (fill = the
+       white neighbour above) with the tooth badge straddling it, and a soft
+       fade-to-white at the BOTTOM (live has no bottom wave — the band dissolves
+       into the section below). Ports the live Services section. -->
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
@@ -110,14 +111,17 @@
     class="from-primary to-accent relative isolate w-full overflow-hidden bg-gradient-to-br text-white"
   >
     <WaveDivider fill="white" flip />
-    <div
-      class="absolute top-0 left-1/2 z-20 grid size-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white shadow-md"
+    <!-- The tooth badge (a self-contained cyan disc + white tooth, 130px
+         native) straddles the top wave right-of-centre, sitting on the crest —
+         matching live. Rendered at native size, not shrunk inside a wrapper. -->
+    <img
+      src="/icons/tooth-badge.svg"
+      alt=""
       aria-hidden="true"
-    >
-      <img src="/icons/tooth-badge.svg" alt="" class="size-9" />
-    </div>
+      class="absolute top-0 left-[68%] z-20 size-32 -translate-x-1/2 -translate-y-1/2 drop-shadow-md"
+    />
     <div
-      class="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 py-20 lg:grid-cols-2 lg:items-center"
+      class="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 pt-20 pb-40 lg:grid-cols-2 lg:items-center"
       use:animateIn={REVEAL}
     >
       <div>
@@ -155,7 +159,14 @@
         {/each}
       </ul>
     </div>
-    <WaveDivider fill="white" />
+    <!-- Live has NO bottom wave here: the teal→sand band dissolves into the
+         white "ask the doctor" section below via a soft vertical fade (the
+         question cards float up over the faded tail). Match that instead of a
+         hard wave seam. -->
+    <div
+      class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-56 bg-gradient-to-b from-transparent to-white"
+      aria-hidden="true"
+    ></div>
   </section>
 {:else if layout === "steps"}
   <!-- Display heading + subtitle beside a circular photo, then numbered steps,
@@ -169,9 +180,7 @@
     class="mx-auto max-w-6xl px-6 py-20"
     use:animateIn={REVEAL}
   >
-    <div
-      class="grid grid-cols-1 items-start gap-10 md:grid-cols-[1.35fr_1fr]"
-    >
+    <div class="grid grid-cols-1 items-start gap-10 md:grid-cols-[1.35fr_1fr]">
       <div>
         {#if isFilled.richText(primary.heading)}
           <h2

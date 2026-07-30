@@ -124,7 +124,7 @@
     ></div>
     <div
       class="absolute inset-0"
-      style="background:linear-gradient(rgba(18,158,204,0) 25%,rgba(18,158,204,0.92) 56%,#129ecc 80%,#b6aa91)"
+      style="background:linear-gradient(rgba(18,158,204,0) 20%,rgba(18,158,204,0.9) 46%,#129ecc 60%,#b6aa91 82%)"
     ></div>
     <div
       class="relative z-10 mx-auto flex w-full max-w-[1360px] flex-col items-start gap-8 px-6 pt-36 pb-28 md:flex-row md:items-center md:justify-between md:gap-12"
