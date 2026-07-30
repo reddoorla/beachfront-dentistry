@@ -1,7 +1,6 @@
 <script lang="ts">
   import HeroBackgroundImage from "$lib/components/HeroBackgroundImage.svelte";
   import RichTextBody from "$lib/components/RichTextBody.svelte";
-  import ContentBand from "$lib/components/ContentBand.svelte";
   import CtaBand from "$lib/components/CtaBand.svelte";
   import WaveDivider from "$lib/components/WaveDivider.svelte";
   import { PrismicLink, PrismicRichText } from "@prismicio/svelte";
