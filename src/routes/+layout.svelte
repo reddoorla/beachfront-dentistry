@@ -88,6 +88,7 @@
       items={siteConfig.nav.items}
       logo={siteConfig.nav.logo}
       transparentAtTop={navTransparentAtTop}
+      hamburgerOnly
     />
 
     <main id="main-content" tabindex="-1" class="flex-1">

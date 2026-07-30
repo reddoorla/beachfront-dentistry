@@ -7,6 +7,7 @@
   import ContentBand from "$lib/components/ContentBand.svelte";
   import Slider from "$lib/components/Slider.svelte";
   import { PrismicImage, PrismicRichText } from "@prismicio/svelte";
+  import { Plus } from "@lucide/svelte";
   import {
     isFilled,
     asLink,
@@ -58,6 +59,11 @@
   const trackItems = $derived(isTrackVariation ? (slice.items ?? []) : []);
   const trackCount = $derived(trackItems.length);
 
+  // The live review cards carry a Yelp badge, but the reviews are mixed-source
+  // (Yelp + Google Maps). Only Yelp-sourced reviews get the badge; others get a
+  // neutral link, so a Google review is never mislabelled as Yelp.
+  const isYelp = (url: string | null): boolean => /yelp\./i.test(url ?? "");
+
   const hasHeading = $derived(isFilled.richText(slice.primary.heading));
   const headingText = $derived(hasHeading ? asText(slice.primary.heading) : "");
   const trackLabel = $derived(
@@ -93,15 +99,15 @@
     <ContentBand
       sliceType={slice.slice_type}
       variation={slice.variation}
-      contentClass="max-w-5xl px-6 py-16 text-center"
+      contentClass="max-w-6xl px-6 py-16 text-center"
       reveal
     >
       {#if hasHeading && slice.primary.heading}
-        <div class="mb-10">
+        <div class="h-primary mb-12">
           <PrismicRichText field={slice.primary.heading} />
         </div>
       {/if}
-      <div class="relative">
+      <div class="relative mx-auto max-w-4xl">
         {#if slice.variation === "review"}
           <!-- "what they say:" margin annotation. The exact Typekit script face
                arrives with the font allowlist (fonts deferred for now); a
@@ -130,48 +136,71 @@
             {@const item = trackItems[index]}
             {#if item}
               {#if slice.variation === "review"}
-                <div class="px-4">
+                <div class="px-4 pb-6">
+                  <!-- Pale-blue quote card with the reviewer row and the Yelp
+                       badge overhanging the bottom-right (live "what they say"
+                       card). -->
                   <figure
-                    class="bg-surface mx-auto max-w-2xl rounded-2xl p-8 text-left shadow-sm ring-1 ring-black/5 sm:p-10"
+                    class="relative mx-auto max-w-2xl rounded-2xl bg-[#e8f3f8] p-8 text-left sm:p-10"
                   >
-                    <span
-                      aria-hidden="true"
-                      class="font-slab text-primary/20 block text-5xl leading-none"
-                      >“</span
-                    >
-                    <blockquote
-                      class="text-dark/90 -mt-2 text-lg leading-relaxed"
-                    >
-                      <p>{item.quote}</p>
-                    </blockquote>
-                    <figcaption class="mt-6 flex items-center gap-3">
-                      {#if isFilled.image(item.reviewer_photo)}
-                        <PrismicImage
-                          field={item.reviewer_photo}
-                          fallbackAlt=""
-                          class="h-12 w-12 rounded-full object-cover"
-                        />
-                      {/if}
-                      <div class="flex-1">
-                        <p class="text-dark font-semibold">
-                          {item.reviewer_name}
-                        </p>
-                        {#if item.reviewer_place}
-                          <p class="text-secondary text-sm">
-                            {item.reviewer_place}
-                          </p>
-                        {/if}
-                      </div>
-                      {#if isFilled.link(item.review_url)}
+                    <!-- Absolutely-positioned, so DOM order is free — kept as
+                         the figure's FIRST child so <figcaption> stays last
+                         (a11y_figcaption_index). -->
+                    {#if isFilled.link(item.review_url)}
+                      {#if isYelp(asLink(item.review_url))}
+                        <!-- Yelp-sourced review → the live Yelp badge overhangs
+                             the bottom-right. -->
                         <a
                           href={asLink(item.review_url)}
                           target="_blank"
                           rel="noopener"
-                          class="text-primary-deep shrink-0 text-sm font-semibold underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                          aria-label="Read this review on Yelp"
+                          class="focus-visible:ring-primary-deep absolute -bottom-5 right-6 rounded-2xl shadow-md focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                        >
+                          <img
+                            src="/icons/yelp-logo.png"
+                            alt="Yelp"
+                            width="56"
+                            height="56"
+                            class="h-14 w-14 rounded-2xl"
+                          />
+                        </a>
+                      {:else}
+                        <!-- Non-Yelp source (e.g. Google) → a neutral link, so a
+                             Google review is never mislabelled as Yelp. -->
+                        <a
+                          href={asLink(item.review_url)}
+                          target="_blank"
+                          rel="noopener"
+                          class="text-primary-deep focus-visible:ring-primary-deep absolute right-6 bottom-4 text-sm font-semibold underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
                         >
                           Read review
                         </a>
                       {/if}
+                    {/if}
+                    <blockquote class="text-dark/90 text-lg leading-relaxed">
+                      <p>{item.quote}</p>
+                    </blockquote>
+                    <figcaption class="mt-8 flex items-center gap-4">
+                      {#if isFilled.image(item.reviewer_photo)}
+                        <PrismicImage
+                          field={item.reviewer_photo}
+                          fallbackAlt=""
+                          class="h-14 w-14 rounded-full object-cover"
+                        />
+                      {/if}
+                      <div class="flex-1">
+                        <p class="text-dark text-xl font-semibold">
+                          {item.reviewer_name}
+                        </p>
+                        {#if item.reviewer_place}
+                          <p
+                            class="text-secondary text-sm tracking-wide uppercase"
+                          >
+                            {item.reviewer_place}
+                          </p>
+                        {/if}
+                      </div>
                     </figcaption>
                   </figure>
                 </div>
@@ -193,6 +222,17 @@
           {/snippet}
         </Slider>
       </div>
+      {#if slice.variation === "review" && isFilled.link(trackItems[0]?.review_url)}
+        <a
+          href={asLink(trackItems[0].review_url)}
+          target="_blank"
+          rel="noopener"
+          class="text-dark hover:text-primary-deep focus-visible:ring-primary-deep mt-12 inline-flex items-center gap-2 text-lg font-light focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+        >
+          Read Reviews
+          <Plus class="text-primary" size={20} aria-hidden="true" />
+        </a>
+      {/if}
     </ContentBand>
   {/if}
 {:else if frames && frames.length > 0}

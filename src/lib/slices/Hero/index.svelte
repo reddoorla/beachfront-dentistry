@@ -116,19 +116,21 @@
     <div
       class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/5"
     ></div>
-    <div class="relative z-10 mx-auto w-full max-w-6xl px-6 pt-36 pb-28">
+    <div
+      class="relative z-10 mx-auto flex w-full max-w-[1360px] flex-col items-start gap-8 px-6 pt-36 pb-28 md:flex-row md:items-center md:justify-between md:gap-12"
+    >
       <div class="max-w-3xl">
         <PrismicRichText field={slice.primary.heading} />
         <RichTextBody field={slice.primary.body} />
-        {#if slice.primary.cta_label && slice.primary.cta_link}
-          <PrismicLink
-            field={slice.primary.cta_link}
-            class="mt-8 inline-block rounded-full bg-white px-8 py-3 font-semibold text-primary-deep focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-dark focus-visible:outline-hidden"
-          >
-            {slice.primary.cta_label}
-          </PrismicLink>
-        {/if}
       </div>
+      {#if slice.primary.cta_label && slice.primary.cta_link}
+        <PrismicLink
+          field={slice.primary.cta_link}
+          class="focus-visible:ring-offset-dark inline-block shrink-0 rounded-full border border-white/80 px-8 py-3 font-slab text-2xl font-light text-white transition-colors hover:bg-white hover:text-primary-deep focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden"
+        >
+          {slice.primary.cta_label}
+        </PrismicLink>
+      {/if}
     </div>
     <div class="absolute bottom-0 left-0 z-10 w-full">
       <WaveDivider fill="white" />

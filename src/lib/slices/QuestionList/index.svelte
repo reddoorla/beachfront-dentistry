@@ -8,6 +8,7 @@
   } from "@prismicio/client";
   import { floatAlong } from "$lib/actions/floatAlong";
   import { animateIn } from "$lib/actions/animateIn";
+  import { Plus } from "@lucide/svelte";
 
   // QuestionListSlice/QuestionListSliceVariation aren't in the generated
   // Prismic types yet — this is a brand-new slice, and regenerating needs a
@@ -18,6 +19,7 @@
     data: {
       title?: RichTextField;
       body?: RichTextField;
+      media?: ImageField;
       date?: string | null;
     };
   };
@@ -68,40 +70,101 @@
 </script>
 
 {#if slice.variation === "teaser"}
+  <!-- Live "Ask the Doctor": a centered column of question cards — a pale
+       header bar (circled number + "+") over a cyan-tinted question photo with
+       the title in white — a cursive "ask the doctor" annotation to the left,
+       and the doctor headshot floating down the right edge tracking the topmost
+       card. The first card is featured (no number header). -->
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-6 py-16 md:grid-cols-2"
+    class="relative mx-auto max-w-4xl px-6 py-20"
     use:animateIn={{ duration: 700, translateY: "2rem" }}
   >
-    <div>
-      {#if isFilled.richText(slice.primary.heading)}
-        <PrismicRichText field={slice.primary.heading} />
+    {#if isFilled.richText(slice.primary.heading)}
+      <span
+        class="text-dark pointer-events-none absolute top-16 left-2 z-10 hidden -rotate-6 text-2xl lg:inline-block"
+        style="font-family:'Caveat','Bradley Hand','Segoe Print',cursive"
+        aria-hidden="true"
+      >
+        {asText(slice.primary.heading).toLowerCase()} ↳
+      </span>
+    {/if}
+
+    <div class="relative mx-auto max-w-xl">
+      {#if isFilled.image(slice.primary.side_image)}
+        <!-- Floats along to track the topmost visible .qa-item as the column
+             scrolls (ports floating-doc.js). -->
+        <div
+          use:floatAlong={{ itemSelector: ".qa-item" }}
+          class="pointer-events-none absolute top-0 -right-24 z-10 hidden w-36 lg:block xl:-right-40 xl:w-44"
+        >
+          <PrismicImage
+            field={slice.primary.side_image}
+            fallbackAlt=""
+            class="aspect-square w-full rounded-full object-cover shadow-lg"
+          />
+        </div>
       {/if}
-      <ul class="mt-6 flex flex-col gap-4">
-        {#each teaserDocs as doc (doc.uid)}
+
+      <ul class="flex flex-col gap-8">
+        {#each teaserDocs as doc, i (doc.uid)}
           <li class="qa-item">
             <a
               href="/questions/{doc.uid}"
-              class="font-semibold underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
+              class="focus-visible:ring-primary-deep group block overflow-hidden rounded-2xl shadow-md ring-1 ring-black/5 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
             >
-              {titleText(doc)}
+              {#if i > 0}
+                <div
+                  class="bg-primary/5 flex items-center justify-between px-6 py-3"
+                >
+                  <span
+                    class="text-dark grid size-9 place-items-center rounded-full text-sm font-semibold ring-1 ring-black/15"
+                    >{pad2(i + 1)}</span
+                  >
+                  <Plus class="text-primary" size={24} aria-hidden="true" />
+                </div>
+              {/if}
+              <div class="relative">
+                {#if isFilled.image(doc.data.media)}
+                  <PrismicImage
+                    field={doc.data.media}
+                    fallbackAlt=""
+                    class="aspect-[16/9] w-full object-cover"
+                  />
+                {:else}
+                  <div class="from-primary to-accent aspect-[16/9] w-full bg-gradient-to-br"></div>
+                {/if}
+                <!-- Cyan wash: the live cards tint every photo toward the brand
+                     hue so the white title reads and the set feels cohesive. -->
+                <div
+                  class="from-primary/50 to-primary/75 absolute inset-0 bg-gradient-to-b"
+                  aria-hidden="true"
+                ></div>
+                <!-- Inline colour: the unlayered global `main h1–h3` primary
+                     rule outranks any Tailwind text utility, so white is set
+                     inline to win over it. -->
+                <h3
+                  class="font-slab absolute inset-x-6 bottom-5 text-[1.6rem] leading-tight font-light"
+                  style="color:#fff"
+                >
+                  {titleText(doc)}
+                </h3>
+              </div>
             </a>
           </li>
         {/each}
       </ul>
-    </div>
-    {#if isFilled.image(slice.primary.side_image)}
-      <!-- Decorative doctor image: floats along to track the topmost visible
-           .qa-item as the question list scrolls (ports floating-doc.js). -->
-      <div use:floatAlong={{ itemSelector: ".qa-item" }}>
-        <PrismicImage
-          field={slice.primary.side_image}
-          fallbackAlt=""
-          class="h-auto w-full"
-        />
+
+      <div class="mt-12 text-center">
+        <a
+          href="/ask-the-doctor"
+          class="text-dark hover:border-primary hover:text-primary-deep focus-visible:ring-primary-deep inline-block rounded-full border border-black/15 px-8 py-3 font-light transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+        >
+          View All Questions
+        </a>
       </div>
-    {/if}
+    </div>
   </section>
 {:else if slice.variation === "numbered"}
   <section

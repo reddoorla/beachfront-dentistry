@@ -202,16 +202,29 @@ main > section.hero-band:first-child {
 main :where(h1, h2, h3) {
   color: var(--color-primary-deep);
 }
-.hero-band :where(h1, h2, h3),
-.cta-band :where(h1, h2, h3),
-[data-slice-variation="cta"] :where(h1, h2, h3) {
+
+/* Live's large display headings are #129ecc (--color-primary). Plain primary is
+   only 3.09:1 on white — AA-safe for LARGE text (≥24px, or ≥18.66px bold) but
+   not for small headings (blux `txt-role` bands, dev fixtures), which stay on
+   the AA-safe -deep default above. So primary is opt-in via `.h-primary`, added
+   only to the genuinely large headings (30–140px here). Unlayered + a class
+   selector so it outranks both Tailwind utilities and the -deep default. */
+.h-primary,
+.h-primary :where(h1, h2, h3) {
+  color: var(--color-primary);
+}
+/* Only the opening photographic hero keeps white headings. The closing CTA
+   band ("Ready for great dental health?") is brand-blue on white on the live
+   site, so it stays on the default primary rule above. */
+.hero-band :where(h1, h2, h3) {
   color: #fff;
 }
 
 /* The closing CTA band's "Ready for great dental health?" is oversized,
    ultra-light display type on the original (140px/w100). */
-.cta-band :where(h1, h2) {
-  font-size: clamp(2.75rem, 0.5rem + 8vw, 7rem);
+.display-xl :where(h1, h2),
+.display-xl {
+  font-size: clamp(2.75rem, 0.5rem + 9vw, 8.75rem); /* → 140px @ ≥1440 */
   font-weight: 100;
   line-height: 1.05;
 }
@@ -289,7 +302,11 @@ main :where(p) {
     font-size: clamp(2.5rem, 1.6rem + 4vw, 3.75rem); /* → 60px */
   }
   h2 {
-    font-size: clamp(2.125rem, 1.3rem + 3.7vw, 3.25rem); /* → 52px */
+    font-size: clamp(
+      2.125rem,
+      1.3rem + 4.5vw,
+      3.75rem
+    ); /* → 60px, matches h1 */
   }
   h3 {
     font-size: clamp(1.5rem, 1rem + 2.2vw, 2.25rem); /* → 36px */

@@ -33,7 +33,8 @@
         "items": [
           { "text": "OFFICE HOURS" },
           { "text": "Monday - Thursday / 7am - 5pm" },
-          { "text": "Friday / 7am - 2pm" }
+          { "text": "Friday / 7am - 2pm" },
+          { "text": "Saturday - Sunday / Closed" }
         ]
       },
       {

@@ -27,6 +27,10 @@
      *  carousel always keeps a non-swipe control. */
     showDots?: boolean;
     showArrows?: boolean;
+    /** "below" (default) puts prev/next in the centered control row under the
+     * track; "sides" pins them to the left/right edges, vertically centered on
+     * the track (the live team carousel). */
+    arrowLayout?: "below" | "sides";
     /** Tailwind duration/easing utilities for the slide/fade movement. */
     transitionClass?: string;
     navigationClass?: string;
@@ -50,6 +54,7 @@
     autoplay = 0,
     showDots = true,
     showArrows = true,
+    arrowLayout = "below",
     transitionClass = "duration-500 ease-in-out",
     navigationClass = "",
     arrowClass = "",
@@ -184,6 +189,14 @@
 
   const arrowsShown = $derived(showArrows && maxSlide > 0);
   const dotsShown = $derived(showDots || !arrowsShown);
+  // Arrows in the bottom control row only in the default layout; "sides" pins
+  // them to the track edges instead. The bottom row then renders only if it
+  // still holds something (dots or the autoplay pause control).
+  const bottomArrows = $derived(arrowsShown && arrowLayout !== "sides");
+  const sideArrows = $derived(arrowsShown && arrowLayout === "sides");
+  const showBottomNav = $derived(
+    maxSlide > 0 && (bottomArrows || dotsShown || autoplayEligible),
+  );
   const atStart = $derived(!loop && currentSlide === 0);
   const atEnd = $derived(!loop && currentSlide === maxSlide);
 
@@ -250,6 +263,45 @@
     {/if}
   </div>
 
+  {#if sideArrows}
+    <!-- Edge-pinned prev/next, vertically centered on the track (live team
+         carousel). Same handlers/aria as the bottom-row arrows. -->
+    <button
+      type="button"
+      onclick={prevSlide}
+      onkeydown={handleKeydown}
+      aria-disabled={atStart ? "true" : undefined}
+      class="absolute top-1/2 left-0 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full transition-colors duration-200 aria-disabled:cursor-default aria-disabled:opacity-40 {arrowClass}"
+      aria-label="Previous slide"
+    >
+      <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M15 19l-7-7 7-7"
+        />
+      </svg>
+    </button>
+    <button
+      type="button"
+      onclick={nextSlide}
+      onkeydown={handleKeydown}
+      aria-disabled={atEnd ? "true" : undefined}
+      class="absolute top-1/2 right-0 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full transition-colors duration-200 aria-disabled:cursor-default aria-disabled:opacity-40 {arrowClass}"
+      aria-label="Next slide"
+    >
+      <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 5l7 7-7 7"
+        />
+      </svg>
+    </button>
+  {/if}
+
   <!-- Announce position to screen readers only when the user is driving;
        a rotating carousel announcing every few seconds is noise (APG). -->
   <div
@@ -265,7 +317,7 @@
     {/if}
   </div>
 
-  {#if maxSlide > 0}
+  {#if showBottomNav}
     <div class="flex justify-center items-center gap-4 mt-8 {navigationClass}">
       {#if autoplayEligible}
         <!-- First control in the carousel's tab order (APG). -->
@@ -287,7 +339,7 @@
         </button>
       {/if}
 
-      {#if arrowsShown}
+      {#if bottomArrows}
         <!-- aria-disabled (not disabled) so the bound arrow keeps focus
              instead of dumping the keyboard user back to <body>. -->
         <button
@@ -340,7 +392,7 @@
         </div>
       {/if}
 
-      {#if arrowsShown}
+      {#if bottomArrows}
         <button
           type="button"
           onclick={nextSlide}

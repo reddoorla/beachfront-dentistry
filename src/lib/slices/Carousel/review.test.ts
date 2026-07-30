@@ -10,9 +10,10 @@ afterEach(() => cleanup());
 const trackOf = (container: HTMLElement) =>
   container.querySelector(".transition-transform") as HTMLElement;
 
-// The live site's 5 review links are MIXED — 3 Yelp + 2 Google Maps. The
-// slice renders a source-agnostic "Read review" link from review_url; it
-// must never brand itself as a Yelp widget.
+// The live site's 5 review links are MIXED — 3 Yelp + 2 Google Maps. Matching
+// the live card, a Yelp-sourced review shows the Yelp badge; a Google (or other
+// non-Yelp) review gets a neutral "Read review" link, so a Google review is
+// never mislabelled as Yelp.
 const reviewItems = [
   {
     quote: "The whole team made a routine cleaning feel easy.",
@@ -158,17 +159,18 @@ describe("Carousel slice — review variation", () => {
     expect(visible[0]?.textContent).toContain("Sarah M.");
   });
 
-  it("renders a source-agnostic Read review link (no Yelp branding)", () => {
-    const { getByRole, container } = render(Carousel, {
+  it("badges a Yelp-sourced review with the Yelp logo linking to that review", () => {
+    const { getByRole } = render(Carousel, {
       props: { slice: makeReviewSlice() },
     });
-    const link = getByRole("link", { name: "Read review" });
+    // item[0]'s review_url is a Yelp link → the live Yelp badge is shown.
+    const link = getByRole("link", { name: "Read this review on Yelp" });
     expect(link.getAttribute("href")).toBe("https://www.yelp.com/biz/review-1");
     expect(link.getAttribute("target")).toBe("_blank");
     expect(link.getAttribute("rel")).toBe("noopener");
-    // No Yelp logo/brand mark anywhere in the slide.
-    expect(container.querySelector("[data-yelp]")).toBeNull();
-    expect(container.innerHTML.toLowerCase()).not.toContain("yelp-logo");
+    const logo = link.querySelector("img");
+    expect(logo?.getAttribute("src")).toContain("yelp-logo");
+    expect(logo?.getAttribute("alt")).toBe("Yelp");
   });
 
   it("Next advances to the following reviewer and updates the track transform", async () => {

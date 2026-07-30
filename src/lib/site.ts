@@ -15,4 +15,5 @@ export const ADDRESS = {
 export const HOURS: [string, string][] = [
   ["Monday - Thursday", "7am - 5pm"],
   ["Friday", "7am - 2pm"],
+  ["Saturday - Sunday", "Closed"],
 ];

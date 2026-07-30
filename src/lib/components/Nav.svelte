@@ -25,6 +25,11 @@
     /** On a page that opens with a full-bleed dark hero, start the bar
      * transparent (over the hero) and turn it solid once scrolled. */
     transparentAtTop?: boolean;
+    /** Collapse to a logo + hamburger bar at every breakpoint (no inline links
+     * or CTA pills on desktop), opening the same full-screen menu. Matches the
+     * live Beachfront chrome; other fleet sites leave this false and keep their
+     * inline desktop nav. */
+    hamburgerOnly?: boolean;
   }
 
   let {
@@ -32,6 +37,7 @@
     items = [],
     logo,
     transparentAtTop = false,
+    hamburgerOnly = false,
   }: Props = $props();
 
   // The bar is solid unless it's explicitly a transparent-over-hero page AND
@@ -137,7 +143,11 @@
              throws each_key_duplicate at hydration). gap-4 until xl: measured at a
              1024px viewport (real museo fonts) the items + both pills fill the band
              to 0px slack at gap-8 and 1px at gap-6 — gap-4 buys ~33px headroom. -->
-        <ul class="hidden items-center gap-4 lg:flex xl:gap-8">
+        <ul
+          class="hidden items-center gap-4 xl:gap-8 {hamburgerOnly
+            ? ''
+            : 'lg:flex'}"
+        >
           {#each items as item, i (i)}
             {#if item.children && item.children.length > 0}
               <li class="group relative">
@@ -201,7 +211,9 @@
              measured at a 1024px viewport the items + both pills alone leave
              ~33px slack, so adding the phone would force the item labels to
              wrap inside the band. -->
-        <div class="hidden items-center gap-4 lg:flex">
+        <div
+          class="items-center gap-4 {hamburgerOnly ? 'hidden' : 'hidden lg:flex'}"
+        >
           <a
             href={PHONE.href}
             class="hidden font-slab focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden xl:inline"
@@ -224,11 +236,13 @@
           <button
             bind:this={openButtonEl}
             type="button"
-            class="flex min-h-11 min-w-11 items-center justify-center lg:hidden"
+            class="flex min-h-11 min-w-11 items-center justify-center {hamburgerOnly
+              ? ''
+              : 'lg:hidden'}"
             onclick={openMenu}
             aria-label="Open menu"
           >
-            <Menu size={24} />
+            <Menu size={28} />
           </button>
         {/if}
       </div>
@@ -268,7 +282,9 @@
       role="dialog"
       aria-modal="true"
       aria-label="Menu"
-      class="fixed inset-0 z-50 flex h-dvh w-screen flex-col items-center justify-center gap-4 overflow-y-auto bg-background py-20 lg:hidden"
+      class="fixed inset-0 z-50 flex h-dvh w-screen flex-col items-center justify-center gap-4 overflow-y-auto bg-background py-20 {hamburgerOnly
+        ? ''
+        : 'lg:hidden'}"
       transition:fade
       use:trapFocus={{ onEscape: closeMenu, restoreFocus: () => openButtonEl }}
     >

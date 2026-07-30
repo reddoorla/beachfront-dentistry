@@ -195,6 +195,10 @@ describe("CollectionList slice — tags line + detail-route links", () => {
       "carousel",
     );
     expect(getByText("Meet Your Team")).toBeTruthy();
-    expect(getByText("Dr. Jane Smith")).toBeTruthy();
+    // The live team row shows the headshot only — the person's name is the
+    // avatar link's accessible name (aria-label), not visible text.
+    expect(
+      getByRole("link", { name: "Dr. Jane Smith" }).getAttribute("href"),
+    ).toBe("/team-members/dr-jane-smith");
   });
 });

@@ -48,61 +48,54 @@
   const hasImage = $derived(!!backgroundImage?.url);
 </script>
 
-<!-- Photo CTA band: the site's recurring "Ready for great dental health?"
-     band — full-bleed photo, dark scrim, centered slab heading (h1/h2 pick
-     up font-slab globally, see app.css), pill CTA, wave divider at the TOP
-     only. bg-dark (the same dark-canvas token Hero's default photo path
-     already sits on) shows through the WaveDivider's transparent negative
-     space, so — per WaveDivider's fill-matches-neighbour contract — the
-     white fill reads as the light page above seaming into this band. The
-     bottom seam deliberately has NO wave here: this band closes every page
-     and the Footer renders immediately after with its own top wave that
-     owns that exact seam (see Footer.svelte) — a second wave here would
-     stack two dividers, and white would be the wrong fill against the dark
-     footer anyway. The pill reuses Nav's solid-CTA-on-a-brand-band pairing
-     (bg-white text-primary-deep, 5.10:1) rather than the reverse
-     (bg-primary-deep text-white would still clear AA on its own, but white
-     reads as the stronger "solid" affordance against a photo, and matches
-     the CTA everywhere else it already appears in chrome). The focus
-     ring's offset is bg-dark rather than Nav's primary-deep — Nav's
-     ring-offset matches its own solid-color band; this band's real
-     backdrop behind the pill is the photo+scrim, and bg-dark (this
-     section's own canvas color) is the closer neighbour than an unrelated
-     brand blue. -->
+<!-- The site's recurring closing band, in two live parts:
+     1. A brand-blue oversized "Ready for great dental health?" display heading
+        (h1/h2 pick up font-slab + primary globally; .display-xl drives the
+        140px/w100 size) on the plain white page, with a ghost-pill CTA.
+     2. A separate full-bleed photo band underneath carrying only the small
+        location caption (the live "FIJI ISLANDS" whimsy) — no heading over it.
+     The photo band uses bg-dark behind the WaveDivider's transparent negative
+     space so the white fill reads as the white section above seaming into it
+     (WaveDivider's fill-matches-neighbour contract). The Footer renders right
+     after with its own top wave, so this band has no bottom wave. -->
 <section
   data-slice-type={sliceType}
   data-slice-variation={sliceVariation}
-  class="cta-band relative isolate w-full overflow-hidden bg-dark text-white"
+  class="w-full"
 >
-  <WaveDivider fill="white" flip />
-  <div class="relative w-full" style="min-height: 45vh;">
-    {#if hasImage}
-      <HeroBackgroundImage image={backgroundImage} preload={false} />
-    {/if}
-    <!-- Scrim between the photo and the text. /60, not Modal's /50: the
-         scrim must guarantee 4.5:1 for white body text over ANY photo, and
-         the worst case is a pure-white pixel — black at 50% composites
-         that to #808080, only ≈3.95:1 under white (fails AA); at 60% it
-         composites to #666666, ≈5.7:1 (passes with margin). -->
-    <div class="absolute inset-0 bg-black/60"></div>
-    {#if hasImage && caption}
-      <p
-        class="absolute bottom-4 left-5 z-10 text-xs font-bold tracking-[0.2em] text-white/80 uppercase"
-      >
-        {caption}
-      </p>
-    {/if}
-    <div class="relative z-10 mx-auto max-w-3xl px-6 py-20 text-center">
+  <div class="mx-auto max-w-5xl px-6 py-24 text-center">
+    <div class="display-xl h-primary">
       <PrismicRichText field={heading} />
-      <RichTextBody field={body} />
-      {#if ctaLabel && ctaLink}
-        <PrismicLink
-          field={ctaLink}
-          class="mt-6 inline-block rounded-full bg-white px-8 py-3 font-semibold text-primary-deep focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-dark focus-visible:outline-hidden"
-        >
-          {ctaLabel}
-        </PrismicLink>
-      {/if}
     </div>
+    <RichTextBody field={body} />
+    {#if ctaLabel && ctaLink}
+      <PrismicLink
+        field={ctaLink}
+        class="text-dark hover:border-primary hover:text-primary-deep focus-visible:ring-primary-deep mt-10 inline-block rounded-full border border-black/15 px-8 py-3 font-light transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+      >
+        {ctaLabel}
+      </PrismicLink>
+    {/if}
   </div>
+
+  {#if hasImage}
+    <div class="relative isolate w-full overflow-hidden bg-dark">
+      <WaveDivider fill="white" flip />
+      <div class="relative w-full" style="min-height: 42vh;">
+        <HeroBackgroundImage image={backgroundImage} preload={false} />
+        {#if caption}
+          <!-- Caption legibility: a small bottom-left scrim guarantees the
+               white location label clears AA over any bright photo pixel. -->
+          <div
+            class="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent"
+          ></div>
+          <p
+            class="absolute bottom-4 left-5 z-10 text-xs font-bold tracking-[0.2em] text-white uppercase"
+          >
+            {caption}
+          </p>
+        {/if}
+      </div>
+    </div>
+  {/if}
 </section>

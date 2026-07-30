@@ -66,17 +66,26 @@ const numberedSlice = {
 } as never;
 
 describe("QuestionList slice — teaser variation", () => {
-  it("renders exactly max_items question links, newest first, to /questions/<uid>", () => {
-    const { getAllByRole } = render(QuestionList, {
+  it("renders exactly max_items question cards, newest first, to /questions/<uid>, plus a View All link", () => {
+    const { getAllByRole, getByRole } = render(QuestionList, {
       props: { slice: teaserSlice, context },
     });
-    const links = getAllByRole("link");
-    expect(links).toHaveLength(6);
-    links.forEach((link, i) => {
+    // Each question is now a photo card linking to its detail page; the card
+    // markup carries a number badge + "+" alongside the title, so match the
+    // title as a substring rather than the whole link text.
+    const cardLinks = getAllByRole("link").filter((l) =>
+      /^\/questions\/[^/]+$/.test(l.getAttribute("href") ?? ""),
+    );
+    expect(cardLinks).toHaveLength(6);
+    cardLinks.forEach((link, i) => {
       const [uid, , title] = expectedOrder[i]!;
       expect(link.getAttribute("href")).toBe(`/questions/${uid}`);
-      expect(link.textContent?.trim()).toBe(title);
+      expect(link.textContent).toContain(title);
     });
+    // The section closes with a "View All Questions" link to the index.
+    expect(
+      getByRole("link", { name: /View All Questions/i }).getAttribute("href"),
+    ).toBe("/ask-the-doctor");
   });
 
   it("renders the side image", () => {

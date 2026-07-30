@@ -168,17 +168,27 @@
     class="mx-auto max-w-6xl px-6 py-20"
     use:animateIn={REVEAL}
   >
-    <div class="grid grid-cols-1 items-center gap-10 md:grid-cols-2">
-      <div>
+    <div
+      class="grid grid-cols-1 items-center gap-10 md:grid-cols-[1.35fr_1fr]"
+    >
+      <div class="text-center">
         {#if isFilled.richText(primary.heading)}
           <h2
-            class="font-slab text-primary-deep text-[clamp(2.5rem,1rem+5vw,5rem)] leading-[1.05] font-light"
+            class="h-primary font-slab text-[clamp(2.75rem,0.5rem+8vw,7.5rem)] leading-[1.05] font-thin [text-wrap:normal]"
           >
             {asText(primary.heading)}
           </h2>
         {/if}
         {#if primary.subtitle}
-          <p class="text-dark/70 mt-3 text-lg">{primary.subtitle}</p>
+          <!-- Inline font-size: the unlayered global `main p` rule outranks any
+               Tailwind text utility (unlayered beats @layer), so the 30px live
+               subtitle size has to be set inline to win. -->
+          <p
+            class="mt-4 font-light text-[#365b6d]"
+            style="font-size:1.875rem;line-height:1.25"
+          >
+            {primary.subtitle}
+          </p>
         {/if}
       </div>
       {#if isFilled.image(primary.side_image)}
@@ -199,7 +209,7 @@
           >
             Step {pad2(i + 1)}
           </p>
-          <h3 class="font-slab text-primary-deep mt-2 text-2xl font-light">
+          <h3 class="h-primary font-slab mt-2 text-3xl font-light">
             {asText(item.item_heading)}
           </h3>
           {#if isFilled.richText(item.item_body)}
@@ -214,7 +224,7 @@
       <div class="mt-12 text-center">
         <PrismicLink
           field={primary.cta_link}
-          class="bg-primary-deep hover:bg-primary focus-visible:ring-primary-deep inline-block rounded-full px-8 py-3 font-semibold text-white transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          class="text-dark hover:border-primary hover:text-primary-deep focus-visible:ring-primary-deep inline-block rounded-full border border-black/15 px-8 py-3 font-light transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
         >
           {primary.cta_label}
         </PrismicLink>
@@ -229,7 +239,7 @@
     reveal
   >
     {#if isFilled.richText(slice.primary.heading)}
-      <div class="mb-10 text-center">
+      <div class="h-primary mb-10 max-w-2xl">
         <PrismicRichText field={slice.primary.heading} />
       </div>
     {/if}

@@ -86,18 +86,14 @@
 {/snippet}
 
 {#snippet avatar(doc: CollectionDoc)}
+  <!-- Live team row shows the headshot only (name/role live on the detail
+       page); the wrapping link carries the accessible name. -->
   {#if doc.data.media?.url}
     <PrismicImage
       field={doc.data.media as unknown as ImageField}
       fallbackAlt=""
-      class="mx-auto aspect-square w-full max-w-[9rem] rounded-full object-cover"
+      class="mx-auto aspect-square w-full max-w-[11rem] rounded-full object-cover transition-transform duration-300 hover:scale-[1.03]"
     />
-  {/if}
-  <p class="text-primary-deep mt-3 font-semibold">
-    {asText(doc.data.title as RichTextField)}
-  </p>
-  {#if doc.data.tags}
-    <p class="text-secondary text-sm">{doc.data.tags}</p>
   {/if}
 {/snippet}
 
@@ -108,12 +104,12 @@
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="mx-auto max-w-6xl px-6 py-16"
+    class="mx-auto max-w-7xl px-6 py-16"
     use:animateIn={{ duration: 700, translateY: "2rem" }}
   >
     {#if slice.primary.heading}
       <p
-        class="text-secondary mb-10 text-center text-sm font-bold tracking-[0.2em] uppercase"
+        class="mb-10 text-sm font-bold tracking-[0.2em] text-[#333] uppercase"
       >
         {asText(slice.primary.heading)}
       </p>
@@ -122,19 +118,22 @@
       <Slider
         itemCount={docs.length}
         label={asText(slice.primary.heading) || "Meet the team"}
-        cardsPerView={5}
+        cardsPerView={6}
         showDots={false}
-        arrowClass="text-dark hover:bg-light focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
+        arrowLayout="sides"
+        class="px-4 sm:px-12"
+        arrowClass="text-primary hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
       >
         {#snippet children({ index }: { index: number })}
           {@const doc = docs[index]}
           {#if doc}
             {@const href = hrefFor(doc)}
-            <div class="px-3 text-center">
+            <div class="px-2 text-center">
               {#if href}
                 <a
                   {href}
-                  class="block focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                  aria-label={asText(doc.data.title as RichTextField)}
+                  class="block rounded-full focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
                 >
                   {@render avatar(doc)}
                 </a>
