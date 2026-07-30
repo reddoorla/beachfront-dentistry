@@ -1,6 +1,9 @@
 /** Beachfront practice constants shared by chrome + routes. */
 export const PHONE = { display: "(310) 378-9241", href: "tel:+13103789241" };
 export const MODENTO_URL = "https://app.modento.io/beachfront-dentistry";
+/** Yelp business page — the "Read Reviews" target in the closing CTA band. */
+export const REVIEWS_URL =
+  "https://www.yelp.com/biz/beachfront-dentistry-redondo-beach";
 
 /** Street address, two display lines — mirrors site-config.json's footer
  * column (see the "1706 S Elena Ave..."/"Redondo Beach, CA..." text rows). */

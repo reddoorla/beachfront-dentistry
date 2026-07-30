@@ -85,12 +85,13 @@
   const pad2 = (n: number) => String(n).padStart(2, "0");
 
   // The live site's three tooth badges (icon=tooth 1/2/3) — self-contained
-  // circular SVGs served from static/. Cosmetic→1, implant→2, general/other→3.
+  // circular SVGs served from static/. Cosmetic gets the sparkle tooth (tooth-3,
+  // matching live); implant→2; general/other→the plain tooth-1.
   const toothIcon = (name: string) => {
     const n = name.toLowerCase();
-    if (n.includes("cosmetic")) return "/icons/tooth-1.svg";
+    if (n.includes("cosmetic")) return "/icons/tooth-3.svg";
     if (n.includes("implant")) return "/icons/tooth-2.svg";
-    return "/icons/tooth-3.svg";
+    return "/icons/tooth-1.svg";
   };
 
   const hasCta = $derived(
@@ -139,16 +140,16 @@
           </PrismicLink>
         {/if}
       </div>
-      <ul class="flex flex-col gap-5">
+      <ul class="flex flex-col gap-8">
         {#each items as item (item)}
           {@const label = asText(item.item_heading)}
           <li>
             <PrismicLink
               field={item.item_link}
-              class="flex items-center gap-4 rounded-xl bg-white/10 px-5 py-4 ring-1 ring-white/15 transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-hidden"
+              class="group flex items-center gap-5 rounded-lg transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent focus-visible:outline-hidden"
             >
-              <img src={toothIcon(label)} alt="" class="size-11 shrink-0" />
-              <span class="font-slab text-xl font-medium">{label}</span>
+              <img src={toothIcon(label)} alt="" class="size-16 shrink-0" />
+              <span class="font-slab text-4xl font-light">{label}</span>
             </PrismicLink>
           </li>
         {/each}
@@ -169,9 +170,9 @@
     use:animateIn={REVEAL}
   >
     <div
-      class="grid grid-cols-1 items-center gap-10 md:grid-cols-[1.35fr_1fr]"
+      class="grid grid-cols-1 items-start gap-10 md:grid-cols-[1.35fr_1fr]"
     >
-      <div class="text-center">
+      <div>
         {#if isFilled.richText(primary.heading)}
           <h2
             class="h-primary font-slab text-[clamp(2.75rem,0.5rem+8vw,7.5rem)] leading-[1.05] font-thin [text-wrap:normal]"
@@ -192,7 +193,7 @@
         {/if}
       </div>
       {#if isFilled.image(primary.side_image)}
-        <div class="mx-auto w-full max-w-sm">
+        <div class="mx-auto w-full max-w-md">
           <PrismicImage
             field={primary.side_image}
             fallbackAlt=""
@@ -272,49 +273,51 @@
           {@const label = asText(item.item_heading)}
           {@const expandable = isFilled.richText(item.item_body)}
           {@const panelId = `${uid}-card-${i}`}
-          <div
-            class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5"
-          >
-            <PrismicImage
-              field={item.item_media}
-              fallbackAlt=""
-              class="aspect-[4/3] w-full object-cover"
-            />
+          <!-- Pale-blue card: photo over a #e7f5fa label bar (30px/700 #365B6D
+               label + a plain blue "+" disclosure), radius 20px — measured off
+               the live "Finally…" cards. -->
+          <div class="overflow-hidden rounded-[20px] bg-[#e7f5fa] shadow-sm">
+            <div class="relative">
+              <PrismicImage
+                field={item.item_media}
+                fallbackAlt=""
+                class="aspect-[7/5] w-full object-cover"
+              />
+              <!-- Cyan bottom-fade (measured off live) that blends the photo
+                   into the #e7f5fa label bar below. -->
+              <div
+                class="absolute inset-0"
+                style="background:linear-gradient(rgba(18,158,204,0),rgba(18,158,204,0.9) 92%)"
+                aria-hidden="true"
+              ></div>
+            </div>
             {#if expandable}
               <button
                 type="button"
                 aria-expanded={open}
                 aria-controls={panelId}
                 onclick={() => toggleCard(i)}
-                class="focus-visible:ring-primary-deep flex w-full cursor-pointer items-center justify-between gap-4 px-5 py-4 text-left focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                class="focus-visible:ring-primary-deep flex w-full cursor-pointer items-center justify-between gap-4 p-5 text-left focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden"
               >
-                <span class="font-slab text-primary-deep text-lg font-medium"
-                  >{label}</span
-                >
-                <span
-                  class="bg-primary/10 text-primary-deep grid size-8 shrink-0 place-items-center rounded-full"
+                <span class="text-3xl font-bold text-[#365b6d]">{label}</span>
+                <Plus
+                  size={30}
+                  class="text-primary shrink-0 transition-transform duration-300 {open
+                    ? 'rotate-45'
+                    : ''}"
                   aria-hidden="true"
-                >
-                  <Plus
-                    size={18}
-                    class="transition-transform duration-300 {open
-                      ? 'rotate-45'
-                      : ''}"
-                  />
-                </span>
+                />
               </button>
               {#if open}
                 <div id={panelId} transition:slide={{ duration: 400 }}>
-                  <div class="text-dark/80 px-5 pt-0 pb-5 leading-relaxed">
+                  <div class="px-5 pt-0 pb-5 leading-relaxed text-[#365b6d]/90">
                     <RichTextBody field={item.item_body} />
                   </div>
                 </div>
               {/if}
             {:else}
-              <div class="px-5 py-4">
-                <span class="font-slab text-primary-deep text-lg font-medium"
-                  >{label}</span
-                >
+              <div class="p-5">
+                <span class="text-3xl font-bold text-[#365b6d]">{label}</span>
               </div>
             {/if}
           </div>

@@ -33,8 +33,17 @@
   --color-secondary: #5d6c7b;
   --color-accent: #b6aa91;
 
-  --font-sans: museo-sans, ui-sans-serif, system-ui, sans-serif;
-  --font-slab: museo-slab, ui-serif, Georgia, serif;
+  /* museo-* load from the site's (domain-locked) Adobe kit once its domains are
+     allowlisted. Until then the fallbacks are chosen to sit in the SAME type
+     category as the real faces so the layout reads correctly: Museo Sans is a
+     geometric humanist sans (→ Avenir / Century Gothic), Museo Slab is a
+     geometric SLAB serif (→ Rockwell, not old-style Georgia). */
+  --font-sans:
+    museo-sans, "Avenir Next", Avenir, "Century Gothic", ui-sans-serif,
+    system-ui, sans-serif;
+  --font-slab:
+    museo-slab, "Rockwell", "Rockwell Nova", "Roboto Slab", "Zilla Slab",
+    Georgia, serif;
 
   --transition-in-expo: cubic-bezier(0.95, 0.05, 0.795, 0.035);
   --transition-out-expo: cubic-bezier(0.19, 1, 0.22, 1);

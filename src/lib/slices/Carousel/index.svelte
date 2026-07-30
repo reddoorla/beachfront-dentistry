@@ -99,7 +99,7 @@
     <ContentBand
       sliceType={slice.slice_type}
       variation={slice.variation}
-      contentClass="max-w-6xl px-6 py-16 text-center"
+      contentClass="max-w-7xl px-6 py-16 text-center"
       reveal
     >
       {#if hasHeading && slice.primary.heading}
@@ -107,18 +107,33 @@
           <PrismicRichText field={slice.primary.heading} />
         </div>
       {/if}
-      <div class="relative mx-auto max-w-4xl">
+      <div class="relative mx-auto max-w-3xl">
         {#if slice.variation === "review"}
-          <!-- "what they say:" margin annotation. The exact Typekit script face
-               arrives with the font allowlist (fonts deferred for now); a
-               cursive fallback stack carries the intent until then. -->
-          <span
+          <!-- "what they say:" margin annotation with a curved arrow pointing to
+               the card (live). The exact Typekit script face arrives with the
+               font allowlist (deferred); a cursive fallback carries the intent. -->
+          <div
             aria-hidden="true"
-            class="text-primary pointer-events-none absolute -top-4 left-0 z-10 hidden -rotate-6 text-2xl lg:block"
-            style="font-family:'Caveat','Bradley Hand','Segoe Print',cursive"
+            class="text-primary pointer-events-none absolute -top-2 -left-28 z-10 hidden w-56 -rotate-6 lg:block xl:-left-48"
           >
-            what they say:
-          </span>
+            <span
+              class="text-3xl whitespace-nowrap"
+              style="font-family:'Caveat','Bradley Hand','Segoe Print',cursive"
+              >what they say:</span
+            >
+            <svg
+              class="mt-1 ml-8 h-12 w-20"
+              viewBox="0 0 80 52"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M4 4 C 4 34, 30 44, 72 42" />
+              <path d="M60 32 L 74 42 L 60 49" />
+            </svg>
+          </div>
         {/if}
         <!-- The slide movement (Slider's transition-transform utility) is a
              plain CSS transition, so app.css's global prefers-reduced-motion
@@ -129,7 +144,8 @@
           showDots={false}
           gap="0px"
           mobileGap="0px"
-          arrowClass="text-dark hover:bg-light focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          arrowLayout={slice.variation === "review" ? "sides" : "below"}
+          arrowClass="text-primary hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
           transitionClass="duration-500 ease-in-out"
         >
           {#snippet children({ index }: { index: number })}

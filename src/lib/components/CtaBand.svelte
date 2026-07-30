@@ -4,6 +4,8 @@
   import WaveDivider from "$lib/components/WaveDivider.svelte";
   import { PrismicLink, PrismicRichText } from "@prismicio/svelte";
   import type { ImageField, LinkField, RichTextField } from "@prismicio/client";
+  import { Plus } from "@lucide/svelte";
+  import { REVIEWS_URL } from "$lib/site";
 
   // The site's recurring closing band — extracted from Hero's `cta`
   // variation (see src/lib/slices/Hero/index.svelte) so the typed detail
@@ -68,14 +70,26 @@
       <PrismicRichText field={heading} />
     </div>
     <RichTextBody field={body} />
-    {#if ctaLabel && ctaLink}
-      <PrismicLink
-        field={ctaLink}
-        class="text-dark hover:border-primary hover:text-primary-deep focus-visible:ring-primary-deep mt-10 inline-block rounded-full border border-black/15 px-8 py-3 font-light transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+    <div class="mt-10 flex flex-col items-center gap-6">
+      {#if ctaLabel && ctaLink}
+        <PrismicLink
+          field={ctaLink}
+          class="text-dark hover:border-primary hover:text-primary-deep focus-visible:ring-primary-deep inline-block rounded-full border border-black/15 px-8 py-3 font-light transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+        >
+          {ctaLabel}
+        </PrismicLink>
+      {/if}
+      <!-- "Read Reviews +" secondary CTA (live) → the Yelp business page. -->
+      <a
+        href={REVIEWS_URL}
+        target="_blank"
+        rel="noopener"
+        class="text-dark hover:text-primary-deep focus-visible:ring-primary-deep inline-flex items-center gap-2 text-lg font-light focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
       >
-        {ctaLabel}
-      </PrismicLink>
-    {/if}
+        Read Reviews
+        <Plus class="text-primary" size={20} aria-hidden="true" />
+      </a>
+    </div>
   </div>
 
   {#if hasImage}

@@ -113,8 +113,18 @@
         preload={true}
       />
     {/if}
+    <!-- Live's overlay stack (measured from the original): a cyan top tint, a
+         solid brand-cyan lower band the white headline sits on, and a sand fade
+         into the wave. The headline is 60px (large text → AA needs only 3:1) and
+         #129ecc-on-white-text is 3.09:1, so it clears the gate on the solid band
+         while matching the original's bright cyan look (not a dark scrim). -->
     <div
-      class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/5"
+      class="absolute inset-0"
+      style="background:linear-gradient(rgba(18,158,204,0.8),rgba(18,158,204,0) 45%)"
+    ></div>
+    <div
+      class="absolute inset-0"
+      style="background:linear-gradient(rgba(18,158,204,0) 25%,rgba(18,158,204,0.92) 56%,#129ecc 80%,#b6aa91)"
     ></div>
     <div
       class="relative z-10 mx-auto flex w-full max-w-[1360px] flex-col items-start gap-8 px-6 pt-36 pb-28 md:flex-row md:items-center md:justify-between md:gap-12"

@@ -136,9 +136,10 @@
                   <div class="from-primary to-accent aspect-[16/9] w-full bg-gradient-to-br"></div>
                 {/if}
                 <!-- Cyan wash: the live cards tint every photo toward the brand
-                     hue so the white title reads and the set feels cohesive. -->
+                     hue — lighter at the top so the image shows through, deeper
+                     at the bottom so the white title reads. -->
                 <div
-                  class="from-primary/50 to-primary/75 absolute inset-0 bg-gradient-to-b"
+                  class="from-primary/25 to-primary/80 absolute inset-0 bg-gradient-to-b"
                   aria-hidden="true"
                 ></div>
                 <!-- Inline colour: the unlayered global `main h1–h3` primary

@@ -22,6 +22,9 @@
     /** The site logo (a converted site's resolved logo url); falls back to the
      * "Logo" wordmark. */
     logo?: { url: string; maxWidth?: string };
+    /** Tailwind sizing for the logo <img> (default fleet size is `h-8`).
+     * Beachfront's compact circular badge runs larger to match the live bar. */
+    logoClass?: string;
     /** On a page that opens with a full-bleed dark hero, start the bar
      * transparent (over the hero) and turn it solid once scrolled. */
     transparentAtTop?: boolean;
@@ -36,6 +39,7 @@
     navLinks = [],
     items = [],
     logo,
+    logoClass = "h-8 w-auto",
     transparentAtTop = false,
     hamburgerOnly = false,
   }: Props = $props();
@@ -123,7 +127,7 @@
         <img
           src={logo.url}
           alt="Home"
-          class="h-8 w-auto"
+          class={logoClass}
           style={logo.maxWidth ? `max-width:${logo.maxWidth}` : undefined}
         />
       {:else}
