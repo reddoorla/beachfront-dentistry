@@ -103,7 +103,11 @@
        band sits above (the dark closing CTA on home, a light section elsewhere)
        — so its fill defaults to the footer canvas, not the neighbour's. It sits
        flush at the very top before any footer padding. -->
-  <WaveDivider fill={waveFill} height={160} width="169%" />
+  <WaveDivider
+    fill={waveFill}
+    heightClass="h-[96px] min-[992px]:h-[128px] xl:h-[160px]"
+    width="169%"
+  />
 
   <div class="px-8 pt-12 pb-12">
     <div class="mx-auto max-w-6xl">
