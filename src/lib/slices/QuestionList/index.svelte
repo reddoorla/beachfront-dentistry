@@ -7,6 +7,7 @@
     type RichTextField,
   } from "@prismicio/client";
   import { floatAlong } from "$lib/actions/floatAlong";
+  import { animateIn } from "$lib/actions/animateIn";
 
   // QuestionListSlice/QuestionListSliceVariation aren't in the generated
   // Prismic types yet — this is a brand-new slice, and regenerating needs a
@@ -71,6 +72,7 @@
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
     class="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-6 py-16 md:grid-cols-2"
+    use:animateIn={{ duration: 700, translateY: "2rem" }}
   >
     <div>
       {#if isFilled.richText(slice.primary.heading)}
@@ -106,6 +108,7 @@
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
     class="mx-auto max-w-3xl px-6 py-16"
+    use:animateIn={{ duration: 700, translateY: "2rem" }}
   >
     {#if isFilled.richText(slice.primary.heading)}
       <PrismicRichText field={slice.primary.heading} />

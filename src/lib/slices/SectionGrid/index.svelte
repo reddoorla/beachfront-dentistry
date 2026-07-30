@@ -16,14 +16,11 @@
     type RichTextField,
   } from "@prismicio/client";
   import { slide } from "$lib/transitions";
-  import {
-    Plus,
-    Sparkles,
-    ShieldPlus,
-    Stethoscope,
-    HeartPulse,
-  } from "@lucide/svelte";
+  import { animateIn } from "$lib/actions/animateIn";
+  import { Plus } from "@lucide/svelte";
   import { SvelteSet } from "svelte/reactivity";
+
+  const REVEAL = { duration: 700, translateY: "2rem" } as const;
 
   let { slice }: { slice: Content.SectionGridSlice } = $props();
 
@@ -87,15 +84,13 @@
   const isSmall = (i: Item) => (i.item_media?.dimensions?.width ?? 9999) < 480;
   const pad2 = (n: number) => String(n).padStart(2, "0");
 
-  // Service rows carry no icon field; pick a health-themed lucide glyph by name
-  // so the three read as distinct. (Exact tooth marks from the live SVGs are a
-  // deferred fidelity pass.)
-  const serviceIcon = (name: string) => {
+  // The live site's three tooth badges (icon=tooth 1/2/3) — self-contained
+  // circular SVGs served from static/. Cosmetic→1, implant→2, general/other→3.
+  const toothIcon = (name: string) => {
     const n = name.toLowerCase();
-    if (n.includes("cosmetic")) return Sparkles;
-    if (n.includes("implant")) return ShieldPlus;
-    if (n.includes("general")) return Stethoscope;
-    return HeartPulse;
+    if (n.includes("cosmetic")) return "/icons/tooth-1.svg";
+    if (n.includes("implant")) return "/icons/tooth-2.svg";
+    return "/icons/tooth-3.svg";
   };
 
   const hasCta = $derived(
@@ -115,13 +110,14 @@
   >
     <WaveDivider fill="white" flip />
     <div
-      class="text-primary-deep absolute top-0 left-1/2 z-20 grid size-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white shadow-md"
+      class="absolute top-0 left-1/2 z-20 grid size-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white shadow-md"
       aria-hidden="true"
     >
-      <Sparkles size={26} />
+      <img src="/icons/tooth-badge.svg" alt="" class="size-9" />
     </div>
     <div
       class="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 py-20 lg:grid-cols-2 lg:items-center"
+      use:animateIn={REVEAL}
     >
       <div>
         {#if isFilled.richText(primary.heading)}
@@ -146,17 +142,12 @@
       <ul class="flex flex-col gap-5">
         {#each items as item (item)}
           {@const label = asText(item.item_heading)}
-          {@const Icon = serviceIcon(label)}
           <li>
             <PrismicLink
               field={item.item_link}
               class="flex items-center gap-4 rounded-xl bg-white/10 px-5 py-4 ring-1 ring-white/15 transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-hidden"
             >
-              <span
-                class="grid size-11 shrink-0 place-items-center rounded-full bg-white/15 text-white"
-              >
-                <Icon size={22} />
-              </span>
+              <img src={toothIcon(label)} alt="" class="size-11 shrink-0" />
               <span class="font-slab text-xl font-medium">{label}</span>
             </PrismicLink>
           </li>
@@ -175,6 +166,7 @@
     data-slice-variation={slice.variation}
     data-section-layout="steps"
     class="mx-auto max-w-6xl px-6 py-20"
+    use:animateIn={REVEAL}
   >
     <div class="grid grid-cols-1 items-center gap-10 md:grid-cols-2">
       <div>
@@ -234,6 +226,7 @@
     sliceType={slice.slice_type}
     variation={slice.variation}
     contentClass="max-w-7xl px-6 py-16"
+    reveal
   >
     {#if isFilled.richText(slice.primary.heading)}
       <div class="mb-10 text-center">

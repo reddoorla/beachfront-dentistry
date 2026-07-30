@@ -25,6 +25,15 @@
   // precedence over this in each chrome component.
   const siteConfig = loadSiteConfig();
 
+  // Routes that open with a full-bleed dark hero can carry a transparent nav
+  // that turns solid on scroll (the live site's behaviour). Every other route
+  // starts on a light section, where a transparent white nav would be
+  // invisible — those keep the solid brand-blue band from the top.
+  const HERO_COVER_ROUTES = new Set(["/", "/your-first-visit"]);
+  const navTransparentAtTop = $derived(
+    HERO_COVER_ROUTES.has(page.url.pathname),
+  );
+
   // Kit's own post-nav scroll (top / hash anchor / popstate restore) runs
   // instantly instead of gliding under app.css's smooth-scroll. See the util.
   beforeNavigate(disableSmoothScroll);
@@ -78,6 +87,7 @@
       navLinks={page.data.navLinks}
       items={siteConfig.nav.items}
       logo={siteConfig.nav.logo}
+      transparentAtTop={navTransparentAtTop}
     />
 
     <main id="main-content" tabindex="-1" class="flex-1">

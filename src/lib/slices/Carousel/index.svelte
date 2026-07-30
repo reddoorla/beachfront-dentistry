@@ -94,6 +94,7 @@
       sliceType={slice.slice_type}
       variation={slice.variation}
       contentClass="max-w-5xl px-6 py-16 text-center"
+      reveal
     >
       {#if hasHeading && slice.primary.heading}
         <div class="mb-10">

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Menu, X, ChevronDown } from "@lucide/svelte";
+  import { onMount } from "svelte";
   import { trapFocus } from "$lib/actions/trapFocus";
   import { fade } from "$lib/transitions";
   import { PHONE, MODENTO_URL } from "$lib/site";
@@ -21,9 +22,29 @@
     /** The site logo (a converted site's resolved logo url); falls back to the
      * "Logo" wordmark. */
     logo?: { url: string; maxWidth?: string };
+    /** On a page that opens with a full-bleed dark hero, start the bar
+     * transparent (over the hero) and turn it solid once scrolled. */
+    transparentAtTop?: boolean;
   }
 
-  let { navLinks = [], items = [], logo }: Props = $props();
+  let {
+    navLinks = [],
+    items = [],
+    logo,
+    transparentAtTop = false,
+  }: Props = $props();
+
+  // The bar is solid unless it's explicitly a transparent-over-hero page AND
+  // still at the top. `scrolled` flips after a small threshold; it starts false
+  // (matching SSR, where the page always loads at the top → no hydration jump).
+  let scrolled = $state(false);
+  const navSolid = $derived(!transparentAtTop || scrolled);
+  onMount(() => {
+    const onScroll = () => (scrolled = window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  });
 
   let isMenuOpen = $state(false);
   let openButtonEl = $state<HTMLButtonElement>();
@@ -76,8 +97,21 @@
        (plain primary is only 3.09:1 under white text; -deep clears AA at 5.10:1),
        not the translucent bg-background/95 band the unstyled starter shipped. -->
   <nav
-    class="fixed top-0 left-0 z-50 flex w-full items-center justify-between bg-primary-deep px-8 py-4 text-white"
+    class="fixed top-0 left-0 z-50 isolate flex w-full items-center justify-between px-8 py-4 text-white transition-colors duration-300 {navSolid
+      ? 'bg-primary-deep'
+      : 'bg-transparent'}"
   >
+    <!-- Legibility scrim while transparent over a bright hero; it sits behind
+         the content (-z-10, above only the nav's own bg) and fades out as the
+         bar goes solid. -->
+    {#if transparentAtTop}
+      <div
+        aria-hidden="true"
+        class="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-black/40 to-transparent transition-opacity duration-300 {navSolid
+          ? 'opacity-0'
+          : 'opacity-100'}"
+      ></div>
+    {/if}
     <a href="/" class="flex items-center text-lg font-bold">
       {#if logo}
         <img

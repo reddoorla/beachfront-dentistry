@@ -7,6 +7,7 @@
     type RichTextField,
   } from "@prismicio/client";
   import Slider from "$lib/components/Slider.svelte";
+  import { animateIn } from "$lib/actions/animateIn";
   import { ENTITY_ROUTE_PREFIX } from "$lib/blux-catalog/entity-routes";
 
   type CollectionDoc = {
@@ -108,6 +109,7 @@
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
     class="mx-auto max-w-6xl px-6 py-16"
+    use:animateIn={{ duration: 700, translateY: "2rem" }}
   >
     {#if slice.primary.heading}
       <p
