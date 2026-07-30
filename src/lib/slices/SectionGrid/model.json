@@ -19,6 +19,42 @@
         "columns": {
           "type": "Number",
           "config": { "label": "columns", "placeholder": "3" }
+        },
+        "layout": {
+          "type": "Select",
+          "config": {
+            "label": "layout",
+            "placeholder": "auto",
+            "options": ["auto", "cards", "steps", "services"],
+            "default_value": "auto"
+          }
+        },
+        "subtitle": {
+          "type": "Text",
+          "config": { "label": "subtitle", "placeholder": "" }
+        },
+        "body": {
+          "type": "StructuredText",
+          "config": {
+            "label": "body",
+            "multi": "paragraph,strong,em,hyperlink"
+          }
+        },
+        "side_image": {
+          "type": "Image",
+          "config": {
+            "label": "side_image",
+            "constraint": {},
+            "thumbnails": []
+          }
+        },
+        "cta_label": {
+          "type": "Text",
+          "config": { "label": "cta_label", "placeholder": "" }
+        },
+        "cta_link": {
+          "type": "Link",
+          "config": { "label": "cta_link", "allowTargetBlank": true }
         }
       },
       "items": {

@@ -322,6 +322,7 @@ function assemblies(img) {
         slice_type: "section_grid",
         variation: "default",
         primary: {
+          layout: "cards",
           heading: [head(2, "Finally have a dentist that puts you first")],
           columns: 3,
         },
@@ -366,7 +367,15 @@ function assemblies(img) {
       {
         slice_type: "section_grid",
         variation: "default",
-        primary: { heading: [head(2, "Your Path to Oral Health")], columns: 3 },
+        primary: {
+          layout: "steps",
+          heading: [head(2, "Your Path to Oral Health")],
+          subtitle: "is like a short walk on the beach",
+          side_image: img(IMG.path),
+          cta_label: "Book an Appointment",
+          cta_link: webLink("#appointment"),
+          columns: 3,
+        },
         items: [
           {
             item_heading: [head(4, "Book an Appointment")],
@@ -392,7 +401,15 @@ function assemblies(img) {
         slice_type: "section_grid",
         variation: "default",
         primary: {
+          layout: "services",
           heading: [head(2, "Services")],
+          body: [
+            para(
+              "Our dental team in Redondo Beach's Riviera Village takes great pride in the wide-range of practices our state-of-the-art facility is capable of providing for your smile.",
+            ),
+          ],
+          cta_label: "View All Services",
+          cta_link: webLink("/services"),
           columns: 3,
         },
         items: [
