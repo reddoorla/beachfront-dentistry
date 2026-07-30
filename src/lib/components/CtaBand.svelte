@@ -68,7 +68,7 @@
 <section
   data-slice-type={sliceType}
   data-slice-variation={sliceVariation}
-  class="relative isolate w-full overflow-hidden bg-dark text-white"
+  class="cta-band relative isolate w-full overflow-hidden bg-dark text-white"
 >
   <WaveDivider fill="white" flip />
   <div class="relative w-full" style="min-height: 45vh;">

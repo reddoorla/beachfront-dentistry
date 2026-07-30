@@ -181,6 +181,11 @@ const CDN = "https://cdn.prod.website-files.com";
 const A = `${CDN}/64af3f93339537d6b661b556`; // primary bucket
 const B = `${CDN}/64b1c843b071dc32170ea053`; // team/reviews bucket
 const IMG = {
+  // hero / closing-CTA backgrounds (home hero is a bg video on the live site;
+  // its poster still is a faithful hero image)
+  heroHome: `${A}/6531a5d33be0526fd5c1bc35_BD_homepage_video_hd_101823-poster-00001.jpg`,
+  heroFirstVisit: `${A}/64b8367c61b87df9edf5b314_DSC_7547.jpg`,
+  ctaBeach: `${A}/64af4c2e1e0b9ad3d901241e_beach-img_sebastien-jermer-n7DY58YFg9E-unsplash.jpg`,
   comfort: `${A}/64b998400e0eb30dcc2adf55_DSC_7650.jpg`,
   comprehensive: `${A}/64b9a0735c910a0ec38efc68_cerec-same-day-machine.jpg`,
   caring: `${A}/64b9a05a616537fb5e59d7e7_BD_office_2020_IMG_2885.jpg`,
@@ -258,8 +263,9 @@ const reviewItems = (img) =>
     review_url: webLink(r.url),
   }));
 
-// Shared closing CTA hero (verbatim off the live site footer band).
-const ctaHero = () => ({
+// Shared closing CTA hero (verbatim off the live site footer band) over the
+// recurring beach photo.
+const ctaHero = (img) => ({
   slice_type: "hero",
   variation: "cta",
   primary: {
@@ -267,6 +273,7 @@ const ctaHero = () => ({
     body: [],
     cta_label: "Book Appointment",
     cta_link: webLink("#appointment"),
+    background_image: img(IMG.ctaBeach),
   },
   items: [],
 });
@@ -307,6 +314,7 @@ function assemblies(img) {
           body: [],
           cta_label: "Make Appointment",
           cta_link: webLink("#appointment"),
+          background_image: img(IMG.heroHome),
         },
         items: [],
       },
@@ -418,7 +426,7 @@ function assemblies(img) {
         },
         items: [],
       },
-      ctaHero(),
+      ctaHero(img),
     ],
 
     "your-first-visit": [
@@ -434,6 +442,7 @@ function assemblies(img) {
           ],
           cta_label: "Book an Appointment",
           cta_link: webLink("#appointment"),
+          background_image: img(IMG.heroFirstVisit),
         },
         items: [],
       },
@@ -508,7 +517,7 @@ function assemblies(img) {
         },
         items: reviewItems(img),
       },
-      ctaHero(),
+      ctaHero(img),
     ],
 
     "our-team": [
@@ -531,7 +540,7 @@ function assemblies(img) {
         primary: { heading: [], collection_type: "person", max_items: 100 },
         items: [],
       },
-      ctaHero(),
+      ctaHero(img),
     ],
 
     services: [
@@ -604,7 +613,7 @@ function assemblies(img) {
         },
         items: [],
       },
-      ctaHero(),
+      ctaHero(img),
     ],
 
     "ask-the-doctor": [
@@ -620,7 +629,7 @@ function assemblies(img) {
         primary: { heading: [head(2, "Ask the Doctor")] },
         items: [],
       },
-      ctaHero(),
+      ctaHero(img),
     ],
   };
 }

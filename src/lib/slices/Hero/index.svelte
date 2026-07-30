@@ -3,6 +3,7 @@
   import RichTextBody from "$lib/components/RichTextBody.svelte";
   import ContentBand from "$lib/components/ContentBand.svelte";
   import CtaBand from "$lib/components/CtaBand.svelte";
+  import WaveDivider from "$lib/components/WaveDivider.svelte";
   import { PrismicLink, PrismicRichText } from "@prismicio/svelte";
   import type { Content } from "@prismicio/client";
   import { bandFor, type Presentation } from "$lib/blux/presentation";
@@ -95,33 +96,42 @@
     sliceVariation={slice.variation}
   />
 {:else}
-  <!-- Full-bleed image band. When the slice carries a background image we
-     stand the band 45vh tall so the photo shows; white overlay copy comes
-     from the section class. -->
-  <ContentBand
-    sliceType={slice.slice_type}
-    variation={slice.variation}
-    fallbackHeight={hasImage ? "45vh" : undefined}
-    sectionClass="hero-band relative isolate overflow-hidden bg-dark text-white"
-    contentClass="relative z-10 max-w-4xl px-6 py-24 text-center"
+  <!-- Full-bleed photographic opening hero. Bottom-left slab heading over the
+       photo (a video-poster still on home), a bottom-weighted gradient scrim
+       for legibility, a pill CTA, and the wave divider seaming into the white
+       section below. `hero-band` drives the 100vh first-child height and the
+       white heading colour (app.css). The band stays `bg-dark` so it reads as
+       a deliberate dark canvas if a photo is ever absent, rather than blank. -->
+  <section
+    data-slice-type={slice.slice_type}
+    data-slice-variation={slice.variation}
+    class="hero-band relative isolate flex min-h-[80vh] w-full items-end overflow-hidden bg-dark text-white"
   >
-    {#snippet background()}
-      {#if hasImage}
-        <HeroBackgroundImage
-          image={slice.primary.background_image}
-          preload={false}
-        />
-      {/if}
-    {/snippet}
-    <PrismicRichText field={slice.primary.heading} />
-    <RichTextBody field={slice.primary.body} />
-    {#if slice.primary.cta_label && slice.primary.cta_link}
-      <PrismicLink
-        field={slice.primary.cta_link}
-        class="mt-6 inline-block bg-white px-6 py-3 font-medium text-primary-deep"
-      >
-        {slice.primary.cta_label}
-      </PrismicLink>
+    {#if hasImage}
+      <HeroBackgroundImage
+        image={slice.primary.background_image}
+        preload={true}
+      />
     {/if}
-  </ContentBand>
+    <div
+      class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/5"
+    ></div>
+    <div class="relative z-10 mx-auto w-full max-w-6xl px-6 pt-36 pb-28">
+      <div class="max-w-3xl">
+        <PrismicRichText field={slice.primary.heading} />
+        <RichTextBody field={slice.primary.body} />
+        {#if slice.primary.cta_label && slice.primary.cta_link}
+          <PrismicLink
+            field={slice.primary.cta_link}
+            class="mt-8 inline-block rounded-full bg-white px-8 py-3 font-semibold text-primary-deep focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-dark focus-visible:outline-hidden"
+          >
+            {slice.primary.cta_label}
+          </PrismicLink>
+        {/if}
+      </div>
+    </div>
+    <div class="absolute bottom-0 left-0 z-10 w-full">
+      <WaveDivider fill="white" />
+    </div>
+  </section>
 {/if}
