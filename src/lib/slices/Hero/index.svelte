@@ -91,6 +91,7 @@
     ctaLabel={slice.primary.cta_label}
     ctaLink={slice.primary.cta_link}
     backgroundImage={slice.primary.background_image}
+    caption="FIJI ISLANDS"
     sliceType={slice.slice_type}
     sliceVariation={slice.variation}
   />

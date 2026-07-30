@@ -22,6 +22,9 @@
     ctaLabel?: string | null;
     ctaLink?: LinkField;
     backgroundImage?: ImageField;
+    /** Small location label over the photo (the live "FIJI ISLANDS" whimsy).
+     * Only rendered when a background photo is present. */
+    caption?: string;
     /** Slice identity — set only by Hero's cta variation (an actual slice
      * instance whose section needs `data-slice-type`/`data-slice-variation`
      * for the slice-zone tooling + its own tests). The detail-route callers
@@ -37,6 +40,7 @@
     ctaLabel = "Book an Appointment",
     ctaLink = DEFAULT_CTA_LINK,
     backgroundImage = {},
+    caption,
     sliceType,
     sliceVariation,
   }: Props = $props();
@@ -81,6 +85,13 @@
          that to #808080, only ≈3.95:1 under white (fails AA); at 60% it
          composites to #666666, ≈5.7:1 (passes with margin). -->
     <div class="absolute inset-0 bg-black/60"></div>
+    {#if hasImage && caption}
+      <p
+        class="absolute bottom-4 left-5 z-10 text-xs font-bold tracking-[0.2em] text-white/80 uppercase"
+      >
+        {caption}
+      </p>
+    {/if}
     <div class="relative z-10 mx-auto max-w-3xl px-6 py-20 text-center">
       <PrismicRichText field={heading} />
       <RichTextBody field={body} />

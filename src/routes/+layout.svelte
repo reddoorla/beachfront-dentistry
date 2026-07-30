@@ -88,6 +88,8 @@
       columns={footerColumns(page.data.footerColumns, siteConfig)}
       socials={siteConfig.footer.socials}
       text={siteConfig.footer.text}
+      heading="Want to learn more?"
+      showMap
     />
   </div>
   <TransitionOverlay />
