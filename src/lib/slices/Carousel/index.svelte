@@ -100,67 +100,98 @@
           <PrismicRichText field={slice.primary.heading} />
         </div>
       {/if}
-      <!-- The slide movement (Slider's transition-transform utility) is a
-           plain CSS transition, so app.css's global prefers-reduced-motion
-           reset flattens it for reduced-motion users — no local gate needed. -->
-      <Slider
-        itemCount={trackCount}
-        label={trackLabel}
-        showDots={false}
-        gap="0px"
-        mobileGap="0px"
-        arrowClass="text-dark hover:bg-light focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
-        transitionClass="duration-500 ease-in-out"
-      >
-        {#snippet children({ index }: { index: number })}
-          {@const item = trackItems[index]}
-          {#if item}
-            <div class="px-4">
+      <div class="relative">
+        {#if slice.variation === "review"}
+          <!-- "what they say:" margin annotation. The exact Typekit script face
+               arrives with the font allowlist (fonts deferred for now); a
+               cursive fallback stack carries the intent until then. -->
+          <span
+            aria-hidden="true"
+            class="text-primary pointer-events-none absolute -top-4 left-0 z-10 hidden -rotate-6 text-2xl lg:block"
+            style="font-family:'Caveat','Bradley Hand','Segoe Print',cursive"
+          >
+            what they say:
+          </span>
+        {/if}
+        <!-- The slide movement (Slider's transition-transform utility) is a
+             plain CSS transition, so app.css's global prefers-reduced-motion
+             reset flattens it for reduced-motion users — no local gate needed. -->
+        <Slider
+          itemCount={trackCount}
+          label={trackLabel}
+          showDots={false}
+          gap="0px"
+          mobileGap="0px"
+          arrowClass="text-dark hover:bg-light focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          transitionClass="duration-500 ease-in-out"
+        >
+          {#snippet children({ index }: { index: number })}
+            {@const item = trackItems[index]}
+            {#if item}
               {#if slice.variation === "review"}
-                <blockquote class="text-xl italic">
-                  <p>{item.quote}</p>
-                </blockquote>
-                <div class="mt-6 flex items-center justify-center gap-3">
-                  {#if isFilled.image(item.reviewer_photo)}
+                <div class="px-4">
+                  <figure
+                    class="bg-surface mx-auto max-w-2xl rounded-2xl p-8 text-left shadow-sm ring-1 ring-black/5 sm:p-10"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="font-slab text-primary/20 block text-5xl leading-none"
+                      >“</span
+                    >
+                    <blockquote
+                      class="text-dark/90 -mt-2 text-lg leading-relaxed"
+                    >
+                      <p>{item.quote}</p>
+                    </blockquote>
+                    <figcaption class="mt-6 flex items-center gap-3">
+                      {#if isFilled.image(item.reviewer_photo)}
+                        <PrismicImage
+                          field={item.reviewer_photo}
+                          fallbackAlt=""
+                          class="h-12 w-12 rounded-full object-cover"
+                        />
+                      {/if}
+                      <div class="flex-1">
+                        <p class="text-dark font-semibold">
+                          {item.reviewer_name}
+                        </p>
+                        {#if item.reviewer_place}
+                          <p class="text-secondary text-sm">
+                            {item.reviewer_place}
+                          </p>
+                        {/if}
+                      </div>
+                      {#if isFilled.link(item.review_url)}
+                        <a
+                          href={asLink(item.review_url)}
+                          target="_blank"
+                          rel="noopener"
+                          class="text-primary-deep shrink-0 text-sm font-semibold underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                        >
+                          Read review
+                        </a>
+                      {/if}
+                    </figcaption>
+                  </figure>
+                </div>
+              {:else if isFilled.image(item.image) || item.caption}
+                <div class="px-4">
+                  {#if isFilled.image(item.image)}
                     <PrismicImage
-                      field={item.reviewer_photo}
+                      field={item.image}
                       fallbackAlt=""
-                      class="h-12 w-12 rounded-full object-cover"
+                      class="h-auto w-full object-cover"
                     />
                   {/if}
-                  <div class="text-left">
-                    <p class="font-semibold">{item.reviewer_name}</p>
-                    <p class="text-sm text-secondary">
-                      {item.reviewer_place}
-                    </p>
-                  </div>
+                  {#if item.caption}
+                    <p class="text-secondary mt-4 text-sm">{item.caption}</p>
+                  {/if}
                 </div>
-                {#if isFilled.link(item.review_url)}
-                  <a
-                    href={asLink(item.review_url)}
-                    target="_blank"
-                    rel="noopener"
-                    class="mt-4 inline-block underline focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
-                  >
-                    Read review
-                  </a>
-                {/if}
-              {:else if isFilled.image(item.image) || item.caption}
-                {#if isFilled.image(item.image)}
-                  <PrismicImage
-                    field={item.image}
-                    fallbackAlt=""
-                    class="h-auto w-full object-cover"
-                  />
-                {/if}
-                {#if item.caption}
-                  <p class="mt-4 text-sm text-secondary">{item.caption}</p>
-                {/if}
               {/if}
-            </div>
-          {/if}
-        {/snippet}
-      </Slider>
+            {/if}
+          {/snippet}
+        </Slider>
+      </div>
     </ContentBand>
   {/if}
 {:else if frames && frames.length > 0}
