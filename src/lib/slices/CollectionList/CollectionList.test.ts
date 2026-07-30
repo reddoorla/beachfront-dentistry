@@ -175,4 +175,26 @@ describe("CollectionList slice — tags line + detail-route links", () => {
       "/services/teeth-whitening",
     );
   });
+
+  it("renders the team variation as a circular-avatar carousel", () => {
+    const teamSlice = {
+      slice_type: "collection_list",
+      variation: "team",
+      primary: {
+        heading: [{ type: "heading2", text: "Meet Your Team", spans: [] }],
+        collection_type: "person",
+        max_items: 24,
+      },
+      items: [],
+    } as unknown as Content.CollectionListSlice;
+    const { getByRole, getByText } = render(CollectionList, {
+      props: { slice: teamSlice, context: teamContext },
+    });
+    // heading renders as a plain eyebrow (not an <h2>), inside a carousel region
+    expect(getByRole("region").getAttribute("aria-roledescription")).toBe(
+      "carousel",
+    );
+    expect(getByText("Meet Your Team")).toBeTruthy();
+    expect(getByText("Dr. Jane Smith")).toBeTruthy();
+  });
 });

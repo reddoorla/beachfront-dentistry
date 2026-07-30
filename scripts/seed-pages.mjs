@@ -71,22 +71,6 @@ function withStrong(block, phrase) {
     ],
   };
 }
-// a paragraph containing a hyperlink span over `phrase` → url
-function paraLink(text, phrase, url) {
-  const start = text.indexOf(phrase);
-  const spans =
-    start < 0
-      ? []
-      : [
-          {
-            start,
-            end: start + phrase.length,
-            type: "hyperlink",
-            data: { link_type: "Web", url },
-          },
-        ];
-  return { type: "paragraph", text, spans };
-}
 const webLink = (url) => ({ link_type: "Web", url });
 
 // Prismic rejects an unfilled Link/Image passed as `{}` ("link_type must be
@@ -277,20 +261,17 @@ const ctaHero = (img) => ({
   },
   items: [],
 });
-// Shared meet-the-team teaser (the live team carousel → a media_text teaser
-// linking to /our-team, per the Task-16 map).
-const teamTeaser = (img) => ({
-  slice_type: "media_text",
-  variation: "imageRight",
+// Shared meet-the-team section — the live circular-avatar carousel of team
+// members. Renders `person` docs via CollectionList's `team` variation (the
+// page loader fetches the person collection because this slice references it);
+// each avatar links to its /team-members/<uid> detail route.
+const teamTeaser = () => ({
+  slice_type: "collection_list",
+  variation: "team",
   primary: {
     heading: [head(2, "Meet Our Team")],
-    body: [
-      para(
-        "We love caring for our patients and we also love the beach, read a little about each of our team members and see their favorite beach beyond the South Bay.",
-      ),
-      paraLink("Meet our team →", "Meet our team →", "/our-team"),
-    ],
-    media: img(IMG.quan),
+    collection_type: "person",
+    max_items: 24,
   },
   items: [],
 });
@@ -355,7 +336,7 @@ function assemblies(img) {
           },
         ],
       },
-      teamTeaser(img),
+      teamTeaser(),
       {
         slice_type: "carousel",
         variation: "review",
@@ -478,7 +459,7 @@ function assemblies(img) {
           IMG.tour8,
         ].map((u) => ({ image: img(u), caption: "" })),
       },
-      teamTeaser(img),
+      teamTeaser(),
       {
         slice_type: "rich_text",
         variation: "default",
