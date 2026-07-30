@@ -287,12 +287,12 @@ function assemblies(img) {
         variation: "default",
         primary: {
           heading: [
-            withStrong(
-              head(
-                1,
-                "Have a relaxed dental experience where you are known and cared for at Beachfront Dentistry",
-              ),
-              "Beachfront Dentistry",
+            // The Prismic hero heading field's model disallows inline bold, so
+            // the live "Beachfront Dentistry" emphasis is applied at render
+            // time in Hero/index.svelte, not carried as a strong span here.
+            head(
+              1,
+              "Have a relaxed dental experience where you are known and cared for at Beachfront Dentistry",
             ),
           ],
           body: [],

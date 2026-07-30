@@ -4,7 +4,7 @@
   import CtaBand from "$lib/components/CtaBand.svelte";
   import WaveDivider from "$lib/components/WaveDivider.svelte";
   import { PrismicLink, PrismicRichText } from "@prismicio/svelte";
-  import type { Content } from "@prismicio/client";
+  import { asText, type Content } from "@prismicio/client";
   import { bandFor, type Presentation } from "$lib/blux/presentation";
   import BluxSectionBand from "$lib/blux/SectionBand.svelte";
   import BandContent from "$lib/blux/BandContent.svelte";
@@ -53,6 +53,24 @@
       (slice.primary as { band?: number | null }).band ?? null,
     ),
   );
+
+  // Live sets the practice name in bold within the hero headline. The Prismic
+  // heading field's model disallows inline bold, so split the brand phrase out
+  // and emphasise it at render time; the rest of the h1 keeps the light display
+  // weight. Falls back to plain rich text when the phrase isn't present.
+  const BRAND = "Beachfront Dentistry";
+  const heroHeadingText = $derived(
+    slice.variation === "default" ? asText(slice.primary.heading) : "",
+  );
+  const brandParts = $derived.by(() => {
+    const at = heroHeadingText.indexOf(BRAND);
+    if (at < 0) return null;
+    return {
+      before: heroHeadingText.slice(0, at),
+      brand: BRAND,
+      after: heroHeadingText.slice(at + BRAND.length),
+    };
+  });
 </script>
 
 {#if slice.variation === "band"}
@@ -130,7 +148,14 @@
       class="relative z-10 mx-auto flex w-full max-w-[1360px] flex-col items-start gap-8 px-6 pt-36 pb-28 md:flex-row md:items-center md:justify-between md:gap-12"
     >
       <div class="max-w-3xl">
-        <PrismicRichText field={slice.primary.heading} />
+        {#if brandParts}
+          <h1>
+            {brandParts.before}<strong>{brandParts.brand}</strong
+            >{brandParts.after}
+          </h1>
+        {:else}
+          <PrismicRichText field={slice.primary.heading} />
+        {/if}
         <RichTextBody field={slice.primary.body} />
       </div>
       {#if slice.primary.cta_label && slice.primary.cta_link}
