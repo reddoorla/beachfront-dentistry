@@ -121,7 +121,7 @@
       class="absolute top-0 left-[68%] z-20 size-32 -translate-x-1/2 -translate-y-1/2 drop-shadow-md"
     />
     <div
-      class="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 pt-20 pb-40 lg:grid-cols-2 lg:items-center"
+      class="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 pt-32 pb-72 lg:grid-cols-2 lg:items-center"
       use:animateIn={REVEAL}
     >
       <div>
@@ -144,7 +144,7 @@
           </PrismicLink>
         {/if}
       </div>
-      <ul class="flex flex-col gap-8">
+      <ul class="flex flex-col gap-36">
         {#each items as item (item)}
           {@const label = asText(item.item_heading)}
           <li>
@@ -177,7 +177,7 @@
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
     data-section-layout="steps"
-    class="mx-auto max-w-6xl px-6 py-20"
+    class="mx-auto max-w-6xl px-6 pt-24 pb-48"
     use:animateIn={REVEAL}
   >
     <div class="grid grid-cols-1 items-start gap-10 md:grid-cols-[1.35fr_1fr]">
@@ -211,7 +211,7 @@
         </div>
       {/if}
     </div>
-    <ol class="mt-14 grid grid-cols-1 gap-10 text-center sm:grid-cols-3">
+    <ol class="mt-32 grid grid-cols-1 gap-10 text-center sm:grid-cols-3">
       {#each items as item, i (item)}
         <li>
           <p
