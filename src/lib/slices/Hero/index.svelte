@@ -1,5 +1,6 @@
 <script lang="ts">
   import HeroBackgroundImage from "$lib/components/HeroBackgroundImage.svelte";
+  import HeroBackgroundVideo from "$lib/components/HeroBackgroundVideo.svelte";
   import RichTextBody from "$lib/components/RichTextBody.svelte";
   import CtaBand from "$lib/components/CtaBand.svelte";
   import WaveDivider from "$lib/components/WaveDivider.svelte";
@@ -46,6 +47,23 @@
   let hasImage = $derived(
     slice.variation === "default" && !!slice.primary.background_image?.url,
   );
+
+  // The home hero is a background VIDEO on the live site (a muted drone
+  // flyover); every other `default` hero (e.g. your-first-visit) is a genuine
+  // still. The Prismic poster URL for the home hero still carries the source
+  // video's name ("homepage_video"), so we use that as the marker to swap in
+  // the self-hosted video. Assets live in static/hero/ (see HeroBackgroundVideo).
+  const heroImageUrl = $derived(
+    slice.variation === "default"
+      ? (slice.primary.background_image?.url ?? "")
+      : "",
+  );
+  let isVideoHero = $derived(heroImageUrl.includes("homepage_video"));
+  const HERO_VIDEO = {
+    poster: "/hero/beachfront-hero-poster.jpg",
+    webm: "/hero/beachfront-hero.webm",
+    mp4: "/hero/beachfront-hero.mp4",
+  };
 
   const band = $derived(
     bandFor(
@@ -114,18 +132,27 @@
     sliceVariation={slice.variation}
   />
 {:else}
-  <!-- Full-bleed photographic opening hero. Bottom-left slab heading over the
-       photo (a video-poster still on home), a bottom-weighted gradient scrim
-       for legibility, a pill CTA, and the wave divider seaming into the white
-       section below. `hero-band` drives the 100vh first-child height and the
-       white heading colour (app.css). The band stays `bg-dark` so it reads as
-       a deliberate dark canvas if a photo is ever absent, rather than blank. -->
+  <!-- Full-bleed opening hero. Bottom-left slab heading over the background
+       media — an autoplaying muted flyover video on home (matching the live
+       site), a genuine still on every other default hero — plus a
+       bottom-weighted gradient scrim for legibility, a pill CTA, and the wave
+       divider seaming into the white section below. `hero-band` drives the
+       90vh first-child height and the white heading colour (app.css). The band
+       stays `bg-dark` so it reads as a deliberate dark canvas if the media is
+       ever absent, rather than blank. -->
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
     class="hero-band relative isolate flex min-h-[80vh] w-full items-end overflow-hidden bg-dark text-white"
   >
-    {#if hasImage}
+    {#if isVideoHero}
+      <HeroBackgroundVideo
+        poster={HERO_VIDEO.poster}
+        webm={HERO_VIDEO.webm}
+        mp4={HERO_VIDEO.mp4}
+        preload={true}
+      />
+    {:else if hasImage}
       <HeroBackgroundImage
         image={slice.primary.background_image}
         preload={true}
