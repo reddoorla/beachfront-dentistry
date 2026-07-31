@@ -108,7 +108,7 @@
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
     data-section-layout="services"
-    class="from-primary to-accent relative isolate w-full overflow-hidden bg-gradient-to-br text-white"
+    class="from-primary to-accent relative isolate w-full overflow-hidden bg-gradient-to-r text-white"
   >
     <WaveDivider fill="white" flip />
     <!-- The tooth badge (a self-contained cyan disc + white tooth, 130px
@@ -308,7 +308,7 @@
                 onclick={() => toggleCard(i)}
                 class="focus-visible:ring-primary-deep flex w-full cursor-pointer items-center justify-between gap-4 p-5 text-left focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden"
               >
-                <span class="text-3xl font-bold text-[#365b6d]">{label}</span>
+                <span class="font-slab text-3xl font-bold text-[#365b6d]">{label}</span>
                 <Plus
                   size={30}
                   class="text-primary shrink-0 transition-transform duration-300 {open
@@ -326,7 +326,7 @@
               {/if}
             {:else}
               <div class="p-5">
-                <span class="text-3xl font-bold text-[#365b6d]">{label}</span>
+                <span class="font-slab text-3xl font-bold text-[#365b6d]">{label}</span>
               </div>
             {/if}
           </div>

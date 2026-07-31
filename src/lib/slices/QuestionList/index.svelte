@@ -146,7 +146,7 @@
                      rule outranks any Tailwind text utility, so white is set
                      inline to win over it. -->
                 <h3
-                  class="font-slab absolute inset-x-6 bottom-5 text-[1.6rem] leading-tight font-light"
+                  class="absolute inset-x-6 bottom-5 text-[1.875rem] leading-tight font-medium"
                   style="color:#fff"
                 >
                   {titleText(doc)}

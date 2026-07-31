@@ -92,7 +92,7 @@
     <PrismicImage
       field={doc.data.media as unknown as ImageField}
       fallbackAlt=""
-      class="mx-auto aspect-square w-full max-w-[11rem] rounded-full object-cover transition-transform duration-300 hover:scale-[1.03]"
+      class="mx-auto aspect-square w-full max-w-[12.5rem] rounded-full object-cover transition-transform duration-300 hover:scale-[1.03]"
     />
   {/if}
 {/snippet}
@@ -121,7 +121,7 @@
         cardsPerView={6}
         showDots={false}
         arrowLayout="sides"
-        class="px-4 sm:px-12"
+        class="px-0 sm:px-10"
         arrowClass="text-primary hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
       >
         {#snippet children({ index }: { index: number })}
