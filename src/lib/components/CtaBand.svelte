@@ -85,10 +85,12 @@
   data-slice-type={sliceType}
   data-slice-variation={sliceVariation}
   class="w-full"
+  style={hasImage ? "margin-bottom:-9rem" : undefined}
 >
   {#if hasImage}
-    <!-- Heading on white; small gap (live ~38px) to the photo below. -->
-    <div class="mx-auto max-w-5xl px-6 pt-24 pb-6 text-center">
+    <!-- Heading on white; live's CTA band has ~0 top padding (the gap above
+         comes from the section above) and a small ~38px gap to the photo. -->
+    <div class="mx-auto max-w-5xl px-6 pt-2 pb-8 text-center">
       <div class="display-xl h-primary">
         <PrismicRichText field={heading} />
       </div>
