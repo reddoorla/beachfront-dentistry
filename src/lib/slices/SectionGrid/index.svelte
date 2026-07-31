@@ -184,7 +184,7 @@
       <div>
         {#if isFilled.richText(primary.heading)}
           <h2
-            class="h-primary font-slab text-[clamp(2.75rem,0.5rem+8vw,7.5rem)] leading-[1.05] font-thin [text-wrap:normal]"
+            class="h-primary font-slab text-[clamp(2.75rem,0.5rem+8vw,7.5rem)] leading-[1.167] font-thin [text-wrap:normal]"
           >
             {asText(primary.heading)}
           </h2>
