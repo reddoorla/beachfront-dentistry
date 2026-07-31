@@ -89,7 +89,8 @@
     const byUid = new Map(sortedDocs.map((doc) => [doc.uid, doc]));
     const cards: { doc: NewsArticleDoc; number: number | null }[] = [];
     const featured = byUid.get(FEATURED_UID);
-    if (featured) cards.push({ doc: featured, number: null });
+    if (featured)
+      cards.push({ doc: featured, number: canonicalNumber.get(FEATURED_UID) ?? 1 });
     for (const uid of CURATED_UIDS) {
       const doc = byUid.get(uid);
       if (doc) cards.push({ doc, number: canonicalNumber.get(uid) ?? null });
@@ -99,9 +100,7 @@
       const n = isFilled.number(slice.primary.max_items)
         ? slice.primary.max_items
         : sortedDocs.length;
-      return sortedDocs
-        .slice(0, n)
-        .map((doc, i) => ({ doc, number: i === 0 ? null : i + 1 }));
+      return sortedDocs.slice(0, n).map((doc, i) => ({ doc, number: i + 1 }));
     }
     return cards;
   });
@@ -120,27 +119,29 @@
     use:animateIn={{ duration: 700, translateY: "2rem" }}
   >
     {#if isFilled.richText(slice.primary.heading)}
-      <span
-        class="text-dark pointer-events-none absolute top-16 left-2 z-10 hidden -rotate-6 text-2xl lg:inline-block"
-        style="font-family:'Caveat','Bradley Hand','Segoe Print',cursive"
+      <!-- Live's real hand-drawn "ask the doctor" annotation (PNG asset, NOT a
+           redrawn cursive font). -->
+      <img
+        src="/annotations/ask-the-doctor.png"
+        alt=""
         aria-hidden="true"
-      >
-        {asText(slice.primary.heading).toLowerCase()} ↳
-      </span>
+        class="pointer-events-none absolute top-[21rem] -left-2 z-10 hidden w-[210px] lg:block"
+      />
     {/if}
 
     <div class="relative mx-auto max-w-xl">
       {#if isFilled.image(slice.primary.side_image)}
-        <!-- Floats along to track the topmost visible .qa-item as the column
-             scrolls (ports floating-doc.js). -->
+        <!-- Doctor headshot floats down the right edge tracking the topmost
+             visible .qa-item (ports floating-doc.js). Live: 200px, object-top
+             crop, starting ~3.95rem down (not flush to the top). -->
         <div
           use:floatAlong={{ itemSelector: ".qa-item" }}
-          class="pointer-events-none absolute top-0 -right-24 z-10 hidden w-36 lg:block xl:-right-40 xl:w-44"
+          class="ask-the-doctor-headshot pointer-events-none absolute top-16 -right-28 z-10 hidden w-[200px] lg:block xl:-right-44"
         >
           <PrismicImage
             field={slice.primary.side_image}
             fallbackAlt=""
-            class="aspect-square w-full rounded-full object-cover shadow-lg"
+            class="aspect-square w-full rounded-full object-cover object-top shadow-lg"
           />
         </div>
       {/if}
@@ -151,17 +152,19 @@
           <li class="qa-item">
             <a
               href="/questions/{doc.uid}"
-              class="focus-visible:ring-primary-deep group block overflow-hidden rounded-2xl shadow-md ring-1 ring-black/5 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+              class="focus-visible:ring-primary-deep group block overflow-hidden rounded-[25px] shadow-md ring-1 ring-black/5 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
             >
               {#if card.number !== null}
+                <!-- qa-label "top bit": 80px pale-blue bar, number circle left,
+                     Plus/minus right (live shows it on EVERY card incl. #01). -->
                 <div
-                  class="bg-primary/5 flex items-center justify-between px-6 py-3"
+                  class="flex h-20 items-center justify-between rounded-t-[25px] bg-[#e7f5fa] px-6"
                 >
                   <span
-                    class="text-dark grid size-9 place-items-center rounded-full text-sm font-semibold ring-1 ring-black/15"
+                    class="font-slab grid size-12 place-items-center rounded-full text-xl font-light text-[#365b6d] ring-1 ring-[#365b6d]/25"
                     >{pad2(card.number)}</span
                   >
-                  <Plus class="text-primary" size={24} aria-hidden="true" />
+                  <Plus class="text-primary" size={30} aria-hidden="true" />
                 </div>
               {/if}
               <div class="relative">
@@ -174,11 +177,10 @@
                 {:else}
                   <div class="from-primary to-accent aspect-[16/9] w-full bg-gradient-to-br"></div>
                 {/if}
-                <!-- Cyan wash: the live cards tint every photo toward the brand
-                     hue — lighter at the top so the image shows through, deeper
-                     at the bottom so the white title reads. -->
+                <!-- Cyan wash — live's .box-gradient: transparent → #129ecc @90%. -->
                 <div
-                  class="from-primary/25 to-primary/80 absolute inset-0 bg-gradient-to-b"
+                  class="absolute inset-0"
+                  style="background:linear-gradient(rgba(18,158,204,0), rgba(18,158,204,0.9) 90%)"
                   aria-hidden="true"
                 ></div>
                 <!-- Inline colour: the unlayered global `main h1–h3` primary

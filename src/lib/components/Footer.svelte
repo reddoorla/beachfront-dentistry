@@ -105,6 +105,7 @@
        flush at the very top before any footer padding. -->
   <WaveDivider
     fill={waveFill}
+    flip
     heightClass="h-[96px] min-[992px]:h-[128px] xl:h-[160px]"
     width="169%"
   />
@@ -120,7 +121,9 @@
         <div class="grid gap-10 lg:grid-cols-[1fr_20rem] lg:gap-16">
           <div class="flex flex-col justify-between gap-10 sm:flex-row">
             {#each columns as col, colIndex (colIndex)}
-              <div class="flex flex-col gap-2">
+              <div
+                class="font-slab flex flex-col gap-2 text-[20px] font-light text-[#365b6d]"
+              >
                 {#each col.items as item, itemIndex (itemIndex)}
                   {#if isImage(item)}
                     {#if item.href}
@@ -136,7 +139,7 @@
                       >{item.text}</a
                     >
                   {:else}
-                    <p class="text-dark/70">{item.text}</p>
+                    <p>{item.text}</p>
                   {/if}
                 {/each}
               </div>

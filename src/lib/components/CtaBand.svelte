@@ -73,7 +73,7 @@
       {#if ctaLabel && ctaLink}
         <PrismicLink
           field={ctaLink}
-          class="text-dark hover:border-primary hover:text-primary-deep focus-visible:ring-primary-deep inline-block rounded-full border border-black/15 px-8 py-3 font-light transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          class="font-slab hover:border-primary hover:text-primary-deep focus-visible:ring-primary-deep inline-block rounded-lg border border-[#365b6d] px-[25px] py-[14px] text-[25px] font-light text-[#365b6d] transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
         >
           {ctaLabel}
         </PrismicLink>
@@ -95,6 +95,13 @@
     <div class="relative isolate w-full overflow-hidden">
       <div class="relative w-full" style="min-height: 42vh;">
         <HeroBackgroundImage image={backgroundImage} preload={false} />
+        <!-- Live's .footer-white-to-trans-gradient: the white CTA area above
+             dissolves DOWN into the beach photo (fade into FIJI). -->
+        <div
+          class="pointer-events-none absolute inset-x-0 top-0 z-10 h-2/3"
+          style="background:linear-gradient(#fff 12%, rgba(255,255,255,0) 91%)"
+          aria-hidden="true"
+        ></div>
         {#if caption}
           <!-- Caption legibility: a small bottom-left scrim guarantees the
                white location label clears AA over any bright photo pixel. -->

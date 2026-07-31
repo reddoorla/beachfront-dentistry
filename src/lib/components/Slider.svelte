@@ -31,6 +31,14 @@
      * track; "sides" pins them to the left/right edges, vertically centered on
      * the track (the live team carousel). */
     arrowLayout?: "below" | "sides";
+    /** Optional custom glyphs for the "sides" prev/next buttons (e.g. the live
+     * team carousel's own arrow assets). Default is the built-in chevron SVG. */
+    prevArrow?: Snippet;
+    nextArrow?: Snippet;
+    /** When set, paints a left/right edge-fade to this colour over the track
+     * (below the arrows) so slides dissolve at the margins — live's full-bleed
+     * team row. */
+    edgeFadeColor?: string;
     /** Tailwind duration/easing utilities for the slide/fade movement. */
     transitionClass?: string;
     navigationClass?: string;
@@ -55,6 +63,9 @@
     showDots = true,
     showArrows = true,
     arrowLayout = "below",
+    prevArrow,
+    nextArrow,
+    edgeFadeColor,
     transitionClass = "duration-500 ease-in-out",
     navigationClass = "",
     arrowClass = "",
@@ -263,6 +274,20 @@
     {/if}
   </div>
 
+  {#if edgeFadeColor}
+    <!-- Edge fades sit above the track but below the z-10 side arrows. -->
+    <div
+      class="pointer-events-none absolute inset-y-0 left-0 z-[5] w-20"
+      style="background:linear-gradient(90deg, {edgeFadeColor}, rgba(255,255,255,0))"
+      aria-hidden="true"
+    ></div>
+    <div
+      class="pointer-events-none absolute inset-y-0 right-0 z-[5] w-20"
+      style="background:linear-gradient(270deg, {edgeFadeColor}, rgba(255,255,255,0))"
+      aria-hidden="true"
+    ></div>
+  {/if}
+
   {#if sideArrows}
     <!-- Edge-pinned prev/next, vertically centered on the track (live team
          carousel). Same handlers/aria as the bottom-row arrows. -->
@@ -271,34 +296,52 @@
       onclick={prevSlide}
       onkeydown={handleKeydown}
       aria-disabled={atStart ? "true" : undefined}
-      class="absolute top-1/2 left-0 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full transition-colors duration-200 aria-disabled:cursor-default aria-disabled:opacity-40 {arrowClass}"
+      class="absolute top-1/2 left-0 z-10 flex -translate-y-1/2 items-center justify-center rounded-full transition-colors duration-200 aria-disabled:cursor-default aria-disabled:opacity-40 {arrowClass}"
       aria-label="Previous slide"
     >
-      <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M15 19l-7-7 7-7"
-        />
-      </svg>
+      {#if prevArrow}
+        {@render prevArrow()}
+      {:else}
+        <svg
+          class="h-7 w-7"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      {/if}
     </button>
     <button
       type="button"
       onclick={nextSlide}
       onkeydown={handleKeydown}
       aria-disabled={atEnd ? "true" : undefined}
-      class="absolute top-1/2 right-0 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full transition-colors duration-200 aria-disabled:cursor-default aria-disabled:opacity-40 {arrowClass}"
+      class="absolute top-1/2 right-0 z-10 flex -translate-y-1/2 items-center justify-center rounded-full transition-colors duration-200 aria-disabled:cursor-default aria-disabled:opacity-40 {arrowClass}"
       aria-label="Next slide"
     >
-      <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M9 5l7 7-7 7"
-        />
-      </svg>
+      {#if nextArrow}
+        {@render nextArrow()}
+      {:else}
+        <svg
+          class="h-7 w-7"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 5l7 7-7 7"
+          />
+        </svg>
+      {/if}
     </button>
   {/if}
 

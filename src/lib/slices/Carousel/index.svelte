@@ -109,30 +109,18 @@
       {/if}
       <div class="relative mx-auto max-w-3xl">
         {#if slice.variation === "review"}
-          <!-- "what they say:" margin annotation with a curved arrow pointing to
-               the card (live). The exact Typekit script face arrives with the
-               font allowlist (deferred); a cursive fallback carries the intent. -->
+          <!-- Live's real hand-drawn "what they say" mark + curved arrow (PNG/SVG
+               assets, NOT redrawn) pointing to the review card. -->
           <div
             aria-hidden="true"
-            class="text-primary pointer-events-none absolute -top-2 -left-28 z-10 hidden w-56 -rotate-6 lg:block xl:-left-48"
+            class="pointer-events-none absolute -top-4 -left-32 z-10 hidden w-56 -rotate-6 lg:block xl:-left-52"
           >
-            <span
-              class="text-3xl whitespace-nowrap"
-              style="font-family:'Caveat','Bradley Hand','Segoe Print',cursive"
-              >what they say:</span
-            >
-            <svg
-              class="mt-1 ml-8 h-12 w-20"
-              viewBox="0 0 80 52"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M4 4 C 4 34, 30 44, 72 42" />
-              <path d="M60 32 L 74 42 L 60 49" />
-            </svg>
+            <img src="/annotations/what-they-say.png" alt="" class="w-full" />
+            <img
+              src="/annotations/what-they-say-arrow.svg"
+              alt=""
+              class="mt-1 ml-10 w-16"
+            />
           </div>
         {/if}
         <!-- The slide movement (Slider's transition-transform utility) is a

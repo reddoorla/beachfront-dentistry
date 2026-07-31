@@ -110,7 +110,7 @@
     data-section-layout="services"
     class="from-primary to-accent relative isolate w-full overflow-hidden bg-gradient-to-r text-white"
   >
-    <WaveDivider fill="white" flip />
+    <WaveDivider fill="white" />
     <!-- The tooth badge (a self-contained cyan disc + white tooth, 130px
          native) straddles the top wave right-of-centre, sitting on the crest —
          matching live. Rendered at native size, not shrunk inside a wrapper. -->
@@ -126,7 +126,7 @@
     >
       <div>
         {#if isFilled.richText(primary.heading)}
-          <p class="text-sm font-bold tracking-[0.2em] text-white/80 uppercase">
+          <p class="font-slab text-[24px] font-bold tracking-[0.06em] text-white uppercase">
             {asText(primary.heading)}
           </p>
         {/if}
@@ -138,7 +138,7 @@
         {#if hasCta}
           <PrismicLink
             field={primary.cta_link}
-            class="focus-visible:ring-offset-primary mt-8 inline-block rounded-full border border-white/70 px-7 py-3 font-semibold text-white transition-colors hover:bg-white hover:text-primary-deep focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden"
+            class="focus-visible:ring-offset-primary font-slab mt-8 inline-block rounded-lg border border-white px-[25px] py-[14px] text-[25px] font-light text-white transition-colors hover:bg-white hover:text-primary-deep focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden"
           >
             {primary.cta_label}
           </PrismicLink>
@@ -152,8 +152,10 @@
               field={item.item_link}
               class="group flex items-center gap-5 rounded-lg transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent focus-visible:outline-hidden"
             >
-              <img src={toothIcon(label)} alt="" class="size-16 shrink-0" />
-              <span class="font-slab text-4xl font-light">{label}</span>
+              <img src={toothIcon(label)} alt="" class="size-[100px] shrink-0" />
+              <span class="font-slab text-[25px] font-light text-[#365b6d]"
+                >{label}</span
+              >
             </PrismicLink>
           </li>
         {/each}
@@ -180,11 +182,11 @@
     class="mx-auto max-w-6xl px-6 pt-24 pb-48"
     use:animateIn={REVEAL}
   >
-    <div class="grid grid-cols-1 items-start gap-10 md:grid-cols-[1.35fr_1fr]">
+    <div class="grid grid-cols-1 items-center gap-10 md:grid-cols-[1.1fr_1fr]">
       <div>
         {#if isFilled.richText(primary.heading)}
           <h2
-            class="h-primary font-slab text-[clamp(2.75rem,0.5rem+8vw,7.5rem)] leading-[1.167] font-thin [text-wrap:normal]"
+            class="h-primary font-slab text-center text-[clamp(2.75rem,0.5rem+8vw,7.5rem)] leading-[1.167] font-thin [text-wrap:normal]"
           >
             {asText(primary.heading)}
           </h2>
@@ -194,7 +196,7 @@
                Tailwind text utility (unlayered beats @layer), so the 30px live
                subtitle size has to be set inline to win. -->
           <p
-            class="mt-4 font-light text-[#365b6d]"
+            class="mt-4 text-center font-light text-[#365b6d]"
             style="font-size:1.875rem;line-height:1.25"
           >
             {primary.subtitle}
@@ -202,7 +204,7 @@
         {/if}
       </div>
       {#if isFilled.image(primary.side_image)}
-        <div class="mx-auto w-full max-w-md">
+        <div class="mx-auto w-full max-w-[560px]">
           <PrismicImage
             field={primary.side_image}
             fallbackAlt=""
@@ -211,7 +213,7 @@
         </div>
       {/if}
     </div>
-    <ol class="mt-32 grid grid-cols-1 gap-10 text-center sm:grid-cols-3">
+    <ol class="mt-12 grid grid-cols-1 gap-10 text-center sm:grid-cols-3">
       {#each items as item, i (item)}
         <li>
           <p
@@ -234,7 +236,7 @@
       <div class="mt-12 text-center">
         <PrismicLink
           field={primary.cta_link}
-          class="text-dark hover:border-primary hover:text-primary-deep focus-visible:ring-primary-deep inline-block rounded-full border border-black/15 px-8 py-3 font-light transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          class="font-slab hover:border-primary hover:text-primary-deep focus-visible:ring-primary-deep inline-block rounded-lg border border-[#365b6d] px-[25px] py-[14px] text-[25px] font-light text-[#365b6d] transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
         >
           {primary.cta_label}
         </PrismicLink>

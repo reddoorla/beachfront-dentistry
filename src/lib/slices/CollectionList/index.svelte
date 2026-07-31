@@ -118,7 +118,7 @@
     <PrismicImage
       field={doc.data.media as unknown as ImageField}
       fallbackAlt=""
-      class="mx-auto aspect-square w-full max-w-[12.5rem] rounded-full object-cover transition-transform duration-300 hover:scale-[1.03]"
+      class="mx-auto aspect-square w-full max-w-[12.5rem] rounded-full object-cover object-top transition-transform duration-300 hover:scale-[1.03]"
     />
   {/if}
 {/snippet}
@@ -130,46 +130,59 @@
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="mx-auto max-w-7xl px-6 py-16"
+    class="overflow-x-clip py-16"
     use:animateIn={{ duration: 700, translateY: "2rem" }}
   >
     {#if slice.primary.heading}
-      <p
-        class="mb-10 text-sm font-bold tracking-[0.2em] text-[#333] uppercase"
-      >
-        {asText(slice.primary.heading)}
-      </p>
+      <div class="mx-auto max-w-7xl px-6">
+        <p
+          class="font-slab mb-10 text-[24px] font-medium tracking-[0.05em] text-[#365b6d] uppercase"
+        >
+          {asText(slice.primary.heading)}
+        </p>
+      </div>
     {/if}
     {#if docs.length > 0}
-      <Slider
-        itemCount={docs.length}
-        label={asText(slice.primary.heading) || "Meet the team"}
-        cardsPerView={6}
-        showDots={false}
-        arrowLayout="sides"
-        class="px-0 sm:px-10"
-        arrowClass="text-primary hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
-      >
-        {#snippet children({ index }: { index: number })}
-          {@const doc = docs[index]}
-          {#if doc}
-            {@const href = hrefFor(doc)}
-            <div class="px-2 text-center">
-              {#if href}
-                <a
-                  {href}
-                  aria-label={asText(doc.data.title as RichTextField)}
-                  class="block rounded-full focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
-                >
+      <!-- Full-bleed row that reaches both screen edges, with live's white
+           edge-fade gradients (.heads-opacity-gradient) so the headshots
+           dissolve at the margins. -->
+      <div class="relative left-1/2 w-screen -translate-x-1/2 px-8">
+        <Slider
+          itemCount={docs.length}
+          label={asText(slice.primary.heading) || "Meet the team"}
+          cardsPerView={6}
+          showDots={false}
+          arrowLayout="sides"
+          edgeFadeColor="#fff"
+          arrowClass="hover:opacity-70 focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
+        >
+          {#snippet prevArrow()}
+            <img src="/icons/team-arrow-left.svg" alt="" class="h-10 w-auto" />
+          {/snippet}
+          {#snippet nextArrow()}
+            <img src="/icons/team-arrow-right.svg" alt="" class="h-10 w-auto" />
+          {/snippet}
+          {#snippet children({ index }: { index: number })}
+            {@const doc = docs[index]}
+            {#if doc}
+              {@const href = hrefFor(doc)}
+              <div class="px-1 text-center">
+                {#if href}
+                  <a
+                    {href}
+                    aria-label={asText(doc.data.title as RichTextField)}
+                    class="block rounded-full focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                  >
+                    {@render avatar(doc)}
+                  </a>
+                {:else}
                   {@render avatar(doc)}
-                </a>
-              {:else}
-                {@render avatar(doc)}
-              {/if}
-            </div>
-          {/if}
-        {/snippet}
-      </Slider>
+                {/if}
+              </div>
+            {/if}
+          {/snippet}
+        </Slider>
+      </div>
     {/if}
   </section>
 {:else}
