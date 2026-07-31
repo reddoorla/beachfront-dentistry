@@ -247,11 +247,14 @@
   <ContentBand
     sliceType={slice.slice_type}
     variation={slice.variation}
-    contentClass="max-w-7xl px-6 py-16"
+    contentClass="max-w-7xl px-6 pt-2 pb-16"
     reveal
   >
     {#if isFilled.richText(slice.primary.heading)}
-      <div class="h-primary mb-10 max-w-2xl">
+      <!-- Live's "Finally…" heading sits ~10px from the band top with a wide
+           ~128px gap to the card row below (measured): near-zero top padding on
+           the band (pt-2) + mb-20 here. -->
+      <div class="h-primary mb-20 max-w-2xl">
         <PrismicRichText field={slice.primary.heading} />
       </div>
     {/if}
