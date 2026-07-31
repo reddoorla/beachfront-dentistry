@@ -131,18 +131,23 @@
         preload={true}
       />
     {/if}
-    <!-- Live's overlay stack (measured from the original): a cyan top tint, a
-         solid brand-cyan lower band the white headline sits on, and a sand fade
-         into the wave. The headline is 60px (large text → AA needs only 3:1) and
-         #129ecc-on-white-text is 3.09:1, so it clears the gate on the solid band
-         while matching the original's bright cyan look (not a dark scrim). -->
+    <!-- Live's overlay stack, VERBATIM from the original's computed CSS
+         (.hero-top/-mid/-bot-gradient, pulled via page-diff): a light cyan top
+         tint that fades out, a transparent→solid-cyan mid that only reaches full
+         at 65% (so the photo carries the upper two-thirds — the earlier heavier
+         2-layer overlay drowned it), and a sand fade from 31% down into the
+         wave. The white headline sits over the solid-cyan lower band. -->
     <div
       class="absolute inset-0"
-      style="background:linear-gradient(rgba(18,158,204,0.8),rgba(18,158,204,0) 45%)"
+      style="background:linear-gradient(rgba(18,158,204,0.8), rgba(0,0,0,0))"
     ></div>
     <div
       class="absolute inset-0"
-      style="background:linear-gradient(rgba(18,158,204,0) 20%,rgba(18,158,204,0.9) 46%,#129ecc 60%,#b6aa91 82%)"
+      style="background:linear-gradient(rgba(0,0,0,0), rgb(18,158,204) 65%)"
+    ></div>
+    <div
+      class="absolute inset-0"
+      style="background:linear-gradient(rgba(18,158,204,0) 31%, rgb(182,170,145))"
     ></div>
     <div
       class="relative z-10 mx-auto flex w-full max-w-[1360px] flex-col items-start gap-8 px-6 pt-36 pb-28 md:flex-row md:items-center md:justify-between md:gap-12"
