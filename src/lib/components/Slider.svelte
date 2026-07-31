@@ -42,6 +42,20 @@
      * (below the arrows) so slides dissolve at the margins — live's full-bleed
      * team row. */
     edgeFadeColor?: string;
+    /** Fixed slide width at ≥768px (e.g. "200px"). Matches a reference carousel
+     * whose cells are a fixed size and overflow the container rather than fitting
+     * to it — live's team row: 200px cells, 40px gap, first flush-left, last
+     * clipped at the right edge. When set, `cardsPerView` is ignored at desktop
+     * and how many are visible is measured from the track width. Below 768px the
+     * `mobileCardsPerView` fit-to-container layout is used unchanged. */
+    itemWidth?: string;
+    /** Left offset of the first cell (its distance from the track's left edge),
+     * so a full-bleed row can still align its first cell to the content column
+     * (live team: 80px at desktop) while the arrows/edge-fades pin to the true
+     * screen edges. Only applied when `itemWidth` is set. `trackPadStart` at
+     * ≥768px, `mobileTrackPadStart` below. */
+    trackPadStart?: string;
+    mobileTrackPadStart?: string;
     /** Tailwind duration/easing utilities for the slide/fade movement. */
     transitionClass?: string;
     navigationClass?: string;
@@ -70,6 +84,9 @@
     prevArrow,
     nextArrow,
     edgeFadeColor,
+    itemWidth,
+    trackPadStart,
+    mobileTrackPadStart,
     transitionClass = "duration-500 ease-in-out",
     navigationClass = "",
     arrowClass = "",
@@ -104,13 +121,36 @@
     return () => document.removeEventListener("visibilitychange", onVisibility);
   });
 
-  const responsiveCardsPerView = $derived(
-    mode === "fade"
-      ? 1
+  // itemWidth mode (fixed-size cells overflowing the track) engages only from
+  // 768px up; below that the fit-to-container mobileCardsPerView layout stands.
+  const fixedMode = $derived(viewport.width >= 768 && !!itemWidth);
+  // The first cell's left offset — only meaningful in itemWidth mode.
+  const currentPadStart = $derived(
+    !itemWidth
+      ? "0px"
       : viewport.width >= 768
-        ? cardsPerView
-        : mobileCardsPerView,
+        ? (trackPadStart ?? "0px")
+        : (mobileTrackPadStart ?? "0px"),
   );
+
+  const responsiveCardsPerView = $derived.by(() => {
+    if (mode === "fade") return 1;
+    if (viewport.width < 768) return mobileCardsPerView;
+    if (itemWidth) {
+      // How many fixed cells fit across the viewport after the start offset. One
+      // extra partial cell is clipped by overflow-hidden (live's 6th headshot),
+      // which floor() intentionally excludes from the "fully visible" count.
+      // This only bounds arrow travel (maxSlide); the static first frame renders
+      // every cell at itemWidth regardless, so an approximate width is fine and
+      // avoids a ResizeObserver (unavailable in the test env).
+      const iw = parseFloat(itemWidth);
+      const g = parseFloat(gap) || 0;
+      const pad = parseFloat(currentPadStart) || 0;
+      if (!viewport.width || !iw) return 1;
+      return Math.max(1, Math.floor((viewport.width - pad + g) / (iw + g)));
+    }
+    return cardsPerView;
+  });
 
   const maxSlide = $derived(Math.max(0, itemCount - responsiveCardsPerView));
   const currentGap = $derived(viewport.width >= 768 ? gap : mobileGap);
@@ -119,7 +159,11 @@
   // a slide is (100% - (n-1)*gap)/n wide, so the step is (100% + gap)/n —
   // the gap term is divided by n too. (Shifting a full gap per step, the
   // fleet formula, overshoots by gap*(n-1)/n per index and clips slides.)
+  // In itemWidth mode a cell is a fixed size, so the step is simply cell+gap.
   const translateValue = $derived.by(() => {
+    if (fixedMode) {
+      return `translateX(calc(${currentSlide} * (-${itemWidth} - ${gap})))`;
+    }
     const n = responsiveCardsPerView;
     return `translateX(calc(${currentSlide} * (-100% - ${currentGap}) / ${n}))`;
   });
@@ -243,7 +287,7 @@
     {#if mode === "slide"}
       <div
         class="flex transition-transform {transitionClass}"
-        style="transform: {translateValue}; gap: {currentGap};"
+        style="transform: {translateValue}; gap: {currentGap}; padding-left: {currentPadStart};"
       >
         {#each Array(itemCount) as _, i (i)}
           <div
@@ -253,11 +297,13 @@
             aria-label="{i + 1} of {itemCount}"
             aria-hidden={slideVisible(i) ? undefined : "true"}
             inert={!slideVisible(i)}
-            style={viewport.width >= 768
-              ? `width: calc((100% - ${cardsPerView - 1} * ${gap}) / ${cardsPerView});`
-              : mobileCardsPerView > 1
-                ? `width: calc((100% - ${mobileCardsPerView - 1} * ${mobileGap}) / ${mobileCardsPerView});`
-                : ""}
+            style={fixedMode
+              ? `width: ${itemWidth};`
+              : viewport.width >= 768
+                ? `width: calc((100% - ${cardsPerView - 1} * ${gap}) / ${cardsPerView});`
+                : mobileCardsPerView > 1
+                  ? `width: calc((100% - ${mobileCardsPerView - 1} * ${mobileGap}) / ${mobileCardsPerView});`
+                  : ""}
           >
             {@render children({ index: i })}
           </div>

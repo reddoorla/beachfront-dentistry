@@ -121,7 +121,7 @@
       class="absolute top-0 left-[68%] z-20 size-32 -translate-x-1/2 -translate-y-1/2 drop-shadow-md"
     />
     <div
-      class="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 pt-20 pb-24 lg:grid-cols-2 lg:items-center lg:pt-32 lg:pb-72"
+      class="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 pt-20 pb-24 lg:grid-cols-2 lg:items-center lg:pt-12 lg:pb-12"
       use:animateIn={REVEAL}
     >
       <div>
@@ -144,7 +144,7 @@
           </PrismicLink>
         {/if}
       </div>
-      <ul class="flex flex-col gap-8 lg:gap-36">
+      <ul class="flex flex-col gap-8 lg:gap-[61px]">
         {#each items as item (item)}
           {@const label = asText(item.item_heading)}
           <li>

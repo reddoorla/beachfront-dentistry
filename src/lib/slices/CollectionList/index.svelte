@@ -130,11 +130,13 @@
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="overflow-x-clip py-16"
+    class="overflow-x-clip pt-0 pb-16"
     use:animateIn={{ duration: 700, translateY: "2rem" }}
   >
     {#if slice.primary.heading}
-      <div class="mx-auto max-w-7xl px-6">
+      <!-- Eyebrow aligns to the same 80px content-left as live and as the
+           headshot row below it (lg:pl-20). -->
+      <div class="px-8 lg:pl-20">
         <p
           class="font-slab mb-10 text-[24px] font-medium tracking-[0.05em] text-[#365b6d] uppercase"
         >
@@ -145,12 +147,18 @@
     {#if docs.length > 0}
       <!-- Full-bleed row that reaches both screen edges, with live's white
            edge-fade gradients (.heads-opacity-gradient) so the headshots
-           dissolve at the margins. -->
-      <div class="relative left-1/2 w-screen -translate-x-1/2 px-8">
+           dissolve at the margins. Desktop matches live's fixed-cell carousel
+           exactly — 200px headshots, 40px gaps, the first flush with the
+           content column (80px) while the arrows/fades pin to the true screen
+           edges, the 6th clipped at the right edge. Mobile keeps the px-8
+           fit-to-container 3-across layout unchanged. -->
+      <div class="relative w-full px-8 lg:px-0">
         <Slider
           itemCount={docs.length}
           label={asText(slice.primary.heading) || "Meet the team"}
-          cardsPerView={6}
+          itemWidth="200px"
+          gap="40px"
+          trackPadStart="80px"
           mobileCardsPerView={3}
           showDots={false}
           arrowLayout="sides"
@@ -167,7 +175,7 @@
             {@const doc = docs[index]}
             {#if doc}
               {@const href = hrefFor(doc)}
-              <div class="px-1 text-center">
+              <div class="text-center">
                 {#if href}
                   <a
                     {href}
