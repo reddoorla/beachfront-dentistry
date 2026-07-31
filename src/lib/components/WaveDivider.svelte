@@ -11,6 +11,12 @@
    * waves, ~169% for the broad, shallow footer arc. */
   interface Props {
     fill?: string;
+    /** Rotate the divider 180° — live's `.bot-wave` / shape-divider-bottom sit
+     * at a section's BOTTOM and are `transform: rotate(180deg)`, so the filled
+     * region drops below the wavy edge and the crest pokes UP into the section
+     * above (the correct hero→white and FIJI→footer seams). The 180° also
+     * mirrors horizontally, which is why the left-aligned overflowing SVG reads
+     * right-aligned — no separate alignment control is needed. */
     flip?: boolean;
     /** Responsive Tailwind height utilities (see the block comment for live's
      * 72/96/120 vs 96/128/160 steps at the 992px and 1280px breakpoints). */
@@ -18,10 +24,6 @@
     /** CSS width of the stretched SVG (it overflows the container so the crest
      * clears the edges). */
     width?: string;
-    /** Which edge of the overflowing SVG sits flush with the container. Live's
-     * hero wave is right-aligned (overflow spills left); the footer keeps the
-     * default left. Controls which crests land at the visible edges. */
-    align?: "left" | "center" | "right";
   }
 
   let {
@@ -29,26 +31,19 @@
     flip = false,
     heightClass = "h-[72px] min-[992px]:h-[96px] xl:h-[120px]",
     width = "calc(133% + 1.3px)",
-    align = "left",
   }: Props = $props();
-
-  const justify = $derived(
-    { left: "justify-start", center: "justify-center", right: "justify-end" }[
-      align
-    ],
-  );
 </script>
 
 <div
   aria-hidden="true"
-  class="pointer-events-none flex w-full overflow-hidden leading-none {justify} {flip
+  class="pointer-events-none w-full overflow-hidden leading-none {flip
     ? 'rotate-180'
     : ''}"
 >
   <svg
     viewBox="0 0 1200 120"
     preserveAspectRatio="none"
-    class="block shrink-0 {heightClass}"
+    class="block {heightClass}"
     style="width: {width}"
   >
     <path

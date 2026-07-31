@@ -90,6 +90,7 @@
       logoClass="h-20 w-auto"
       transparentAtTop={navTransparentAtTop}
       hamburgerOnly
+      hamburgerSrc="/icons/menu-white.svg"
     />
 
     <main id="main-content" tabindex="-1" class="flex-1">

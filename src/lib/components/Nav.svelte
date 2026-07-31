@@ -33,6 +33,10 @@
      * live Beachfront chrome; other fleet sites leave this false and keep their
      * inline desktop nav. */
     hamburgerOnly?: boolean;
+    /** Optional menu-trigger icon URL. When set, the hamburger renders this
+     * exact asset (e.g. Beachfront's live `menu=white` svg) instead of the
+     * generic Lucide glyph — matching the reference's own icon weight/colour. */
+    hamburgerSrc?: string;
   }
 
   let {
@@ -42,6 +46,7 @@
     logoClass = "h-8 w-auto",
     transparentAtTop = false,
     hamburgerOnly = false,
+    hamburgerSrc,
   }: Props = $props();
 
   // The bar is solid unless it's explicitly a transparent-over-hero page AND
@@ -107,7 +112,7 @@
        (plain primary is only 3.09:1 under white text; -deep clears AA at 5.10:1),
        not the translucent bg-background/95 band the unstyled starter shipped. -->
   <nav
-    class="fixed top-0 left-0 z-50 isolate flex w-full items-center justify-between px-6 py-4 text-white transition-colors duration-300 lg:px-20 {navSolid
+    class="fixed top-0 left-0 z-50 isolate w-full text-white transition-colors duration-300 {navSolid
       ? 'bg-primary-deep'
       : 'bg-transparent'}"
   >
@@ -122,89 +127,96 @@
           : 'opacity-100'}"
       ></div>
     {/if}
-    <a href="/" class="flex items-center text-lg font-bold">
-      {#if logo}
-        <img
-          src={logo.url}
-          alt="Home"
-          class={logoClass}
-          style={logo.maxWidth ? `max-width:${logo.maxWidth}` : undefined}
-        />
-      {:else}
-        Logo
-      {/if}
-    </a>
+    <!-- Content sits in live's `content-width` band: capped at 1400px and
+         centred (so on wide screens the logo/hamburger don't hug the edges),
+         with 60px side padding at desktop. The nav itself stays full-bleed so
+         its solid band spans edge to edge. -->
+    <div
+      class="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 lg:px-[60px]"
+    >
+      <a href="/" class="flex items-center text-lg font-bold">
+        {#if logo}
+          <img
+            src={logo.url}
+            alt="Home"
+            class={logoClass}
+            style={logo.maxWidth ? `max-width:${logo.maxWidth}` : undefined}
+          />
+        {:else}
+          Logo
+        {/if}
+      </a>
 
-    {#if items.length > 0}
-      <!-- Groups the link list, phone/CTA cluster, and mobile trigger as one
+      {#if items.length > 0}
+        <!-- Groups the link list, phone/CTA cluster, and mobile trigger as one
            flex item so `justify-between` on <nav> reads as [logo] ↔ [everything
            else], instead of spreading three separate groups apart. -->
-      <div class="flex items-center gap-6">
-        <!-- Desktop: inline top items. An item with children is a disclosure —
+        <div class="flex items-center gap-6">
+          <!-- Desktop: inline top items. An item with children is a disclosure —
              click toggles it (aria-expanded), and hover/focus-within also reveal it
              for pointer/keyboard-tab users. Keyed by index: nav labels/hrefs aren't
              unique (two "" heading hrefs or repeated labels would collide and Svelte
              throws each_key_duplicate at hydration). gap-4 until xl: measured at a
              1024px viewport (real museo fonts) the items + both pills fill the band
              to 0px slack at gap-8 and 1px at gap-6 — gap-4 buys ~33px headroom. -->
-        <ul
-          class="hidden items-center gap-4 xl:gap-8 {hamburgerOnly
-            ? ''
-            : 'lg:flex'}"
-        >
-          {#each items as item, i (i)}
-            {#if item.children && item.children.length > 0}
-              <li class="group relative">
-                <button
-                  type="button"
-                  class="flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
-                  aria-expanded={openDesktopIndex === i}
-                  aria-controls="nav-dropdown-{i}"
-                  onclick={() =>
-                    (openDesktopIndex = openDesktopIndex === i ? null : i)}
-                  onkeydown={(e) => {
-                    if (e.key === "Escape") openDesktopIndex = null;
-                  }}
-                >
-                  {item.label}
-                  <ChevronDown size={16} aria-hidden="true" />
-                </button>
-                <ul
-                  id="nav-dropdown-{i}"
-                  class="absolute top-full left-0 flex min-w-48 flex-col gap-1 bg-background p-2 text-dark shadow-lg transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
-                  class:invisible={openDesktopIndex !== i}
-                  class:opacity-0={openDesktopIndex !== i}
-                >
-                  {#each item.children as child, ci (ci)}
-                    <li>
-                      {#if child.href}
-                        <a
-                          href={child.href}
-                          class="block px-3 py-2 hover:opacity-70"
-                          >{child.label}</a
-                        >
-                      {:else}
-                        <span class="block px-3 py-2">{child.label}</span>
-                      {/if}
-                    </li>
-                  {/each}
-                </ul>
-              </li>
-            {:else if item.href}
-              <li>
-                <a
-                  href={item.href}
-                  class="hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
-                  >{item.label}</a
-                >
-              </li>
-            {:else}
-              <li><span>{item.label}</span></li>
-            {/if}
-          {/each}
-        </ul>
+          <ul
+            class="hidden items-center gap-4 xl:gap-8 {hamburgerOnly
+              ? ''
+              : 'lg:flex'}"
+          >
+            {#each items as item, i (i)}
+              {#if item.children && item.children.length > 0}
+                <li class="group relative">
+                  <button
+                    type="button"
+                    class="flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
+                    aria-expanded={openDesktopIndex === i}
+                    aria-controls="nav-dropdown-{i}"
+                    onclick={() =>
+                      (openDesktopIndex = openDesktopIndex === i ? null : i)}
+                    onkeydown={(e) => {
+                      if (e.key === "Escape") openDesktopIndex = null;
+                    }}
+                  >
+                    {item.label}
+                    <ChevronDown size={16} aria-hidden="true" />
+                  </button>
+                  <ul
+                    id="nav-dropdown-{i}"
+                    class="absolute top-full left-0 flex min-w-48 flex-col gap-1 bg-background p-2 text-dark shadow-lg transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
+                    class:invisible={openDesktopIndex !== i}
+                    class:opacity-0={openDesktopIndex !== i}
+                  >
+                    {#each item.children as child, ci (ci)}
+                      <li>
+                        {#if child.href}
+                          <a
+                            href={child.href}
+                            class="block px-3 py-2 hover:opacity-70"
+                            >{child.label}</a
+                          >
+                        {:else}
+                          <span class="block px-3 py-2">{child.label}</span>
+                        {/if}
+                      </li>
+                    {/each}
+                  </ul>
+                </li>
+              {:else if item.href}
+                <li>
+                  <a
+                    href={item.href}
+                    class="hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
+                    >{item.label}</a
+                  >
+                </li>
+              {:else}
+                <li><span>{item.label}</span></li>
+              {/if}
+            {/each}
+          </ul>
 
-        <!-- Phone + appointment/payment CTAs — desktop only; mirrored in the
+          <!-- Phone + appointment/payment CTAs — desktop only; mirrored in the
              mobile menu below (the two clusters carry the same links — edit
              them together). The band itself is deep brand blue, so the "solid"
              CTA needs to be white-on-blue to read as solid there (a blue fill
@@ -215,46 +227,51 @@
              measured at a 1024px viewport the items + both pills alone leave
              ~33px slack, so adding the phone would force the item labels to
              wrap inside the band. -->
-        <div
-          class="items-center gap-4 {hamburgerOnly
-            ? 'hidden'
-            : 'hidden lg:flex'}"
-        >
-          <a
-            href={PHONE.href}
-            class="hidden font-slab focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden xl:inline"
-            >{PHONE.display}</a
+          <div
+            class="items-center gap-4 {hamburgerOnly
+              ? 'hidden'
+              : 'hidden lg:flex'}"
           >
-          <a
-            href="#appointment"
-            class="rounded-full bg-white px-5 py-2 font-semibold text-primary-deep hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
-            >Request Appointment</a
-          >
-          <a
-            href={MODENTO_URL}
-            class="rounded-full border border-white px-5 py-2 text-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
-            target="_blank"
-            rel="noopener">Make a Payment</a
-          >
-        </div>
+            <a
+              href={PHONE.href}
+              class="hidden font-slab focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden xl:inline"
+              >{PHONE.display}</a
+            >
+            <a
+              href="#appointment"
+              class="rounded-full bg-white px-5 py-2 font-semibold text-primary-deep hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
+              >Request Appointment</a
+            >
+            <a
+              href={MODENTO_URL}
+              class="rounded-full border border-white px-5 py-2 text-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
+              target="_blank"
+              rel="noopener">Make a Payment</a
+            >
+          </div>
 
-        {#if !isMenuOpen}
-          <!-- Over the hero the trigger is brand cyan (matching live); once the
-               bar goes solid deep-blue it flips to white to stay legible. -->
-          <button
-            bind:this={openButtonEl}
-            type="button"
-            class="flex min-h-11 min-w-11 items-center justify-center {navSolid
-              ? 'text-white'
-              : 'text-primary'} {hamburgerOnly ? '' : 'lg:hidden'}"
-            onclick={openMenu}
-            aria-label="Open menu"
-          >
-            <Menu size={40} />
-          </button>
-        {/if}
-      </div>
-    {/if}
+          {#if !isMenuOpen}
+            <button
+              bind:this={openButtonEl}
+              type="button"
+              class="flex min-h-11 min-w-11 items-center justify-center {hamburgerOnly
+                ? ''
+                : 'lg:hidden'}"
+              onclick={openMenu}
+              aria-label="Open menu"
+            >
+              {#if hamburgerSrc}
+                <!-- Live's exact icon (40×31, #E7F5FA, thick bars) — matches the
+                   reference's weight/colour where the Lucide glyph would not. -->
+                <img src={hamburgerSrc} alt="" class="w-10" />
+              {:else}
+                <Menu size={28} />
+              {/if}
+            </button>
+          {/if}
+        </div>
+      {/if}
+    </div>
   </nav>
 {/if}
 

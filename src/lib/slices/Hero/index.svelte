@@ -202,11 +202,12 @@
         </PrismicLink>
       {/if}
     </div>
-    <!-- The wave is wider than the viewport; live RIGHT-aligns it (right edge
-         flush with the viewport, overflow spilling off the left), so pass
-         align="right" — the default left-align showed the wrong crests. -->
+    <!-- Live's hero wave (.bot-wave) sits at the section bottom and is
+         transform: rotate(180deg) — the white next-section edge waves UP into
+         the hero. `flip` applies that rotation (which also mirrors it
+         horizontally, so the overflowing wave reads right-aligned like live). -->
     <div class="absolute bottom-0 left-0 z-10 w-full">
-      <WaveDivider fill="white" align="right" />
+      <WaveDivider fill="white" flip />
     </div>
   </section>
 {/if}
