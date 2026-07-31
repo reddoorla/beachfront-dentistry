@@ -118,7 +118,7 @@
         </p>
       {/if}
       {#if columns?.length}
-        <div class="grid gap-10 lg:grid-cols-[1fr_20rem] lg:gap-16">
+        <div class="grid gap-10 lg:grid-cols-[1fr_26rem] lg:gap-16">
           <div class="flex flex-col justify-between gap-10 sm:flex-row">
             {#each columns as col, colIndex (colIndex)}
               <div

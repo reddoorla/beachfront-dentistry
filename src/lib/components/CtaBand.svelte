@@ -49,73 +49,87 @@
   const hasImage = $derived(!!backgroundImage?.url);
 </script>
 
-<!-- The site's recurring closing band, in two live parts:
-     1. A brand-blue oversized "Ready for great dental health?" display heading
-        (h1/h2 pick up font-slab + primary globally; .display-xl drives the
-        140px/w100 size) on the plain white page, with a ghost-pill CTA.
-     2. A separate full-bleed photo band underneath carrying only the small
-        location caption (the live "FIJI ISLANDS" whimsy) — no heading over it.
-     The photo band has a straight top edge (matching live — the white section
-     seams into the photo with no wave), and no bottom wave: the Footer renders
-     right after and carries the only wave here, its pale edge dipping up into
-     the photo. -->
+<!-- The site's recurring closing band. On the home page (backgroundImage set)
+     it matches live's closing composition: the brand-blue oversized "Ready for
+     great dental health?" display heading on white, then a tall (~800px) fiji
+     beach photo whose white-faded TOP carries the CTA buttons (so they read on
+     white while the beach shows below) — live's "fade into FIJI". The Footer
+     renders right after and dips its pale wave up into the photo's bottom.
+     The detail routes (services/questions/team-members) render with no image
+     and get the plain heading-over-white block with the buttons beneath. -->
+
+{#snippet ctaButtons()}
+  <div class="mt-10 flex flex-col items-center gap-6">
+    {#if ctaLabel && ctaLink}
+      <PrismicLink
+        field={ctaLink}
+        class="font-slab hover:border-primary hover:text-primary-deep focus-visible:ring-primary-deep inline-block rounded-lg border border-[#365b6d] px-[25px] py-[14px] text-[25px] font-light text-[#365b6d] transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+      >
+        {ctaLabel}
+      </PrismicLink>
+    {/if}
+    <!-- "Read Reviews +" secondary CTA (live) → the Yelp business page. -->
+    <a
+      href={REVIEWS_URL}
+      target="_blank"
+      rel="noopener"
+      class="text-dark hover:text-primary-deep focus-visible:ring-primary-deep inline-flex items-center gap-2 text-lg font-light focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+    >
+      Read Reviews
+      <Plus class="text-primary" size={20} aria-hidden="true" />
+    </a>
+  </div>
+{/snippet}
+
 <section
   data-slice-type={sliceType}
   data-slice-variation={sliceVariation}
   class="w-full"
 >
-  <div class="mx-auto max-w-5xl px-6 py-24 text-center">
-    <div class="display-xl h-primary">
-      <PrismicRichText field={heading} />
-    </div>
-    <RichTextBody field={body} />
-    <div class="mt-10 flex flex-col items-center gap-6">
-      {#if ctaLabel && ctaLink}
-        <PrismicLink
-          field={ctaLink}
-          class="font-slab hover:border-primary hover:text-primary-deep focus-visible:ring-primary-deep inline-block rounded-lg border border-[#365b6d] px-[25px] py-[14px] text-[25px] font-light text-[#365b6d] transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
-        >
-          {ctaLabel}
-        </PrismicLink>
-      {/if}
-      <!-- "Read Reviews +" secondary CTA (live) → the Yelp business page. -->
-      <a
-        href={REVIEWS_URL}
-        target="_blank"
-        rel="noopener"
-        class="text-dark hover:text-primary-deep focus-visible:ring-primary-deep inline-flex items-center gap-2 text-lg font-light focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
-      >
-        Read Reviews
-        <Plus class="text-primary" size={20} aria-hidden="true" />
-      </a>
-    </div>
-  </div>
-
   {#if hasImage}
-    <div class="relative isolate w-full overflow-hidden">
-      <div class="relative w-full" style="min-height: 55vh;">
-        <HeroBackgroundImage image={backgroundImage} preload={false} />
-        <!-- Live's .footer-white-to-trans-gradient spans the whole band: white
-             for the top ~12% then fading to clear by ~91%, so the white CTA area
-             above dissolves smoothly DOWN into the beach photo (fade into FIJI). -->
-        <div
-          class="pointer-events-none absolute inset-0 z-10"
-          style="background:linear-gradient(#fff 12%, rgba(255,255,255,0) 91%)"
-          aria-hidden="true"
-        ></div>
-        {#if caption}
-          <!-- Caption legibility: a small bottom-left scrim guarantees the
-               white location label clears AA over any bright photo pixel. -->
-          <div
-            class="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent"
-          ></div>
-          <p
-            class="absolute bottom-4 left-5 z-10 text-xs font-bold tracking-[0.2em] text-white uppercase"
-          >
-            {caption}
-          </p>
-        {/if}
+    <!-- Heading on white; small gap (live ~38px) to the photo below. -->
+    <div class="mx-auto max-w-5xl px-6 pt-24 pb-6 text-center">
+      <div class="display-xl h-primary">
+        <PrismicRichText field={heading} />
       </div>
+      <RichTextBody field={body} />
+    </div>
+    <!-- Tall fiji photo (live ~800px). Its white-faded top carries the CTAs. -->
+    <div
+      class="relative isolate w-full overflow-hidden"
+      style="min-height: 800px;"
+    >
+      <HeroBackgroundImage image={backgroundImage} preload={false} />
+      <!-- White for the top ~18% fading to clear by ~60%, so the heading above
+           dissolves into the beach and the CTAs read on white (fade into FIJI). -->
+      <div
+        class="pointer-events-none absolute inset-x-0 top-0 z-[1] h-3/5"
+        style="background:linear-gradient(#fff, #fff 18%, rgba(255,255,255,0))"
+        aria-hidden="true"
+      ></div>
+      <div class="relative z-10 mx-auto max-w-5xl px-6 pt-4 text-center">
+        {@render ctaButtons()}
+      </div>
+      {#if caption}
+        <!-- Caption legibility: a small bottom-left scrim guarantees the
+             white location label clears AA over any bright photo pixel. -->
+        <div
+          class="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-24 bg-gradient-to-t from-black/50 to-transparent"
+        ></div>
+        <p
+          class="absolute bottom-4 left-5 z-10 text-xs font-bold tracking-[0.2em] text-white uppercase"
+        >
+          {caption}
+        </p>
+      {/if}
+    </div>
+  {:else}
+    <div class="mx-auto max-w-5xl px-6 py-24 text-center">
+      <div class="display-xl h-primary">
+        <PrismicRichText field={heading} />
+      </div>
+      <RichTextBody field={body} />
+      {@render ctaButtons()}
     </div>
   {/if}
 </section>
