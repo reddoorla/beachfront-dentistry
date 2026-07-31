@@ -47,12 +47,38 @@
   }
 
   let { slice, context }: Props = $props();
-  let docs = $derived(
-    (context?.collections?.[slice.primary.collection_type ?? ""] ?? []).slice(
-      0,
-      slice.primary.max_items ?? 24,
-    ),
-  );
+
+  // Live pins an editorial team order (the two doctors first, then staff in a
+  // hand-set sequence). getAllByType returns Prismic's default order, so the
+  // `team` variation re-sorts its roster to match live. Pinned by uid, ported
+  // verbatim from the live home page; docs not listed keep their source order
+  // at the end. (TODO: promote to a CMS ordering field once Slice Machine is
+  // wired.)
+  const TEAM_ORDER = [
+    "dr-robert-quan",
+    "dr-michael-hopkins",
+    "stacey",
+    "enrique",
+    "alicia",
+    "linda",
+    "michelle",
+    "christina",
+    "sabrina",
+    "raquel",
+    "lanette",
+  ];
+  const teamRank = (uid: string) => {
+    const i = TEAM_ORDER.indexOf(uid);
+    return i === -1 ? Number.POSITIVE_INFINITY : i;
+  };
+  let docs = $derived.by(() => {
+    const all = context?.collections?.[slice.primary.collection_type ?? ""] ?? [];
+    const ordered =
+      slice.variation === "team"
+        ? [...all].sort((a, b) => teamRank(a.uid) - teamRank(b.uid))
+        : all;
+    return ordered.slice(0, slice.primary.max_items ?? 24);
+  });
   let listClass = $derived(
     slice.variation === "list"
       ? "flex flex-col gap-6"

@@ -53,20 +53,58 @@
 
   const pad2 = (n: number): string => String(n).padStart(2, "0");
 
-  // collections-load.ts fetches via a plain `getAllByType` with no ordering,
-  // so the slice sorts itself — newest first, matching the live site's
-  // Ask-the-Doctor listing order (BluxCollection's date-sort idiom).
+  // collections-load fetches via a plain `getAllByType` with no ordering, so the
+  // slice sorts itself — newest first. This date order is the site's canonical
+  // Ask-the-Doctor numbering: a question's 1-based position here is the number
+  // live prints on its card (verified: 07/09/16/30/33 match live exactly).
   let sortedDocs = $derived(
     [...(context?.collections?.news_article ?? [])].sort((a, b) =>
       String(b.data.date ?? "").localeCompare(String(a.data.date ?? "")),
     ),
   );
 
-  let teaserDocs = $derived(
-    isFilled.number(slice.primary.max_items)
-      ? sortedDocs.slice(0, slice.primary.max_items)
-      : sortedDocs,
+  // Canonical card number = 1-based position in the full date-sorted catalog.
+  let canonicalNumber = $derived(
+    new Map(sortedDocs.map((doc, i) => [doc.uid, i + 1])),
   );
+
+  // The home teaser is an editorial pick, not "newest N": live features one hero
+  // question (no number) then five specific ones, each showing its catalog
+  // number. Webflow stored that as a "featured" flag; the import didn't capture
+  // it and the news_article model has no such field, so the selection is pinned
+  // here by uid, ported verbatim from the live home page. (TODO: promote to a
+  // CMS field once Slice Machine is wired.) Other sites reusing this slice fall
+  // back to newest-N below.
+  const FEATURED_UID = "regular-dental-cleanings-support-your-whole-body-health";
+  const CURATED_UIDS = [
+    "best-routine-for-my-dental-health",
+    "do-teeth-turn-yellow-as-you-age",
+    "creating-perfect-smiles-artistry-or-science",
+    "tooth-broke-off",
+    "why-does-my-tooth-hurt-when-i-bite-down",
+  ];
+
+  // Each teaser card carries its doc + the number to print (null = hero card).
+  let teaserCards = $derived.by(() => {
+    const byUid = new Map(sortedDocs.map((doc) => [doc.uid, doc]));
+    const cards: { doc: NewsArticleDoc; number: number | null }[] = [];
+    const featured = byUid.get(FEATURED_UID);
+    if (featured) cards.push({ doc: featured, number: null });
+    for (const uid of CURATED_UIDS) {
+      const doc = byUid.get(uid);
+      if (doc) cards.push({ doc, number: canonicalNumber.get(uid) ?? null });
+    }
+    // Fallback for other sites / missing curated docs: newest N, hero first.
+    if (cards.length <= 1) {
+      const n = isFilled.number(slice.primary.max_items)
+        ? slice.primary.max_items
+        : sortedDocs.length;
+      return sortedDocs
+        .slice(0, n)
+        .map((doc, i) => ({ doc, number: i === 0 ? null : i + 1 }));
+    }
+    return cards;
+  });
 </script>
 
 {#if slice.variation === "teaser"}
@@ -108,19 +146,20 @@
       {/if}
 
       <ul class="flex flex-col gap-8">
-        {#each teaserDocs as doc, i (doc.uid)}
+        {#each teaserCards as card (card.doc.uid)}
+          {@const doc = card.doc}
           <li class="qa-item">
             <a
               href="/questions/{doc.uid}"
               class="focus-visible:ring-primary-deep group block overflow-hidden rounded-2xl shadow-md ring-1 ring-black/5 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
             >
-              {#if i > 0}
+              {#if card.number !== null}
                 <div
                   class="bg-primary/5 flex items-center justify-between px-6 py-3"
                 >
                   <span
                     class="text-dark grid size-9 place-items-center rounded-full text-sm font-semibold ring-1 ring-black/15"
-                    >{pad2(i + 1)}</span
+                    >{pad2(card.number)}</span
                   >
                   <Plus class="text-primary" size={24} aria-hidden="true" />
                 </div>
