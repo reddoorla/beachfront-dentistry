@@ -136,9 +136,9 @@
     {#if slice.primary.heading}
       <!-- Eyebrow aligns to the same 80px content-left as live and as the
            headshot row below it (lg:pl-20). -->
-      <div class="px-8 lg:pl-20">
+      <div class="px-5 lg:pl-20">
         <p
-          class="font-slab mb-10 text-[24px] font-medium tracking-[0.05em] text-[#365b6d] uppercase"
+          class="font-slab mb-6 text-[14px] font-medium tracking-[0.05em] text-[#365b6d] uppercase lg:mb-10 lg:text-[24px]"
         >
           {asText(slice.primary.heading)}
         </p>
@@ -152,18 +152,20 @@
            content column (80px) while the arrows/fades pin to the true screen
            edges, the 6th clipped at the right edge. Mobile keeps the px-8
            fit-to-container 3-across layout unchanged. -->
-      <div class="relative w-full px-8 lg:px-0">
+      <div class="relative w-full">
         <Slider
           itemCount={docs.length}
           label={asText(slice.primary.heading) || "Meet the team"}
           itemWidth="200px"
+          mobileItemWidth="120px"
           gap="40px"
+          mobileGap="24px"
           trackPadStart="80px"
-          mobileCardsPerView={3}
+          mobileTrackPadStart="20px"
           showDots={false}
           arrowLayout="sides"
           edgeFadeColor="#fff"
-          arrowClass="hover:opacity-70 focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          arrowClass="max-lg:hidden hover:opacity-70 focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
         >
           {#snippet prevArrow()}
             <img src="/icons/team-arrow-left.svg" alt="" class="h-10 w-auto" />

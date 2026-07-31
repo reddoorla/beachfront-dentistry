@@ -49,6 +49,11 @@
      * and how many are visible is measured from the track width. Below 768px the
      * `mobileCardsPerView` fit-to-container layout is used unchanged. */
     itemWidth?: string;
+    /** Fixed cell width below 768px (e.g. "120px" — live's team headshots are
+     * 200px desktop / 120px mobile, its rem scaled 0.6× under a 40px→24px root).
+     * When set, mobile uses fixed cells too; otherwise mobile falls back to the
+     * `mobileCardsPerView` fit-to-container layout. */
+    mobileItemWidth?: string;
     /** Left offset of the first cell (its distance from the track's left edge),
      * so a full-bleed row can still align its first cell to the content column
      * (live team: 80px at desktop) while the arrows/edge-fades pin to the true
@@ -85,6 +90,7 @@
     nextArrow,
     edgeFadeColor,
     itemWidth,
+    mobileItemWidth,
     trackPadStart,
     mobileTrackPadStart,
     transitionClass = "duration-500 ease-in-out",
@@ -121,12 +127,21 @@
     return () => document.removeEventListener("visibilitychange", onVisibility);
   });
 
-  // itemWidth mode (fixed-size cells overflowing the track) engages only from
-  // 768px up; below that the fit-to-container mobileCardsPerView layout stands.
-  const fixedMode = $derived(viewport.width >= 768 && !!itemWidth);
-  // The first cell's left offset — only meaningful in itemWidth mode.
+  // Fixed-cell mode (cells a fixed size, overflowing the track). Desktop uses
+  // `itemWidth`, mobile `mobileItemWidth`; when the active breakpoint's width is
+  // unset, that breakpoint falls back to the fit-to-container layout.
+  const activeItemWidth = $derived(
+    mode === "fade"
+      ? undefined
+      : viewport.width >= 768
+        ? itemWidth
+        : mobileItemWidth,
+  );
+  const fixedMode = $derived(!!activeItemWidth);
+  const currentGap = $derived(viewport.width >= 768 ? gap : mobileGap);
+  // The first cell's left offset — only meaningful in fixed-cell mode.
   const currentPadStart = $derived(
-    !itemWidth
+    !fixedMode
       ? "0px"
       : viewport.width >= 768
         ? (trackPadStart ?? "0px")
@@ -135,25 +150,24 @@
 
   const responsiveCardsPerView = $derived.by(() => {
     if (mode === "fade") return 1;
-    if (viewport.width < 768) return mobileCardsPerView;
-    if (itemWidth) {
+    if (fixedMode) {
       // How many fixed cells fit across the viewport after the start offset. One
       // extra partial cell is clipped by overflow-hidden (live's 6th headshot),
       // which floor() intentionally excludes from the "fully visible" count.
       // This only bounds arrow travel (maxSlide); the static first frame renders
       // every cell at itemWidth regardless, so an approximate width is fine and
       // avoids a ResizeObserver (unavailable in the test env).
-      const iw = parseFloat(itemWidth);
-      const g = parseFloat(gap) || 0;
+      const iw = parseFloat(activeItemWidth ?? "0");
+      const g = parseFloat(currentGap) || 0;
       const pad = parseFloat(currentPadStart) || 0;
       if (!viewport.width || !iw) return 1;
       return Math.max(1, Math.floor((viewport.width - pad + g) / (iw + g)));
     }
+    if (viewport.width < 768) return mobileCardsPerView;
     return cardsPerView;
   });
 
   const maxSlide = $derived(Math.max(0, itemCount - responsiveCardsPerView));
-  const currentGap = $derived(viewport.width >= 768 ? gap : mobileGap);
 
   // Each step advances one slide width plus one gap. With n cards per view
   // a slide is (100% - (n-1)*gap)/n wide, so the step is (100% + gap)/n —
@@ -162,7 +176,7 @@
   // In itemWidth mode a cell is a fixed size, so the step is simply cell+gap.
   const translateValue = $derived.by(() => {
     if (fixedMode) {
-      return `translateX(calc(${currentSlide} * (-${itemWidth} - ${gap})))`;
+      return `translateX(calc(${currentSlide} * (-${activeItemWidth} - ${currentGap})))`;
     }
     const n = responsiveCardsPerView;
     return `translateX(calc(${currentSlide} * (-100% - ${currentGap}) / ${n}))`;
@@ -298,7 +312,7 @@
             aria-hidden={slideVisible(i) ? undefined : "true"}
             inert={!slideVisible(i)}
             style={fixedMode
-              ? `width: ${itemWidth};`
+              ? `width: ${activeItemWidth};`
               : viewport.width >= 768
                 ? `width: calc((100% - ${cardsPerView - 1} * ${gap}) / ${cardsPerView});`
                 : mobileCardsPerView > 1
