@@ -19,8 +19,18 @@
   import { animateIn } from "$lib/actions/animateIn";
   import { Plus } from "@lucide/svelte";
   import { SvelteSet } from "svelte/reactivity";
+  import { viewport } from "$lib/stores/viewport.svelte";
+  import { onMount } from "svelte";
 
   const REVEAL = { duration: 700, translateY: "2rem" } as const;
+
+  onMount(() => viewport.subscribe());
+  // Live's "Finally…" cards show their body copy overlaid on the photo on
+  // mobile, but collapse to a "+" accordion on desktop. Gate the mobile overlay
+  // on the viewport store (JS, not a `lg:hidden` CSS class) so it isn't in the
+  // DOM at the test's default 1024px width — the accordion test asserts the body
+  // is absent until the toggle is clicked, which must stay true on desktop.
+  const isMobile = $derived(viewport.width < 1024);
 
   let { slice }: { slice: Content.SectionGridSlice } = $props();
 
@@ -254,7 +264,7 @@
       <!-- Live's "Finally…" heading sits ~10px from the band top with a wide
            ~128px gap to the card row below (measured): near-zero top padding on
            the band (pt-2) + mb-20 here. -->
-      <div class="h-primary mb-20 max-w-2xl">
+      <div class="h-primary mb-8 max-w-2xl lg:mb-20">
         <PrismicRichText field={slice.primary.heading} />
       </div>
     {/if}
@@ -304,6 +314,15 @@
                 style="background:linear-gradient(rgba(18,158,204,0),rgba(18,158,204,0.9) 92%)"
                 aria-hidden="true"
               ></div>
+              {#if isMobile && expandable}
+                <!-- Mobile: body copy overlaid on the photo (live). Desktop keeps
+                     the collapsed +/accordion below. -->
+                <div
+                  class="absolute inset-x-0 bottom-0 p-5 text-[15px] leading-snug font-light text-white [&_*]:text-white"
+                >
+                  <RichTextBody field={item.item_body} />
+                </div>
+              {/if}
             </div>
             {#if expandable}
               <button

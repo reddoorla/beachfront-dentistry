@@ -325,10 +325,10 @@ main :where(p) {
   }
   h2 {
     font-size: clamp(
-      2.125rem,
-      1.3rem + 4.5vw,
+      1.75rem,
+      0.95rem + 3.3vw,
       3.75rem
-    ); /* → 60px, matches h1 */
+    ); /* 28px @390 → 60px @1440 — live's mobile h2 is 28px, not 38px */
   }
   h3 {
     font-size: clamp(1.5rem, 1rem + 2.2vw, 2.25rem); /* → 36px */
