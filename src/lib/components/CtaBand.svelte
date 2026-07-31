@@ -93,12 +93,13 @@
 
   {#if hasImage}
     <div class="relative isolate w-full overflow-hidden">
-      <div class="relative w-full" style="min-height: 42vh;">
+      <div class="relative w-full" style="min-height: 55vh;">
         <HeroBackgroundImage image={backgroundImage} preload={false} />
-        <!-- Live's .footer-white-to-trans-gradient: the white CTA area above
-             dissolves DOWN into the beach photo (fade into FIJI). -->
+        <!-- Live's .footer-white-to-trans-gradient spans the whole band: white
+             for the top ~12% then fading to clear by ~91%, so the white CTA area
+             above dissolves smoothly DOWN into the beach photo (fade into FIJI). -->
         <div
-          class="pointer-events-none absolute inset-x-0 top-0 z-10 h-2/3"
+          class="pointer-events-none absolute inset-0 z-10"
           style="background:linear-gradient(#fff 12%, rgba(255,255,255,0) 91%)"
           aria-hidden="true"
         ></div>

@@ -315,7 +315,7 @@ function assemblies(img) {
             item_heading: [head(4, "Comfort")],
             item_body: [
               para(
-                "Our dental care integrates all oral health needs with goals of establishing life-long and healthy habits",
+                "It is our goal to provide you with a relaxing, comfortable, and professional dental experience",
               ),
             ],
             item_media: img(IMG.comfort),
@@ -325,7 +325,7 @@ function assemblies(img) {
             item_heading: [head(4, "Comprehensive")],
             item_body: [
               para(
-                "Our focus on preventative and restorative dental treatments ensures that you receive long-lasting, quality care",
+                "Our dental care integrates all oral health needs with goals of establishing life-long and healthy habits",
               ),
             ],
             item_media: img(IMG.comprehensive),
@@ -333,7 +333,11 @@ function assemblies(img) {
           },
           {
             item_heading: [head(4, "Caring")],
-            item_body: [],
+            item_body: [
+              para(
+                "Our focus on preventative and restorative dental treatments ensures that you receive long-lasting, quality care",
+              ),
+            ],
             item_media: img(IMG.caring),
             item_link: {},
           },

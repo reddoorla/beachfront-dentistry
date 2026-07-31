@@ -158,13 +158,13 @@
                 <!-- qa-label "top bit": 80px pale-blue bar, number circle left,
                      Plus/minus right (live shows it on EVERY card incl. #01). -->
                 <div
-                  class="flex h-20 items-center justify-between rounded-t-[25px] bg-[#e7f5fa] px-6"
+                  class="flex h-14 items-center justify-between rounded-t-[25px] bg-[#e7f5fa] px-5 lg:h-20 lg:px-6"
                 >
                   <span
-                    class="font-slab grid size-12 place-items-center rounded-full text-xl font-light text-[#365b6d] ring-1 ring-[#365b6d]/25"
+                    class="font-slab grid size-10 place-items-center rounded-full text-lg font-light text-[#365b6d] ring-1 ring-[#365b6d]/25 lg:size-12 lg:text-xl"
                     >{pad2(card.number)}</span
                   >
-                  <Plus class="text-primary" size={30} aria-hidden="true" />
+                  <Plus class="text-primary" size={26} aria-hidden="true" />
                 </div>
               {/if}
               <div class="relative">
@@ -187,7 +187,7 @@
                      rule outranks any Tailwind text utility, so white is set
                      inline to win over it. -->
                 <h3
-                  class="absolute inset-x-6 bottom-5 text-[1.875rem] leading-tight font-medium"
+                  class="absolute inset-x-5 bottom-4 text-[1.375rem] leading-tight font-medium lg:inset-x-6 lg:bottom-5 lg:text-[1.875rem]"
                   style="color:#fff"
                 >
                   {titleText(doc)}

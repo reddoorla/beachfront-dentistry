@@ -151,6 +151,7 @@
           itemCount={docs.length}
           label={asText(slice.primary.heading) || "Meet the team"}
           cardsPerView={6}
+          mobileCardsPerView={3}
           showDots={false}
           arrowLayout="sides"
           edgeFadeColor="#fff"

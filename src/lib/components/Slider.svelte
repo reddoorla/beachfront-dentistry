@@ -9,8 +9,11 @@
      *  ("Customer testimonials"), not "Slider". */
     label: string;
     children: Snippet<[{ index: number }]>;
-    /** Slides visible at once from 768px up; mobile is always 1. */
+    /** Slides visible at once from 768px up. */
     cardsPerView?: number;
+    /** Slides visible below 768px (default 1). The live team row keeps several
+     * headshots on-screen on mobile rather than one giant one. */
+    mobileCardsPerView?: number;
     gap?: string;
     mobileGap?: string;
     /** "slide" translates a track; "fade" cross-dissolves in place
@@ -55,6 +58,7 @@
     label,
     children,
     cardsPerView = 1,
+    mobileCardsPerView = 1,
     gap = "14px",
     mobileGap = "6px",
     mode = "slide",
@@ -101,7 +105,11 @@
   });
 
   const responsiveCardsPerView = $derived(
-    mode === "fade" ? 1 : viewport.width >= 768 ? cardsPerView : 1,
+    mode === "fade"
+      ? 1
+      : viewport.width >= 768
+        ? cardsPerView
+        : mobileCardsPerView,
   );
 
   const maxSlide = $derived(Math.max(0, itemCount - responsiveCardsPerView));
@@ -247,7 +255,9 @@
             inert={!slideVisible(i)}
             style={viewport.width >= 768
               ? `width: calc((100% - ${cardsPerView - 1} * ${gap}) / ${cardsPerView});`
-              : ""}
+              : mobileCardsPerView > 1
+                ? `width: calc((100% - ${mobileCardsPerView - 1} * ${mobileGap}) / ${mobileCardsPerView});`
+                : ""}
           >
             {@render children({ index: i })}
           </div>
