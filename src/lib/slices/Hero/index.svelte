@@ -158,22 +158,25 @@
         preload={true}
       />
     {/if}
-    <!-- Live's overlay stack, VERBATIM from the original's computed CSS
-         (.hero-top/-mid/-bot-gradient, pulled via page-diff): a light cyan top
-         tint that fades out, a transparent→solid-cyan mid that only reaches full
-         at 65% (so the photo carries the upper two-thirds — the earlier heavier
-         2-layer overlay drowned it), and a sand fade from 31% down into the
-         wave. The white headline sits over the solid-cyan lower band. -->
+    <!-- Live's overlay is THREE BANDS, not three full-height washes (measured
+         off the original with the matching-a-page chrome probe: top tint box
+         = top 25%, the cyan + sand boxes = the bottom 50%). A cyan top tint
+         fades out within the top quarter; the bottom half carries a
+         transparent→solid-cyan wash (full at 65% of its OWN height) with a sand
+         fade (transparent to 31%, then sand) on top of it. The middle band is
+         deliberately left CLEAR so the video reads through — the earlier
+         inset-0 layers washed the entire hero cyan (the "overlay's wrong" bug).
+         The white headline sits over the solid cyan+sand lower band. -->
     <div
-      class="absolute inset-0"
+      class="absolute inset-x-0 top-0 h-1/4"
       style="background:linear-gradient(rgba(18,158,204,0.8), rgba(0,0,0,0))"
     ></div>
     <div
-      class="absolute inset-0"
+      class="absolute inset-x-0 bottom-0 h-1/2"
       style="background:linear-gradient(rgba(0,0,0,0), rgb(18,158,204) 65%)"
     ></div>
     <div
-      class="absolute inset-0"
+      class="absolute inset-x-0 bottom-0 h-1/2"
       style="background:linear-gradient(rgba(18,158,204,0) 31%, rgb(182,170,145))"
     ></div>
     <div
@@ -193,14 +196,17 @@
       {#if slice.primary.cta_label && slice.primary.cta_link}
         <PrismicLink
           field={slice.primary.cta_link}
-          class="focus-visible:ring-offset-dark inline-block shrink-0 rounded-full border border-white/80 px-8 py-3 font-slab text-2xl font-light text-white transition-colors hover:bg-white hover:text-primary-deep focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          class="focus-visible:ring-offset-dark inline-block shrink-0 rounded-lg border border-white px-[25px] py-[14px] font-slab text-[25px] font-light text-white transition-colors hover:bg-white hover:text-primary-deep focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden"
         >
           {slice.primary.cta_label}
         </PrismicLink>
       {/if}
     </div>
+    <!-- The wave is wider than the viewport; live RIGHT-aligns it (right edge
+         flush with the viewport, overflow spilling off the left), so pass
+         align="right" — the default left-align showed the wrong crests. -->
     <div class="absolute bottom-0 left-0 z-10 w-full">
-      <WaveDivider fill="white" />
+      <WaveDivider fill="white" align="right" />
     </div>
   </section>
 {/if}

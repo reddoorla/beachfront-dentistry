@@ -18,6 +18,10 @@
     /** CSS width of the stretched SVG (it overflows the container so the crest
      * clears the edges). */
     width?: string;
+    /** Which edge of the overflowing SVG sits flush with the container. Live's
+     * hero wave is right-aligned (overflow spills left); the footer keeps the
+     * default left. Controls which crests land at the visible edges. */
+    align?: "left" | "center" | "right";
   }
 
   let {
@@ -25,19 +29,26 @@
     flip = false,
     heightClass = "h-[72px] min-[992px]:h-[96px] xl:h-[120px]",
     width = "calc(133% + 1.3px)",
+    align = "left",
   }: Props = $props();
+
+  const justify = $derived(
+    { left: "justify-start", center: "justify-center", right: "justify-end" }[
+      align
+    ],
+  );
 </script>
 
 <div
   aria-hidden="true"
-  class="pointer-events-none w-full overflow-hidden leading-none {flip
+  class="pointer-events-none flex w-full overflow-hidden leading-none {justify} {flip
     ? 'rotate-180'
     : ''}"
 >
   <svg
     viewBox="0 0 1200 120"
     preserveAspectRatio="none"
-    class="block {heightClass}"
+    class="block shrink-0 {heightClass}"
     style="width: {width}"
   >
     <path

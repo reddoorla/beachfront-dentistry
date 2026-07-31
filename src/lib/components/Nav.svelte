@@ -107,7 +107,7 @@
        (plain primary is only 3.09:1 under white text; -deep clears AA at 5.10:1),
        not the translucent bg-background/95 band the unstyled starter shipped. -->
   <nav
-    class="fixed top-0 left-0 z-50 isolate flex w-full items-center justify-between px-8 py-4 text-white transition-colors duration-300 {navSolid
+    class="fixed top-0 left-0 z-50 isolate flex w-full items-center justify-between px-6 py-4 text-white transition-colors duration-300 lg:px-20 {navSolid
       ? 'bg-primary-deep'
       : 'bg-transparent'}"
   >
@@ -216,7 +216,9 @@
              ~33px slack, so adding the phone would force the item labels to
              wrap inside the band. -->
         <div
-          class="items-center gap-4 {hamburgerOnly ? 'hidden' : 'hidden lg:flex'}"
+          class="items-center gap-4 {hamburgerOnly
+            ? 'hidden'
+            : 'hidden lg:flex'}"
         >
           <a
             href={PHONE.href}
@@ -237,16 +239,18 @@
         </div>
 
         {#if !isMenuOpen}
+          <!-- Over the hero the trigger is brand cyan (matching live); once the
+               bar goes solid deep-blue it flips to white to stay legible. -->
           <button
             bind:this={openButtonEl}
             type="button"
-            class="flex min-h-11 min-w-11 items-center justify-center {hamburgerOnly
-              ? ''
-              : 'lg:hidden'}"
+            class="flex min-h-11 min-w-11 items-center justify-center {navSolid
+              ? 'text-white'
+              : 'text-primary'} {hamburgerOnly ? '' : 'lg:hidden'}"
             onclick={openMenu}
             aria-label="Open menu"
           >
-            <Menu size={28} />
+            <Menu size={40} />
           </button>
         {/if}
       </div>

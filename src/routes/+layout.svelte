@@ -87,7 +87,7 @@
       navLinks={page.data.navLinks}
       items={siteConfig.nav.items}
       logo={siteConfig.nav.logo}
-      logoClass="h-14 w-auto"
+      logoClass="h-20 w-auto"
       transparentAtTop={navTransparentAtTop}
       hamburgerOnly
     />
