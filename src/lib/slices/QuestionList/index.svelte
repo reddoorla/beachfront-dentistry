@@ -75,7 +75,8 @@
   // here by uid, ported verbatim from the live home page. (TODO: promote to a
   // CMS field once Slice Machine is wired.) Other sites reusing this slice fall
   // back to newest-N below.
-  const FEATURED_UID = "regular-dental-cleanings-support-your-whole-body-health";
+  const FEATURED_UID =
+    "regular-dental-cleanings-support-your-whole-body-health";
   const CURATED_UIDS = [
     "best-routine-for-my-dental-health",
     "do-teeth-turn-yellow-as-you-age",
@@ -90,7 +91,10 @@
     const cards: { doc: NewsArticleDoc; number: number | null }[] = [];
     const featured = byUid.get(FEATURED_UID);
     if (featured)
-      cards.push({ doc: featured, number: canonicalNumber.get(FEATURED_UID) ?? 1 });
+      cards.push({
+        doc: featured,
+        number: canonicalNumber.get(FEATURED_UID) ?? 1,
+      });
     for (const uid of CURATED_UIDS) {
       const doc = byUid.get(uid);
       if (doc) cards.push({ doc, number: canonicalNumber.get(uid) ?? null });
@@ -169,7 +173,9 @@
                   class="absolute inset-0 h-full w-full object-cover object-center"
                 />
               {:else}
-                <div class="from-primary to-accent absolute inset-0 bg-gradient-to-br"></div>
+                <div
+                  class="from-primary to-accent absolute inset-0 bg-gradient-to-br"
+                ></div>
               {/if}
               <!-- Pale wash. NB: the static .box-gradient source computes to
                    cyan-0.9-at-top, but live RENDERS these cards near-white
@@ -206,9 +212,11 @@
                    the way live's does, instead of jumping up to a text-bearing
                    image wrapper and shifting the whole stack by one card.
                    Inline colour: the unlayered global `main h1–h3` primary rule
-                   outranks any Tailwind text utility. Live title 20px/30px w500. -->
+                   outranks any Tailwind text utility. Live title is museo-SANS
+                   (not the base h3 slab), 20px/30px @390 → 30px/45px @1440, w500
+                   (measured 2026-07-31 with the type probe). -->
               <h3
-                class="absolute inset-x-5 bottom-4 text-[1.25rem] leading-[1.4] font-medium lg:inset-x-6 lg:bottom-5 lg:text-[1.875rem] lg:leading-tight"
+                class="absolute inset-x-5 bottom-4 font-sans text-[1.25rem] leading-[30px] font-medium lg:inset-x-6 lg:bottom-5 lg:text-[1.875rem] lg:leading-[45px]"
                 style="color:#fff"
               >
                 {titleText(doc)}

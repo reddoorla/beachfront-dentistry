@@ -137,13 +137,17 @@
     >
       <div>
         {#if isFilled.richText(primary.heading)}
-          <p class="font-slab text-[24px] font-bold tracking-[0.06em] text-white uppercase">
+          <p
+            class="font-slab text-[24px] font-bold tracking-[0.06em] text-white uppercase"
+          >
             {asText(primary.heading)}
           </p>
         {/if}
         {#if isFilled.richText(primary.body)}
           <!-- Live body: 20px/30px weight 300 white. -->
-          <div class="mt-4 max-w-xl text-[20px] leading-[30px] font-light text-white">
+          <div
+            class="mt-4 max-w-xl text-[20px] leading-[30px] font-light text-white"
+          >
             <RichTextBody field={primary.body} />
           </div>
         {/if}
@@ -173,7 +177,8 @@
                 alt=""
                 class="size-[60px] shrink-0 lg:size-[100px]"
               />
-              <span class="font-slab text-[20px] font-light text-[#365b6d] lg:text-[25px]"
+              <span
+                class="font-slab text-[20px] font-light text-[#365b6d] lg:text-[25px]"
                 >{label}</span
               >
             </PrismicLink>
@@ -208,7 +213,7 @@
       <div>
         {#if isFilled.richText(primary.heading)}
           <h2
-            class="h-primary font-slab text-center text-[clamp(2.75rem,0.5rem+8vw,7.5rem)] leading-[1.167] font-thin [text-wrap:normal]"
+            class="h-primary font-slab text-center text-[clamp(3.5rem,0.5rem+8vw,7.5rem)] leading-[1.25] font-thin [text-wrap:normal] lg:leading-[1.167]"
           >
             {asText(primary.heading)}
           </h2>
@@ -237,13 +242,17 @@
     <ol class="mt-12 grid grid-cols-1 gap-10 text-center sm:grid-cols-3">
       {#each items as item, i (item)}
         <li>
-          <!-- Live step label 12px/400; step title 30px/40px weight-100 cyan. -->
+          <!-- Live step label 12px/400. Step title: 30px/40px weight-100 on
+               mobile, stepping up to 40px/50px weight-300 on desktop (measured
+               2026-07-31 — desktop was rendering 30px/w100, a full size too small). -->
           <p
             class="text-secondary text-xs font-bold tracking-[0.2em] uppercase lg:text-sm"
           >
             Step {pad2(i + 1)}
           </p>
-          <h3 class="h-primary font-slab mt-2 text-3xl font-thin">
+          <h3
+            class="h-primary font-slab mt-2 text-[30px] leading-[40px] font-thin lg:text-[40px] lg:leading-[50px] lg:font-light"
+          >
             {asText(item.item_heading)}
           </h3>
           {#if isFilled.richText(item.item_body)}
@@ -345,9 +354,16 @@
               <div
                 class="absolute inset-x-0 bottom-0 flex items-center justify-between bg-[#e7f5fa] p-4"
               >
-                <span class="font-slab text-3xl font-bold text-[#365b6d]">{label}</span>
+                <span
+                  class="font-slab text-[24px] leading-[36px] font-bold text-[#365b6d] lg:text-[30px] lg:leading-[45px]"
+                  >{label}</span
+                >
                 {#if expandable}
-                  <Plus class="text-primary shrink-0" size={30} aria-hidden="true" />
+                  <Plus
+                    class="text-primary shrink-0"
+                    size={30}
+                    aria-hidden="true"
+                  />
                 {/if}
               </div>
             </div>
@@ -373,7 +389,10 @@
                   onclick={() => toggleCard(i)}
                   class="focus-visible:ring-primary-deep flex w-full cursor-pointer items-center justify-between gap-4 p-5 text-left focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden"
                 >
-                  <span class="font-slab text-3xl font-bold text-[#365b6d]">{label}</span>
+                  <span
+                    class="font-slab text-[24px] leading-[36px] font-bold text-[#365b6d] lg:text-[30px] lg:leading-[45px]"
+                    >{label}</span
+                  >
                   <Plus
                     size={30}
                     class="text-primary shrink-0 transition-transform duration-300 {open
@@ -384,14 +403,19 @@
                 </button>
                 {#if open}
                   <div id={panelId} transition:slide={{ duration: 400 }}>
-                    <div class="px-5 pt-0 pb-5 leading-relaxed text-[#365b6d]/90">
+                    <div
+                      class="px-5 pt-0 pb-5 leading-relaxed text-[#365b6d]/90"
+                    >
                       <RichTextBody field={item.item_body} />
                     </div>
                   </div>
                 {/if}
               {:else}
                 <div class="p-5">
-                  <span class="font-slab text-3xl font-bold text-[#365b6d]">{label}</span>
+                  <span
+                    class="font-slab text-[24px] leading-[36px] font-bold text-[#365b6d] lg:text-[30px] lg:leading-[45px]"
+                    >{label}</span
+                  >
                 </div>
               {/if}
             </div>
