@@ -123,7 +123,7 @@
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="relative -mt-[129px] mx-auto max-w-4xl px-3 py-20 lg:-mt-[320px] lg:px-6"
+    class="relative -mt-[129px] mx-auto max-w-4xl px-[19.5px] py-20 lg:-mt-[320px] lg:px-6"
     use:animateIn={{ duration: 700, translateY: "2rem" }}
   >
     {#if isFilled.richText(slice.primary.heading)}

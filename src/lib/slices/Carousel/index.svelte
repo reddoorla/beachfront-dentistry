@@ -99,11 +99,16 @@
     <ContentBand
       sliceType={slice.slice_type}
       variation={slice.variation}
-      contentClass="max-w-7xl px-6 py-16 text-center"
+      contentClass="max-w-7xl px-[19.5px] pt-0 pb-9 text-center lg:px-6 lg:py-16"
       reveal
     >
       {#if hasHeading && slice.primary.heading}
-        <div class="h-primary mb-12">
+        <!-- Live's mobile review heading is 24px/38 (its 3-C sibling is 28/38 —
+             Webflow uses per-block sizes, so this one is scoped here rather than
+             moved into the global h2 scale). Desktop is unchanged at 60px. -->
+        <div
+          class="h-primary mb-8 [&_h2]:text-[24px] [&_h2]:leading-[38px] lg:mb-12 lg:[&_h2]:text-[3.75rem] lg:[&_h2]:leading-[1.2]"
+        >
           <PrismicRichText field={slice.primary.heading} />
         </div>
       {/if}
@@ -140,12 +145,15 @@
             {@const item = trackItems[index]}
             {#if item}
               {#if slice.variation === "review"}
-                <div class="px-4 pb-6">
+                <!-- Live's mobile slide: viewport 337 inside 351 (7px each
+                     side) and 48px of space under the card for the overhanging
+                     badge. -->
+                <div class="px-[7px] pb-12 lg:px-4 lg:pb-6">
                   <!-- Pale-blue quote card with the reviewer row and the Yelp
                        badge overhanging the bottom-right (live "what they say"
                        card). -->
                   <figure
-                    class="relative mx-auto max-w-2xl rounded-2xl bg-[#e8f3f8] p-8 text-left sm:p-10"
+                    class="relative mx-auto max-w-2xl rounded-2xl bg-[#e8f3f8] p-[18px] text-left lg:p-8 xl:p-10"
                   >
                     <!-- Absolutely-positioned, so DOM order is free — kept as
                          the figure's FIRST child so <figcaption> stays last
@@ -182,19 +190,25 @@
                         </a>
                       {/if}
                     {/if}
-                    <blockquote class="text-dark/90 text-lg leading-relaxed">
+                    <blockquote
+                      class="text-dark/90 text-[16px] leading-relaxed lg:text-lg"
+                    >
                       <p>{item.quote}</p>
                     </blockquote>
-                    <figcaption class="mt-8 flex items-center gap-4">
+                    <figcaption
+                      class="mt-[10px] flex items-center gap-4 lg:mt-8"
+                    >
                       {#if isFilled.image(item.reviewer_photo)}
                         <PrismicImage
                           field={item.reviewer_photo}
                           fallbackAlt=""
-                          class="h-14 w-14 rounded-full object-cover"
+                          class="h-[72px] w-[72px] rounded-full object-cover lg:h-14 lg:w-14"
                         />
                       {/if}
                       <div class="flex-1">
-                        <p class="text-dark text-xl font-semibold">
+                        <p
+                          class="text-dark text-[16px] font-semibold lg:text-xl"
+                        >
                           {item.reviewer_name}
                         </p>
                         {#if item.reviewer_place}

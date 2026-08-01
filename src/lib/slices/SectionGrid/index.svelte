@@ -287,7 +287,7 @@
   <ContentBand
     sliceType={slice.slice_type}
     variation={slice.variation}
-    contentClass="max-w-[1400px] px-3 pt-2 pb-16 lg:px-[60px]"
+    contentClass="max-w-[1400px] px-[19.5px] pt-2 pb-16 lg:px-[60px]"
     reveal
   >
     {#if isFilled.richText(slice.primary.heading)}
