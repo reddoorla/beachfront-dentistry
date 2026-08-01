@@ -257,14 +257,14 @@
   <ContentBand
     sliceType={slice.slice_type}
     variation={slice.variation}
-    contentClass="max-w-7xl px-6 pt-2 pb-16"
+    contentClass="max-w-7xl px-3 pt-2 pb-16 lg:px-6"
     reveal
   >
     {#if isFilled.richText(slice.primary.heading)}
       <!-- Live's "Finally…" heading sits ~10px from the band top with a wide
-           ~128px gap to the card row below (measured): near-zero top padding on
-           the band (pt-2) + mb-20 here. -->
-      <div class="h-primary mb-8 max-w-2xl lg:mb-20">
+           gap to the card row below — measured ~132px on mobile (heading top 663
+           → card top 871, heading ~76 tall), ~128px on desktop. -->
+      <div class="h-primary mb-32 max-w-2xl lg:mb-20">
         <PrismicRichText field={slice.primary.heading} />
       </div>
     {/if}
@@ -300,12 +300,15 @@
           <!-- Pale-blue card: photo over a #e7f5fa label bar (30px/700 #365B6D
                label + a plain blue "+" disclosure), radius 20px — measured off
                the live "Finally…" cards. -->
-          <div class="overflow-hidden rounded-[20px] bg-[#e7f5fa] shadow-sm">
+          <div class="overflow-hidden rounded-[25px] bg-[#e7f5fa] shadow-sm">
             <div class="relative">
+              <!-- Live's card is 351x240 total (~180px photo + ~60px label bar).
+                   Mobile photo is a short/wide box (aspect ~19/10); desktop keeps
+                   the taller 7/5 crop. -->
               <PrismicImage
                 field={item.item_media}
                 fallbackAlt=""
-                class="aspect-[7/5] w-full object-cover"
+                class="aspect-[2/1] w-full object-cover lg:aspect-[7/5]"
               />
               <!-- Cyan bottom-fade (measured off live) that blends the photo
                    into the #e7f5fa label bar below. -->
@@ -330,7 +333,7 @@
                 aria-expanded={open}
                 aria-controls={panelId}
                 onclick={() => toggleCard(i)}
-                class="focus-visible:ring-primary-deep flex w-full cursor-pointer items-center justify-between gap-4 p-5 text-left focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden"
+                class="focus-visible:ring-primary-deep flex w-full cursor-pointer items-center justify-between gap-4 p-4 text-left focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden lg:p-5"
               >
                 <span class="font-slab text-3xl font-bold text-[#365b6d]">{label}</span>
                 <Plus
@@ -349,7 +352,7 @@
                 </div>
               {/if}
             {:else}
-              <div class="p-5">
+              <div class="p-4 lg:p-5">
                 <span class="font-slab text-3xl font-bold text-[#365b6d]">{label}</span>
               </div>
             {/if}

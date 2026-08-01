@@ -4,8 +4,8 @@
     {
       "viewport": 390,
       "label": "What is the best routine",
-      "mismatchFraction": 0.6100799028260168,
-      "meanDeltaE": 13.716717535664376,
+      "mismatchFraction": 0.5417278748884966,
+      "meanDeltaE": 11.627424668291685,
       "pass": false,
       "css": [
         {
@@ -192,198 +192,9 @@
     },
     {
       "viewport": 390,
-      "label": "Finally have a dentist",
-      "mismatchFraction": 0.5817538461538462,
-      "meanDeltaE": 25.5023772068433,
-      "pass": false,
-      "css": [
-        {
-          "tag": "h1",
-          "cls": "my-4 _w-half su-w-full-mobile",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "0.99869",
-            "filter": "none",
-            "color": "rgb(18, 158, 204)",
-            "fontSize": "28px",
-            "fontWeight": "300",
-            "fontFamily": "museo-slab, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "div",
-          "cls": "expanding-box",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgb(231, 245, 250)",
-            "opacity": "0",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "p",
-          "cls": "expanding-text",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "1",
-            "filter": "none",
-            "color": "rgb(255, 255, 255)",
-            "fontSize": "20px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "img",
-          "cls": "expanding-image",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "1",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": "https://cdn.prod.website-files.com/64af3f93339537d6b661b556/64b998400e0eb30dcc2adf55_DSC_7650.jpg"
-          }
-        },
-        {
-          "tag": "div",
-          "cls": "box-gradient-overlay",
-          "styles": {
-            "backgroundImage": "linear-gradient(rgba(0, 0, 0, 0), rgba(16, 137, 177, 0.78) 16%, rgba(18, 158, 204, 0.9) 89%)",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "0",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "div",
-          "cls": "box-gradient",
-          "styles": {
-            "backgroundImage": "linear-gradient(rgba(18, 158, 204, 0.9) 23%, rgba(5, 44, 57, 0.25) 93%, rgba(0, 0, 0, 0))",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "1",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "div",
-          "cls": "expanding-label",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgb(231, 245, 250)",
-            "opacity": "1",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "div",
-          "cls": "expanding-box",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgb(231, 245, 250)",
-            "opacity": "0",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "p",
-          "cls": "expanding-text",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "1",
-            "filter": "none",
-            "color": "rgb(255, 255, 255)",
-            "fontSize": "20px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "img",
-          "cls": "expanding-image",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "1",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": "https://cdn.prod.website-files.com/64af3f93339537d6b661b556/64b9a0735c910a0ec38efc68_cerec-same-day-machine.jpg"
-          }
-        },
-        {
-          "tag": "div",
-          "cls": "box-gradient-overlay",
-          "styles": {
-            "backgroundImage": "linear-gradient(rgba(0, 0, 0, 0), rgba(16, 137, 177, 0.78) 16%, rgba(18, 158, 204, 0.9) 89%)",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "0",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "div",
-          "cls": "box-gradient",
-          "styles": {
-            "backgroundImage": "linear-gradient(rgba(18, 158, 204, 0.9) 23%, rgba(5, 44, 57, 0.25) 93%, rgba(0, 0, 0, 0))",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "1",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        }
-      ]
-    },
-    {
-      "viewport": 390,
       "label": "Our dental team in Redondo",
-      "mismatchFraction": 0.4117497435897436,
-      "meanDeltaE": 13.754446736114453,
+      "mismatchFraction": 0.4525476923076923,
+      "meanDeltaE": 13.930976318512837,
       "pass": false,
       "css": [
         {
@@ -570,9 +381,198 @@
     },
     {
       "viewport": 390,
+      "label": "Finally have a dentist",
+      "mismatchFraction": 0.4436820512820513,
+      "meanDeltaE": 19.889096178467767,
+      "pass": false,
+      "css": [
+        {
+          "tag": "h1",
+          "cls": "my-4 _w-half su-w-full-mobile",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0.99873",
+            "filter": "none",
+            "color": "rgb(18, 158, 204)",
+            "fontSize": "28px",
+            "fontWeight": "300",
+            "fontFamily": "museo-slab, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "expanding-box",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgb(231, 245, 250)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "p",
+          "cls": "expanding-text",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "20px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "img",
+          "cls": "expanding-image",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": "https://cdn.prod.website-files.com/64af3f93339537d6b661b556/64b998400e0eb30dcc2adf55_DSC_7650.jpg"
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "box-gradient-overlay",
+          "styles": {
+            "backgroundImage": "linear-gradient(rgba(0, 0, 0, 0), rgba(16, 137, 177, 0.78) 16%, rgba(18, 158, 204, 0.9) 89%)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "box-gradient",
+          "styles": {
+            "backgroundImage": "linear-gradient(rgba(18, 158, 204, 0.9) 23%, rgba(5, 44, 57, 0.25) 93%, rgba(0, 0, 0, 0))",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "expanding-label",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgb(231, 245, 250)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "expanding-box",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgb(231, 245, 250)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "p",
+          "cls": "expanding-text",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "20px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "img",
+          "cls": "expanding-image",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": "https://cdn.prod.website-files.com/64af3f93339537d6b661b556/64b9a0735c910a0ec38efc68_cerec-same-day-machine.jpg"
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "box-gradient-overlay",
+          "styles": {
+            "backgroundImage": "linear-gradient(rgba(0, 0, 0, 0), rgba(16, 137, 177, 0.78) 16%, rgba(18, 158, 204, 0.9) 89%)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "box-gradient",
+          "styles": {
+            "backgroundImage": "linear-gradient(rgba(18, 158, 204, 0.9) 23%, rgba(5, 44, 57, 0.25) 93%, rgba(0, 0, 0, 0))",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        }
+      ]
+    },
+    {
+      "viewport": 390,
       "label": "Ready for great dental health",
-      "mismatchFraction": 0.40437521531571435,
-      "meanDeltaE": 15.885644587923151,
+      "mismatchFraction": 0.4042948307823548,
+      "meanDeltaE": 15.884355938189527,
       "pass": false,
       "css": [
         {
@@ -760,8 +760,8 @@
     {
       "viewport": 390,
       "label": "MEET YOUR TEAM",
-      "mismatchFraction": 0.28426854948594077,
-      "meanDeltaE": 12.874511209529244,
+      "mismatchFraction": 0.2946364424625294,
+      "meanDeltaE": 13.412862443470473,
       "pass": false,
       "css": [
         {
@@ -919,8 +919,8 @@
     {
       "viewport": 390,
       "label": "Your Path to Oral Health",
-      "mismatchFraction": 0.1019858004590829,
-      "meanDeltaE": 6.153091661682171,
+      "mismatchFraction": 0.1034573568924714,
+      "meanDeltaE": 6.1318128757861485,
       "pass": false,
       "css": [
         {
@@ -1108,8 +1108,8 @@
     {
       "viewport": 390,
       "label": "Serving the South Bay",
-      "mismatchFraction": 0.08667941363926067,
-      "meanDeltaE": 8.771761883628614,
+      "mismatchFraction": 0.0873510810413296,
+      "meanDeltaE": 8.770075654268847,
       "pass": true
     }
   ]
