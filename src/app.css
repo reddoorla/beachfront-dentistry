@@ -237,7 +237,7 @@ main :where(h1, h2, h3) {
    ultra-light display type on the original (140px/w100). */
 .display-xl :where(h1, h2),
 .display-xl {
-  font-size: clamp(2.75rem, 0.5rem + 9.3vw, 8.75rem); /* → 140px @ 1440 */
+  font-size: clamp(3.125rem, 0.5rem + 9.3vw, 8.75rem); /* 50px mobile → 140px @ 1440 */
   font-weight: 100;
   line-height: 1.2; /* live's display leading (168/140); 1.05 compacted it */
 }

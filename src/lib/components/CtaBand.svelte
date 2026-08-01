@@ -63,7 +63,7 @@
     {#if ctaLabel && ctaLink}
       <PrismicLink
         field={ctaLink}
-        class="font-slab hover:border-primary hover:text-primary-deep focus-visible:ring-primary-deep inline-block rounded-lg border border-[#365b6d] px-[25px] py-[14px] text-[25px] font-light text-[#365b6d] transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+        class="font-slab hover:border-primary hover:text-primary-deep focus-visible:ring-primary-deep inline-block rounded-lg border border-[#365b6d] px-[14px] py-[10px] text-[14px] font-light text-[#365b6d] transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:px-[25px] lg:py-[14px] lg:text-[25px]"
       >
         {ctaLabel}
       </PrismicLink>
@@ -96,10 +96,12 @@
       </div>
       <RichTextBody field={body} />
     </div>
-    <!-- Tall fiji photo (live ~800px). Its white-faded top carries the CTAs. -->
+    <!-- Fiji photo. Live's band is only ~273px on mobile (a short beach strip),
+         growing to ~800px on desktop; the 800px was desktop-only and was pushing
+         the whole footer + map off-screen on mobile. Its white-faded top carries
+         the CTAs. -->
     <div
-      class="relative isolate w-full overflow-hidden"
-      style="min-height: 800px;"
+      class="relative isolate min-h-[273px] w-full overflow-hidden lg:min-h-[800px]"
     >
       <HeroBackgroundImage image={backgroundImage} preload={false} />
       <!-- White for the top ~18% fading to clear by ~60%, so the heading above
