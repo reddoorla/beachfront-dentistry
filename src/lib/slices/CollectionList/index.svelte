@@ -72,7 +72,8 @@
     return i === -1 ? Number.POSITIVE_INFINITY : i;
   };
   let docs = $derived.by(() => {
-    const all = context?.collections?.[slice.primary.collection_type ?? ""] ?? [];
+    const all =
+      context?.collections?.[slice.primary.collection_type ?? ""] ?? [];
     const ordered =
       slice.variation === "team"
         ? [...all].sort((a, b) => teamRank(a.uid) - teamRank(b.uid))
