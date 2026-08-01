@@ -4,8 +4,8 @@
     {
       "viewport": 390,
       "label": "What is the best routine",
-      "mismatchFraction": 0.5449600485869915,
-      "meanDeltaE": 11.793122282671124,
+      "mismatchFraction": 0.5768111819147322,
+      "meanDeltaE": 13.006025513354881,
       "pass": false,
       "css": [
         {
@@ -193,8 +193,8 @@
     {
       "viewport": 390,
       "label": "Our dental team in Redondo",
-      "mismatchFraction": 0.46397512798541074,
-      "meanDeltaE": 13.247520649934835,
+      "mismatchFraction": 0.4647397446883308,
+      "meanDeltaE": 13.79210258075397,
       "pass": false,
       "css": [
         {
@@ -382,8 +382,8 @@
     {
       "viewport": 390,
       "label": "MEET YOUR TEAM",
-      "mismatchFraction": 0.29478508608943393,
-      "meanDeltaE": 13.45565714700811,
+      "mismatchFraction": 0.3052273008794748,
+      "meanDeltaE": 14.047890639296275,
       "pass": false,
       "css": [
         {
@@ -541,8 +541,8 @@
     {
       "viewport": 390,
       "label": "Finally have a dentist",
-      "mismatchFraction": 0.19933846153846155,
-      "meanDeltaE": 11.693861252594528,
+      "mismatchFraction": 0.20839230769230768,
+      "meanDeltaE": 12.256755990329358,
       "pass": false,
       "css": [
         {
@@ -551,7 +551,7 @@
           "styles": {
             "backgroundImage": "none",
             "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "0.99883",
+            "opacity": "0.9987",
             "filter": "none",
             "color": "rgb(18, 158, 204)",
             "fontSize": "28px",
@@ -730,8 +730,8 @@
     {
       "viewport": 390,
       "label": "Ready for great dental health",
-      "mismatchFraction": 0.1782699279820201,
-      "meanDeltaE": 9.234543714706373,
+      "mismatchFraction": 0.17791229883360402,
+      "meanDeltaE": 9.247660054734459,
       "pass": false,
       "css": [
         {
@@ -919,15 +919,15 @@
     {
       "viewport": 390,
       "label": "Your Path to Oral Health",
-      "mismatchFraction": 0.09915123044894038,
-      "meanDeltaE": 5.5394355702983145,
+      "mismatchFraction": 0.09807870370370371,
+      "meanDeltaE": 5.520824419551487,
       "pass": true
     },
     {
       "viewport": 390,
       "label": "Serving the South Bay",
-      "mismatchFraction": 0.08588027651125166,
-      "meanDeltaE": 8.771964845066142,
+      "mismatchFraction": 0.08710104427121636,
+      "meanDeltaE": 8.774429477884468,
       "pass": true
     }
   ]

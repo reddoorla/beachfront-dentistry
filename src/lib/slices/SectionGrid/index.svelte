@@ -333,8 +333,10 @@
                 aria-hidden="true"
               ></div>
               {#if expandable}
+                <!-- Live body copy: 20px/30px weight-300 white, 24px inset
+                     (width 303) — not the 15px we had. -->
                 <div
-                  class="absolute inset-x-0 top-0 p-5 text-[15px] leading-snug font-light text-white [&_*]:text-white"
+                  class="absolute inset-x-0 top-0 p-6 text-[20px] leading-[30px] font-light text-white [&_*]:text-white"
                 >
                   <RichTextBody field={item.item_body} />
                 </div>
