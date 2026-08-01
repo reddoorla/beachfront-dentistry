@@ -118,7 +118,8 @@
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
     data-section-layout="services"
-    class="from-primary to-accent relative isolate w-full overflow-hidden bg-gradient-to-r text-white"
+    class="relative isolate w-full overflow-hidden text-white"
+    style="background:linear-gradient(to right, rgb(18,158,204), rgb(182,170,145))"
   >
     <WaveDivider fill="white" />
     <!-- The tooth badge (a self-contained cyan disc + white tooth, 130px
@@ -141,29 +142,38 @@
           </p>
         {/if}
         {#if isFilled.richText(primary.body)}
-          <div class="mt-4 max-w-xl text-lg leading-relaxed text-white/90">
+          <!-- Live body: 20px/30px weight 300 white. -->
+          <div class="mt-4 max-w-xl text-[20px] leading-[30px] font-light text-white">
             <RichTextBody field={primary.body} />
           </div>
         {/if}
         {#if hasCta}
+          <!-- Live "View All Services" pill is compact: 154x41, 15px, 8px radius,
+               1px white border — not the big 25px desktop button. -->
           <PrismicLink
             field={primary.cta_link}
-            class="focus-visible:ring-offset-primary font-slab mt-8 inline-block rounded-lg border border-white px-[25px] py-[14px] text-[25px] font-light text-white transition-colors hover:bg-white hover:text-primary-deep focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden"
+            class="focus-visible:ring-offset-primary font-slab mt-8 inline-block rounded-lg border border-white px-[15px] py-[10px] text-[15px] font-light text-white transition-colors hover:bg-white hover:text-primary-deep focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden lg:px-[25px] lg:py-[14px] lg:text-[25px]"
           >
             {primary.cta_label}
           </PrismicLink>
         {/if}
       </div>
-      <ul class="flex flex-col gap-8 lg:gap-[61px]">
+      <ul class="flex flex-col gap-4 lg:gap-[61px]">
         {#each items as item (item)}
           {@const label = asText(item.item_heading)}
           <li>
             <PrismicLink
               field={item.item_link}
-              class="group flex items-center gap-5 rounded-lg transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent focus-visible:outline-hidden"
+              class="group flex items-center gap-4 rounded-lg transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent focus-visible:outline-hidden lg:gap-5"
             >
-              <img src={toothIcon(label)} alt="" class="size-[100px] shrink-0" />
-              <span class="font-slab text-[25px] font-light text-[#365b6d]"
+              <!-- Live tooth icons are 60px on mobile (100px on desktop); labels
+                   stay one line (mobile ~20px). -->
+              <img
+                src={toothIcon(label)}
+                alt=""
+                class="size-[60px] shrink-0 lg:size-[100px]"
+              />
+              <span class="font-slab text-[20px] font-light text-[#365b6d] lg:text-[25px]"
                 >{label}</span
               >
             </PrismicLink>
@@ -172,9 +182,11 @@
       </ul>
     </div>
     <!-- Live has NO bottom wave here: the teal→sand band dissolves into the
-         white "ask the doctor" section below via a soft vertical fade (the
-         question cards float up over the faded tail). Match that instead of a
-         hard wave seam. -->
+         white "ask the doctor" section below via a soft vertical fade (live's
+         .home-services-transe-to-whit fades transparent→white over the band's
+         bottom half). Live's band is ~912px tall so that fade clears the service
+         items; ours is shorter, so pin the fade to a fixed bottom band instead
+         of 50% (which would otherwise wash the items out). -->
     <div
       class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-56 bg-gradient-to-b from-transparent to-white"
       aria-hidden="true"
