@@ -214,12 +214,11 @@
           </h2>
         {/if}
         {#if primary.subtitle}
-          <!-- Inline font-size: the unlayered global `main p` rule outranks any
-               Tailwind text utility (unlayered beats @layer), so the 30px live
-               subtitle size has to be set inline to win. -->
+          <!-- Live subtitle is 20px/30px on mobile, 30px on desktop. The global
+               `main :where(p)` rule is 0-specificity (:where), so an arbitrary
+               text-[] utility outranks it — no inline needed. -->
           <p
-            class="mt-4 text-center font-light text-[#365b6d]"
-            style="font-size:1.875rem;line-height:1.25"
+            class="mt-4 text-center text-[20px] leading-[30px] font-light text-[#365b6d] lg:text-[30px] lg:leading-[1.25]"
           >
             {primary.subtitle}
           </p>
@@ -238,12 +237,13 @@
     <ol class="mt-12 grid grid-cols-1 gap-10 text-center sm:grid-cols-3">
       {#each items as item, i (item)}
         <li>
+          <!-- Live step label 12px/400; step title 30px/40px weight-100 cyan. -->
           <p
-            class="text-secondary text-sm font-bold tracking-[0.2em] uppercase"
+            class="text-secondary text-xs font-bold tracking-[0.2em] uppercase lg:text-sm"
           >
             Step {pad2(i + 1)}
           </p>
-          <h3 class="h-primary font-slab mt-2 text-3xl font-light">
+          <h3 class="h-primary font-slab mt-2 text-3xl font-thin">
             {asText(item.item_heading)}
           </h3>
           {#if isFilled.richText(item.item_body)}
@@ -258,7 +258,7 @@
       <div class="mt-12 text-center">
         <PrismicLink
           field={primary.cta_link}
-          class="font-slab hover:border-primary hover:text-primary-deep focus-visible:ring-primary-deep inline-block rounded-lg border border-[#365b6d] px-[25px] py-[14px] text-[25px] font-light text-[#365b6d] transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          class="font-slab hover:border-primary hover:text-primary-deep focus-visible:ring-primary-deep inline-block rounded-lg border border-[#365b6d] px-[14px] py-[10px] text-[14px] font-light text-[#365b6d] transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:px-[25px] lg:py-[14px] lg:text-[25px]"
         >
           {primary.cta_label}
         </PrismicLink>

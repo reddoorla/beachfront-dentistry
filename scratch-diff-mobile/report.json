@@ -4,8 +4,8 @@
     {
       "viewport": 390,
       "label": "What is the best routine",
-      "mismatchFraction": 0.566594545351022,
-      "meanDeltaE": 12.461000042936464,
+      "mismatchFraction": 0.536366224449126,
+      "meanDeltaE": 11.581925989899267,
       "pass": false,
       "css": [
         {
@@ -193,8 +193,8 @@
     {
       "viewport": 390,
       "label": "Our dental team in Redondo",
-      "mismatchFraction": 0.4641618878122734,
-      "meanDeltaE": 13.426796358846628,
+      "mismatchFraction": 0.4592553565156305,
+      "meanDeltaE": 13.122677329289758,
       "pass": false,
       "css": [
         {
@@ -382,8 +382,8 @@
     {
       "viewport": 390,
       "label": "Finally have a dentist",
-      "mismatchFraction": 0.44504358974358976,
-      "meanDeltaE": 19.98431345753886,
+      "mismatchFraction": 0.44393846153846156,
+      "meanDeltaE": 19.894110668737287,
       "pass": false,
       "css": [
         {
@@ -571,8 +571,8 @@
     {
       "viewport": 390,
       "label": "MEET YOUR TEAM",
-      "mismatchFraction": 0.2956521739130435,
-      "meanDeltaE": 13.490322941265067,
+      "mismatchFraction": 0.2941657376439985,
+      "meanDeltaE": 13.432627147884588,
       "pass": false,
       "css": [
         {
@@ -730,8 +730,8 @@
     {
       "viewport": 390,
       "label": "Ready for great dental health",
-      "mismatchFraction": 0.17818790294797973,
-      "meanDeltaE": 9.255950885438368,
+      "mismatchFraction": 0.17736765260757584,
+      "meanDeltaE": 9.229434794645254,
       "pass": false,
       "css": [
         {
@@ -919,8 +919,8 @@
     {
       "viewport": 390,
       "label": "Your Path to Oral Health",
-      "mismatchFraction": 0.1033399170803751,
-      "meanDeltaE": 6.070344134842039,
+      "mismatchFraction": 0.10280432036157228,
+      "meanDeltaE": 5.573632454618137,
       "pass": false,
       "css": [
         {
@@ -1108,8 +1108,8 @@
     {
       "viewport": 390,
       "label": "Serving the South Bay",
-      "mismatchFraction": 0.08701279599941168,
-      "meanDeltaE": 8.770492346294802,
+      "mismatchFraction": 0.0855566995146345,
+      "meanDeltaE": 8.782550706708403,
       "pass": true
     }
   ]
