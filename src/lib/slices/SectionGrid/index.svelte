@@ -118,7 +118,7 @@
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
     data-section-layout="services"
-    class="relative isolate w-full overflow-hidden text-white"
+    class="relative isolate w-full overflow-hidden pt-[72px] pb-48 text-white lg:pt-40 lg:pb-80"
     style="background:linear-gradient(to right, rgb(18,158,204), rgb(182,170,145))"
   >
     <WaveDivider fill="white" />
@@ -131,6 +131,17 @@
       aria-hidden="true"
       class="absolute top-0 left-[68%] z-20 size-32 -translate-x-1/2 -translate-y-1/2 drop-shadow-md"
     />
+    <!-- Live's `.home-services-transe-to-white-gradient`: a FULL-HEIGHT overlay
+         that is transparent to 50% then fades to solid white, so the teal→sand
+         band dissolves into the white section below. It sits BEFORE the content
+         in DOM order, so the copy and the service list render on top of it at
+         full contrast. (A fixed-height bar pinned to the bottom at z-10 — what
+         this was — paints over the lower list items and greys them out.) -->
+    <div
+      class="pointer-events-none absolute inset-0"
+      style="background:linear-gradient(rgba(0,0,0,0) 50%, rgb(255,255,255))"
+      aria-hidden="true"
+    ></div>
     <div
       class="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 pt-20 pb-24 lg:grid-cols-2 lg:items-center lg:pt-12 lg:pb-12"
       use:animateIn={REVEAL}
@@ -186,16 +197,8 @@
         {/each}
       </ul>
     </div>
-    <!-- Live has NO bottom wave here: the teal→sand band dissolves into the
-         white "ask the doctor" section below via a soft vertical fade (live's
-         .home-services-transe-to-whit fades transparent→white over the band's
-         bottom half). Live's band is ~912px tall so that fade clears the service
-         items; ours is shorter, so pin the fade to a fixed bottom band instead
-         of 50% (which would otherwise wash the items out). -->
-    <div
-      class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-56 bg-gradient-to-b from-transparent to-white"
-      aria-hidden="true"
-    ></div>
+    <!-- Live has NO bottom wave here — the band dissolves into the white
+         section below purely via the full-height fade above. -->
   </section>
 {:else if layout === "steps"}
   <!-- Display heading + subtitle beside a circular photo, then numbered steps,
@@ -278,14 +281,14 @@
   <ContentBand
     sliceType={slice.slice_type}
     variation={slice.variation}
-    contentClass="max-w-7xl px-3 pt-2 pb-16 lg:px-6"
+    contentClass="max-w-[1400px] px-3 pt-2 pb-16 lg:px-[60px]"
     reveal
   >
     {#if isFilled.richText(slice.primary.heading)}
       <!-- Live's "Finally…" heading sits ~10px from the band top with a wide
            gap to the card row below — measured ~132px on mobile (heading top 663
            → card top 871, heading ~76 tall), ~128px on desktop. -->
-      <div class="h-primary mb-32 max-w-2xl lg:mb-20">
+      <div class="h-primary mb-32 max-w-[640px] lg:mb-20">
         <PrismicRichText field={slice.primary.heading} />
       </div>
     {/if}
@@ -334,8 +337,13 @@
                 fallbackAlt=""
                 class="absolute inset-0 h-full w-full object-cover object-center"
               />
-              <!-- Live's real visible .box-gradient (cyan 0.9 strongest at the
-                   top, through a faint dark teal, to transparent at the bottom). -->
+              <!-- Live's `.box-gradient` is BREAKPOINT-DEPENDENT (read from the
+                   live DOM 2026-07-31). At mobile it runs cyan-0.9 at the TOP
+                   (23%) through a faint dark teal to transparent at the bottom —
+                   that dark ground is what the white body copy overlaid above
+                   reads against (live keeps `.expanding-text` visible at mobile,
+                   opacity 1; on desktop it's 0 until the accordion opens, and
+                   the gradient flips to cyan-at-the-bottom). -->
               <div
                 class="absolute inset-0"
                 style="background:linear-gradient(rgba(18,158,204,0.9) 23%, rgba(5,44,57,0.25) 93%, rgba(0,0,0,0))"
@@ -352,7 +360,7 @@
               {/if}
               <!-- Pale label bar overlaid on the bottom of the card. -->
               <div
-                class="absolute inset-x-0 bottom-0 flex items-center justify-between bg-[#e7f5fa] p-4"
+                class="absolute inset-x-0 bottom-0 flex h-[60px] items-center justify-between bg-[#e7f5fa] px-3"
               >
                 <span
                   class="font-slab text-[24px] leading-[36px] font-bold text-[#365b6d] lg:text-[30px] lg:leading-[45px]"
@@ -373,7 +381,7 @@
                 <PrismicImage
                   field={item.item_media}
                   fallbackAlt=""
-                  class="aspect-[7/5] w-full object-cover"
+                  class="h-[200px] w-full object-cover"
                 />
                 <div
                   class="absolute inset-0"
@@ -387,7 +395,7 @@
                   aria-expanded={open}
                   aria-controls={panelId}
                   onclick={() => toggleCard(i)}
-                  class="focus-visible:ring-primary-deep flex w-full cursor-pointer items-center justify-between gap-4 p-5 text-left focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden"
+                  class="focus-visible:ring-primary-deep flex h-20 w-full cursor-pointer items-center justify-between gap-4 px-5 text-left focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden"
                 >
                   <span
                     class="font-slab text-[24px] leading-[36px] font-bold text-[#365b6d] lg:text-[30px] lg:leading-[45px]"
@@ -411,7 +419,7 @@
                   </div>
                 {/if}
               {:else}
-                <div class="p-5">
+                <div class="flex h-20 items-center px-5">
                   <span
                     class="font-slab text-[24px] leading-[36px] font-bold text-[#365b6d] lg:text-[30px] lg:leading-[45px]"
                     >{label}</span

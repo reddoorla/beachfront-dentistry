@@ -133,7 +133,10 @@
       />
     {/if}
 
-    <div class="relative mx-auto max-w-xl">
+    <!-- Live's .qa-block is 600px wide at desktop (351 on mobile, where the
+         375-wide content box already constrains it) — max-w-xl (576) rendered
+         the whole card stack a size too narrow. -->
+    <div class="relative mx-auto max-w-[600px]">
       {#if isFilled.image(slice.primary.side_image)}
         <!-- Doctor headshot floats down the right edge tracking the topmost
              visible .qa-item (ports floating-doc.js). Live: 200px, object-top
@@ -150,7 +153,9 @@
         </div>
       {/if}
 
-      <ul class="flex flex-col gap-3 lg:gap-8">
+      <!-- Live's card gap: 12px mobile, 20px desktop (measured — the collection
+           item is 300/420 tall around a 288/400 card). -->
+      <ul class="flex flex-col gap-3 lg:gap-5">
         {#each teaserCards as card (card.doc.uid)}
           {@const doc = card.doc}
           <li class="qa-item">
@@ -177,18 +182,24 @@
                   class="from-primary to-accent absolute inset-0 bg-gradient-to-br"
                 ></div>
               {/if}
-              <!-- Pale wash. NB: the static .box-gradient source computes to
-                   cyan-0.9-at-top, but live RENDERS these cards near-white
-                   (sampled: top rgb(196,226,238) → bottom rgb(246,250,252)) — a
-                   Webflow scroll interaction fades the cyan cover once the section
-                   settles (the opacity:0 .box-gradient-overlay sibling is the
-                   tell). The settled render is what page-diff captures, so we
-                   match the render: a near-opaque pale-blue→white veil that
-                   reproduces live's sampled colours over any photo, easing at the
-                   very bottom so the white title still reads. -->
+              <!-- Live's real visible wash, read off `.box-gradient.qa`
+                   (2026-07-31). It is BREAKPOINT-DEPENDENT and identical to the
+                   3-C cards' rule: cyan-0.9 at the TOP on mobile, flipping to
+                   cyan-at-the-BOTTOM on desktop. Verified against live's rendered
+                   pixels (desktop 28% down = rgb(148,210,232), 95% down =
+                   rgb(37,162,201); mobile just-below-bar = rgb(44,167,208)).
+                   NB an earlier pass mis-read this as a near-white veil, from
+                   sampling a transition instead of reading the rule.
+                   `.box-gradient-overlay` (opacity:0) is the HOVER layer — not
+                   this one — and must not be copied. -->
               <div
-                class="absolute inset-0"
-                style="background:linear-gradient(rgba(196,226,238,0.82), rgba(240,248,251,0.72) 78%, rgba(212,233,242,0.42))"
+                class="absolute inset-0 lg:hidden"
+                style="background:linear-gradient(rgba(18,158,204,0.9) 23%, rgba(5,44,57,0.25) 93%, rgba(0,0,0,0))"
+                aria-hidden="true"
+              ></div>
+              <div
+                class="absolute inset-0 hidden lg:block"
+                style="background:linear-gradient(rgba(0,0,0,0), rgba(18,158,204,0.9) 90%)"
                 aria-hidden="true"
               ></div>
               <!-- Pale header bar overlaid on the top of the card. -->
@@ -214,9 +225,14 @@
                    Inline colour: the unlayered global `main h1–h3` primary rule
                    outranks any Tailwind text utility. Live title is museo-SANS
                    (not the base h3 slab), 20px/30px @390 → 30px/45px @1440, w500
-                   (measured 2026-07-31 with the type probe). -->
+                   (measured 2026-07-31 with the type probe).
+                   BOX: live's .qa-text is 80% of the card width, inset 6.8% from
+                   its left (281/351 mobile, 480/600 desktop — both exactly 0.80).
+                   That narrower measure is what makes live wrap these titles onto
+                   two lines; a full-width title box fits them on one and the
+                   whole card stack then drifts out of vertical alignment. -->
               <h3
-                class="absolute inset-x-5 bottom-4 font-sans text-[1.25rem] leading-[30px] font-medium lg:inset-x-6 lg:bottom-5 lg:text-[1.875rem] lg:leading-[45px]"
+                class="absolute bottom-4 left-[6.8%] w-4/5 font-sans text-[1.25rem] leading-[30px] font-medium lg:bottom-5 lg:text-[1.875rem] lg:leading-[45px]"
                 style="color:#fff"
               >
                 {titleText(doc)}
