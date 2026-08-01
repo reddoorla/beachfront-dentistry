@@ -345,14 +345,17 @@
   </div>
 
   {#if edgeFadeColor}
-    <!-- Edge fades sit above the track but below the z-10 side arrows. -->
+    <!-- Edge fades sit above the track but below the z-10 side arrows. Desktop
+         only: live collapses its `.heads-opacity-gradient` pair to 0x0 at
+         mobile, where the row is a fit-to-container 3-across and a fade would
+         just grey out the third headshot. -->
     <div
-      class="pointer-events-none absolute inset-y-0 left-0 z-[5] w-20"
+      class="pointer-events-none absolute inset-y-0 left-0 z-[5] hidden w-20 lg:block"
       style="background:linear-gradient(90deg, {edgeFadeColor}, rgba(255,255,255,0))"
       aria-hidden="true"
     ></div>
     <div
-      class="pointer-events-none absolute inset-y-0 right-0 z-[5] w-20"
+      class="pointer-events-none absolute inset-y-0 right-0 z-[5] hidden w-20 lg:block"
       style="background:linear-gradient(270deg, {edgeFadeColor}, rgba(255,255,255,0))"
       aria-hidden="true"
     ></div>

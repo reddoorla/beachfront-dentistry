@@ -255,11 +255,20 @@ main :where(h1, h2, h3) strong,
   font-weight: 700;
 }
 
-/* Content body copy: light, generous leading, ~18–20px like the original. */
-main :where(p) {
-  font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.1875rem);
-  font-weight: 300;
-  line-height: 1.6;
+/* Content body copy: light, generous leading, ~18–20px like the original.
+   MUST stay inside @layer base. Unlayered CSS beats every @layer in the
+   cascade, so while this rule sat outside a layer it silently overrode every
+   Tailwind `text-*`/`font-*`/`leading-*` utility applied to a <p> in <main> —
+   the whole page's body copy was pinned to this clamp no matter what a
+   component asked for (measured: a `text-[14px]` eyebrow rendering at 17.4px,
+   `text-[30px]` body copy at 19px). Inside base, utilities win as intended and
+   this stays the default for unstyled paragraphs. */
+@layer base {
+  main :where(p) {
+    font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.1875rem);
+    font-weight: 300;
+    line-height: 1.6;
+  }
 }
 
 /* Blur-up companion to $lib/components/Img.svelte. Outside @layer base so it

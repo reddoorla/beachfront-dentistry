@@ -131,7 +131,7 @@
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="overflow-x-clip pt-0 pb-16"
+    class="overflow-x-clip pt-0 pb-9 lg:pb-16"
     use:animateIn={{ duration: 700, translateY: "2rem" }}
   >
     {#if slice.primary.heading}
@@ -139,7 +139,7 @@
            headshot row below it (lg:pl-20). -->
       <div class="px-5 lg:pl-20">
         <p
-          class="font-slab mb-6 text-[14px] font-medium tracking-[0.05em] text-[#365b6d] uppercase lg:mb-10 lg:text-[24px]"
+          class="font-slab mb-6 text-[12px] leading-[15px] font-medium tracking-[1.28px] text-[#365b6d] uppercase lg:mb-10 lg:text-[24px] lg:leading-[30px]"
         >
           {asText(slice.primary.heading)}
         </p>

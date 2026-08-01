@@ -163,7 +163,7 @@
         {#if isFilled.richText(primary.body)}
           <!-- Live body: 20px/30px weight 300 white. -->
           <div
-            class="mt-4 max-w-xl text-[20px] leading-[30px] font-light text-white"
+            class="mt-4 max-w-xl text-[20px] leading-[30px] font-light text-white lg:text-[30px] lg:leading-[45px]"
           >
             <RichTextBody field={primary.body} />
           </div>
@@ -232,7 +232,7 @@
                `main :where(p)` rule is 0-specificity (:where), so an arbitrary
                text-[] utility outranks it — no inline needed. -->
           <p
-            class="mt-4 text-center text-[20px] leading-[30px] font-light text-[#365b6d] lg:text-[30px] lg:leading-[1.25]"
+            class="mt-4 text-center text-[20px] leading-[30px] font-light text-[#365b6d] lg:text-[30px] lg:leading-[45px]"
           >
             {primary.subtitle}
           </p>
