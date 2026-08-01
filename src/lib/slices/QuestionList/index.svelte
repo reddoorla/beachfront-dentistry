@@ -115,7 +115,7 @@
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="relative mx-auto max-w-4xl px-6 py-20"
+    class="relative mx-auto max-w-4xl px-3 py-20 lg:px-6"
     use:animateIn={{ duration: 700, translateY: "2rem" }}
   >
     {#if isFilled.richText(slice.primary.heading)}
@@ -146,53 +146,73 @@
         </div>
       {/if}
 
-      <ul class="flex flex-col gap-8">
+      <ul class="flex flex-col gap-3 lg:gap-8">
         {#each teaserCards as card (card.doc.uid)}
           {@const doc = card.doc}
           <li class="qa-item">
             <a
               href="/questions/{doc.uid}"
-              class="focus-visible:ring-primary-deep group block overflow-hidden rounded-[25px] shadow-md ring-1 ring-black/5 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+              class="focus-visible:ring-primary-deep group relative block aspect-[351/288] overflow-hidden rounded-[25px] shadow-md ring-1 ring-black/5 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:aspect-[3/2]"
             >
-              {#if card.number !== null}
-                <!-- qa-label "top bit": 80px pale-blue bar, number circle left,
-                     Plus/minus right (live shows it on EVERY card incl. #01). -->
-                <div
-                  class="flex h-14 items-center justify-between rounded-t-[25px] bg-[#e7f5fa] px-5 lg:h-20 lg:px-6"
-                >
+              <!-- Live's real card (.qa-block) is a single fixed-aspect box
+                   (351×288 mobile / 600×400 desktop) with the photo (.qa-image)
+                   object-cover-centred across the WHOLE card, a full-card wash on
+                   top, the pale bar overlaid on the top 48px/80px, and the title
+                   overlaid at the bottom. Filling the whole card (not just below
+                   the bar) is what makes the centre crop match live — a
+                   below-the-bar image is a wider box and crops the photo
+                   differently. -->
+              {#if isFilled.image(doc.data.media)}
+                <PrismicImage
+                  field={doc.data.media}
+                  fallbackAlt=""
+                  class="absolute inset-0 h-full w-full object-cover object-center"
+                />
+              {:else}
+                <div class="from-primary to-accent absolute inset-0 bg-gradient-to-br"></div>
+              {/if}
+              <!-- Pale wash. NB: the static .box-gradient source computes to
+                   cyan-0.9-at-top, but live RENDERS these cards near-white
+                   (sampled: top rgb(196,226,238) → bottom rgb(246,250,252)) — a
+                   Webflow scroll interaction fades the cyan cover once the section
+                   settles (the opacity:0 .box-gradient-overlay sibling is the
+                   tell). The settled render is what page-diff captures, so we
+                   match the render: a near-opaque pale-blue→white veil that
+                   reproduces live's sampled colours over any photo, easing at the
+                   very bottom so the white title still reads. -->
+              <div
+                class="absolute inset-0"
+                style="background:linear-gradient(rgba(196,226,238,0.82), rgba(240,248,251,0.72) 78%, rgba(212,233,242,0.42))"
+                aria-hidden="true"
+              ></div>
+              <!-- Pale header bar overlaid on the top of the card. -->
+              <div
+                class="absolute inset-x-0 top-0 flex h-12 items-center justify-between rounded-t-[25px] bg-[#e7f5fa] px-5 lg:h-20 lg:px-6"
+              >
+                {#if card.number !== null}
                   <span
                     class="font-slab grid size-10 place-items-center rounded-full text-lg font-light text-[#365b6d] ring-1 ring-[#365b6d]/25 lg:size-12 lg:text-xl"
                     >{pad2(card.number)}</span
                   >
-                  <Plus class="text-primary" size={26} aria-hidden="true" />
-                </div>
-              {/if}
-              <div class="relative">
-                {#if isFilled.image(doc.data.media)}
-                  <PrismicImage
-                    field={doc.data.media}
-                    fallbackAlt=""
-                    class="aspect-[16/9] w-full object-cover"
-                  />
                 {:else}
-                  <div class="from-primary to-accent aspect-[16/9] w-full bg-gradient-to-br"></div>
+                  <span aria-hidden="true"></span>
                 {/if}
-                <!-- Cyan wash — live's .box-gradient: transparent → #129ecc @90%. -->
-                <div
-                  class="absolute inset-0"
-                  style="background:linear-gradient(rgba(18,158,204,0), rgba(18,158,204,0.9) 90%)"
-                  aria-hidden="true"
-                ></div>
-                <!-- Inline colour: the unlayered global `main h1–h3` primary
-                     rule outranks any Tailwind text utility, so white is set
-                     inline to win over it. -->
-                <h3
-                  class="absolute inset-x-5 bottom-4 text-[1.375rem] leading-tight font-medium lg:inset-x-6 lg:bottom-5 lg:text-[1.875rem]"
-                  style="color:#fff"
-                >
-                  {titleText(doc)}
-                </h3>
+                <Plus class="text-primary" size={26} aria-hidden="true" />
               </div>
+              <!-- Title is a direct child of the card <a> (a sibling of the
+                   image wrapper, not nested inside it) so it mirrors live's
+                   standalone `.qa-text` block. This keeps the page-diff anchor
+                   resolving to the title's low position (near the card bottom)
+                   the way live's does, instead of jumping up to a text-bearing
+                   image wrapper and shifting the whole stack by one card.
+                   Inline colour: the unlayered global `main h1–h3` primary rule
+                   outranks any Tailwind text utility. Live title 20px/30px w500. -->
+              <h3
+                class="absolute inset-x-5 bottom-4 text-[1.25rem] leading-[1.4] font-medium lg:inset-x-6 lg:bottom-5 lg:text-[1.875rem] lg:leading-tight"
+                style="color:#fff"
+              >
+                {titleText(doc)}
+              </h3>
             </a>
           </li>
         {/each}

@@ -1,0 +1,1116 @@
+{
+  "overallPass": false,
+  "regions": [
+    {
+      "viewport": 390,
+      "label": "What is the best routine",
+      "mismatchFraction": 0.6100799028260168,
+      "meanDeltaE": 13.716717535664376,
+      "pass": false,
+      "css": [
+        {
+          "tag": "p",
+          "cls": "text-color-white mb-2 text-body",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "16px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "qa-block",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgb(231, 245, 250)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "img",
+          "cls": "qa-image",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": "https://cdn.prod.website-files.com/64b1c843b071dc32170ea053/68b7199bed7cb2eb7839aa5a_getty-images-O7QZTwoH2f0-unsplash.jpg"
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "box-gradient-overlay qa",
+          "styles": {
+            "backgroundImage": "linear-gradient(rgba(0, 0, 0, 0), rgba(16, 137, 177, 0.78) 16%, rgba(18, 158, 204, 0.9) 89%)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "box-gradient qa",
+          "styles": {
+            "backgroundImage": "linear-gradient(rgba(18, 158, 204, 0.9) 23%, rgba(5, 44, 57, 0.25) 93%, rgba(0, 0, 0, 0))",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "h4",
+          "cls": "qa-question",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "20px",
+            "fontWeight": "500",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "p",
+          "cls": "text-color-white mb-2 text-body",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "16px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "qa-block",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgb(231, 245, 250)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "qa-label",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgb(231, 245, 250)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "img",
+          "cls": "qa-image",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": "https://cdn.prod.website-files.com/64b1c843b071dc32170ea053/64d1402a4309c0bf7d84ce63_running-into-our-golden-years.jpg"
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "box-gradient-overlay qa",
+          "styles": {
+            "backgroundImage": "linear-gradient(rgba(0, 0, 0, 0), rgba(16, 137, 177, 0.78) 16%, rgba(18, 158, 204, 0.9) 89%)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "box-gradient qa",
+          "styles": {
+            "backgroundImage": "linear-gradient(rgba(18, 158, 204, 0.9) 23%, rgba(5, 44, 57, 0.25) 93%, rgba(0, 0, 0, 0))",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        }
+      ]
+    },
+    {
+      "viewport": 390,
+      "label": "Finally have a dentist",
+      "mismatchFraction": 0.5817538461538462,
+      "meanDeltaE": 25.5023772068433,
+      "pass": false,
+      "css": [
+        {
+          "tag": "h1",
+          "cls": "my-4 _w-half su-w-full-mobile",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0.99869",
+            "filter": "none",
+            "color": "rgb(18, 158, 204)",
+            "fontSize": "28px",
+            "fontWeight": "300",
+            "fontFamily": "museo-slab, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "expanding-box",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgb(231, 245, 250)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "p",
+          "cls": "expanding-text",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "20px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "img",
+          "cls": "expanding-image",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": "https://cdn.prod.website-files.com/64af3f93339537d6b661b556/64b998400e0eb30dcc2adf55_DSC_7650.jpg"
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "box-gradient-overlay",
+          "styles": {
+            "backgroundImage": "linear-gradient(rgba(0, 0, 0, 0), rgba(16, 137, 177, 0.78) 16%, rgba(18, 158, 204, 0.9) 89%)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "box-gradient",
+          "styles": {
+            "backgroundImage": "linear-gradient(rgba(18, 158, 204, 0.9) 23%, rgba(5, 44, 57, 0.25) 93%, rgba(0, 0, 0, 0))",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "expanding-label",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgb(231, 245, 250)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "expanding-box",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgb(231, 245, 250)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "p",
+          "cls": "expanding-text",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "20px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "img",
+          "cls": "expanding-image",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": "https://cdn.prod.website-files.com/64af3f93339537d6b661b556/64b9a0735c910a0ec38efc68_cerec-same-day-machine.jpg"
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "box-gradient-overlay",
+          "styles": {
+            "backgroundImage": "linear-gradient(rgba(0, 0, 0, 0), rgba(16, 137, 177, 0.78) 16%, rgba(18, 158, 204, 0.9) 89%)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "box-gradient",
+          "styles": {
+            "backgroundImage": "linear-gradient(rgba(18, 158, 204, 0.9) 23%, rgba(5, 44, 57, 0.25) 93%, rgba(0, 0, 0, 0))",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        }
+      ]
+    },
+    {
+      "viewport": 390,
+      "label": "Our dental team in Redondo",
+      "mismatchFraction": 0.4117497435897436,
+      "meanDeltaE": 13.754446736114453,
+      "pass": false,
+      "css": [
+        {
+          "tag": "div",
+          "cls": "home-services-blue-to-brown-gradient",
+          "styles": {
+            "backgroundImage": "linear-gradient(to right, rgb(18, 158, 204), rgb(182, 170, 145))",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "home-services-transe-to-white-gradient",
+          "styles": {
+            "backgroundImage": "linear-gradient(rgba(0, 0, 0, 0) 50%, rgb(255, 255, 255))",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "p",
+          "cls": "text-body-large text-color-white mt-4 _w",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "20px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "h-8 _w-full display-flex flex-align-cent",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "14.4px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "h3",
+          "cls": "text-color-white",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "21px",
+            "fontWeight": "300",
+            "fontFamily": "museo-slab, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "h-8 _w-full display-flex flex-align-cent",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "14.4px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "h3",
+          "cls": "text-color-white",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "21px",
+            "fontWeight": "300",
+            "fontFamily": "museo-slab, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "h-8 _w-full display-flex flex-align-cent",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "14.4px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "h3",
+          "cls": "text-color-white",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "21px",
+            "fontWeight": "300",
+            "fontFamily": "museo-slab, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "qa-block",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgb(231, 245, 250)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "qa-label",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgb(231, 245, 250)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "img",
+          "cls": "qa-image",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": "https://cdn.prod.website-files.com/64b1c843b071dc32170ea053/689bb3f231f2003a4066605c_couple_running_in_beach-cropped.jpg"
+          }
+        }
+      ]
+    },
+    {
+      "viewport": 390,
+      "label": "Ready for great dental health",
+      "mismatchFraction": 0.40437521531571435,
+      "meanDeltaE": 15.885644587923151,
+      "pass": false,
+      "css": [
+        {
+          "tag": "p",
+          "cls": "text-color-white mb-2 text-body",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "16px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "qa-block",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgb(231, 245, 250)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "img",
+          "cls": "qa-image",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": "https://cdn.prod.website-files.com/64b1c843b071dc32170ea053/699f516449162a22ad808758_getty-images-61Z74XV90Xg-unsplash.jpg"
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "box-gradient-overlay qa",
+          "styles": {
+            "backgroundImage": "linear-gradient(rgba(0, 0, 0, 0), rgba(16, 137, 177, 0.78) 16%, rgba(18, 158, 204, 0.9) 89%)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "box-gradient qa",
+          "styles": {
+            "backgroundImage": "linear-gradient(rgba(18, 158, 204, 0.9) 23%, rgba(5, 44, 57, 0.25) 93%, rgba(0, 0, 0, 0))",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "p",
+          "cls": "text-color-white mb-2 text-body",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "16px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "a",
+          "cls": "button text-color-primary w-button",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(18, 158, 204)",
+            "fontSize": "14px",
+            "fontWeight": "300",
+            "fontFamily": "museo-slab, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "h2",
+          "cls": "text-align-center my-4",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(18, 158, 204)",
+            "fontSize": "50px",
+            "fontWeight": "100",
+            "fontFamily": "museo-slab, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "fiji-section",
+          "styles": {
+            "backgroundImage": "url(\"https://cdn.prod.website-files.com/64af3f93339537d6b661b556/64af4c2e1e0b9ad3d901241e_beach-img_sebastien-jermer-n7DY58YFg9E-unsplash.jpg\")",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "footer-white-to-trans-gradient",
+          "styles": {
+            "backgroundImage": "linear-gradient(rgb(255, 255, 255) 12%, rgba(0, 0, 0, 0) 91%)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "display-flex flex-align-center flex-just",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "14.4px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "a",
+          "cls": "button text-color-primary-dark show-form",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(54, 91, 109)",
+            "fontSize": "14px",
+            "fontWeight": "300",
+            "fontFamily": "museo-slab, sans-serif",
+            "src": ""
+          }
+        }
+      ]
+    },
+    {
+      "viewport": 390,
+      "label": "MEET YOUR TEAM",
+      "mismatchFraction": 0.28426854948594077,
+      "meanDeltaE": 12.874511209529244,
+      "pass": false,
+      "css": [
+        {
+          "tag": "div",
+          "cls": "expanding-box",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgb(231, 245, 250)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "img",
+          "cls": "expanding-image",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": "https://cdn.prod.website-files.com/64af3f93339537d6b661b556/64b9a05a616537fb5e59d7e7_BD_office_2020_IMG_2885.jpg"
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "box-gradient-overlay",
+          "styles": {
+            "backgroundImage": "linear-gradient(rgba(0, 0, 0, 0), rgba(16, 137, 177, 0.78) 16%, rgba(18, 158, 204, 0.9) 89%)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "box-gradient",
+          "styles": {
+            "backgroundImage": "linear-gradient(rgba(18, 158, 204, 0.9) 23%, rgba(5, 44, 57, 0.25) 93%, rgba(0, 0, 0, 0))",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "expanding-label",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgb(231, 245, 250)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "heads-slider-holder",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "a",
+          "cls": "head-link w-inline-block",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(18, 158, 204)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "img",
+          "cls": "headshot-image image",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(18, 158, 204)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": "https://cdn.prod.website-files.com/64b1c843b071dc32170ea053/64bb0fca292b8b83528cc2ff_BD_Dr-Hopkins-Headshot_crop.jpg"
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "primary-on-hover",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(18, 158, 204, 0.65)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(18, 158, 204)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "h6",
+          "cls": "rollover-name",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "12px",
+            "fontWeight": "700",
+            "fontFamily": "museo-slab, sans-serif",
+            "src": ""
+          }
+        }
+      ]
+    },
+    {
+      "viewport": 390,
+      "label": "Your Path to Oral Health",
+      "mismatchFraction": 0.1019858004590829,
+      "meanDeltaE": 6.153091661682171,
+      "pass": false,
+      "css": [
+        {
+          "tag": "div",
+          "cls": "display-flex flex-align-center flex-just",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "14.4px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "h5",
+          "cls": "services-links text-size-25-px slab text",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(54, 91, 109)",
+            "fontSize": "14px",
+            "fontWeight": "300",
+            "fontFamily": "museo-slab, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "svg",
+          "cls": "",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "content-width display-flex su-flex-v-tab",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "14.4px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "h2",
+          "cls": "text-align-center mb-4",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(18, 158, 204)",
+            "fontSize": "56px",
+            "fontWeight": "100",
+            "fontFamily": "museo-slab, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "p",
+          "cls": "text-align-center mt-4 text-body-large",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(54, 91, 109)",
+            "fontSize": "20px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "img",
+          "cls": "beach-circle",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "14.4px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": "https://cdn.prod.website-files.com/64af3f93339537d6b661b556/64b9b4a36fc4120f56bbb2da_walking_on_the_beach.jpg"
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "home-step",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "h3",
+          "cls": "text-align-center steps-font-m",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(18, 158, 204)",
+            "fontSize": "30px",
+            "fontWeight": "100",
+            "fontFamily": "museo-slab, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "home-step",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "h3",
+          "cls": "text-align-center steps-font-m",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(18, 158, 204)",
+            "fontSize": "30px",
+            "fontWeight": "100",
+            "fontFamily": "museo-slab, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "home-step",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        }
+      ]
+    },
+    {
+      "viewport": 390,
+      "label": "Serving the South Bay",
+      "mismatchFraction": 0.08667941363926067,
+      "meanDeltaE": 8.771761883628614,
+      "pass": true
+    }
+  ]
+}
