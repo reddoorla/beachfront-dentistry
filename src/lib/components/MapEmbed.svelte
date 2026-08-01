@@ -16,7 +16,7 @@
   src={"https://www.google.com/maps?q=" +
     encodeURIComponent(query) +
     "&output=embed"}
-  class="h-80 w-full rounded border-0"
+  class="h-[400px] w-full rounded border-0"
   loading="lazy"
   referrerpolicy="no-referrer-when-downgrade"
 ></iframe>

@@ -106,14 +106,23 @@
   <WaveDivider
     fill={waveFill}
     flip
-    heightClass="h-[96px] min-[992px]:h-[128px] xl:h-[160px]"
+    heightClass="h-[39px] min-[992px]:h-[128px] lg:h-[144px]"
     width="169%"
   />
 
-  <div class="px-8 pt-12 pb-12">
-    <div class="mx-auto max-w-6xl">
+  <!-- No top padding: live's footer copy begins exactly at the closing band's
+       bottom edge, with the wave above it occupying the overlap the band's
+       negative bottom margin creates. -->
+  <div class="px-[19.5px] pt-0 pb-12 lg:px-8">
+    <div class="mx-auto max-w-[1280px]">
       {#if heading}
-        <p class="font-slab text-primary-deep mb-8 text-2xl font-light">
+        <!-- Live: 16px/40 mobile, 30px/40 desktop, weight 100, museo-slab, 10px
+             below. Colour is the one deliberate deviation — live paints this
+             #129ecc, which is only 3.09:1 on white and fails AA at the 16px
+             mobile size, so it keeps the AA-safe -deep (see app.css). -->
+        <p
+          class="font-slab text-primary-deep mb-[10px] text-[16px] leading-[40px] font-thin lg:text-[30px]"
+        >
           {heading}
         </p>
       {/if}
@@ -121,8 +130,11 @@
         <div class="grid gap-10 lg:grid-cols-[1fr_26rem] lg:gap-16">
           <div class="flex flex-col justify-between gap-10 sm:flex-row">
             {#each columns as col, colIndex (colIndex)}
+              <!-- Live's footer links: museo-sans, 12px/24 mobile and 20px/40
+                   desktop, weight 300, with 12px/20px between rows (its labels
+                   are slab-500 at the same sizes — rendered as <p> below). -->
               <div
-                class="font-slab flex flex-col gap-2 text-[20px] font-light text-[#365b6d]"
+                class="flex flex-col gap-3 font-sans text-[12px] leading-[24px] font-light text-[#365b6d] lg:gap-5 lg:text-[20px] lg:leading-[40px]"
               >
                 {#each col.items as item, itemIndex (itemIndex)}
                   {#if isImage(item)}
@@ -139,7 +151,14 @@
                       >{item.text}</a
                     >
                   {:else}
-                    <p>{item.text}</p>
+                    <!-- Non-link rows are live's column labels (OFFICE HOURS,
+                         CONTACT): museo-slab, weight 500, 16/32 mobile and
+                         20/40 desktop. -->
+                    <p
+                      class="font-slab text-[16px] leading-[32px] font-medium lg:text-[20px] lg:leading-[40px]"
+                    >
+                      {item.text}
+                    </p>
                   {/if}
                 {/each}
               </div>

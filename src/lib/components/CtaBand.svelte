@@ -84,8 +84,7 @@
 <section
   data-slice-type={sliceType}
   data-slice-variation={sliceVariation}
-  class="w-full"
-  style={hasImage ? "margin-bottom:-9rem" : undefined}
+  class="w-full {hasImage ? '-mb-[39px] lg:-mb-36' : ''}"
 >
   {#if hasImage}
     <!-- Heading on white; live's CTA band has ~0 top padding (the gap above
