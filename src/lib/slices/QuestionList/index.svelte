@@ -115,11 +115,15 @@
        header bar (circled number + "+") over a cyan-tinted question photo with
        the title in white — a cursive "ask the doctor" annotation to the left,
        and the doctor headshot floating down the right edge tracking the topmost
-       card. The first card is featured (no number header). -->
+       card. The first card is featured (no number header).
+       The negative top margin reproduces live's OVERLAP: the first card starts
+       240px (desktop) / 49px (mobile) BEFORE the services band above ends, so
+       the cards sit on that band's faded-to-white tail rather than below it.
+       Measured from live; the values absorb this section's own 80px pt. -->
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="relative mx-auto max-w-4xl px-3 py-20 lg:px-6"
+    class="relative -mt-[129px] mx-auto max-w-4xl px-3 py-20 lg:-mt-[320px] lg:px-6"
     use:animateIn={{ duration: 700, translateY: "2rem" }}
   >
     {#if isFilled.richText(slice.primary.heading)}

@@ -121,7 +121,13 @@
     class="relative isolate w-full overflow-hidden pt-[72px] pb-48 text-white lg:pt-40 lg:pb-80"
     style="background:linear-gradient(to right, rgb(18,158,204), rgb(182,170,145))"
   >
-    <WaveDivider fill="white" />
+    <!-- The top wave seam OVERLAYS the band — live's services section has no
+         wave in its own flow (its three children are the two gradients and the
+         content box), so leaving ours in flow added 120px/72px of dead space at
+         the top and pushed the whole band down relative to live. -->
+    <div class="pointer-events-none absolute inset-x-0 top-0">
+      <WaveDivider fill="white" />
+    </div>
     <!-- The tooth badge (a self-contained cyan disc + white tooth, 130px
          native) straddles the top wave right-of-centre, sitting on the crest —
          matching live. Rendered at native size, not shrunk inside a wrapper. -->
@@ -143,7 +149,7 @@
       aria-hidden="true"
     ></div>
     <div
-      class="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 pt-20 pb-24 lg:grid-cols-2 lg:items-center lg:pt-12 lg:pb-12"
+      class="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 pb-24 lg:grid-cols-2 lg:pt-12 lg:pb-12"
       use:animateIn={REVEAL}
     >
       <div>
