@@ -287,14 +287,20 @@
   <ContentBand
     sliceType={slice.slice_type}
     variation={slice.variation}
-    contentClass="max-w-[1400px] px-[19.5px] pt-2 pb-16 lg:px-[60px]"
+    contentClass="max-w-[1400px] px-[19.5px] pt-[72px] pb-0 lg:px-[60px] lg:pt-2 lg:pb-16"
     reveal
   >
     {#if isFilled.richText(slice.primary.heading)}
       <!-- Live's "Finally…" heading sits ~10px from the band top with a wide
            gap to the card row below — measured ~132px on mobile (heading top 663
            → card top 871, heading ~76 tall), ~128px on desktop. -->
-      <div class="h-primary mb-32 max-w-[640px] lg:mb-20">
+      <!-- [text-wrap:normal] undoes the global h1–h6 `text-wrap: balance`:
+           balancing evens the two lines ("Finally have a dentist / that puts
+           you first") where live fills the first line ("...dentist that / puts
+           you first"), which shifts every card below it. -->
+      <div
+        class="h-primary mb-6 max-w-[640px] [&_h2]:leading-[38px] [&_h2]:[text-wrap:normal] lg:mb-20 lg:[&_h2]:leading-[1.2]"
+      >
         <PrismicRichText field={slice.primary.heading} />
       </div>
     {/if}
@@ -319,8 +325,9 @@
            disclosure that expands the copy beneath (live "Finally…" trio). -->
       <div
         data-grid-columns={columns}
-        class="grid grid-cols-1 gap-6 sm:grid-cols-2 {colClass[columns] ??
-          'md:grid-cols-3'}"
+        class="grid grid-cols-1 gap-9 sm:grid-cols-2 lg:gap-6 {colClass[
+          columns
+        ] ?? 'md:grid-cols-3'}"
       >
         {#each items as item, i (item)}
           {@const open = openCards.has(i)}
@@ -372,13 +379,10 @@
                   class="font-slab text-[24px] leading-[36px] font-bold text-[#365b6d] lg:text-[30px] lg:leading-[45px]"
                   >{label}</span
                 >
-                {#if expandable}
-                  <Plus
-                    class="text-primary shrink-0"
-                    size={30}
-                    aria-hidden="true"
-                  />
-                {/if}
+                <!-- Live hides the +/- control on these cards at mobile (its
+                     .plus-minus-block computes to 0x0 there — the class is
+                     literally `display-block-desk-none-mobile`), because the
+                     mobile card already shows its body copy uncollapsed. -->
               </div>
             </div>
           {:else}

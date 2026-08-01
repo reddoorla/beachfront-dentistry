@@ -218,7 +218,11 @@
                 {:else}
                   <span aria-hidden="true"></span>
                 {/if}
-                <Plus class="text-primary" size={26} aria-hidden="true" />
+                <!-- Live's card +: 15px at mobile, 25px at desktop. -->
+                <Plus
+                  class="text-primary size-[15px] lg:size-[25px]"
+                  aria-hidden="true"
+                />
               </div>
               <!-- Title is a direct child of the card <a> (a sibling of the
                    image wrapper, not nested inside it) so it mirrors live's
