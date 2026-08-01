@@ -309,66 +309,91 @@
           {@const label = asText(item.item_heading)}
           {@const expandable = isFilled.richText(item.item_body)}
           {@const panelId = `${uid}-card-${i}`}
-          <!-- Pale-blue card: photo over a #e7f5fa label bar (30px/700 #365B6D
-               label + a plain blue "+" disclosure), radius 20px — measured off
-               the live "Finally…" cards. -->
-          <div class="overflow-hidden rounded-[25px] bg-[#e7f5fa] shadow-sm">
-            <div class="relative">
-              <!-- Live's card is 351x240 total (~180px photo + ~60px label bar).
-                   Mobile photo is a short/wide box (aspect ~19/10); desktop keeps
-                   the taller 7/5 crop. -->
+          <!-- Pale-blue card. Live's real mobile card is a single 351x240 box
+               with the photo object-cover-centred across the WHOLE card (crop
+               ar 1.462, cover, 50% 50% — verified against live), the cyan
+               .box-gradient wash, the body copy overlaid on the photo, and the
+               pale #e7f5fa label bar overlaid on the bottom. A stacked
+               photo+bar can't hold both that crop AND the 240px height, so mobile
+               uses the overlaid structure and desktop keeps the accordion. -->
+          {#if isMobile}
+            <div
+              class="relative aspect-[351/240] overflow-hidden rounded-[25px] bg-[#e7f5fa] shadow-sm"
+            >
               <PrismicImage
                 field={item.item_media}
                 fallbackAlt=""
-                class="aspect-[2/1] w-full object-cover lg:aspect-[7/5]"
+                class="absolute inset-0 h-full w-full object-cover object-center"
               />
-              <!-- Cyan bottom-fade (measured off live) that blends the photo
-                   into the #e7f5fa label bar below. -->
+              <!-- Live's real visible .box-gradient (cyan 0.9 strongest at the
+                   top, through a faint dark teal, to transparent at the bottom). -->
               <div
                 class="absolute inset-0"
-                style="background:linear-gradient(rgba(18,158,204,0),rgba(18,158,204,0.9) 92%)"
+                style="background:linear-gradient(rgba(18,158,204,0.9) 23%, rgba(5,44,57,0.25) 93%, rgba(0,0,0,0))"
                 aria-hidden="true"
               ></div>
-              {#if isMobile && expandable}
-                <!-- Mobile: body copy overlaid on the photo (live). Desktop keeps
-                     the collapsed +/accordion below. -->
+              {#if expandable}
                 <div
-                  class="absolute inset-x-0 bottom-0 p-5 text-[15px] leading-snug font-light text-white [&_*]:text-white"
+                  class="absolute inset-x-0 top-0 p-5 text-[15px] leading-snug font-light text-white [&_*]:text-white"
                 >
                   <RichTextBody field={item.item_body} />
                 </div>
               {/if}
-            </div>
-            {#if expandable}
-              <button
-                type="button"
-                aria-expanded={open}
-                aria-controls={panelId}
-                onclick={() => toggleCard(i)}
-                class="focus-visible:ring-primary-deep flex w-full cursor-pointer items-center justify-between gap-4 p-4 text-left focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden lg:p-5"
+              <!-- Pale label bar overlaid on the bottom of the card. -->
+              <div
+                class="absolute inset-x-0 bottom-0 flex items-center justify-between bg-[#e7f5fa] p-4"
               >
                 <span class="font-slab text-3xl font-bold text-[#365b6d]">{label}</span>
-                <Plus
-                  size={30}
-                  class="text-primary shrink-0 transition-transform duration-300 {open
-                    ? 'rotate-45'
-                    : ''}"
-                  aria-hidden="true"
+                {#if expandable}
+                  <Plus class="text-primary shrink-0" size={30} aria-hidden="true" />
+                {/if}
+              </div>
+            </div>
+          {:else}
+            <div class="overflow-hidden rounded-[25px] bg-[#e7f5fa] shadow-sm">
+              <div class="relative">
+                <PrismicImage
+                  field={item.item_media}
+                  fallbackAlt=""
+                  class="aspect-[7/5] w-full object-cover"
                 />
-              </button>
-              {#if open}
-                <div id={panelId} transition:slide={{ duration: 400 }}>
-                  <div class="px-5 pt-0 pb-5 leading-relaxed text-[#365b6d]/90">
-                    <RichTextBody field={item.item_body} />
+                <div
+                  class="absolute inset-0"
+                  style="background:linear-gradient(rgba(18,158,204,0),rgba(18,158,204,0.9) 92%)"
+                  aria-hidden="true"
+                ></div>
+              </div>
+              {#if expandable}
+                <button
+                  type="button"
+                  aria-expanded={open}
+                  aria-controls={panelId}
+                  onclick={() => toggleCard(i)}
+                  class="focus-visible:ring-primary-deep flex w-full cursor-pointer items-center justify-between gap-4 p-5 text-left focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden"
+                >
+                  <span class="font-slab text-3xl font-bold text-[#365b6d]">{label}</span>
+                  <Plus
+                    size={30}
+                    class="text-primary shrink-0 transition-transform duration-300 {open
+                      ? 'rotate-45'
+                      : ''}"
+                    aria-hidden="true"
+                  />
+                </button>
+                {#if open}
+                  <div id={panelId} transition:slide={{ duration: 400 }}>
+                    <div class="px-5 pt-0 pb-5 leading-relaxed text-[#365b6d]/90">
+                      <RichTextBody field={item.item_body} />
+                    </div>
                   </div>
+                {/if}
+              {:else}
+                <div class="p-5">
+                  <span class="font-slab text-3xl font-bold text-[#365b6d]">{label}</span>
                 </div>
               {/if}
-            {:else}
-              <div class="p-4 lg:p-5">
-                <span class="font-slab text-3xl font-bold text-[#365b6d]">{label}</span>
-              </div>
-            {/if}
-          </div>
+            </div>
+          {/if}
         {/each}
       </div>
     {:else if layout === "copy"}

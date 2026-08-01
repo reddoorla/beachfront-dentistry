@@ -4,8 +4,8 @@
     {
       "viewport": 390,
       "label": "What is the best routine",
-      "mismatchFraction": 0.536366224449126,
-      "meanDeltaE": 11.581925989899267,
+      "mismatchFraction": 0.5449600485869915,
+      "meanDeltaE": 11.793122282671124,
       "pass": false,
       "css": [
         {
@@ -193,8 +193,8 @@
     {
       "viewport": 390,
       "label": "Our dental team in Redondo",
-      "mismatchFraction": 0.4592553565156305,
-      "meanDeltaE": 13.122677329289758,
+      "mismatchFraction": 0.46397512798541074,
+      "meanDeltaE": 13.247520649934835,
       "pass": false,
       "css": [
         {
@@ -381,9 +381,168 @@
     },
     {
       "viewport": 390,
+      "label": "MEET YOUR TEAM",
+      "mismatchFraction": 0.29478508608943393,
+      "meanDeltaE": 13.45565714700811,
+      "pass": false,
+      "css": [
+        {
+          "tag": "div",
+          "cls": "expanding-box",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgb(231, 245, 250)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "img",
+          "cls": "expanding-image",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": "https://cdn.prod.website-files.com/64af3f93339537d6b661b556/64b9a05a616537fb5e59d7e7_BD_office_2020_IMG_2885.jpg"
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "box-gradient-overlay",
+          "styles": {
+            "backgroundImage": "linear-gradient(rgba(0, 0, 0, 0), rgba(16, 137, 177, 0.78) 16%, rgba(18, 158, 204, 0.9) 89%)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "box-gradient",
+          "styles": {
+            "backgroundImage": "linear-gradient(rgba(18, 158, 204, 0.9) 23%, rgba(5, 44, 57, 0.25) 93%, rgba(0, 0, 0, 0))",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "expanding-label",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgb(231, 245, 250)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "heads-slider-holder",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(51, 51, 51)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "a",
+          "cls": "head-link w-inline-block",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(18, 158, 204)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "img",
+          "cls": "headshot-image image",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(18, 158, 204)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": "https://cdn.prod.website-files.com/64b1c843b071dc32170ea053/64bb0fca292b8b83528cc2ff_BD_Dr-Hopkins-Headshot_crop.jpg"
+          }
+        },
+        {
+          "tag": "div",
+          "cls": "primary-on-hover",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(18, 158, 204, 0.65)",
+            "opacity": "0",
+            "filter": "none",
+            "color": "rgb(18, 158, 204)",
+            "fontSize": "64px",
+            "fontWeight": "300",
+            "fontFamily": "museo-sans, sans-serif",
+            "src": ""
+          }
+        },
+        {
+          "tag": "h6",
+          "cls": "rollover-name",
+          "styles": {
+            "backgroundImage": "none",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "filter": "none",
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "12px",
+            "fontWeight": "700",
+            "fontFamily": "museo-slab, sans-serif",
+            "src": ""
+          }
+        }
+      ]
+    },
+    {
+      "viewport": 390,
       "label": "Finally have a dentist",
-      "mismatchFraction": 0.44393846153846156,
-      "meanDeltaE": 19.894110668737287,
+      "mismatchFraction": 0.19933846153846155,
+      "meanDeltaE": 11.693861252594528,
       "pass": false,
       "css": [
         {
@@ -392,7 +551,7 @@
           "styles": {
             "backgroundImage": "none",
             "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "1",
+            "opacity": "0.99883",
             "filter": "none",
             "color": "rgb(18, 158, 204)",
             "fontSize": "28px",
@@ -570,168 +729,9 @@
     },
     {
       "viewport": 390,
-      "label": "MEET YOUR TEAM",
-      "mismatchFraction": 0.2941657376439985,
-      "meanDeltaE": 13.432627147884588,
-      "pass": false,
-      "css": [
-        {
-          "tag": "div",
-          "cls": "expanding-box",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgb(231, 245, 250)",
-            "opacity": "0",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "img",
-          "cls": "expanding-image",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "1",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": "https://cdn.prod.website-files.com/64af3f93339537d6b661b556/64b9a05a616537fb5e59d7e7_BD_office_2020_IMG_2885.jpg"
-          }
-        },
-        {
-          "tag": "div",
-          "cls": "box-gradient-overlay",
-          "styles": {
-            "backgroundImage": "linear-gradient(rgba(0, 0, 0, 0), rgba(16, 137, 177, 0.78) 16%, rgba(18, 158, 204, 0.9) 89%)",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "0",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "div",
-          "cls": "box-gradient",
-          "styles": {
-            "backgroundImage": "linear-gradient(rgba(18, 158, 204, 0.9) 23%, rgba(5, 44, 57, 0.25) 93%, rgba(0, 0, 0, 0))",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "1",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "div",
-          "cls": "expanding-label",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgb(231, 245, 250)",
-            "opacity": "1",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "div",
-          "cls": "heads-slider-holder",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "0",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "a",
-          "cls": "head-link w-inline-block",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "1",
-            "filter": "none",
-            "color": "rgb(18, 158, 204)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "img",
-          "cls": "headshot-image image",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "1",
-            "filter": "none",
-            "color": "rgb(18, 158, 204)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": "https://cdn.prod.website-files.com/64b1c843b071dc32170ea053/64bb0fca292b8b83528cc2ff_BD_Dr-Hopkins-Headshot_crop.jpg"
-          }
-        },
-        {
-          "tag": "div",
-          "cls": "primary-on-hover",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(18, 158, 204, 0.65)",
-            "opacity": "0",
-            "filter": "none",
-            "color": "rgb(18, 158, 204)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "h6",
-          "cls": "rollover-name",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "1",
-            "filter": "none",
-            "color": "rgb(255, 255, 255)",
-            "fontSize": "12px",
-            "fontWeight": "700",
-            "fontFamily": "museo-slab, sans-serif",
-            "src": ""
-          }
-        }
-      ]
-    },
-    {
-      "viewport": 390,
       "label": "Ready for great dental health",
-      "mismatchFraction": 0.17736765260757584,
-      "meanDeltaE": 9.229434794645254,
+      "mismatchFraction": 0.1782699279820201,
+      "meanDeltaE": 9.234543714706373,
       "pass": false,
       "css": [
         {
@@ -919,197 +919,15 @@
     {
       "viewport": 390,
       "label": "Your Path to Oral Health",
-      "mismatchFraction": 0.10280432036157228,
-      "meanDeltaE": 5.573632454618137,
-      "pass": false,
-      "css": [
-        {
-          "tag": "div",
-          "cls": "display-flex flex-align-center flex-just",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "0",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "14.4px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "h5",
-          "cls": "services-links text-size-25-px slab text",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "1",
-            "filter": "none",
-            "color": "rgb(54, 91, 109)",
-            "fontSize": "14px",
-            "fontWeight": "300",
-            "fontFamily": "museo-slab, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "svg",
-          "cls": "",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "1",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "div",
-          "cls": "content-width display-flex su-flex-v-tab",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "0",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "14.4px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "h2",
-          "cls": "text-align-center mb-4",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "1",
-            "filter": "none",
-            "color": "rgb(18, 158, 204)",
-            "fontSize": "56px",
-            "fontWeight": "100",
-            "fontFamily": "museo-slab, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "p",
-          "cls": "text-align-center mt-4 text-body-large",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "1",
-            "filter": "none",
-            "color": "rgb(54, 91, 109)",
-            "fontSize": "20px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "img",
-          "cls": "beach-circle",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "1",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "14.4px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": "https://cdn.prod.website-files.com/64af3f93339537d6b661b556/64b9b4a36fc4120f56bbb2da_walking_on_the_beach.jpg"
-          }
-        },
-        {
-          "tag": "div",
-          "cls": "home-step",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "0",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "h3",
-          "cls": "text-align-center steps-font-m",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "1",
-            "filter": "none",
-            "color": "rgb(18, 158, 204)",
-            "fontSize": "30px",
-            "fontWeight": "100",
-            "fontFamily": "museo-slab, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "div",
-          "cls": "home-step",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "0",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "h3",
-          "cls": "text-align-center steps-font-m",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "1",
-            "filter": "none",
-            "color": "rgb(18, 158, 204)",
-            "fontSize": "30px",
-            "fontWeight": "100",
-            "fontFamily": "museo-slab, sans-serif",
-            "src": ""
-          }
-        },
-        {
-          "tag": "div",
-          "cls": "home-step",
-          "styles": {
-            "backgroundImage": "none",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "opacity": "0",
-            "filter": "none",
-            "color": "rgb(51, 51, 51)",
-            "fontSize": "64px",
-            "fontWeight": "300",
-            "fontFamily": "museo-sans, sans-serif",
-            "src": ""
-          }
-        }
-      ]
+      "mismatchFraction": 0.09915123044894038,
+      "meanDeltaE": 5.5394355702983145,
+      "pass": true
     },
     {
       "viewport": 390,
       "label": "Serving the South Bay",
-      "mismatchFraction": 0.0855566995146345,
-      "meanDeltaE": 8.782550706708403,
+      "mismatchFraction": 0.08588027651125166,
+      "meanDeltaE": 8.771964845066142,
       "pass": true
     }
   ]
