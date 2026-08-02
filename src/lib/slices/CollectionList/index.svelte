@@ -113,14 +113,26 @@
 {/snippet}
 
 {#snippet avatar(doc: CollectionDoc)}
-  <!-- Live team row shows the headshot only (name/role live on the detail
-       page); the wrapping link carries the accessible name. -->
+  <!-- Live team row shows the headshot only at rest, but hovering reveals the
+       name over a cyan circle (.primary-on-hover: rgba(18,158,204,0.65), 0.2s
+       fade; .rollover-name: museo-slab w700 white uppercase, centered —
+       12px/15 mobile, 24px/30 desktop; measured 2026-08-02). The overlay also
+       reveals on keyboard focus, and the wrapping link still carries the
+       accessible name for AT. -->
   {#if doc.data.media?.url}
-    <PrismicImage
-      field={doc.data.media as unknown as ImageField}
-      fallbackAlt=""
-      class="mx-auto aspect-square w-full max-w-[12.5rem] rounded-full object-cover object-top transition-transform duration-300 hover:scale-[1.03]"
-    />
+    <span class="group relative block">
+      <PrismicImage
+        field={doc.data.media as unknown as ImageField}
+        fallbackAlt=""
+        class="mx-auto aspect-square w-full max-w-[12.5rem] rounded-full object-cover object-top"
+      />
+      <span
+        aria-hidden="true"
+        class="font-slab absolute inset-0 flex items-center justify-center rounded-full bg-[rgba(18,158,204,0.65)] px-2 text-center text-[12px] leading-[15px] font-bold text-white uppercase opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none lg:text-[24px] lg:leading-[30px]"
+      >
+        {asText(doc.data.title as RichTextField)}
+      </span>
+    </span>
   {/if}
 {/snippet}
 
@@ -183,7 +195,7 @@
                   <a
                     {href}
                     aria-label={asText(doc.data.title as RichTextField)}
-                    class="block rounded-full focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                    class="focus-visible:ring-primary-deep group block rounded-full focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
                   >
                     {@render avatar(doc)}
                   </a>

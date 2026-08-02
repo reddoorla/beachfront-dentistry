@@ -23,6 +23,10 @@
     text?: string;
     /** Optional heading above the columns (e.g. "Want to learn more?"). */
     heading?: string;
+    /** Boilerplate row under the columns ("©2023 …", "All Rights Reserved",
+     * "Privacy Policy", "Sitemap"). Live renders these as PLAIN TEXT — not
+     * links — spread across the columns' width, so that's all this is. */
+    legal?: string[];
     /** Render an embedded location map beside the columns. */
     showMap?: boolean;
     /** Map search query (defaults to MapEmbed's own default address). */
@@ -40,6 +44,7 @@
     socials = [],
     text,
     heading,
+    legal = [],
     showMap = false,
     mapQuery,
     waveFill = FOOTER_BG,
@@ -170,6 +175,21 @@
             </div>
           {/if}
         </div>
+        {#if legal.length > 0}
+          <!-- Live's .footer-boiler-holder: one space-between row of plain-text
+               items in museo-sans w300 #365b6d — 12px/14.4 desktop, 7px/8.4
+               mobile (live's real vw-scaled value, tiny as it is). Placed after
+               the grid so on mobile it lands below the map, at the very bottom;
+               the desktop max-width reproduces live's row spanning only the
+               link-columns area (845px of the 1280 content box), not the map. -->
+          <div
+            class="mt-12 flex flex-wrap justify-between font-sans text-[7px] leading-[8.4px] font-light text-[#365b6d] lg:mt-20 lg:max-w-[845px] lg:text-[12px] lg:leading-[14.4px]"
+          >
+            {#each legal as item (item)}
+              <p>{item}</p>
+            {/each}
+          </div>
+        {/if}
       {:else}
         <div
           class="flex flex-col items-center justify-between gap-4 sm:flex-row"

@@ -12,19 +12,22 @@ import {
 const PRISMIC = "https://images.prismic.io/acme/abc.png?auto=compress";
 
 describe("composeTitle", () => {
-  it("appends the site name for brand recall", () => {
-    expect(composeTitle("Contact")).toBe("Contact | Reddoor");
+  it("prefixes the site name for brand recall (live's Webflow title order)", () => {
+    expect(composeTitle("Contact")).toBe("Beachfront Dentistry | Contact");
+    expect(composeTitle("Home")).toBe("Beachfront Dentistry | Home");
   });
 
-  it("returns the bare site name for the home page (no page title)", () => {
-    expect(composeTitle(undefined)).toBe("Reddoor");
-    expect(composeTitle("")).toBe("Reddoor");
-    expect(composeTitle("   ")).toBe("Reddoor");
+  it("returns the bare site name when there is no page title", () => {
+    expect(composeTitle(undefined)).toBe("Beachfront Dentistry");
+    expect(composeTitle("")).toBe("Beachfront Dentistry");
+    expect(composeTitle("   ")).toBe("Beachfront Dentistry");
   });
 
   it("does not double the brand when the title already contains it", () => {
-    expect(composeTitle("Reddoor")).toBe("Reddoor");
-    expect(composeTitle("Reddoor Studio — Work")).toBe("Reddoor Studio — Work");
+    expect(composeTitle("Beachfront Dentistry")).toBe("Beachfront Dentistry");
+    expect(composeTitle("Beachfront Dentistry | Home")).toBe(
+      "Beachfront Dentistry | Home",
+    );
   });
 });
 

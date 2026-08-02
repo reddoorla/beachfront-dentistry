@@ -49,13 +49,25 @@ describe("SectionGrid slice", () => {
     expect(toggles.map((b) => b.textContent?.trim())).toEqual(["Pool", "Gym"]);
   });
 
-  it("expands a card's body copy when its toggle is clicked", async () => {
-    const { getAllByRole, queryByText, getByText } = render(SectionGrid, {
-      props: { slice },
-    });
-    expect(queryByText("Heated.")).toBeNull();
-    await fireEvent.click(getAllByRole("button")[0]);
-    expect(getByText("Heated.")).not.toBeNull();
+  it("reveals a card's body copy over the photo when its toggle is clicked", async () => {
+    // Live's card is a FIXED box: the copy is always mounted (revealed by an
+    // opacity fade over the photo, not inserted by an accordion), so presence
+    // in the DOM proves nothing — the disclosure contract is aria-expanded on
+    // the toggle plus `inert` on the closed panel (keeps its content
+    // untabbable while visually clipped). Container-scoped queries: this file
+    // doesn't clean up between tests, and body-scoped queries would see the
+    // previous test's still-mounted instance.
+    const { container } = render(SectionGrid, { props: { slice } });
+    const toggle = container.querySelector("button[aria-expanded='false']")!;
+    const panel = container.querySelector(
+      `[id="${toggle.getAttribute("aria-controls")}"]`,
+    )!;
+    expect(panel.textContent).toContain("Heated.");
+    // Svelte applies `inert` as a DOM property, not an attribute.
+    expect((panel as HTMLElement).inert).toBe(true);
+    await fireEvent.click(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect((panel as HTMLElement).inert).toBe(false);
   });
 
   it("reflects the column count on the grid container", () => {

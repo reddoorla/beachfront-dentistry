@@ -15,9 +15,8 @@
     type LinkField,
     type RichTextField,
   } from "@prismicio/client";
-  import { slide } from "$lib/transitions";
   import { animateIn } from "$lib/actions/animateIn";
-  import { Plus } from "@lucide/svelte";
+  import { Minus, Plus } from "@lucide/svelte";
   import { SvelteSet } from "svelte/reactivity";
   import { viewport } from "$lib/stores/viewport.svelte";
   import { onMount } from "svelte";
@@ -322,10 +321,14 @@
       </div>
     {:else if layout === "cards"}
       <!-- Photo cards with a label bar; a card with body copy gets a "+"
-           disclosure that expands the copy beneath (live "Finally…" trio). -->
+           disclosure that reveals the copy over the photo (live "Finally…"
+           trio's .expanding-box pattern). -->
+      <!-- Desktop row geometry from live (2026-08-02): cards are 397 wide in
+           the 1280 content box — a 13px inset each side + 31px gaps
+           (13+397+31+397+31+397+13 ≈ 1279), not a flush gap-24 row. -->
       <div
         data-grid-columns={columns}
-        class="grid grid-cols-1 gap-9 sm:grid-cols-2 lg:gap-6 {colClass[
+        class="grid grid-cols-1 gap-9 sm:grid-cols-2 lg:gap-[31px] lg:px-[13px] {colClass[
           columns
         ] ?? 'md:grid-cols-3'}"
       >
@@ -386,50 +389,76 @@
               </div>
             </div>
           {:else}
-            <div class="overflow-hidden rounded-[25px] bg-[#e7f5fa] shadow-sm">
-              <div class="relative">
-                <PrismicImage
-                  field={item.item_media}
-                  fallbackAlt=""
-                  class="h-[200px] w-full object-cover"
-                />
+            <!-- Live's desktop card (.expanding-box, re-measured at rest
+                 2026-08-02): a single FIXED 397×280 box — the photo fills all
+                 280px and the pale label bar OVERLAYS its bottom 80px (so
+                 ~200px of photo shows). Opening does NOT grow the card (the
+                 earlier slide-open accordion with dark copy was an invention):
+                 a heavier cyan wash (.box-gradient-overlay: transparent →
+                 0.78 cyan @31% → 0.9 @80%) fades in over the photo and the
+                 body copy fades in as white 20px/30px w300 text at the TOP of
+                 the box — 40px down, 50px side insets (live's 297/397 text
+                 box) — while the label bar stays put. -->
+            <div
+              class="relative h-[280px] overflow-hidden rounded-[25px] bg-[#e7f5fa] shadow-sm"
+            >
+              <PrismicImage
+                field={item.item_media}
+                fallbackAlt=""
+                class="absolute inset-0 h-full w-full object-cover"
+              />
+              <div
+                class="absolute inset-0"
+                style="background:linear-gradient(rgba(18,158,204,0),rgba(18,158,204,0.9) 90%)"
+                aria-hidden="true"
+              ></div>
+              {#if expandable}
                 <div
-                  class="absolute inset-0"
-                  style="background:linear-gradient(rgba(18,158,204,0),rgba(18,158,204,0.9) 92%)"
+                  class="absolute inset-0 transition-opacity duration-[650ms] motion-reduce:transition-none {open
+                    ? 'opacity-100'
+                    : 'opacity-0'}"
+                  style="background:linear-gradient(rgba(0,0,0,0), rgba(16,137,177,0.78) 31%, rgba(18,158,204,0.9) 80%)"
                   aria-hidden="true"
                 ></div>
-              </div>
-              {#if expandable}
+                <div
+                  id={panelId}
+                  inert={!open}
+                  class="absolute inset-x-0 top-0 px-[50px] pt-10 text-[20px] leading-[30px] font-light text-white transition-opacity duration-[650ms] motion-reduce:transition-none [&_*]:text-white {open
+                    ? 'opacity-100'
+                    : 'opacity-0'}"
+                >
+                  <RichTextBody field={item.item_body} />
+                </div>
                 <button
                   type="button"
                   aria-expanded={open}
                   aria-controls={panelId}
                   onclick={() => toggleCard(i)}
-                  class="focus-visible:ring-primary-deep flex h-20 w-full cursor-pointer items-center justify-between gap-4 px-5 text-left focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden"
+                  class="focus-visible:ring-primary-deep absolute inset-x-0 bottom-0 flex h-20 cursor-pointer items-center justify-between gap-4 bg-[#e7f5fa] px-5 text-left focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden"
                 >
                   <span
                     class="font-slab text-[24px] leading-[36px] font-bold text-[#365b6d] lg:text-[30px] lg:leading-[45px]"
                     >{label}</span
                   >
-                  <Plus
-                    size={30}
-                    class="text-primary shrink-0 transition-transform duration-300 {open
-                      ? 'rotate-45'
-                      : ''}"
-                    aria-hidden="true"
-                  />
+                  <!-- Live swaps + for − when open (not a rotated ×). -->
+                  {#if open}
+                    <Minus
+                      size={30}
+                      class="text-primary shrink-0"
+                      aria-hidden="true"
+                    />
+                  {:else}
+                    <Plus
+                      size={30}
+                      class="text-primary shrink-0"
+                      aria-hidden="true"
+                    />
+                  {/if}
                 </button>
-                {#if open}
-                  <div id={panelId} transition:slide={{ duration: 400 }}>
-                    <div
-                      class="px-5 pt-0 pb-5 leading-relaxed text-[#365b6d]/90"
-                    >
-                      <RichTextBody field={item.item_body} />
-                    </div>
-                  </div>
-                {/if}
               {:else}
-                <div class="flex h-20 items-center px-5">
+                <div
+                  class="absolute inset-x-0 bottom-0 flex h-20 items-center bg-[#e7f5fa] px-5"
+                >
                   <span
                     class="font-slab text-[24px] leading-[36px] font-bold text-[#365b6d] lg:text-[30px] lg:leading-[45px]"
                     >{label}</span

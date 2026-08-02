@@ -39,17 +39,10 @@
       },
       {
         "items": [
+          { "text": "CONTACT" },
           { "text": "(310) 378-9241", "href": "tel:+13103789241" },
           { "text": "1706 S Elena Ave. Suite B" },
-          { "text": "Redondo Beach, CA 90277" },
-          {
-            "text": "Yelp Reviews",
-            "href": "https://www.yelp.com/biz/beachfront-dentistry-redondo-beach"
-          },
-          {
-            "text": "Get Directions",
-            "href": "https://maps.app.goo.gl/u3xjEEDSV9KmAnMq9"
-          }
+          { "text": "Redondo Beach, CA 90277" }
         ]
       }
     ],

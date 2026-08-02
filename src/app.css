@@ -292,15 +292,26 @@ main :where(h1, h2, h3) strong,
 @layer base {
   html {
     scroll-behavior: smooth;
-    scrollbar-gutter: stable;
+    /* No scrollbar-gutter: live computes `auto`, and `stable` reserved a 15px
+       gutter in any classic-scrollbar environment that live doesn't reserve —
+       squeezing every section 15px narrower than the reference (see the body
+       overflow note below). Every page on this site is taller than the
+       viewport, so the layout-shift protection `stable` buys is moot. */
   }
 
   body {
     font-family: var(--font-sans);
     color: var(--color-dark);
     max-width: 100vw;
+    /* overflow-x: clip WITHOUT overflow-y — visible+clip is the one mixed
+       overflow pair CSS doesn't coerce, so the body never becomes a scroll
+       container and the VIEWPORT scrolls, like live. The starter's old
+       `overflow-y: auto` here made the body the scroller, and in any
+       classic-scrollbar environment (Windows, headless capture) the body then
+       reserved a 15px gutter live doesn't have — every mobile section rendered
+       375px wide against live's 390 (qa cards 336×276 vs 351×288, titles
+       wrapping differently). Measured 2026-08-02. */
     overflow-x: clip;
-    overflow-y: auto;
     margin: 0;
     background-color: var(--color-background);
   }

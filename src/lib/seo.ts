@@ -3,7 +3,7 @@
 
 import { imgix, isPrismicImageUrl } from "$lib/utils/image";
 
-export const SITE_NAME = "Reddoor";
+export const SITE_NAME = "Beachfront Dentistry";
 export const SITE_LOCALE = "en_US";
 
 /** Fallback meta description when a page has none. Empty = omit the tag —
@@ -24,16 +24,17 @@ export const OG_IMAGE_WIDTH = 1200;
 export const OG_IMAGE_HEIGHT = 630;
 
 /**
- * Compose a page's <title>: append "| SITE_NAME" for brand recall, unless the
+ * Compose a page's <title>: prefix "SITE_NAME |" for brand recall, unless the
  * title is empty, is the site name itself (the home page), or already contains
  * it (an editor-authored meta_title that mentions the brand). Falls back to the
- * bare site name when there is no page title.
+ * bare site name when there is no page title. Site-name-FIRST matches live's
+ * Webflow titles exactly ("Beachfront Dentistry | Home").
  */
 export function composeTitle(title: string | null | undefined): string {
   const t = title?.trim();
   if (!t) return SITE_NAME;
   if (t === SITE_NAME || t.includes(SITE_NAME)) return t;
-  return `${t} | ${SITE_NAME}`;
+  return `${SITE_NAME} | ${t}`;
 }
 
 /**

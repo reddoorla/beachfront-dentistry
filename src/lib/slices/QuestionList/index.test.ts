@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { render, cleanup } from "@testing-library/svelte";
+import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import QuestionList from "./index.svelte";
 
 afterEach(() => cleanup());
@@ -66,26 +66,51 @@ const numberedSlice = {
 } as never;
 
 describe("QuestionList slice — teaser variation", () => {
-  it("renders exactly max_items question cards, newest first, to /questions/<uid>, plus a View All link", () => {
+  it("renders exactly max_items question cards, newest first, each a disclosure whose Read More links /questions/<uid>, plus a View All link", () => {
     const { getAllByRole, getByRole } = render(QuestionList, {
       props: { slice: teaserSlice, context },
     });
-    // Each question is now a photo card linking to its detail page; the card
-    // markup carries a number badge + "+" alongside the title, so match the
-    // title as a substring rather than the whole link text.
-    const cardLinks = getAllByRole("link").filter((l) =>
+    // Live's cards are click-to-expand disclosures, NOT links — only the
+    // "Read More" inside each card's answer panel navigates. The title
+    // renders as the card's h3 overlay and in the toggle's accessible name.
+    const readMoreLinks = getAllByRole("link").filter((l) =>
       /^\/questions\/[^/]+$/.test(l.getAttribute("href") ?? ""),
     );
-    expect(cardLinks).toHaveLength(6);
-    cardLinks.forEach((link, i) => {
-      const [uid, , title] = expectedOrder[i]!;
+    expect(readMoreLinks).toHaveLength(6);
+    readMoreLinks.forEach((link, i) => {
+      const [uid] = expectedOrder[i]!;
       expect(link.getAttribute("href")).toBe(`/questions/${uid}`);
-      expect(link.textContent).toContain(title);
+      expect(link.textContent).toContain("Read More");
+    });
+    const titles = getAllByRole("heading", { level: 3 }).map((h) =>
+      h.textContent?.trim(),
+    );
+    // Only the first max_items (6) of the 8 fixture docs render.
+    expectedOrder.slice(0, 6).forEach(([, , title]) => {
+      expect(titles.some((t) => t?.includes(title))).toBe(true);
     });
     // The section closes with a "View All Questions" link to the index.
     expect(
       getByRole("link", { name: /View All Questions/i }).getAttribute("href"),
     ).toBe("/ask-the-doctor");
+  });
+
+  it("expands a card in place: toggle flips aria-expanded and un-inerts the answer panel", async () => {
+    const { getAllByRole } = render(QuestionList, {
+      props: { slice: teaserSlice, context },
+    });
+    const toggles = getAllByRole("button", { expanded: false });
+    expect(toggles).toHaveLength(6);
+    const panel = document.getElementById(
+      toggles[0]!.getAttribute("aria-controls")!,
+    )!;
+    // Closed: the answer (excerpt + Read More) sits beyond the card's clip
+    // edge and must be untabbable/inert until opened, like live's .qa-answer.
+    // (Svelte applies `inert` as a DOM property, not an attribute.)
+    expect((panel as HTMLElement).inert).toBe(true);
+    await fireEvent.click(toggles[0]!);
+    expect(toggles[0]!.getAttribute("aria-expanded")).toBe("true");
+    expect((panel as HTMLElement).inert).toBe(false);
   });
 
   it("renders the side image", () => {
