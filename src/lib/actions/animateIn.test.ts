@@ -69,10 +69,10 @@ describe("animateIn — viewport mode", () => {
     expect(el.style.opacity).toBe("0");
     expect(el.style.transform).toBe("translateY(50%)");
     expect(el.style.transition).toContain(
-      "opacity 2400ms var(--transition-fast-slow)",
+      "opacity 2400ms var(--transition-out-expo)",
     );
     expect(el.style.transition).toContain(
-      "transform 2400ms var(--transition-fast-slow)",
+      "transform 2400ms var(--transition-out-expo)",
     );
   });
 
@@ -307,10 +307,10 @@ describe("animateIn — options overrides", () => {
     animateIn(el, { duration: 1200 });
 
     expect(el.style.transition).toContain(
-      "opacity 1200ms var(--transition-fast-slow)",
+      "opacity 1200ms var(--transition-out-expo)",
     );
     expect(el.style.transition).toContain(
-      "transform 1200ms var(--transition-fast-slow)",
+      "transform 1200ms var(--transition-out-expo)",
     );
   });
 

@@ -15,13 +15,14 @@
     type LinkField,
     type RichTextField,
   } from "@prismicio/client";
-  import { animateIn } from "$lib/actions/animateIn";
-  import { Minus, Plus } from "@lucide/svelte";
+  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
   import { SvelteSet } from "svelte/reactivity";
   import { viewport } from "$lib/stores/viewport.svelte";
   import { onMount } from "svelte";
 
-  const REVEAL = { duration: 700, translateY: "2rem" } as const;
+  // Live reveals PER ELEMENT (each card, each step, each copy block rises as
+  // IT enters the viewport), not per section — wired below accordingly.
+  const REVEAL = LIVE_REVEAL;
 
   onMount(() => viewport.subscribe());
   // Live's "Finally…" cards show their body copy overlaid on the photo on
@@ -149,20 +150,26 @@
     ></div>
     <div
       class="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 pb-24 lg:grid-cols-2 lg:pt-12 lg:pb-12"
-      use:animateIn={REVEAL}
     >
       <div>
         {#if isFilled.richText(primary.heading)}
           <p
             class="font-slab text-[24px] font-bold tracking-[0.06em] text-white uppercase"
+            use:animateIn={REVEAL}
           >
             {asText(primary.heading)}
           </p>
         {/if}
         {#if isFilled.richText(primary.body)}
-          <!-- Live body: 20px/30px weight 300 white. -->
+          <!-- Live body: 20px/30 white at mobile in an 80%-width box
+               (`_w-80pc`, 281px at 390 — full-width wraps too wide), 30px/45
+               desktop. The [&_p] overrides are load-bearing: RichTextBody's
+               <p> is styled DIRECTLY by the base `main :where(p)` clamp
+               (17.4-19px), which beats values merely inherited from this
+               wrapper. -->
           <div
-            class="mt-4 max-w-xl text-[20px] leading-[30px] font-light text-white lg:text-[30px] lg:leading-[45px]"
+            class="mt-4 max-w-[80%] font-light text-white lg:max-w-xl [&_p]:text-[20px] [&_p]:leading-[30px] [&_p]:font-light lg:[&_p]:text-[30px] lg:[&_p]:leading-[45px]"
+            use:animateIn={REVEAL}
           >
             <RichTextBody field={primary.body} />
           </div>
@@ -170,18 +177,22 @@
         {#if hasCta}
           <!-- Live "View All Services" pill is compact: 154x41, 15px, 8px radius,
                1px white border — not the big 25px desktop button. -->
-          <PrismicLink
-            field={primary.cta_link}
-            class="focus-visible:ring-offset-primary font-slab mt-8 inline-block rounded-lg border border-white px-[15px] py-[10px] text-[15px] font-light text-white transition-colors hover:bg-white hover:text-primary-deep focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden lg:px-[25px] lg:py-[14px] lg:text-[25px]"
-          >
-            {primary.cta_label}
-          </PrismicLink>
+          <div class="mt-8" use:animateIn={REVEAL}>
+            <PrismicLink
+              field={primary.cta_link}
+              class="focus-visible:ring-offset-primary font-slab inline-block rounded-lg border border-white px-[15px] py-[10px] text-[15px] font-light text-white transition-colors hover:bg-white hover:text-primary-deep focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden lg:px-[25px] lg:py-[14px] lg:text-[25px]"
+            >
+              {primary.cta_label}
+            </PrismicLink>
+          </div>
         {/if}
       </div>
-      <ul class="flex flex-col gap-4 lg:gap-[61px]">
+      <!-- Live's mobile link pitch is 96px (60px rows + 36px gaps), not the
+           cramped gap-4 — measured 2026-08-02. -->
+      <ul class="flex flex-col gap-9 lg:gap-[61px]">
         {#each items as item (item)}
           {@const label = asText(item.item_heading)}
-          <li>
+          <li use:animateIn={REVEAL}>
             <PrismicLink
               field={item.item_link}
               class="group flex items-center gap-4 rounded-lg transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent focus-visible:outline-hidden lg:gap-5"
@@ -215,9 +226,13 @@
     data-slice-variation={slice.variation}
     data-section-layout="steps"
     class="mx-auto max-w-6xl px-6 pt-24 pb-48"
-    use:animateIn={REVEAL}
   >
-    <div class="grid grid-cols-1 items-center gap-10 md:grid-cols-[1.1fr_1fr]">
+    <!-- Live animates the heading+photo block as ONE element, then each step
+         and the CTA individually as they enter. -->
+    <div
+      class="grid grid-cols-1 items-center gap-10 md:grid-cols-[1.1fr_1fr]"
+      use:animateIn={REVEAL}
+    >
       <div>
         {#if isFilled.richText(primary.heading)}
           <h2
@@ -249,7 +264,7 @@
     </div>
     <ol class="mt-12 grid grid-cols-1 gap-10 text-center sm:grid-cols-3">
       {#each items as item, i (item)}
-        <li>
+        <li use:animateIn={REVEAL}>
           <!-- Live step label 12px/400. Step title: 30px/40px weight-100 on
                mobile, stepping up to 40px/50px weight-300 on desktop (measured
                2026-07-31 — desktop was rendering 30px/w100, a full size too small). -->
@@ -272,7 +287,7 @@
       {/each}
     </ol>
     {#if hasCta}
-      <div class="mt-12 text-center">
+      <div class="mt-12 text-center" use:animateIn={REVEAL}>
         <PrismicLink
           field={primary.cta_link}
           class="font-slab hover:border-primary hover:text-primary-deep focus-visible:ring-primary-deep inline-block rounded-lg border border-[#365b6d] px-[14px] py-[10px] text-[14px] font-light text-[#365b6d] transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:px-[25px] lg:py-[14px] lg:text-[25px]"
@@ -283,11 +298,13 @@
     {/if}
   </section>
 {:else}
+  <!-- reveal={false}: live animates the heading and each card individually
+       (per-element), not the whole band as one block. -->
   <ContentBand
     sliceType={slice.slice_type}
     variation={slice.variation}
     contentClass="max-w-[1400px] px-[19.5px] pt-[72px] pb-0 lg:px-[60px] lg:pt-2 lg:pb-16"
-    reveal
+    reveal={false}
   >
     {#if isFilled.richText(slice.primary.heading)}
       <!-- Live's "Finally…" heading sits ~10px from the band top with a wide
@@ -297,8 +314,18 @@
            balancing evens the two lines ("Finally have a dentist / that puts
            you first") where live fills the first line ("...dentist that / puts
            you first"), which shifts every card below it. -->
+      <!-- [&_h2]:text-[28px]: live's mobile heading is EXACTLY 28px; the
+           global clamp lands at 28.07px, just enough to flip the line break
+           ("...dentist that /" → "...dentist /") and shift the whole band.
+           [&_h2]:text-wrap (the BUILT-IN utility, computed `wrap`) undoes the
+           global h1-h6 `text-wrap: balance` — the arbitrary-property form
+           `[text-wrap:normal]` silently never applied (computed stayed
+           `balance`, measured 2026-08-02), re-balancing live's 342/175 line
+           split into 282/235. mb-9: live's heading→cards gap is 36px at
+           mobile (with 24px between cards — not the other way round). -->
       <div
-        class="h-primary mb-6 max-w-[640px] [&_h2]:leading-[38px] [&_h2]:[text-wrap:normal] lg:mb-20 lg:[&_h2]:leading-[1.2]"
+        class="h-primary mb-9 max-w-[640px] [&_h2]:text-[28px] [&_h2]:leading-[38px] [&_h2]:text-wrap lg:mb-20 lg:[&_h2]:text-[60px] lg:[&_h2]:leading-[1.2]"
+        use:animateIn={REVEAL}
       >
         <PrismicRichText field={slice.primary.heading} />
       </div>
@@ -328,7 +355,7 @@
            (13+397+31+397+31+397+13 ≈ 1279), not a flush gap-24 row. -->
       <div
         data-grid-columns={columns}
-        class="grid grid-cols-1 gap-9 sm:grid-cols-2 lg:gap-[31px] lg:px-[13px] {colClass[
+        class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:gap-[31px] lg:px-[13px] {colClass[
           columns
         ] ?? 'md:grid-cols-3'}"
       >
@@ -347,6 +374,7 @@
           {#if isMobile}
             <div
               class="relative aspect-[351/240] overflow-hidden rounded-[25px] bg-[#e7f5fa] shadow-sm"
+              use:animateIn={REVEAL}
             >
               <PrismicImage
                 field={item.item_media}
@@ -367,9 +395,12 @@
               ></div>
               {#if expandable}
                 <!-- Live body copy: 20px/30px weight-300 white, 24px inset
-                     (width 303) — not the 15px we had. -->
+                     (width 303) — not the 15px we had. The [&_p] overrides are
+                     load-bearing: RichTextBody's <p> is styled DIRECTLY by the
+                     base `main :where(p)` clamp (17.4px at 390), which beats
+                     values merely inherited from this wrapper. -->
                 <div
-                  class="absolute inset-x-0 top-0 p-6 text-[20px] leading-[30px] font-light text-white [&_*]:text-white"
+                  class="absolute inset-x-0 top-0 p-6 font-light text-white [&_*]:text-white [&_p]:text-[20px] [&_p]:leading-[30px] [&_p]:font-light"
                 >
                   <RichTextBody field={item.item_body} />
                 </div>
@@ -401,6 +432,7 @@
                  box) — while the label bar stays put. -->
             <div
               class="relative h-[280px] overflow-hidden rounded-[25px] bg-[#e7f5fa] shadow-sm"
+              use:animateIn={REVEAL}
             >
               <PrismicImage
                 field={item.item_media}
@@ -423,7 +455,7 @@
                 <div
                   id={panelId}
                   inert={!open}
-                  class="absolute inset-x-0 top-0 px-[50px] pt-10 text-[20px] leading-[30px] font-light text-white transition-opacity duration-[650ms] motion-reduce:transition-none [&_*]:text-white {open
+                  class="absolute inset-x-0 top-0 px-[50px] pt-10 font-light text-white transition-opacity duration-[650ms] motion-reduce:transition-none [&_*]:text-white [&_p]:text-[20px] [&_p]:leading-[30px] [&_p]:font-light {open
                     ? 'opacity-100'
                     : 'opacity-0'}"
                 >
@@ -440,17 +472,20 @@
                     class="font-slab text-[24px] leading-[36px] font-bold text-[#365b6d] lg:text-[30px] lg:leading-[45px]"
                     >{label}</span
                   >
-                  <!-- Live swaps + for − when open (not a rotated ×). -->
+                  <!-- Live swaps + for − when open (not a rotated ×) — its
+                       own Plus.svg / minus.svg assets, 25px wide. -->
                   {#if open}
-                    <Minus
-                      size={30}
-                      class="text-primary shrink-0"
+                    <img
+                      src="/icons/minus.svg"
+                      alt=""
+                      class="w-[25px] shrink-0"
                       aria-hidden="true"
                     />
                   {:else}
-                    <Plus
-                      size={30}
-                      class="text-primary shrink-0"
+                    <img
+                      src="/icons/plus.svg"
+                      alt=""
+                      class="w-[25px] shrink-0"
                       aria-hidden="true"
                     />
                   {/if}

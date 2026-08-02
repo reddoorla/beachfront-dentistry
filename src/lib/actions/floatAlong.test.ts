@@ -1,10 +1,16 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { floatAlong } from "./floatAlong";
 
-function mockMatchMedia(reducedMotion: boolean) {
+function mockMatchMedia(reducedMotion: boolean, desktop = true) {
   window.matchMedia = vi.fn().mockImplementation((query: string) => ({
     matches:
-      query === "(prefers-reduced-motion: reduce)" ? reducedMotion : false,
+      query === "(prefers-reduced-motion: reduce)"
+        ? reducedMotion
+        : // The float is desktop-only; behaviour tests run "at desktop"
+          // unless a test opts into the mobile branch.
+          query === "(min-width: 1024px)"
+          ? desktop
+          : false,
     media: query,
     addEventListener: () => {},
     removeEventListener: () => {},
@@ -97,42 +103,91 @@ describe("floatAlong — motion allowed", () => {
     expect(addSpy).toHaveBeenCalledWith("resize", expect.any(Function));
   });
 
-  it("aligns the node's transform to the topmost matching item on mount", () => {
-    mockMatchMedia(false);
-    const { parent, node } = makeDom(2);
-    const firstItem = parent.querySelector(".qa-item") as HTMLElement;
-    Object.defineProperty(firstItem, "offsetTop", {
-      value: 120,
-      configurable: true,
-    });
-
-    floatAlong(node, { itemSelector: ".qa-item" });
-
-    expect(node.style.transform).toBe("translateY(120px)");
-  });
-
-  it("picks the topmost VISIBLE item once earlier items scroll out", () => {
+  it("glides to the BOTTOM-MOST fully visible item, measured from item 0", () => {
     mockMatchMedia(false);
     const { parent, node } = makeDom(3);
     const items = [
       ...parent.querySelectorAll<HTMLElement>(".qa-item"),
     ] as HTMLElement[];
-    // Simulate mid-scroll: item 0 fully above the viewport (bottom <= 0),
-    // items 1-2 still visible. jsdom rects default to all-zero, so without
-    // these stubs every test would only ever exercise the `?? items[0]`
-    // fallback — this is the one test that proves the `.find` predicate.
-    const rect = (bottom: number) => ({ bottom, top: bottom - 50 }) as DOMRect;
-    items[0]!.getBoundingClientRect = () => rect(-10);
-    items[1]!.getBoundingClientRect = () => rect(40);
-    items[2]!.getBoundingClientRect = () => rect(90);
+    // Items 0-1 fully inside the viewport, item 2 hanging below it — the
+    // pair must target item 1 (bottom-most FULLY visible), translated by its
+    // offset from item 0 (the pair's authored resting position). jsdom rects
+    // default to all-zero, so these stubs are what exercise the predicate.
+    const rect = (top: number, bottom: number) => ({ top, bottom }) as DOMRect;
+    items[0]!.getBoundingClientRect = () => rect(10, 410);
+    items[1]!.getBoundingClientRect = () => rect(430, 750);
+    items[2]!.getBoundingClientRect = () => rect(770, 1190);
+    Object.defineProperty(items[0]!, "offsetTop", {
+      value: 0,
+      configurable: true,
+    });
     Object.defineProperty(items[1]!, "offsetTop", {
-      value: 250,
+      value: 420,
       configurable: true,
     });
 
     floatAlong(node, { itemSelector: ".qa-item" });
 
-    expect(node.style.transform).toBe("translateY(250px)");
+    expect(node.style.transform).toBe("translateY(420px)");
+  });
+
+  it("holds its current target while NO item is fully visible (no twitching)", () => {
+    mockMatchMedia(false);
+    const { parent, node } = makeDom(2);
+    const items = [
+      ...parent.querySelectorAll<HTMLElement>(".qa-item"),
+    ] as HTMLElement[];
+    // A tall card straddles the top edge and the next hangs off the bottom:
+    // nothing is fully visible, so the pair stays where it is (index 0 =
+    // resting position = no transform written).
+    const rect = (top: number, bottom: number) => ({ top, bottom }) as DOMRect;
+    items[0]!.getBoundingClientRect = () => rect(-40, 380);
+    items[1]!.getBoundingClientRect = () => rect(700, 1120);
+
+    floatAlong(node, { itemSelector: ".qa-item" });
+
+    expect(node.style.transform).toBe("");
+  });
+
+  it("parks at rest below the desktop breakpoint (mobile pair sits in place)", () => {
+    mockMatchMedia(false, false);
+    const { parent, node } = makeDom(3);
+    const items = [
+      ...parent.querySelectorAll<HTMLElement>(".qa-item"),
+    ] as HTMLElement[];
+    // Rects that would target item 2 at desktop — mobile must ignore them.
+    const rect = (top: number, bottom: number) => ({ top, bottom }) as DOMRect;
+    items.forEach((el, i) => {
+      el.getBoundingClientRect = () => rect(10 + i * 100, 110 + i * 100);
+    });
+
+    floatAlong(node, { itemSelector: ".qa-item" });
+
+    expect(node.style.transform).toBe("");
+  });
+
+  it("clamps to the last item once the whole list is scrolled past", () => {
+    mockMatchMedia(false);
+    const { parent, node } = makeDom(3);
+    const items = [
+      ...parent.querySelectorAll<HTMLElement>(".qa-item"),
+    ] as HTMLElement[];
+    const rect = (top: number, bottom: number) => ({ top, bottom }) as DOMRect;
+    items[0]!.getBoundingClientRect = () => rect(-900, -500);
+    items[1]!.getBoundingClientRect = () => rect(-480, -80);
+    items[2]!.getBoundingClientRect = () => rect(-60, -10);
+    Object.defineProperty(items[0]!, "offsetTop", {
+      value: 0,
+      configurable: true,
+    });
+    Object.defineProperty(items[2]!, "offsetTop", {
+      value: 840,
+      configurable: true,
+    });
+
+    floatAlong(node, { itemSelector: ".qa-item" });
+
+    expect(node.style.transform).toBe("translateY(840px)");
   });
 
   it("removes the listeners it added when destroyed", () => {

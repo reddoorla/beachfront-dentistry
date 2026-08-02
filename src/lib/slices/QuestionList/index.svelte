@@ -7,8 +7,7 @@
     type RichTextField,
   } from "@prismicio/client";
   import { floatAlong } from "$lib/actions/floatAlong";
-  import { animateIn } from "$lib/actions/animateIn";
-  import { Minus, Plus } from "@lucide/svelte";
+  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
   import { SvelteSet } from "svelte/reactivity";
 
   // QuestionListSlice/QuestionListSliceVariation aren't in the generated
@@ -157,37 +156,52 @@
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="relative -mt-[129px] mx-auto max-w-4xl px-[19.5px] py-20 lg:-mt-[320px] lg:px-6"
-    use:animateIn={{ duration: 700, translateY: "2rem" }}
+    class="relative -mt-[193px] mx-auto max-w-4xl px-[19.5px] py-20 lg:-mt-[320px] lg:px-6"
   >
-    {#if isFilled.richText(slice.primary.heading)}
-      <!-- Live's real hand-drawn "ask the doctor" annotation (PNG asset, NOT a
-           redrawn cursive font). -->
-      <img
-        src="/annotations/ask-the-doctor.png"
-        alt=""
-        aria-hidden="true"
-        class="pointer-events-none absolute top-[21rem] -left-2 z-10 hidden w-[210px] lg:block"
-      />
-    {/if}
-
     <!-- Live's .qa-block is 600px wide at desktop (351 on mobile, where the
          375-wide content box already constrains it) — max-w-xl (576) rendered
          the whole card stack a size too narrow. -->
     <div class="relative mx-auto max-w-[600px]">
-      {#if isFilled.image(slice.primary.side_image)}
-        <!-- Doctor headshot floats down the right edge tracking the topmost
-             visible .qa-item (ports floating-doc.js). Live: 200px, object-top
-             crop, starting ~3.95rem down (not flush to the top). -->
+      {#if isFilled.richText(slice.primary.heading) || isFilled.image(slice.primary.side_image)}
+        <!-- Live's .ask-the-doctor-handwriting-anchor: ONE anchor holds the
+             hand-drawn "ask the doctor" annotation (real PNG asset, NOT a
+             redrawn cursive font) AND the doctor headshot at the SAME height,
+             flanking the question column ~100px below the tracked card's top.
+             floatAlong glides the whole pair to the bottom-most fully visible
+             question, quantized per question, with live's own anchor motion
+             (transform 1s cubic-bezier(0.19,1,0.22,1)). Live x-geometry at
+             1440: handwriting's right edge 10px left of the column, headshot
+             overlapping 40px INTO the column's right edge. -->
+        <!-- MOBILE (measured live @390): the pair rests IN PLACE above the
+             first card, right-aligned — 120px headshot 24px from the content's
+             right edge with its bottom 12px above the card, the 120×70
+             handwriting flush against its left edge (float gated off in
+             floatAlong). DESKTOP: flanks the column and glides. -->
         <div
           use:floatAlong={{ itemSelector: ".qa-item" }}
-          class="ask-the-doctor-headshot pointer-events-none absolute top-16 -right-28 z-10 hidden w-[200px] lg:block xl:-right-44"
+          aria-hidden="true"
+          class="pointer-events-none absolute inset-x-0 top-0 z-10 transition-transform duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] motion-reduce:transition-none lg:top-[100px]"
         >
-          <PrismicImage
-            field={slice.primary.side_image}
-            fallbackAlt=""
-            class="aspect-square w-full rounded-full object-cover object-top shadow-lg"
-          />
+          {#if isFilled.richText(slice.primary.heading)}
+            <img
+              src="/annotations/ask-the-doctor.png"
+              alt=""
+              class="absolute right-[144px] bottom-[26px] w-[120px] max-w-none lg:top-0 lg:right-full lg:bottom-auto lg:mr-[10px] lg:w-[210px]"
+              use:animateIn={LIVE_REVEAL}
+            />
+          {/if}
+          {#if isFilled.image(slice.primary.side_image)}
+            <div
+              class="ask-the-doctor-headshot absolute right-6 bottom-[12px] w-[120px] lg:top-0 lg:right-auto lg:bottom-auto lg:left-full lg:-ml-10 lg:w-[200px]"
+              use:animateIn={LIVE_REVEAL}
+            >
+              <PrismicImage
+                field={slice.primary.side_image}
+                fallbackAlt=""
+                class="aspect-square w-full rounded-full object-cover object-top shadow-lg"
+              />
+            </div>
+          {/if}
         </div>
       {/if}
 
@@ -198,7 +212,8 @@
           {@const doc = card.doc}
           {@const expanded = expandedCards.has(doc.uid)}
           {@const panelId = `qa-panel-${doc.uid}`}
-          <li class="qa-item">
+          <!-- Per-card reveal: live raises each .qa-block as IT enters. -->
+          <li class="qa-item" use:animateIn={LIVE_REVEAL}>
             <!-- Not a link: live's .qa-block has no wrapping <a> — the card is
                  a disclosure whose header bar toggles it, and only the "Read
                  More" inside the revealed answer navigates. Mobile's card box
@@ -303,15 +318,20 @@
                 {:else}
                   <span aria-hidden="true"></span>
                 {/if}
-                <!-- Live's card +: 15px at mobile, 25px at desktop; − when open. -->
+                <!-- Live's card +/−: its own Plus.svg / minus.svg assets
+                     (25×25 and 25×5), 15px wide at mobile, 25px at desktop. -->
                 {#if expanded}
-                  <Minus
-                    class="text-primary size-[15px] lg:size-[25px]"
+                  <img
+                    src="/icons/minus.svg"
+                    alt=""
+                    class="w-[15px] lg:w-[25px]"
                     aria-hidden="true"
                   />
                 {:else}
-                  <Plus
-                    class="text-primary size-[15px] lg:size-[25px]"
+                  <img
+                    src="/icons/plus.svg"
+                    alt=""
+                    class="w-[15px] lg:w-[25px]"
                     aria-hidden="true"
                   />
                 {/if}
@@ -344,7 +364,7 @@
         {/each}
       </ul>
 
-      <div class="mt-12 text-center">
+      <div class="mt-12 text-center" use:animateIn={LIVE_REVEAL}>
         <a
           href="/ask-the-doctor"
           class="text-dark hover:border-primary hover:text-primary-deep focus-visible:ring-primary-deep inline-block rounded-full border border-black/15 px-8 py-3 font-light transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
@@ -359,7 +379,7 @@
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
     class="mx-auto max-w-3xl px-6 py-16"
-    use:animateIn={{ duration: 700, translateY: "2rem" }}
+    use:animateIn={LIVE_REVEAL}
   >
     {#if isFilled.richText(slice.primary.heading)}
       <PrismicRichText field={slice.primary.heading} />

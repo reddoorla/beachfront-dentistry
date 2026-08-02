@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
-  import { animateIn } from "$lib/actions/animateIn";
+  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
 
   // The shared shell for the hand-authored Prismic slices: a full-bleed
   // <section> "band" wrapping a centered content box. Layout comes entirely
@@ -40,10 +40,7 @@
 >
   {@render background?.()}
   {#if reveal}
-    <div
-      class="mx-auto w-full {contentClass}"
-      use:animateIn={{ duration: 700, translateY: "2rem" }}
-    >
+    <div class="mx-auto w-full {contentClass}" use:animateIn={LIVE_REVEAL}>
       {@render children()}
     </div>
   {:else}

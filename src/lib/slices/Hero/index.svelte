@@ -5,6 +5,7 @@
   import CtaBand from "$lib/components/CtaBand.svelte";
   import WaveDivider from "$lib/components/WaveDivider.svelte";
   import { PrismicLink, PrismicRichText } from "@prismicio/svelte";
+  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
   import { asText, type Content } from "@prismicio/client";
   import { bandFor, type Presentation } from "$lib/blux/presentation";
   import BluxSectionBand from "$lib/blux/SectionBand.svelte";
@@ -182,7 +183,9 @@
     <div
       class="relative z-10 mx-auto flex w-full max-w-[1360px] flex-col items-start gap-8 px-6 pt-36 pb-28 md:flex-row md:items-center md:justify-between md:gap-12"
     >
-      <div class="max-w-3xl">
+      <!-- Live reveals the hero h1 with the same rise-in as every other
+           element (its H1 sits at opacity 0 / +travel until the ix2 fires). -->
+      <div class="max-w-3xl" use:animateIn={LIVE_REVEAL}>
         {#if brandParts}
           <h1>
             {brandParts.before}<strong>{brandParts.brand}</strong

@@ -113,12 +113,19 @@ describe("QuestionList slice — teaser variation", () => {
     expect((panel as HTMLElement).inert).toBe(false);
   });
 
-  it("renders the side image", () => {
-    const { getByRole } = render(QuestionList, {
+  it("renders the side image inside the aria-hidden floating pair", () => {
+    // The headshot rides the handwriting+headshot anchor pair — pure
+    // decoration on live (click-through), so the wrapper is aria-hidden and
+    // the image is deliberately absent from the accessibility tree.
+    const { container } = render(QuestionList, {
       props: { slice: teaserSlice, context },
     });
-    const img = getByRole("img");
-    expect(img.getAttribute("alt")).toBe("Dr. Smith");
+    const headshot = container.querySelector(".ask-the-doctor-headshot");
+    expect(headshot).not.toBeNull();
+    expect(headshot!.closest("[aria-hidden='true']")).not.toBeNull();
+    expect(headshot!.querySelector("img")?.getAttribute("alt")).toBe(
+      "Dr. Smith",
+    );
   });
 
   it("marks each question link's list item as a qa-item (floatAlong's tracking target)", () => {

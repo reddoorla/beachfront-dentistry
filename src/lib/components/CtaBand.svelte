@@ -1,9 +1,9 @@
 <script lang="ts">
   import HeroBackgroundImage from "$lib/components/HeroBackgroundImage.svelte";
   import RichTextBody from "$lib/components/RichTextBody.svelte";
+  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
   import { PrismicLink, PrismicRichText } from "@prismicio/svelte";
   import type { ImageField, LinkField, RichTextField } from "@prismicio/client";
-  import { Plus } from "@lucide/svelte";
   import { REVIEWS_URL } from "$lib/site";
 
   // The site's recurring closing band — extracted from Hero's `cta`
@@ -59,7 +59,9 @@
      and get the plain heading-over-white block with the buttons beneath. -->
 
 {#snippet ctaButtons()}
-  <div class="mt-10 flex flex-col items-center gap-6">
+  <!-- Live reveals the button stack as its own element (rows at op 0 until
+       scrolled to), separate from the heading's reveal. -->
+  <div class="mt-10 flex flex-col items-center gap-6" use:animateIn={LIVE_REVEAL}>
     {#if ctaLabel && ctaLink}
       <PrismicLink
         field={ctaLink}
@@ -76,7 +78,8 @@
       class="text-dark hover:text-primary-deep focus-visible:ring-primary-deep inline-flex items-center gap-2 text-lg font-light focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
     >
       Read Reviews
-      <Plus class="text-primary" size={20} aria-hidden="true" />
+      <!-- Live's own Plus.svg asset (its .plus-minus-block is 25×25). -->
+      <img src="/icons/plus.svg" alt="" class="w-[25px]" aria-hidden="true" />
     </a>
   </div>
 {/snippet}
@@ -90,7 +93,7 @@
     <!-- Heading on white; live's CTA band has ~0 top padding (the gap above
          comes from the section above) and a small ~38px gap to the photo. -->
     <div class="mx-auto max-w-5xl px-6 pt-2 pb-8 text-center">
-      <div class="display-xl h-primary">
+      <div class="display-xl h-primary" use:animateIn={LIVE_REVEAL}>
         <PrismicRichText field={heading} />
       </div>
       <RichTextBody field={body} />
@@ -121,6 +124,7 @@
         ></div>
         <p
           class="absolute bottom-4 left-5 z-10 text-xs font-bold tracking-[0.2em] text-white uppercase"
+          use:animateIn={LIVE_REVEAL}
         >
           {caption}
         </p>
@@ -128,7 +132,7 @@
     </div>
   {:else}
     <div class="mx-auto max-w-5xl px-6 py-24 text-center">
-      <div class="display-xl h-primary">
+      <div class="display-xl h-primary" use:animateIn={LIVE_REVEAL}>
         <PrismicRichText field={heading} />
       </div>
       <RichTextBody field={body} />

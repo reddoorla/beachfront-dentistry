@@ -94,6 +94,14 @@
   );
 </script>
 
+<!-- Live's review-slider arrow assets (big-review-arrow-left/right, 30×33). -->
+{#snippet reviewArrowLeft()}
+  <img src="/icons/review-arrow-left.svg" alt="" class="h-[33px] w-[30px]" />
+{/snippet}
+{#snippet reviewArrowRight()}
+  <img src="/icons/review-arrow-right.svg" alt="" class="h-[33px] w-[30px]" />
+{/snippet}
+
 {#if isTrackVariation}
   {#if trackCount > 0}
     <ContentBand
@@ -130,7 +138,10 @@
         {/if}
         <!-- The slide movement (Slider's transition-transform utility) is a
              plain CSS transition, so app.css's global prefers-reduced-motion
-             reset flattens it for reduced-motion users — no local gate needed. -->
+             reset flattens it for reduced-motion users — no local gate needed.
+             Timing is live's .big-review-slider rule verbatim: transform 2s
+             cubic-bezier(0.19,1,0.22,1) — the long expo glide, not a quick
+             ease-in-out. Arrows are live's own left-arrow/right-arrow SVGs. -->
         <Slider
           itemCount={trackCount}
           label={trackLabel}
@@ -139,7 +150,11 @@
           mobileGap="0px"
           arrowLayout={slice.variation === "review" ? "sides" : "below"}
           arrowClass="text-primary hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
-          transitionClass="duration-500 ease-in-out"
+          transitionClass="duration-[2000ms] ease-[cubic-bezier(0.19,1,0.22,1)]"
+          prevArrow={slice.variation === "review" ? reviewArrowLeft : undefined}
+          nextArrow={slice.variation === "review"
+            ? reviewArrowRight
+            : undefined}
         >
           {#snippet children({ index }: { index: number })}
             {@const item = trackItems[index]}

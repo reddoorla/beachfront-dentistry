@@ -290,6 +290,19 @@ main :where(h1, h2, h3) strong,
 }
 
 @layer base {
+  /* Live's Webflow reveal travel: elements rise 4rem of ITS responsive root
+     (24px mobile → 40px desktop rem) = 96px / 160px. Our root stays 16px, so
+     the travel ships as a breakpoint-stepped var, consumed by animateIn's
+     LIVE_REVEAL preset. */
+  :root {
+    --reveal-travel: 96px;
+  }
+  @media (min-width: 1024px) {
+    :root {
+      --reveal-travel: 160px;
+    }
+  }
+
   html {
     scroll-behavior: smooth;
     /* No scrollbar-gutter: live computes `auto`, and `stable` reserved a 15px

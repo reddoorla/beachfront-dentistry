@@ -7,7 +7,7 @@
     type RichTextField,
   } from "@prismicio/client";
   import Slider from "$lib/components/Slider.svelte";
-  import { animateIn } from "$lib/actions/animateIn";
+  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
   import { ENTITY_ROUTE_PREFIX } from "$lib/blux-catalog/entity-routes";
 
   type CollectionDoc = {
@@ -144,12 +144,12 @@
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
     class="overflow-x-clip pt-0 pb-9 lg:pb-16"
-    use:animateIn={{ duration: 700, translateY: "2rem" }}
   >
     {#if slice.primary.heading}
       <!-- Eyebrow aligns to the same 80px content-left as live and as the
-           headshot row below it (lg:pl-20). -->
-      <div class="px-5 lg:pl-20">
+           headshot row below it (lg:pl-20). Live reveals the eyebrow and the
+           headshot row as separate elements, not the section as one block. -->
+      <div class="px-5 lg:pl-20" use:animateIn={LIVE_REVEAL}>
         <p
           class="font-slab mb-6 text-[12px] leading-[15px] font-medium tracking-[1.28px] text-[#365b6d] uppercase lg:mb-10 lg:text-[24px] lg:leading-[30px]"
         >
@@ -165,7 +165,7 @@
            content column (80px) while the arrows/fades pin to the true screen
            edges, the 6th clipped at the right edge. Mobile keeps the px-8
            fit-to-container 3-across layout unchanged. -->
-      <div class="relative w-full">
+      <div class="relative w-full" use:animateIn={LIVE_REVEAL}>
         <Slider
           itemCount={docs.length}
           label={asText(slice.primary.heading) || "Meet the team"}
