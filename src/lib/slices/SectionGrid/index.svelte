@@ -259,8 +259,14 @@
                range (root 32/40). Our clamp matches the mobile floor and the
                desktop cap but undershot the tablet middle (75px), so md pins
                the flat 120. -->
+          <!-- 480–767: live's `.content-width` has %-side-padding (8%/5%,
+               beachfront.css:8627) so its heading column is narrower than our
+               fixed px-6 — cand wrapped this 120px h2 to fewer lines than live
+               (602 vs live's 498 @650), misaligning the block. Cap it to ~live's
+               width in the landscape band; md+ the grid column already narrows
+               it so reset there. -->
           <h2
-            class="h-primary font-slab text-center text-[clamp(3.5rem,0.5rem+8vw,7.5rem)] leading-[1.25] font-thin [text-wrap:normal] xs:text-[120px] xs:leading-[1.167] md:text-[120px] md:leading-[1.167] lg:leading-[1.167]"
+            class="h-primary font-slab text-center text-[clamp(3.5rem,0.5rem+8vw,7.5rem)] leading-[1.25] font-thin [text-wrap:normal] xs:mx-auto xs:max-w-[85%] xs:text-[120px] xs:leading-[1.167] md:max-w-none md:text-[120px] md:leading-[1.167] lg:leading-[1.167]"
           >
             {asText(primary.heading)}
           </h2>
