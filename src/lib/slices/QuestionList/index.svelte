@@ -227,7 +227,7 @@
                  the card drops 48px/80px (margin-top .65s ease-out) while the
                  label bar slides up out of the clip. Mobile's card box also
                  grows 288→384 (measured); desktop's 400 is fixed. -->
-            <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div
               onclick={(e) => {
                 if ((e.target as HTMLElement).closest("a, button")) return;
