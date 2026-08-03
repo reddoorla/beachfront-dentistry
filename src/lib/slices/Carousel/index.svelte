@@ -170,16 +170,18 @@
                      row, same as live's .shift-up overlap). -->
                 <div class="px-[7px] pb-[20px] lg:px-4 lg:pb-6">
                   <!-- Pale-blue quote card (live .big-review, 600×400 at
-                       desktop, #e7f5fa, 25px radius, 30px padding): the
-                       reviewer row sits on TOP with the quote beneath, and the
-                       source's logo badge overhangs the bottom-right edge.
-                       flex-col-reverse keeps <figcaption> last in the DOM
-                       (a11y_figcaption_index) while painting it first. -->
-                  <!-- Order is breakpoint-dependent on live: mobile keeps the
-                       quote on top with the reviewer row at the bottom; desktop
-                       flips to reviewer-on-top (hence reverse at lg only). -->
+                       desktop, #e7f5fa, 25px radius, padding 24px tablet /
+                       30px desktop): the quote sits on TOP with the reviewer
+                       row beneath, and the source's logo badge overhangs the
+                       bottom-right edge. Order is NOT breakpoint-dependent —
+                       live is quote-on-top at every width (probe-verified
+                       column/QUOTE-top at 390/834/1440), so DOM order
+                       (blockquote then figcaption) maps 1:1 to paint order
+                       with plain flex-col; no reverse anywhere. justify-between
+                       + the fixed tablet/desktop heights open the gap live
+                       shows between the two blocks. -->
                   <figure
-                    class="relative mx-auto flex max-w-[600px] flex-col justify-between rounded-[25px] bg-[#e7f5fa] p-[18px] text-left md:h-[320px] md:max-w-[480px] md:flex-col-reverse lg:h-[400px] lg:max-w-[600px] lg:flex-col-reverse lg:p-[30px]"
+                    class="relative mx-auto flex max-w-[600px] flex-col justify-between rounded-[25px] bg-[#e7f5fa] p-[18px] text-left md:h-[320px] md:max-w-[480px] md:p-6 lg:h-[400px] lg:max-w-[600px] lg:p-[30px]"
                   >
                     {#if isFilled.link(item.review_url)}
                       {@const badge = badgeFor(asLink(item.review_url))}
@@ -210,7 +212,7 @@
                       <p>{item.quote}</p>
                     </blockquote>
                     <figcaption
-                      class="mb-[10px] flex items-center gap-4 lg:mb-6 lg:gap-5"
+                      class="mb-[10px] flex items-center gap-4 lg:mb-0 lg:gap-5"
                     >
                       {#if isFilled.image(item.reviewer_photo)}
                         <PrismicImage

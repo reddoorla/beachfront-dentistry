@@ -24,7 +24,7 @@
     class="flex cursor-pointer items-center transition-opacity hover:opacity-60 focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
   >
     <span
-      class="font-slab mr-3 text-[14px] font-light text-[#365b6d] md:text-[20px] lg:text-[25px]"
+      class="font-slab mr-3 text-[14px] font-light text-[#365b6d] md:text-[20px] md:leading-[55px] lg:text-[25px]"
       >Read Reviews</span
     >
     <!-- Live's plus/minus crossfade: the (pre-rotated) plus fades out over

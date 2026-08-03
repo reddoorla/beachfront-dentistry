@@ -333,7 +333,7 @@
                   </p>
                   <a
                     href="/questions/{doc.uid}"
-                    class="font-slab mt-[46px] inline-flex h-[41px] items-center rounded-lg border border-white px-[15px] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden lg:mt-[36px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+                    class="font-slab mt-[46px] inline-flex h-[41px] items-center rounded-lg border border-white px-[15px] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:mt-[36px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
                   >
                     Read More
                   </a>
