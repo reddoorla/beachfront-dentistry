@@ -158,15 +158,12 @@
     data-slice-variation={slice.variation}
     class="relative -mt-[193px] mx-auto max-w-4xl px-[19.5px] py-20 lg:-mt-[320px] lg:px-6"
   >
-    <!-- Live's .qa-block is 600px wide at desktop (351 on mobile, where the
-         375-wide content box already constrains it) — max-w-xl (576) rendered
-         the whole card stack a size too narrow. -->
-    <!-- Live narrows the qa cards to 480px across the tablet band (768–991),
-         widening back to 600 at desktop; base 600 is already parent-limited to
-         351 on mobile. -->
-    <div
-      class="relative mx-auto max-w-[600px] md:max-w-[480px] lg:max-w-[600px]"
-    >
+    <!-- Live's .qa-block width is 480px across the WHOLE ≤991 range (100% capped
+         at max-width:20rem), widening to 600 only at desktop (≥992). An earlier
+         `base 600, md:480` split was wrong at 650: base 600 didn't bind there
+         (the max-w-4xl section is ~600 wide) so the card blew out to 600 and,
+         with a fixed aspect, to 492 tall — overlapping the answer. Cap base 480. -->
+    <div class="relative mx-auto max-w-[480px] lg:max-w-[600px]">
       {#if isFilled.richText(slice.primary.heading) || isFilled.image(slice.primary.side_image)}
         <!-- Live's .ask-the-doctor-handwriting-anchor: ONE anchor holds the
              hand-drawn "ask the doctor" annotation (real PNG asset, NOT a
@@ -246,18 +243,21 @@
               onkeydown={(e) => {
                 if (e.key === "Escape" && expanded) toggleExpanded(doc.uid);
               }}
-              class="relative block cursor-pointer rounded-[25px] shadow-md ring-1 ring-black/5 transition-[margin-top,opacity] duration-[650ms] ease-out hover:opacity-80 motion-reduce:transition-none lg:aspect-[3/2] {expanded
-                ? 'mt-12 aspect-[351/384] lg:mt-20'
-                : 'aspect-[351/288]'}"
+              class="relative block cursor-pointer rounded-[25px] shadow-md ring-1 ring-black/5 transition-[margin-top,opacity] duration-[650ms] ease-out hover:opacity-80 motion-reduce:transition-none {expanded
+                ? 'mt-12 h-[384px] sm:h-[288px] md:mt-16 md:h-[320px] lg:mt-20 lg:h-[400px]'
+                : 'h-[288px] md:h-[320px] lg:h-[400px]'}"
             >
-              <!-- Live's real card (.qa-block) is a single fixed-aspect box
-                   (351×288 mobile / 600×400 desktop) with the photo (.qa-image)
-                   object-cover-centred across the WHOLE card, a full-card wash on
-                   top, the pale bar overlaid on the top 48px/80px, and the title
-                   overlaid at the bottom. Filling the whole card (not just below
-                   the bar) is what makes the centre crop match live — a
-                   below-the-bar image is a wider box and crops the photo
-                   differently. -->
+              <!-- Live's real card (.qa-block) is a FIXED-HEIGHT box, not a fixed
+                   aspect: height 288 (≤767 — ~351×288 mobile-portrait AND 480×288
+                   landscape) / 320 (tablet 768–991) / 400 (desktop ≥992); width
+                   fills the 480/600-capped column. A single aspect matched 390 by
+                   luck but blew the height out as the card widened (600×492 at
+                   650, peeking the answer over the title). Expanded matches live's
+                   growth: ≤479 → 384, landscape/tablet/desktop stay 288/320/400
+                   (the sm: step approximates live's 480px landscape breakpoint).
+                   The photo (.qa-image) object-cover-centres across the WHOLE card,
+                   a full-card wash on top, the pale bar overlaid on the top
+                   48/80px, and the title overlaid at the bottom. -->
               <!-- Media + washes clip inside their own rounded box (the card
                    itself no longer clips). Open: top corners square — live's
                    .qa-image.active radius 0 0 25 25, the label bar having
