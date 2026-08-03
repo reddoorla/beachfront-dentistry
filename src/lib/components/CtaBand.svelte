@@ -97,12 +97,14 @@
       </div>
       <RichTextBody field={body} />
     </div>
-    <!-- Fiji photo. Live's band is only ~273px on mobile (a short beach strip),
-         growing to ~800px on desktop; the 800px was desktop-only and was pushing
-         the whole footer + map off-screen on mobile. Its white-faded top carries
-         the CTAs. -->
+    <!-- Fiji photo. Live's `.fiji-section` is `height:70vw` at ≤767
+         (beachfront.css:8679) — 273px@390 (the value we'd hard-coded, matching
+         by luck), but 336@480 / 455@650, so a fixed 273 ran short across the
+         landscape band (page-diff Ready Δh 9–12%). 70vw tracks it; desktop keeps
+         the measured ~800px (20rem at the scaled root). Its white-faded top
+         carries the CTAs. -->
     <div
-      class="relative isolate min-h-[273px] w-full overflow-hidden lg:min-h-[800px]"
+      class="relative isolate min-h-[70vw] w-full overflow-hidden lg:min-h-[800px]"
     >
       <HeroBackgroundImage image={backgroundImage} preload={false} />
       <!-- White for the top ~18% fading to clear by ~60%, so the heading above

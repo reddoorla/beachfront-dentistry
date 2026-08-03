@@ -398,9 +398,13 @@
       <!-- Desktop row geometry from live (2026-08-02): cards are 397 wide in
            the 1280 content box — a 13px inset each side + 31px gaps
            (13+397+31+397+31+397+13 ≈ 1279), not a flush gap-24 row. -->
+      <!-- Mobile branch (isMobile<992) is always ONE column. Live caps the card
+           column instead of letting it go full-bleed in the landscape/tablet
+           band — measured widths ~403 (480–767) / ~512 (768–991), centred — so
+           cap + centre it here (base ≤479 stays full since 351<403 anyway). -->
       <div
         data-grid-columns={columns}
-        class="grid grid-cols-1 gap-6 lg:gap-[31px] lg:px-[13px] {colClass[
+        class="grid grid-cols-1 gap-6 xs:mx-auto xs:max-w-[403px] md:max-w-[512px] lg:mx-0 lg:max-w-none lg:gap-[31px] lg:px-[13px] {colClass[
           columns
         ] ?? 'md:grid-cols-3'}"
       >
@@ -418,7 +422,7 @@
                uses the overlaid structure and desktop keeps the accordion. -->
           {#if isMobile}
             <div
-              class="relative aspect-[351/240] overflow-hidden rounded-[25px] bg-[#e7f5fa] shadow-sm"
+              class="relative h-[240px] overflow-hidden rounded-[25px] bg-[#e7f5fa] shadow-sm xs:h-[336px] md:h-[448px]"
               use:animateIn={REVEAL}
             >
               <PrismicImage

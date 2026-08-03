@@ -215,17 +215,32 @@ main :nth-child(even of section[data-slice-type="media_text"]) .mt-media {
 /* The opening hero gets the full-viewport treatment; interstitial heroes are
    short bands. The manifest also sets this when it captures height: 100vh, so
    this is a floor for the first hero when a site ships without a manifest. */
+/* Live's `.hero.home` height ladder, and the middle band is WIDTH-relative (vw),
+   not viewport-relative. The `@media ≤991 {height:80vw}` rule (beachfront.css
+   :7992) matches all the way down to 480 — the ≤767 block (:8456) only adds the
+   240–640 clamp, it does NOT re-set the height — so the WHOLE 480–991 band is
+   80vw clamped, then :9088 (≤479 70vh) and :5330 (≥992 90vh) at the ends.
+   Measured live hero heights confirm 80vw: 384@480, 520@650, 667@834 (all
+   0.80×vw). A vh floor across the band held our hero ~180px too tall at 480 and
+   too short at 650 (page-diff `top` Δh 64%/12%). min-height (not height) lets
+   the bottom-anchored copy grow the band when the headline wraps, like live. */
 main > section.hero-band:first-child {
-  /* Live's `.hero.home` at mobile: 70vh clamped to 240–640px (its ≤480 media
-     block) — an unclamped 90vh ran ~180px taller than live's on a phone. */
   min-height: clamp(240px, 70vh, 640px);
 }
-@media (min-width: 1024px) {
+@media (min-width: 480px) {
   main > section.hero-band:first-child {
-    /* Beachfront's live hero is 90vh at desktop (measured 810px at a 900px
-       viewport — aspect 1.78, the poster's native ratio, so the photo reads
-       nearly uncropped). The 100vh Blux-manifest floor over-crops it and
-       shifts the visible frame; 90vh matches live. */
+    min-height: clamp(240px, 80vw, 640px);
+  }
+}
+@media (min-width: 768px) {
+  main > section.hero-band:first-child {
+    min-height: 80vw;
+  }
+}
+@media (min-width: 992px) {
+  main > section.hero-band:first-child {
+    /* Aspect 1.78 = the poster's native ratio, so the photo reads nearly
+       uncropped (the 100vh Blux-manifest floor over-crops + shifts the frame). */
     min-height: 90vh;
   }
 }

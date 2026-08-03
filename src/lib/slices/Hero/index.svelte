@@ -185,7 +185,7 @@
          z-10 still applies — this is a flex item, which stacks with z-index
          without needing a positioned box. -->
     <div
-      class="z-10 mx-auto flex w-full max-w-[1360px] flex-col items-start gap-8 px-6 pt-36 pb-28 md:flex-row md:items-center md:justify-between md:gap-12"
+      class="z-10 mx-auto flex w-full max-w-[1360px] flex-col items-start gap-8 px-6 pt-36 pb-28 xs:pt-16 xs:pb-12 md:flex-row md:items-center md:justify-between md:gap-12 md:pt-36 md:pb-28"
     >
       <!-- Live reveals the hero h1 with the same rise-in as every other
            element (its H1 sits at opacity 0 / +travel until the ix2 fires). -->
