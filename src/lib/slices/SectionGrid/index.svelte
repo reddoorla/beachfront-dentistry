@@ -366,10 +366,11 @@
            global h1-h6 `text-wrap: balance` — the arbitrary-property form
            `[text-wrap:normal]` silently never applied (computed stayed
            `balance`, measured 2026-08-02), re-balancing live's 342/175 line
-           split into 282/235. mb-9: live's heading→cards gap is 36px at
-           mobile (with 24px between cards — not the other way round). -->
+           split into 282/235. heading→cards gap: 36px at ≤479 (24px between
+           cards), but live DOUBLES it to 72px across the 480–991 band (settled
+           measurement — with 96px between cards there), so xs:mb-[72px]. -->
       <div
-        class="h-primary mb-9 max-w-[640px] [&_h2]:text-[28px] [&_h2]:leading-[38px] [&_h2]:text-wrap lg:mb-20 lg:[&_h2]:text-[60px] lg:[&_h2]:leading-[1.2]"
+        class="h-primary mb-9 max-w-[640px] [&_h2]:text-[28px] [&_h2]:leading-[38px] [&_h2]:text-wrap xs:mb-[72px] lg:mb-20 lg:[&_h2]:text-[60px] lg:[&_h2]:leading-[1.2]"
         use:animateIn={REVEAL}
       >
         <PrismicRichText field={slice.primary.heading} />
@@ -404,7 +405,7 @@
            cap + centre it here (base ≤479 stays full since 351<403 anyway). -->
       <div
         data-grid-columns={columns}
-        class="grid grid-cols-1 gap-6 xs:mx-auto xs:max-w-[403px] md:max-w-[512px] lg:mx-0 lg:max-w-none lg:gap-[31px] lg:px-[13px] {colClass[
+        class="grid grid-cols-1 gap-6 xs:mx-auto xs:max-w-[403px] xs:gap-[96px] md:max-w-[512px] lg:mx-0 lg:max-w-none lg:gap-[31px] lg:px-[13px] {colClass[
           columns
         ] ?? 'md:grid-cols-3'}"
       >
