@@ -111,9 +111,10 @@ describe("QuestionList slice — teaser variation", () => {
     await fireEvent.click(toggles[0]!);
     expect(toggles[0]!.getAttribute("aria-expanded")).toBe("true");
     expect((panel as HTMLElement).inert).toBe(false);
-    // Open: the header bar slides out of the clip (live's .qa-label.active),
-    // so its button leaves the tab order while hidden.
-    expect((toggles[0] as HTMLElement).inert).toBe(true);
+    // Open: the header bar rides up ABOVE the card box but stays VISIBLE
+    // (live's .qa-label.active) — it remains the disclosure toggle, never
+    // inert (no inert attribute is set on it at all).
+    expect((toggles[0] as HTMLElement).inert).toBeFalsy();
   });
 
   it("the whole card is a click target (live .qa-block): clicking the box toggles, Escape closes", async () => {

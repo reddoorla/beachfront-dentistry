@@ -1,6 +1,8 @@
 <script lang="ts">
   import { Menu, X, ChevronDown } from "@lucide/svelte";
   import { onMount } from "svelte";
+  import { fly } from "svelte/transition";
+  import { quintOut } from "svelte/easing";
   import { trapFocus } from "$lib/actions/trapFocus";
   import { fade } from "$lib/transitions";
   import { PHONE, MODENTO_URL } from "$lib/site";
@@ -63,9 +65,7 @@
 
   let isMenuOpen = $state(false);
   let openButtonEl = $state<HTMLButtonElement>();
-  // Which dropdown is expanded. Desktop click-toggles + hover/focus reveal;
-  // mobile is a tap accordion.
-  let openMobileIndex = $state<number | null>(null);
+  // Which desktop dropdown is expanded (click-toggles + hover/focus reveal).
   let openDesktopIndex = $state<number | null>(null);
 
   // A migrated Blux site passes flat `navLinks` via page data → the flat-links
@@ -74,10 +74,7 @@
   const useNavLinks = $derived(navLinks.length > 0);
 
   const openMenu = () => (isMenuOpen = true);
-  const closeMenu = () => {
-    isMenuOpen = false;
-    openMobileIndex = null;
-  };
+  const closeMenu = () => (isMenuOpen = false);
 </script>
 
 {#if useNavLinks}
@@ -306,82 +303,88 @@
       {/each}
     </div>
   {:else}
+    <!-- Live's .dropdown-modal: a full-screen cyan wash (#129ecc @ 92%) over
+         the beach photo (its own asset), sliding down from the top. Links are
+         white museo-slab h3s (hover opacity .5) in a 60vh justify-between
+         column starting at 10% down; the phone rides the same style; the two
+         CTAs are the white-outlined .button.nav pills. Logo badge stays
+         top-left, live's own X icon top-right. -->
     <div
       role="dialog"
       aria-modal="true"
       aria-label="Menu"
-      class="fixed inset-0 z-50 flex h-dvh w-screen flex-col items-center justify-center gap-4 overflow-y-auto bg-background py-20 {hamburgerOnly
+      class="fixed inset-0 z-50 h-dvh w-screen overflow-y-auto {hamburgerOnly
         ? ''
         : 'lg:hidden'}"
-      transition:fade
+      style="background-color:#129ecc;background-image:linear-gradient(rgba(18,158,204,0.92), rgba(18,158,204,0.92)),url('/menu-beach.jpg');background-position:0 0,50%;background-size:auto,cover"
+      transition:fly={{ y: -800, duration: 700, easing: quintOut }}
       use:trapFocus={{ onEscape: closeMenu, restoreFocus: () => openButtonEl }}
     >
-      <button
-        type="button"
-        class="absolute top-4 right-8 flex min-h-11 min-w-11 items-center justify-center"
-        onclick={closeMenu}
-        aria-label="Close menu"
+      <div
+        class="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 lg:h-[120px] lg:px-[60px] lg:py-0"
       >
-        <X size={24} />
-      </button>
-
-      {#each items as item, i (i)}
-        {#if item.children && item.children.length > 0}
-          <!-- Mobile: a dropdown becomes an accordion — tap to expand its links. -->
-          <div class="flex flex-col items-center gap-2">
-            <button
-              type="button"
-              class="flex items-center gap-1 px-4 py-2"
-              aria-expanded={openMobileIndex === i}
-              onclick={() =>
-                (openMobileIndex = openMobileIndex === i ? null : i)}
-            >
-              {item.label}
-              <ChevronDown size={16} aria-hidden="true" />
-            </button>
-            {#if openMobileIndex === i}
-              {#each item.children as child, ci (ci)}
-                {#if child.href}
-                  <a
-                    href={child.href}
-                    class="px-4 py-2 opacity-80"
-                    onclick={closeMenu}>{child.label}</a
-                  >
-                {:else}
-                  <span class="px-4 py-2 opacity-80">{child.label}</span>
-                {/if}
-              {/each}
-            {/if}
-          </div>
-        {:else if item.href}
-          <a href={item.href} class="px-4 py-3" onclick={closeMenu}
-            >{item.label}</a
-          >
+        {#if logo}
+          <a href="/" onclick={closeMenu} class="transition-opacity hover:opacity-50">
+            <img src={logo.url} alt="Home" class={logoClass} />
+          </a>
         {:else}
-          <span class="px-4 py-3">{item.label}</span>
+          <span></span>
         {/if}
-      {/each}
+        <button
+          type="button"
+          class="flex min-h-11 min-w-11 items-center justify-center transition-opacity hover:opacity-50"
+          onclick={closeMenu}
+          aria-label="Close menu"
+        >
+          <img src="/icons/menu-close-white.svg" alt="" class="w-10" />
+        </button>
+      </div>
 
-      <!-- Phone + CTAs mirrored from the desktop band (the two clusters carry
-           the same links — edit them together; only the color context and
-           touch sizing differ deliberately). This menu sits on the light
-           default background, so these use the brand-solid/brand-outline
-           pairing directly — no white-on-band override needed here. -->
-      <a href={PHONE.href} class="px-4 py-3 font-slab" onclick={closeMenu}
-        >{PHONE.display}</a
+      <!-- Live's column is NOT spread by its 60vh box — the h3 links carry
+           Webflow's 20px/10px block margins plus the container's 10px gap, a
+           90px pitch that naturally overflows the box (measured off the open
+           modal). -->
+      <nav
+        class="absolute top-[10%] flex w-full flex-col items-center gap-2.5"
+        aria-label="Menu links"
       >
-      <a
-        href="#appointment"
-        class="rounded-full bg-primary-deep px-6 py-3 font-semibold text-white"
-        onclick={closeMenu}>Request Appointment</a
-      >
-      <a
-        href={MODENTO_URL}
-        class="rounded-full border border-primary-deep px-6 py-3 text-primary-deep"
-        target="_blank"
-        rel="noopener"
-        onclick={closeMenu}>Make a Payment</a
-      >
+        <a
+          href="/"
+          onclick={closeMenu}
+          class="font-slab mt-5 mb-2.5 text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-50 lg:text-[40px] lg:leading-[50px]"
+          >Home Page</a
+        >
+        {#each items as item, i (i)}
+          {#if item.href}
+            <a
+              href={item.href}
+              onclick={closeMenu}
+              class="font-slab mt-5 mb-2.5 text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-50 lg:text-[40px] lg:leading-[50px]"
+              >{item.label}</a
+            >
+          {/if}
+        {/each}
+        <a
+          href={PHONE.href}
+          onclick={closeMenu}
+          class="font-slab mt-5 mb-2.5 text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-50 lg:text-[40px] lg:leading-[50px]"
+          >{PHONE.display}</a
+        >
+        <a
+          href="#appointment"
+          onclick={closeMenu}
+          class="font-slab mt-5 mb-2.5 inline-flex h-[41px] items-center rounded-lg border border-white px-[14px] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+          >Book an Appointment</a
+        >
+        <a
+          href={MODENTO_URL}
+          target="_blank"
+          rel="noopener"
+          onclick={closeMenu}
+          class="font-slab mt-5 mb-2.5 inline-flex h-[41px] items-center rounded-lg border border-white px-[14px] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+          >Make a Payment</a
+        >
+      </nav>
     </div>
   {/if}
 {/if}

@@ -180,12 +180,20 @@
       class="absolute inset-x-0 bottom-0 h-1/2"
       style="background:linear-gradient(rgba(18,158,204,0) 31%, rgb(182,170,145))"
     ></div>
+    <!-- Not `relative`: the CTA pill inside anchors to the SECTION at desktop
+         (live's .position-absolute-bottom-right offsets from the hero itself);
+         z-10 still applies — this is a flex item, which stacks with z-index
+         without needing a positioned box. -->
     <div
-      class="relative z-10 mx-auto flex w-full max-w-[1360px] flex-col items-start gap-8 px-6 pt-36 pb-28 md:flex-row md:items-center md:justify-between md:gap-12"
+      class="z-10 mx-auto flex w-full max-w-[1360px] flex-col items-start gap-8 px-6 pt-36 pb-28 md:flex-row md:items-center md:justify-between md:gap-12"
     >
       <!-- Live reveals the hero h1 with the same rise-in as every other
            element (its H1 sits at opacity 0 / +travel until the ix2 fires). -->
-      <div class="max-w-3xl" use:animateIn={LIVE_REVEAL}>
+      <!-- [&_h1]:text-wrap (builtin utility — the arbitrary-property form
+           never applies): undoes the global h1–h6 `text-wrap: balance`, which
+           was wrapping "where you / are" a word earlier than live's plain
+           fill ("where you are /"). -->
+      <div class="max-w-3xl [&_h1]:text-wrap" use:animateIn={LIVE_REVEAL}>
         {#if brandParts}
           <h1>
             {brandParts.before}<strong>{brandParts.brand}</strong
@@ -197,9 +205,13 @@
         <RichTextBody field={slice.primary.body} />
       </div>
       {#if slice.primary.cta_label && slice.primary.cta_link}
+        <!-- Live pins the pill to the hero's bottom-right at desktop
+             (.button.position-absolute-bottom-right.home: bottom 4rem/160px,
+             right 2rem/80px of the SECTION) — the flex slot only positions it
+             on mobile. Hover is live's .button hover (opacity + cyan fill). -->
         <PrismicLink
           field={slice.primary.cta_link}
-          class="focus-visible:ring-offset-dark inline-block shrink-0 rounded-lg border border-white px-[25px] py-[14px] font-slab text-[25px] font-light text-white transition-colors hover:bg-white hover:text-primary-deep focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          class="focus-visible:ring-offset-dark inline-flex h-[41px] shrink-0 items-center rounded-lg border border-white px-[14px] font-slab text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden lg:absolute lg:right-20 lg:bottom-40 lg:h-[67px] lg:px-[25px] lg:text-[25px]"
         >
           {slice.primary.cta_label}
         </PrismicLink>

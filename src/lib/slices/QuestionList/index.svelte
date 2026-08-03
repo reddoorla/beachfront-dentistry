@@ -228,6 +228,11 @@
                  label bar slides up out of the clip. Mobile's card box also
                  grows 288→384 (measured); desktop's 400 is fixed. -->
             <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <!-- NOT overflow-hidden: live's .qa-block never clips — when open,
+                 the label bar rides up ABOVE the card box (into the 48/80px the
+                 card's own margin-top just vacated, so it appears stationary on
+                 screen while the body drops). The photo and the answer each
+                 clip inside their own wrappers instead. -->
             <div
               onclick={(e) => {
                 if ((e.target as HTMLElement).closest("a, button")) return;
@@ -236,7 +241,7 @@
               onkeydown={(e) => {
                 if (e.key === "Escape" && expanded) toggleExpanded(doc.uid);
               }}
-              class="relative block cursor-pointer overflow-hidden rounded-[25px] shadow-md ring-1 ring-black/5 transition-[margin-top,opacity] duration-[650ms] ease-out hover:opacity-80 motion-reduce:transition-none lg:aspect-[3/2] {expanded
+              class="relative block cursor-pointer rounded-[25px] shadow-md ring-1 ring-black/5 transition-[margin-top,opacity] duration-[650ms] ease-out hover:opacity-80 motion-reduce:transition-none lg:aspect-[3/2] {expanded
                 ? 'mt-12 aspect-[351/384] lg:mt-20'
                 : 'aspect-[351/288]'}"
             >
@@ -248,6 +253,15 @@
                    the bar) is what makes the centre crop match live — a
                    below-the-bar image is a wider box and crops the photo
                    differently. -->
+              <!-- Media + washes clip inside their own rounded box (the card
+                   itself no longer clips). Open: top corners square — live's
+                   .qa-image.active radius 0 0 25 25, the label bar having
+                   ridden above the box. -->
+              <div
+                class="absolute inset-0 overflow-hidden {expanded
+                  ? 'rounded-b-[25px]'
+                  : 'rounded-[25px]'}"
+              >
               {#if isFilled.image(doc.data.media)}
                 <PrismicImage
                   field={doc.data.media}
@@ -289,37 +303,42 @@
                 style="background:linear-gradient(rgba(0,0,0,0), rgba(16,137,177,0.78) 31%, rgba(18,158,204,0.9) 80%)"
                 aria-hidden="true"
               ></div>
-              <!-- Answer panel: excerpt + Read More, sliding up from beyond the
-                   card's clip edge exactly like live's .qa-answer
-                   (translateY(400px) → 0 over 0.65s). Insets/typography are
-                   live's measured values: text box 281/351 mobile & 480/600
-                   desktop, copy 16/24 → 20/30 w300 white; button 109×41 →
-                   180×67, museo-slab 15px → 25px, white 1px border, radius 8.
-                   `inert` keeps the clipped link untabbable while closed. -->
+              </div>
+              <!-- Answer: excerpt + Read More sliding up inside its OWN clip
+                   box (live clips the answer in the small .qa-text box, not
+                   the card). Insets/typography are live's measured values:
+                   text box 281/351 mobile & 480/600 desktop, copy 16/24 →
+                   20/30 w300 white; button 109×41 → 180×67, museo-slab 15px →
+                   25px, white 1px border, radius 8. `inert` keeps the clipped
+                   link untabbable while closed. -->
               <div
-                id={panelId}
-                inert={!expanded}
-                class="absolute inset-x-[35px] top-12 transition-transform duration-[650ms] motion-reduce:transition-none lg:inset-x-[60px] lg:top-20 {expanded
-                  ? 'translate-y-0'
-                  : 'translate-y-[400px]'}"
+                class="absolute inset-x-0 top-12 bottom-0 overflow-hidden lg:top-20"
               >
-                <p
-                  class="text-[16px] leading-[24px] font-light text-white lg:text-[20px] lg:leading-[30px]"
+                <div
+                  id={panelId}
+                  inert={!expanded}
+                  class="px-[35px] transition-transform duration-[650ms] motion-reduce:transition-none lg:px-[60px] {expanded
+                    ? 'translate-y-0'
+                    : 'translate-y-[400px]'}"
                 >
-                  {teaserText(doc)}
-                </p>
-                <a
-                  href="/questions/{doc.uid}"
-                  class="font-slab mt-[46px] inline-flex h-[41px] items-center rounded-lg border border-white px-[15px] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden lg:mt-[36px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
-                >
-                  Read More
-                </a>
+                  <p
+                    class="text-[16px] leading-[24px] font-light text-white lg:text-[20px] lg:leading-[30px]"
+                  >
+                    {teaserText(doc)}
+                  </p>
+                  <a
+                    href="/questions/{doc.uid}"
+                    class="font-slab mt-[46px] inline-flex h-[41px] items-center rounded-lg border border-white px-[15px] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden lg:mt-[36px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+                  >
+                    Read More
+                  </a>
+                </div>
               </div>
               <!-- Pale header bar overlaid on the top of the card — live's
-                   .qa-label. When the card opens it slides up out of the clip
-                   (live's .qa-label.active margin-top:-2rem) — `inert` pulls
-                   the hidden button from the tab order; the card div's click +
-                   Escape handle closing. -->
+                   .qa-label. When the card opens it rides up ABOVE the card box
+                   (live's .qa-label.active margin-top:-2rem) into the space the
+                   card's margin vacated — it stays visible and remains the
+                   disclosure toggle (minus showing). -->
               <button
                 type="button"
                 aria-expanded={expanded}
@@ -327,7 +346,6 @@
                 aria-label="{expanded ? 'Collapse' : 'Expand'}: {titleText(
                   doc,
                 )}"
-                inert={expanded}
                 onclick={() => toggleExpanded(doc.uid)}
                 class="focus-visible:ring-primary-deep absolute inset-x-0 top-0 flex h-12 cursor-pointer items-center justify-between rounded-t-[25px] bg-[#e7f5fa] px-5 transition-transform duration-[650ms] ease-out focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden motion-reduce:transition-none lg:h-20 lg:px-5 {expanded
                   ? '-translate-y-full'
