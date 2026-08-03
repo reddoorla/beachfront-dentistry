@@ -162,12 +162,13 @@
 >
   <!-- The top wave is the footer's OWN pale-teal edge dipping up into whatever
        band sits above (the dark closing CTA on home, a light section elsewhere)
-       — so its fill defaults to the footer canvas, not the neighbour's. At
-       desktop it's an ABSOLUTE overlay sitting entirely above the footer's top
-       edge (live's shape divider: 160px svg pulled up over the beach photo) —
-       leaving it in flow pushed every footer line 144px below live's. Mobile
-       keeps the measured 39px in-flow band. -->
-  <div class="lg:absolute lg:inset-x-0 lg:bottom-full">
+       — so its fill defaults to the footer canvas, not the neighbour's. It's
+       an ABSOLUTE overlay above the footer's top edge at EVERY breakpoint
+       (live's shape divider is `position:absolute; margin-top:-Hpx` at mobile
+       too) — leaving it in flow at mobile ate the CtaBand's -39px overlap and
+       pushed every footer line 39px below live's (the desktop version of the
+       same bug cost 144px in an earlier round). -->
+  <div class="absolute inset-x-0 bottom-full">
     <WaveDivider
       fill={waveFill}
       flip
@@ -179,7 +180,7 @@
   <!-- Live gives the copy 20px of lead-in below the wave ("Want to learn
        more?" sits 20px from the info-section top), then 40px more before the
        link columns. -->
-  <div class="px-[19.5px] pt-3 pb-12 lg:px-8 lg:pt-5">
+  <div class="px-[19.5px] pt-3 pb-6 lg:px-8 lg:pt-5 lg:pb-12">
     <div class="mx-auto max-w-[1280px]">
       {#if heading}
         <!-- Live: 16px/40 mobile, 30px/40 desktop, weight 100, museo-slab, 10px

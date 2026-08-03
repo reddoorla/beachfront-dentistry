@@ -355,7 +355,7 @@
                   <!-- Live's .qa-circle: an h6 in museo-slab BOLD 25px/30px,
                        a full-strength 1px #365b6d ring, ~52px disc at desktop. -->
                   <span
-                    class="font-slab grid size-10 place-items-center rounded-full border border-[#365b6d] text-lg font-bold text-[#365b6d] lg:size-[52px] lg:text-[25px]"
+                    class="font-slab grid size-10 place-items-center rounded-full border border-[#365b6d] text-[15px] leading-[15px] font-bold tracking-[1.28px] text-[#365b6d] uppercase lg:size-[52px] lg:text-[25px] lg:leading-[30px]"
                     >{pad2(card.number)}</span
                   >
                 {:else}
@@ -413,7 +413,7 @@
       <div class="mt-12 text-center" use:animateIn={LIVE_REVEAL}>
         <a
           href="/ask-the-doctor"
-          class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#129ecc] px-[15px] text-[15px] font-light text-[#129ecc] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+          class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#129ecc] px-[15px] text-[14px] font-light text-[#129ecc] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:h-[67px] lg:px-[25px] lg:text-[25px]"
         >
           View All Questions
         </a>

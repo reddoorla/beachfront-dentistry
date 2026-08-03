@@ -62,7 +62,7 @@
   <!-- Live reveals the button stack as its own element (rows at op 0 until
        scrolled to), separate from the heading's reveal. -->
   <div
-    class="mt-10 flex flex-col items-center gap-[30px]"
+    class="mt-0 flex flex-col items-center gap-[65px] lg:mt-10 lg:gap-[30px]"
     use:animateIn={LIVE_REVEAL}
   >
     {#if ctaLabel && ctaLink}
@@ -89,8 +89,9 @@
 >
   {#if hasImage}
     <!-- Heading on white; live's CTA band has ~0 top padding (the gap above
-         comes from the section above) and a small ~38px gap to the photo. -->
-    <div class="mx-auto max-w-5xl px-6 pt-2 pb-8 text-center">
+         comes from the section above; its mobile H2 sits flush at the section
+         top with 24px below to the photo). -->
+    <div class="mx-auto max-w-5xl px-6 pt-0 pb-6 text-center lg:pt-2 lg:pb-8">
       <div class="display-xl h-primary" use:animateIn={LIVE_REVEAL}>
         <PrismicRichText field={heading} />
       </div>
@@ -111,7 +112,7 @@
         style="background:linear-gradient(#fff, #fff 18%, rgba(255,255,255,0))"
         aria-hidden="true"
       ></div>
-      <div class="relative z-10 mx-auto max-w-5xl px-6 pt-4 text-center">
+      <div class="relative z-10 mx-auto max-w-5xl px-6 pt-5 text-center lg:pt-4">
         {@render ctaButtons()}
       </div>
       {#if caption}

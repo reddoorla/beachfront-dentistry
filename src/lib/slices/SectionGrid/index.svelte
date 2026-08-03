@@ -159,7 +159,7 @@
       <div>
         {#if isFilled.richText(primary.heading)}
           <p
-            class="font-slab text-[24px] font-bold tracking-[0.06em] text-white uppercase"
+            class="font-slab text-[12px] leading-[15px] font-bold tracking-[1.28px] text-white uppercase lg:text-[24px] lg:leading-[30px]"
             use:animateIn={REVEAL}
           >
             {asText(primary.heading)}
@@ -210,11 +210,11 @@
                 alt=""
                 class="size-[60px] shrink-0 lg:size-[100px]"
               />
-              <!-- Live's row label is h3.text-color-white: museo-slab w300
-                   40px/50px WHITE at desktop (the 25px slate value belonged to
-                   a different element). Mobile keeps the measured 20px. -->
+              <!-- Live's row label is h3.text-color-white: museo-slab w300,
+                   WHITE at both breakpoints — 21px/26px at mobile (measured on
+                   live @390), 40px/50px at desktop. -->
               <span
-                class="font-slab text-[20px] font-light text-[#365b6d] lg:text-[40px] lg:leading-[50px] lg:text-white"
+                class="font-slab text-[21px] leading-[26px] font-light text-white lg:text-[40px] lg:leading-[50px]"
                 >{label}</span
               >
             </PrismicLink>
@@ -278,13 +278,14 @@
     <ol class="mt-12 grid grid-cols-1 gap-10 text-center sm:grid-cols-3 lg:gap-16">
       {#each items as item, i (item)}
         <li use:animateIn={REVEAL}>
-          <!-- Live's STEP label is an h6: museo-SLAB 400 24px/30px, 1.28px
-               tracking, slate #365b6d at desktop (the small sans eyebrow was
-               an invention). Step title: 30px/40px weight-100 on mobile,
-               stepping up to 40px/50px weight-300 with a 20px top margin on
-               desktop. -->
+          <!-- Live's STEP label is an h6: museo-SLAB 400, 1.28px tracking,
+               slate #365b6d at BOTH breakpoints — 12px/15px mobile, 24px/30px
+               desktop (the small sans eyebrow was an invention; census caught
+               the mobile side still wearing it). Step title: 30px/40px
+               weight-100 on mobile, stepping up to 40px/50px weight-300 with
+               a 20px top margin on desktop. -->
           <p
-            class="text-secondary text-xs font-bold tracking-[0.2em] uppercase lg:font-slab lg:text-[24px] lg:leading-[30px] lg:font-normal lg:tracking-[1.28px] lg:text-[#365b6d]"
+            class="font-slab text-[12px] leading-[15px] font-normal tracking-[1.28px] text-[#365b6d] uppercase lg:text-[24px] lg:leading-[30px]"
           >
             Step {pad2(i + 1)}
           </p>
@@ -324,12 +325,16 @@
        section MARGIN, not content padding, because live's 40px sits BETWEEN
        sections with the heading flush at its section top — and the page-diff
        anchor cuts at the section box, so inner padding reads as a 40px shift
-       of everything in the region. -->
+       of everything in the region. Same reasoning below: live keeps 60px
+       (36px mobile) BETWEEN this section and the team section (its inner
+       content-width div carries mb-60 which collapses through the section),
+       so ours is mb on the section, and the old lg:pb-16 (64px) inside is
+       live's rendered 40px (lg:pb-10). -->
   <ContentBand
     sliceType={slice.slice_type}
     variation={slice.variation}
-    sectionClass="lg:mt-10"
-    contentClass="max-w-[1400px] px-[19.5px] pt-[72px] pb-0 lg:px-[60px] lg:pt-0 lg:pb-16"
+    sectionClass="mb-9 lg:mt-10 lg:mb-[60px]"
+    contentClass="max-w-[1400px] px-[19.5px] pt-[72px] pb-0 lg:px-[60px] lg:pt-0 lg:pb-10"
     reveal={false}
   >
     {#if isFilled.richText(slice.primary.heading)}

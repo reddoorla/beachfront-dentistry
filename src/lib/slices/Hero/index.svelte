@@ -193,7 +193,10 @@
            never applies): undoes the global h1–h6 `text-wrap: balance`, which
            was wrapping "where you / are" a word earlier than live's plain
            fill ("where you are /"). -->
-      <div class="max-w-3xl [&_h1]:text-wrap" use:animateIn={LIVE_REVEAL}>
+      <div
+        class="max-w-3xl [&_h1]:text-wrap max-lg:[&_h1]:leading-[38px]"
+        use:animateIn={LIVE_REVEAL}
+      >
         {#if brandParts}
           <h1>
             {brandParts.before}<strong>{brandParts.brand}</strong

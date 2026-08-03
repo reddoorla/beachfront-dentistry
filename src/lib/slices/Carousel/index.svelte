@@ -119,7 +119,7 @@
              Webflow uses per-block sizes, so this one is scoped here rather than
              moved into the global h2 scale). Desktop is unchanged at 60px. -->
         <div
-          class="h-primary mb-8 [&_h2]:text-[24px] [&_h2]:leading-[38px] lg:mb-12 lg:[&_h2]:text-[3.75rem] lg:[&_h2]:leading-[1.2]"
+          class="h-primary mb-12 [&_h2]:text-[24px] [&_h2]:leading-[38px] lg:[&_h2]:text-[3.75rem] lg:[&_h2]:leading-[1.2]"
         >
           <PrismicRichText field={slice.primary.heading} />
         </div>
@@ -165,9 +165,10 @@
             {#if item}
               {#if slice.variation === "review"}
                 <!-- Live's mobile slide: viewport 337 inside 351 (7px each
-                     side) and 48px of space under the card for the overhanging
-                     badge. -->
-                <div class="px-[7px] pb-12 lg:px-4 lg:pb-6">
+                     side); the holder reserves only ~12px below the card (the
+                     badge's 20px overhang draws over the pulled-up expander
+                     row, same as live's .shift-up overlap). -->
+                <div class="px-[7px] pb-[20px] lg:px-4 lg:pb-6">
                   <!-- Pale-blue quote card (live .big-review, 600×400 at
                        desktop, #e7f5fa, 25px radius, 30px padding): the
                        reviewer row sits on TOP with the quote beneath, and the
@@ -199,8 +200,12 @@
                         />
                       </a>
                     {/if}
+                    <!-- Direct [&_p] hits: the base main :where(p) clamp rule
+                         beats inherited sizes on the inner <p>, so the
+                         blockquote's own text-[16px] never reached it
+                         (computed 17.365/19px until pinned here). -->
                     <blockquote
-                      class="text-[16px] leading-relaxed text-[#365b6d] lg:text-[20px] lg:leading-[30px] lg:font-light"
+                      class="[&_p]:text-[16px] [&_p]:leading-[24px] text-[#365b6d] lg:[&_p]:text-[20px] lg:[&_p]:leading-[30px] lg:font-light"
                     >
                       <p>{item.quote}</p>
                     </blockquote>
@@ -216,13 +221,13 @@
                       {/if}
                       <div class="flex-1">
                         <p
-                          class="text-[16px] font-semibold text-[#365b6d] lg:text-[30px] lg:leading-[40px] lg:font-medium"
+                          class="text-[16px] leading-[24px] font-medium text-[#365b6d] lg:text-[30px] lg:leading-[40px]"
                         >
                           {item.reviewer_name}
                         </p>
                         {#if item.reviewer_place}
                           <p
-                            class="text-sm font-light tracking-wide text-[#365b6d] uppercase lg:mt-1 lg:text-[16px] lg:leading-[25px]"
+                            class="text-[10px] leading-[15px] font-light text-[#365b6d] uppercase lg:mt-1 lg:text-[16px] lg:leading-[25px]"
                           >
                             {item.reviewer_place}
                           </p>
@@ -252,7 +257,7 @@
       {#if slice.variation === "review"}
         <!-- Live's .shift-up block: the expander sits tight under the slider
              (mt -1rem) with 3rem reserved below for the disclosed logo row. -->
-        <div class="mt-2 mb-24 lg:mt-[-16px] lg:mb-28">
+        <div class="-mt-6 mb-18 lg:mt-[-16px] lg:mb-28">
           <ReadReviewsExpander />
         </div>
       {/if}

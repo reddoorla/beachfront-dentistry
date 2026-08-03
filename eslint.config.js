@@ -49,6 +49,7 @@ export default [
   {
     ignores: [
       "build/",
+      "matching/",
       ".svelte-kit/",
       ".netlify/",
       "node_modules/",

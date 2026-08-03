@@ -128,7 +128,7 @@
       />
       <span
         aria-hidden="true"
-        class="font-slab absolute inset-0 flex items-center justify-center rounded-full bg-[rgba(18,158,204,0.65)] px-2 text-center text-[12px] leading-[15px] font-bold text-white uppercase opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none lg:text-[24px] lg:leading-[30px]"
+        class="font-slab absolute inset-0 flex items-center justify-center rounded-full bg-[rgba(18,158,204,0.65)] px-2 text-center text-[12px] leading-[15px] font-bold tracking-[1.28px] text-white uppercase opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none lg:text-[24px] lg:leading-[30px]"
       >
         {asText(doc.data.title as RichTextField)}
       </span>
