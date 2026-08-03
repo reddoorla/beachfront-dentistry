@@ -14,6 +14,22 @@
   --screen-lg: 1024px;
   --screen-xl: 1340px;
 
+  /* Match live's Webflow breakpoints so our tiers map 1:1 to its rendering:
+     live is desktop ≥992 (root 40px), tablet 768–991 (root 32px), mobile
+     ≤767 (root 24px). Tailwind v4 defaults lg to 1024, which left 992–1023
+     rendering our mobile layout while live was already desktop (a categorical
+     seam) and gave us no tier for the 768–991 tablet band. Moving lg to 992
+     makes `lg:` = live desktop and leaves `md:` (768) = live tablet start, so
+     the mobile-base/`md:`/`lg:` tiers align with live's three ranges.
+     The FULL set is redeclared in ascending order on purpose: overriding lg
+     alone re-registered it out of order, so `md:` emitted AFTER `lg:` and won
+     at desktop (a `md:` value bled past `lg:`). Declaring sm→xl in order
+     restores correct variant emission (lg wins over md at ≥992). */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1280px;
+
   --color-transparent: transparent;
   --color-current: currentColor;
   --color-black: black;

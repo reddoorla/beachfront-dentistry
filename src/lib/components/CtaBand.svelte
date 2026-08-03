@@ -71,7 +71,7 @@
            border/text colours do NOT change). -->
       <PrismicLink
         field={ctaLink}
-        class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#365b6d] px-[14px] text-[14px] font-light text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+        class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#365b6d] px-[14px] text-[14px] font-light text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
       >
         {ctaLabel}
       </PrismicLink>
@@ -112,7 +112,9 @@
         style="background:linear-gradient(#fff, #fff 18%, rgba(255,255,255,0))"
         aria-hidden="true"
       ></div>
-      <div class="relative z-10 mx-auto max-w-5xl px-6 pt-5 text-center lg:pt-4">
+      <div
+        class="relative z-10 mx-auto max-w-5xl px-6 pt-5 text-center lg:pt-4"
+      >
         {@render ctaButtons()}
       </div>
       {#if caption}
@@ -122,7 +124,7 @@
              it), 60px / 5% from the left. No scrim on live; the label sits on
              the darker water band of the photo. -->
         <p
-          class="absolute bottom-[20%] left-[5%] z-10 font-sans text-[10px] leading-[1.15] font-light text-white lg:bottom-[31%] lg:left-20 lg:text-[25px]"
+          class="absolute bottom-[20%] left-[5%] z-10 font-sans text-[10px] leading-[1.15] font-light text-white md:text-[20px] md:leading-[23px] lg:bottom-[31%] lg:left-20 lg:text-[25px]"
           use:animateIn={LIVE_REVEAL}
         >
           {caption}

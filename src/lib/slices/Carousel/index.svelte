@@ -119,7 +119,7 @@
              Webflow uses per-block sizes, so this one is scoped here rather than
              moved into the global h2 scale). Desktop is unchanged at 60px. -->
         <div
-          class="h-primary mb-12 [&_h2]:text-[24px] [&_h2]:leading-[38px] lg:[&_h2]:text-[3.75rem] lg:[&_h2]:leading-[1.2]"
+          class="h-primary mb-12 [&_h2]:text-[24px] [&_h2]:leading-[38px] md:[&_h2]:text-[32px] md:[&_h2]:leading-[38px] lg:[&_h2]:text-[3.75rem] lg:[&_h2]:leading-[1.2]"
         >
           <PrismicRichText field={slice.primary.heading} />
         </div>
@@ -179,7 +179,7 @@
                        quote on top with the reviewer row at the bottom; desktop
                        flips to reviewer-on-top (hence reverse at lg only). -->
                   <figure
-                    class="relative mx-auto flex max-w-[600px] flex-col justify-between rounded-[25px] bg-[#e7f5fa] p-[18px] text-left lg:h-[400px] lg:flex-col-reverse lg:p-[30px]"
+                    class="relative mx-auto flex max-w-[600px] flex-col justify-between rounded-[25px] bg-[#e7f5fa] p-[18px] text-left md:h-[320px] md:max-w-[480px] md:flex-col-reverse lg:h-[400px] lg:max-w-[600px] lg:flex-col-reverse lg:p-[30px]"
                   >
                     {#if isFilled.link(item.review_url)}
                       {@const badge = badgeFor(asLink(item.review_url))}
@@ -221,13 +221,13 @@
                       {/if}
                       <div class="flex-1">
                         <p
-                          class="text-[16px] leading-[24px] font-medium text-[#365b6d] lg:text-[30px] lg:leading-[40px]"
+                          class="text-[16px] leading-[24px] font-medium text-[#365b6d] md:text-[20px] md:leading-[60px] lg:text-[30px] lg:leading-[40px]"
                         >
                           {item.reviewer_name}
                         </p>
                         {#if item.reviewer_place}
                           <p
-                            class="text-[10px] leading-[15px] font-light text-[#365b6d] uppercase lg:mt-1 lg:text-[16px] lg:leading-[25px]"
+                            class="text-[10px] leading-[15px] font-light md:text-[16px] md:leading-[25px] text-[#365b6d] uppercase lg:mt-1 lg:text-[16px] lg:leading-[25px]"
                           >
                             {item.reviewer_place}
                           </p>

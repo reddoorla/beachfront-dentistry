@@ -113,7 +113,7 @@
        hours/address/label rows are margin-less (the 40px line-height IS the
        pitch). Mobile keeps the measured gap-3. -->
   <div
-    class="flex flex-col gap-3 font-sans text-[12px] leading-[24px] font-light text-[#365b6d] lg:gap-0 lg:text-[20px] lg:leading-[40px]"
+    class="flex flex-col gap-3 font-sans text-[12px] leading-[24px] font-light text-[#365b6d] md:text-[16px] md:leading-[32px] lg:gap-0 lg:text-[20px] lg:leading-[40px]"
   >
     {#each col.items as item, itemIndex (itemIndex)}
       {#if isImage(item)}
@@ -128,7 +128,7 @@
              desktop), not a text link. -->
         <a
           {...linkAttrs(item.href)}
-          class="font-slab focus-visible:ring-primary-deep mt-2 inline-flex h-[41px] w-fit items-center rounded-lg border border-[#365b6d] px-[14px] text-[14px] font-light whitespace-nowrap text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:mt-[27px] lg:h-[66px] lg:px-[25px] lg:text-[25px]"
+          class="font-slab focus-visible:ring-primary-deep mt-2 inline-flex h-[41px] w-fit items-center rounded-lg border border-[#365b6d] px-[14px] text-[14px] font-light whitespace-nowrap text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:mt-[27px] lg:h-[66px] lg:px-[25px] lg:text-[25px]"
           >{item.text}</a
         >
       {:else if item.href}
@@ -188,7 +188,7 @@
              #129ecc, which is only 3.09:1 on white and fails AA at the 16px
              mobile size, so it keeps the AA-safe -deep (see app.css). -->
         <p
-          class="font-slab text-primary-deep mb-[10px] text-[16px] leading-[40px] font-thin lg:text-[30px]"
+          class="font-slab text-primary-deep mb-[10px] text-[16px] leading-[40px] font-thin md:text-[30px] lg:text-[30px]"
         >
           {heading}
         </p>
@@ -226,7 +226,7 @@
                the desktop max-width reproduces live's row spanning only the
                link-columns area (845px of the 1280 content box), not the map. -->
           <div
-            class="mt-12 flex flex-wrap justify-between font-sans text-[7px] leading-[8.4px] font-light text-[#365b6d] lg:mt-20 lg:max-w-[845px] lg:text-[12px] lg:leading-[14.4px]"
+            class="mt-12 flex flex-wrap justify-between font-sans text-[7px] leading-[8.4px] font-light text-[#365b6d] md:text-[12px] md:leading-[14px] lg:mt-20 lg:max-w-[845px] lg:text-[12px] lg:leading-[14.4px]"
           >
             {#each legal as item (item)}
               <p>{item}</p>

@@ -324,7 +324,11 @@
         class="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 lg:h-[120px] lg:px-[60px] lg:py-0"
       >
         {#if logo}
-          <a href="/" onclick={closeMenu} class="transition-opacity hover:opacity-50">
+          <a
+            href="/"
+            onclick={closeMenu}
+            class="transition-opacity hover:opacity-50"
+          >
             <img src={logo.url} alt="Home" class={logoClass} />
           </a>
         {:else}

@@ -30,7 +30,10 @@
   // on the viewport store (JS, not a `lg:hidden` CSS class) so it isn't in the
   // DOM at the test's default 1024px width — the accordion test asserts the body
   // is absent until the toggle is clicked, which must stay true on desktop.
-  const isMobile = $derived(viewport.width < 1024);
+  // 992 (not 1024) to match the CSS desktop breakpoint (--breakpoint-lg): live
+  // renders desktop from 992, so the accordion-card structure must switch there
+  // too, or the 992–1023 seam shows stacked mobile cards inside the 3-up grid.
+  const isMobile = $derived(viewport.width < 992);
 
   let { slice }: { slice: Content.SectionGridSlice } = $props();
 
@@ -51,10 +54,14 @@
   );
 
   let columns = $derived(slice.primary.columns ?? 3);
+  // Live wraps the .expanding-box cards to a single stacked column across its
+  // whole tablet band (768–991) and only goes multi-across at desktop (≥992).
+  // So the grid switches at lg (=992 here) — not md/sm, which would break the
+  // stack in the tablet range.
   const colClass: Record<number, string> = {
-    2: "md:grid-cols-2",
-    3: "md:grid-cols-3",
-    4: "md:grid-cols-4",
+    2: "lg:grid-cols-2",
+    3: "lg:grid-cols-3",
+    4: "lg:grid-cols-4",
   };
 
   type Item = Content.SectionGridSliceDefaultItem;
@@ -154,7 +161,7 @@
       aria-hidden="true"
     ></div>
     <div
-      class="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 pb-24 lg:grid-cols-2 lg:pt-12 lg:pb-12"
+      class="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 pb-24 md:grid-cols-2 md:pt-12 md:pb-12 lg:grid-cols-2 lg:pt-12 lg:pb-12"
     >
       <div>
         {#if isFilled.richText(primary.heading)}
@@ -186,7 +193,7 @@
           <div class="mt-8" use:animateIn={REVEAL}>
             <PrismicLink
               field={primary.cta_link}
-              class="focus-visible:ring-offset-primary font-slab inline-flex h-[41px] items-center rounded-lg border border-white px-[15px] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+              class="focus-visible:ring-offset-primary font-slab inline-flex h-[41px] items-center rounded-lg border border-white px-[15px] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
             >
               {primary.cta_label}
             </PrismicLink>
@@ -247,8 +254,13 @@
     >
       <div>
         {#if isFilled.richText(primary.heading)}
+          <!-- Live steps its display heading (not a smooth clamp): ~56px on
+               mobile, then a flat 120px/140 across the whole tablet+desktop
+               range (root 32/40). Our clamp matches the mobile floor and the
+               desktop cap but undershot the tablet middle (75px), so md pins
+               the flat 120. -->
           <h2
-            class="h-primary font-slab text-center text-[clamp(3.5rem,0.5rem+8vw,7.5rem)] leading-[1.25] font-thin [text-wrap:normal] lg:leading-[1.167]"
+            class="h-primary font-slab text-center text-[clamp(3.5rem,0.5rem+8vw,7.5rem)] leading-[1.25] font-thin [text-wrap:normal] md:text-[120px] md:leading-[1.167] lg:leading-[1.167]"
           >
             {asText(primary.heading)}
           </h2>
@@ -275,7 +287,9 @@
         </div>
       {/if}
     </div>
-    <ol class="mt-12 grid grid-cols-1 gap-10 text-center sm:grid-cols-3 lg:gap-16">
+    <ol
+      class="mt-12 grid grid-cols-1 gap-10 text-center lg:grid-cols-3 lg:gap-16"
+    >
       {#each items as item, i (item)}
         <li use:animateIn={REVEAL}>
           <!-- Live's STEP label is an h6: museo-SLAB 400, 1.28px tracking,
@@ -308,7 +322,7 @@
       <div class="mt-12 text-center lg:mt-20" use:animateIn={REVEAL}>
         <PrismicLink
           field={primary.cta_link}
-          class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#365b6d] px-[14px] text-[14px] font-light text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+          class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#365b6d] px-[14px] text-[14px] font-light text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
         >
           {primary.cta_label}
         </PrismicLink>
@@ -386,7 +400,7 @@
            (13+397+31+397+31+397+13 ≈ 1279), not a flush gap-24 row. -->
       <div
         data-grid-columns={columns}
-        class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:gap-[31px] lg:px-[13px] {colClass[
+        class="grid grid-cols-1 gap-6 lg:gap-[31px] lg:px-[13px] {colClass[
           columns
         ] ?? 'md:grid-cols-3'}"
       >
@@ -431,7 +445,7 @@
                      base `main :where(p)` clamp (17.4px at 390), which beats
                      values merely inherited from this wrapper. -->
                 <div
-                  class="absolute inset-x-0 top-0 p-6 font-light text-white [&_*]:text-white [&_p]:text-[20px] [&_p]:leading-[30px] [&_p]:font-light"
+                  class="absolute inset-x-0 top-0 p-6 font-light text-white [&_*]:text-white [&_p]:text-[20px] [&_p]:leading-[30px] [&_p]:font-light md:[&_p]:text-[18px] md:[&_p]:leading-[27px]"
                 >
                   <RichTextBody field={item.item_body} />
                 </div>
@@ -441,7 +455,7 @@
                 class="absolute inset-x-0 bottom-0 flex h-[60px] items-center justify-between bg-[#e7f5fa] px-3"
               >
                 <span
-                  class="font-slab text-[24px] leading-[36px] font-bold text-[#365b6d] lg:text-[30px] lg:leading-[45px]"
+                  class="font-slab text-[24px] leading-[36px] font-bold text-[#365b6d] md:text-[30px] md:leading-[45px] lg:text-[30px] lg:leading-[45px]"
                   >{label}</span
                 >
                 <!-- Live hides the +/- control on these cards at mobile (its

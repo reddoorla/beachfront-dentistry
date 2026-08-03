@@ -161,7 +161,12 @@
     <!-- Live's .qa-block is 600px wide at desktop (351 on mobile, where the
          375-wide content box already constrains it) — max-w-xl (576) rendered
          the whole card stack a size too narrow. -->
-    <div class="relative mx-auto max-w-[600px]">
+    <!-- Live narrows the qa cards to 480px across the tablet band (768–991),
+         widening back to 600 at desktop; base 600 is already parent-limited to
+         351 on mobile. -->
+    <div
+      class="relative mx-auto max-w-[600px] md:max-w-[480px] lg:max-w-[600px]"
+    >
       {#if isFilled.richText(slice.primary.heading) || isFilled.image(slice.primary.side_image)}
         <!-- Live's .ask-the-doctor-handwriting-anchor: ONE anchor holds the
              hand-drawn "ask the doctor" annotation (real PNG asset, NOT a
@@ -262,18 +267,18 @@
                   ? 'rounded-b-[25px]'
                   : 'rounded-[25px]'}"
               >
-              {#if isFilled.image(doc.data.media)}
-                <PrismicImage
-                  field={doc.data.media}
-                  fallbackAlt=""
-                  class="absolute inset-0 h-full w-full object-cover object-center"
-                />
-              {:else}
-                <div
-                  class="from-primary to-accent absolute inset-0 bg-gradient-to-br"
-                ></div>
-              {/if}
-              <!-- Live's real visible wash, read off `.box-gradient.qa`
+                {#if isFilled.image(doc.data.media)}
+                  <PrismicImage
+                    field={doc.data.media}
+                    fallbackAlt=""
+                    class="absolute inset-0 h-full w-full object-cover object-center"
+                  />
+                {:else}
+                  <div
+                    class="from-primary to-accent absolute inset-0 bg-gradient-to-br"
+                  ></div>
+                {/if}
+                <!-- Live's real visible wash, read off `.box-gradient.qa`
                    (2026-07-31). It is BREAKPOINT-DEPENDENT and identical to the
                    3-C cards' rule: cyan-0.9 at the TOP on mobile, flipping to
                    cyan-at-the-BOTTOM on desktop. Verified against live's rendered
@@ -283,26 +288,26 @@
                    sampling a transition instead of reading the rule.
                    `.box-gradient-overlay` (opacity:0) is the HOVER layer — not
                    this one — and must not be copied. -->
-              <div
-                class="absolute inset-0 lg:hidden"
-                style="background:linear-gradient(rgba(18,158,204,0.9) 23%, rgba(5,44,57,0.25) 93%, rgba(0,0,0,0))"
-                aria-hidden="true"
-              ></div>
-              <div
-                class="absolute inset-0 hidden lg:block"
-                style="background:linear-gradient(rgba(0,0,0,0), rgba(18,158,204,0.9) 90%)"
-                aria-hidden="true"
-              ></div>
-              <!-- Expanded-state wash: live's `.box-gradient-overlay.qa` (the
+                <div
+                  class="absolute inset-0 lg:hidden"
+                  style="background:linear-gradient(rgba(18,158,204,0.9) 23%, rgba(5,44,57,0.25) 93%, rgba(0,0,0,0))"
+                  aria-hidden="true"
+                ></div>
+                <div
+                  class="absolute inset-0 hidden lg:block"
+                  style="background:linear-gradient(rgba(0,0,0,0), rgba(18,158,204,0.9) 90%)"
+                  aria-hidden="true"
+                ></div>
+                <!-- Expanded-state wash: live's `.box-gradient-overlay.qa` (the
                    opacity-0 layer noted below) fades to 1 when the card opens,
                    deepening the cyan so the white answer copy reads. -->
-              <div
-                class="absolute inset-0 transition-opacity duration-[650ms] motion-reduce:transition-none {expanded
-                  ? 'opacity-100'
-                  : 'opacity-0'}"
-                style="background:linear-gradient(rgba(0,0,0,0), rgba(16,137,177,0.78) 31%, rgba(18,158,204,0.9) 80%)"
-                aria-hidden="true"
-              ></div>
+                <div
+                  class="absolute inset-0 transition-opacity duration-[650ms] motion-reduce:transition-none {expanded
+                    ? 'opacity-100'
+                    : 'opacity-0'}"
+                  style="background:linear-gradient(rgba(0,0,0,0), rgba(16,137,177,0.78) 31%, rgba(18,158,204,0.9) 80%)"
+                  aria-hidden="true"
+                ></div>
               </div>
               <!-- Answer: excerpt + Read More sliding up inside its OWN clip
                    box (live clips the answer in the small .qa-text box, not
@@ -355,7 +360,7 @@
                   <!-- Live's .qa-circle: an h6 in museo-slab BOLD 25px/30px,
                        a full-strength 1px #365b6d ring, ~52px disc at desktop. -->
                   <span
-                    class="font-slab grid size-10 place-items-center rounded-full border border-[#365b6d] text-[15px] leading-[15px] font-bold tracking-[1.28px] text-[#365b6d] uppercase lg:size-[52px] lg:text-[25px] lg:leading-[30px]"
+                    class="font-slab grid size-10 place-items-center rounded-full border border-[#365b6d] text-[15px] leading-[15px] font-bold tracking-[1.28px] text-[#365b6d] uppercase md:text-[20px] lg:size-[52px] lg:text-[25px] lg:leading-[30px]"
                     >{pad2(card.number)}</span
                   >
                 {:else}
@@ -413,7 +418,7 @@
       <div class="mt-12 text-center" use:animateIn={LIVE_REVEAL}>
         <a
           href="/ask-the-doctor"
-          class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#129ecc] px-[15px] text-[14px] font-light text-[#129ecc] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+          class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#129ecc] px-[15px] text-[14px] font-light text-[#129ecc] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
         >
           View All Questions
         </a>
