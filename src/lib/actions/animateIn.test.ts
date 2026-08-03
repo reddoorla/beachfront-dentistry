@@ -34,6 +34,13 @@ class FakeIntersectionObserver {
   }
 }
 
+/** Reveal defers two animation frames (so the hidden state commits before the
+ * transition target) — tests that assert the revealed styles await this. */
+const nextTwoFrames = () =>
+  new Promise<void>((resolve) =>
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+  );
+
 function mockMatchMedia(reducedMotion: boolean) {
   window.matchMedia = vi.fn().mockImplementation((query: string) => ({
     matches:
@@ -76,7 +83,7 @@ describe("animateIn — viewport mode", () => {
     );
   });
 
-  it("reveals on intersection and disconnects the observer", () => {
+  it("reveals on intersection and disconnects the observer", async () => {
     const el = document.createElement("div");
     document.body.appendChild(el);
 
@@ -86,6 +93,10 @@ describe("animateIn — viewport mode", () => {
     expect(observer.observed[0]).toBe(el);
 
     observer.trigger(true);
+    // Reveal is deferred two animation frames so the hidden state commits
+    // first (otherwise same-frame observer fires collapse into one recalc
+    // and the transition never plays).
+    await nextTwoFrames();
 
     expect(el.style.opacity).toBe("1");
     expect(el.style.transform).toBe("translateY(0)");
@@ -210,12 +221,13 @@ describe("animateIn — viewport mode", () => {
     expect(el.style.transitionDelay).toBe("400ms");
   });
 
-  it("still reveals a staggered element on intersection", () => {
+  it("still reveals a staggered element on intersection", async () => {
     const el = document.createElement("div");
     document.body.appendChild(el);
 
     animateIn(el, { stagger: 100, index: 2 });
     FakeIntersectionObserver.instances[0].trigger(true);
+    await nextTwoFrames();
 
     expect(el.style.opacity).toBe("1");
     expect(el.style.transitionDelay).toBe("200ms");

@@ -183,10 +183,14 @@
           class="pointer-events-none absolute inset-x-0 top-0 z-10 transition-transform duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] motion-reduce:transition-none lg:top-[100px]"
         >
           {#if isFilled.richText(slice.primary.heading)}
+            <!-- Live ships the raw handwriting PNG and turns it dark blue with
+                 `.filter-to-primary-dark` — the exact computed chain below
+                 (read off live 2026-08-02), not a recoloured asset. -->
             <img
               src="/annotations/ask-the-doctor.png"
               alt=""
               class="absolute right-[144px] bottom-[26px] w-[120px] max-w-none lg:top-0 lg:right-full lg:bottom-auto lg:mr-[10px] lg:w-[210px]"
+              style="filter:brightness(0) saturate(1) invert(0.29) sepia(0.33) saturate(5.99) hue-rotate(155deg) brightness(1) contrast(0.87)"
               use:animateIn={LIVE_REVEAL}
             />
           {/if}
@@ -214,13 +218,26 @@
           {@const panelId = `qa-panel-${doc.uid}`}
           <!-- Per-card reveal: live raises each .qa-block as IT enters. -->
           <li class="qa-item" use:animateIn={LIVE_REVEAL}>
-            <!-- Not a link: live's .qa-block has no wrapping <a> — the card is
-                 a disclosure whose header bar toggles it, and only the "Read
-                 More" inside the revealed answer navigates. Mobile's card box
-                 grows 288→384 when open (measured); desktop's 400 is fixed. -->
+            <!-- Not a link: live's .qa-block has no wrapping <a> — only the
+                 "Read More" inside the revealed answer navigates. The WHOLE
+                 card is the toggle (live's .qa-block carries cursor:pointer +
+                 the click interaction); the header-bar <button> stays as the
+                 semantic disclosure for keyboard/AT, so this div click is a
+                 pointer convenience only. Opening reproduces live's mechanics:
+                 the card drops 48px/80px (margin-top .65s ease-out) while the
+                 label bar slides up out of the clip. Mobile's card box also
+                 grows 288→384 (measured); desktop's 400 is fixed. -->
+            <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
             <div
-              class="relative block overflow-hidden rounded-[25px] shadow-md ring-1 ring-black/5 lg:aspect-[3/2] {expanded
-                ? 'aspect-[351/384]'
+              onclick={(e) => {
+                if ((e.target as HTMLElement).closest("a, button")) return;
+                toggleExpanded(doc.uid);
+              }}
+              onkeydown={(e) => {
+                if (e.key === "Escape" && expanded) toggleExpanded(doc.uid);
+              }}
+              class="relative block cursor-pointer overflow-hidden rounded-[25px] shadow-md ring-1 ring-black/5 transition-[margin-top,opacity] duration-[650ms] ease-out hover:opacity-80 motion-reduce:transition-none lg:aspect-[3/2] {expanded
+                ? 'mt-12 aspect-[351/384] lg:mt-20'
                 : 'aspect-[351/288]'}"
             >
               <!-- Live's real card (.qa-block) is a single fixed-aspect box
@@ -293,13 +310,16 @@
                 </p>
                 <a
                   href="/questions/{doc.uid}"
-                  class="font-slab mt-[46px] inline-flex h-[41px] items-center rounded-lg border border-white px-[15px] text-[15px] font-light text-white transition-colors hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden lg:mt-[36px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+                  class="font-slab mt-[46px] inline-flex h-[41px] items-center rounded-lg border border-white px-[15px] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden lg:mt-[36px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
                 >
                   Read More
                 </a>
               </div>
               <!-- Pale header bar overlaid on the top of the card — live's
-                   .qa-label, which is the disclosure's click target. -->
+                   .qa-label. When the card opens it slides up out of the clip
+                   (live's .qa-label.active margin-top:-2rem) — `inert` pulls
+                   the hidden button from the tab order; the card div's click +
+                   Escape handle closing. -->
               <button
                 type="button"
                 aria-expanded={expanded}
@@ -307,12 +327,17 @@
                 aria-label="{expanded ? 'Collapse' : 'Expand'}: {titleText(
                   doc,
                 )}"
+                inert={expanded}
                 onclick={() => toggleExpanded(doc.uid)}
-                class="focus-visible:ring-primary-deep absolute inset-x-0 top-0 flex h-12 cursor-pointer items-center justify-between rounded-t-[25px] bg-[#e7f5fa] px-5 focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden lg:h-20 lg:px-6"
+                class="focus-visible:ring-primary-deep absolute inset-x-0 top-0 flex h-12 cursor-pointer items-center justify-between rounded-t-[25px] bg-[#e7f5fa] px-5 transition-transform duration-[650ms] ease-out focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden motion-reduce:transition-none lg:h-20 lg:px-5 {expanded
+                  ? '-translate-y-full'
+                  : ''}"
               >
                 {#if card.number !== null}
+                  <!-- Live's .qa-circle: an h6 in museo-slab BOLD 25px/30px,
+                       a full-strength 1px #365b6d ring, ~52px disc at desktop. -->
                   <span
-                    class="font-slab grid size-10 place-items-center rounded-full text-lg font-light text-[#365b6d] ring-1 ring-[#365b6d]/25 lg:size-12 lg:text-xl"
+                    class="font-slab grid size-10 place-items-center rounded-full border border-[#365b6d] text-lg font-bold text-[#365b6d] lg:size-[52px] lg:text-[25px]"
                     >{pad2(card.number)}</span
                   >
                 {:else}
@@ -364,10 +389,13 @@
         {/each}
       </ul>
 
+      <!-- Live "View All Questions" = `.button.text-color-primary`: the
+           light-blue (#129ecc) bordered slab pill, 67px tall at desktop —
+           not a neutral rounded-full ghost. -->
       <div class="mt-12 text-center" use:animateIn={LIVE_REVEAL}>
         <a
           href="/ask-the-doctor"
-          class="text-dark hover:border-primary hover:text-primary-deep focus-visible:ring-primary-deep inline-block rounded-full border border-black/15 px-8 py-3 font-light transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#129ecc] px-[15px] text-[15px] font-light text-[#129ecc] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:h-[67px] lg:px-[25px] lg:text-[25px]"
         >
           View All Questions
         </a>

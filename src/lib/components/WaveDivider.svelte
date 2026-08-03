@@ -18,6 +18,11 @@
      * mirrors horizontally, which is why the left-aligned overflowing SVG reads
      * right-aligned — no separate alignment control is needed. */
     flip?: boolean;
+    /** Mirror horizontally only (live's `.bot-wave.flip` = rotateY(180deg)):
+     * the crest's higher side moves to the LEFT while the filled region stays
+     * on top — the steps→services seam. Distinct from `flip`, whose rotate-180
+     * flips both axes. */
+    mirror?: boolean;
     /** Responsive Tailwind height utilities (see the block comment for live's
      * 72/96/120 vs 96/128/160 steps at the 992px and 1280px breakpoints). */
     heightClass?: string;
@@ -29,6 +34,7 @@
   let {
     fill = "white",
     flip = false,
+    mirror = false,
     heightClass = "h-[72px] min-[992px]:h-[96px] xl:h-[120px]",
     width = "calc(133% + 1.3px)",
   }: Props = $props();
@@ -38,7 +44,7 @@
   aria-hidden="true"
   class="pointer-events-none w-full overflow-hidden leading-none {flip
     ? 'rotate-180'
-    : ''}"
+    : ''} {mirror ? '-scale-x-100' : ''}"
 >
   <svg
     viewBox="0 0 1200 120"

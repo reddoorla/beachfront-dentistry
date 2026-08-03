@@ -9,9 +9,10 @@
     FooterColumn,
   } from "$lib/blux/site-config";
 
-  // The footer's pale-teal canvas. The top wave must read as this same edge,
-  // so the wave fill defaults to it too — keep the two in sync.
-  const FOOTER_BG = "#e8f3f8";
+  // The footer's pale-teal canvas — live's --primary-light (#e7f5fa, read off
+  // the computed .footer-info-section). The top wave must read as this same
+  // edge, so the wave fill defaults to it too — keep the two in sync.
+  const FOOTER_BG = "#e7f5fa";
 
   interface Props {
     /** Leasing-contact columns (a migrated Blux site supplies these). When
@@ -103,22 +104,82 @@
   />
 {/snippet}
 
-<footer class="mt-auto w-full text-dark" style="background-color: {FOOTER_BG}">
+<!-- One config column. Live's footer links: museo-sans, 12px/24 mobile and
+     20px/40 desktop, weight 300, with 12px/20px between rows (its labels are
+     slab-500 at the same sizes — rendered as <p> below). -->
+{#snippet colBlock(col: FooterColumn)}
+  <!-- Desktop row rhythm comes from live's own spacing, not a uniform gap:
+       links carry .footer-links' 10px margins (60px pitch) while the
+       hours/address/label rows are margin-less (the 40px line-height IS the
+       pitch). Mobile keeps the measured gap-3. -->
+  <div
+    class="flex flex-col gap-3 font-sans text-[12px] leading-[24px] font-light text-[#365b6d] lg:gap-0 lg:text-[20px] lg:leading-[40px]"
+  >
+    {#each col.items as item, itemIndex (itemIndex)}
+      {#if isImage(item)}
+        {#if item.href}
+          <a {...linkAttrs(item.href)}>{@render logo(item.image)}</a>
+        {:else}
+          {@render logo(item.image)}
+        {/if}
+      {:else if item.href && /make a payment/i.test(item.text)}
+        <!-- Live renders Make a Payment as a full
+             `.button.text-color-primary-dark` pill (250×66 slab 25px at
+             desktop), not a text link. -->
+        <a
+          {...linkAttrs(item.href)}
+          class="font-slab focus-visible:ring-primary-deep mt-2 inline-flex h-[41px] w-fit items-center rounded-lg border border-[#365b6d] px-[14px] text-[14px] font-light whitespace-nowrap text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:mt-[27px] lg:h-[66px] lg:px-[25px] lg:text-[25px]"
+          >{item.text}</a
+        >
+      {:else if item.href}
+        <a
+          {...linkAttrs(item.href)}
+          class="hover:text-primary-deep transition-colors lg:my-[10px] lg:first:mt-0"
+          >{item.text}</a
+        >
+      {:else if item.text === item.text.toUpperCase()}
+        <!-- ALL-CAPS non-link rows are live's column labels (OFFICE HOURS,
+             CONTACT): museo-slab, weight 500, 16/32 mobile and 20/40 desktop. -->
+        <p
+          class="font-slab text-[16px] leading-[32px] font-medium lg:text-[20px] lg:leading-[40px]"
+        >
+          {item.text}
+        </p>
+      {:else}
+        <!-- Everything else (hours, address lines) is live's
+             .footer-contact-info: plain museo-SANS w300 — the same type as the
+             links, NOT the slab label style. The column div already carries
+             exactly that, so a bare row inherits it. -->
+        <p>{item.text}</p>
+      {/if}
+    {/each}
+  </div>
+{/snippet}
+
+<footer
+  class="relative mt-auto w-full text-dark"
+  style="background-color: {FOOTER_BG}"
+>
   <!-- The top wave is the footer's OWN pale-teal edge dipping up into whatever
        band sits above (the dark closing CTA on home, a light section elsewhere)
-       — so its fill defaults to the footer canvas, not the neighbour's. It sits
-       flush at the very top before any footer padding. -->
-  <WaveDivider
-    fill={waveFill}
-    flip
-    heightClass="h-[39px] min-[992px]:h-[128px] lg:h-[144px]"
-    width="169%"
-  />
+       — so its fill defaults to the footer canvas, not the neighbour's. At
+       desktop it's an ABSOLUTE overlay sitting entirely above the footer's top
+       edge (live's shape divider: 160px svg pulled up over the beach photo) —
+       leaving it in flow pushed every footer line 144px below live's. Mobile
+       keeps the measured 39px in-flow band. -->
+  <div class="lg:absolute lg:inset-x-0 lg:bottom-full">
+    <WaveDivider
+      fill={waveFill}
+      flip
+      heightClass="h-[39px] min-[992px]:h-[128px] lg:h-[160px]"
+      width="169%"
+    />
+  </div>
 
-  <!-- No top padding: live's footer copy begins exactly at the closing band's
-       bottom edge, with the wave above it occupying the overlap the band's
-       negative bottom margin creates. -->
-  <div class="px-[19.5px] pt-0 pb-12 lg:px-8">
+  <!-- Live gives the copy 20px of lead-in below the wave ("Want to learn
+       more?" sits 20px from the info-section top), then 40px more before the
+       link columns. -->
+  <div class="px-[19.5px] pt-3 pb-12 lg:px-8 lg:pt-5">
     <div class="mx-auto max-w-[1280px]">
       {#if heading}
         <!-- Live: 16px/40 mobile, 30px/40 desktop, weight 100, museo-slab, 10px
@@ -132,43 +193,24 @@
         </p>
       {/if}
       {#if columns?.length}
-        <div class="grid gap-10 lg:grid-cols-[1fr_26rem] lg:gap-16">
-          <div class="flex flex-col justify-between gap-10 sm:flex-row">
-            {#each columns as col, colIndex (colIndex)}
-              <!-- Live's footer links: museo-sans, 12px/24 mobile and 20px/40
-                   desktop, weight 300, with 12px/20px between rows (its labels
-                   are slab-500 at the same sizes — rendered as <p> below). -->
-              <div
-                class="flex flex-col gap-3 font-sans text-[12px] leading-[24px] font-light text-[#365b6d] lg:gap-5 lg:text-[20px] lg:leading-[40px]"
-              >
-                {#each col.items as item, itemIndex (itemIndex)}
-                  {#if isImage(item)}
-                    {#if item.href}
-                      <a {...linkAttrs(item.href)}>{@render logo(item.image)}</a
-                      >
-                    {:else}
-                      {@render logo(item.image)}
-                    {/if}
-                  {:else if item.href}
-                    <a
-                      {...linkAttrs(item.href)}
-                      class="hover:text-primary-deep transition-colors"
-                      >{item.text}</a
-                    >
-                  {:else}
-                    <!-- Non-link rows are live's column labels (OFFICE HOURS,
-                         CONTACT): museo-slab, weight 500, 16/32 mobile and
-                         20/40 desktop. -->
-                    <p
-                      class="font-slab text-[16px] leading-[32px] font-medium lg:text-[20px] lg:leading-[40px]"
-                    >
-                      {item.text}
-                    </p>
-                  {/if}
-                {/each}
-              </div>
-            {/each}
-          </div>
+        <!-- Live's .footer-cols is three ~equal columns (422px each in the
+             1280 box): col-1 = the page links (+ the Make a Payment button),
+             col-2 = the OFFICE HOURS and CONTACT blocks STACKED, col-3 = the
+             map. Rendering every config column side-by-side squeezed them to
+             ~250px and wrapped the hours/address lines. -->
+        <div
+          class="grid gap-10 lg:mt-[30px] lg:grid-cols-[1fr_1fr_26rem] lg:gap-4"
+        >
+          {#if columns[0]}
+            {@render colBlock(columns[0])}
+          {/if}
+          {#if columns.length > 1}
+            <div class="contents lg:flex lg:flex-col lg:gap-10">
+              {#each columns.slice(1) as col, colIndex (colIndex)}
+                {@render colBlock(col)}
+              {/each}
+            </div>
+          {/if}
           {#if showMap}
             <div class="w-full">
               <MapEmbed query={mapQuery} />

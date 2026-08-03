@@ -184,8 +184,12 @@ describe("Carousel slice — review variation", () => {
 
     expect(getByText("James T.")).toBeTruthy();
     expect(track.style.transform).not.toBe(initialTransform);
+    // A Google-sourced review carries the Google badge (live ships Yelp on
+    // every card; corrected per design direction), linking to its review.
     expect(
-      getByRole("link", { name: "Read review" }).getAttribute("href"),
+      getByRole("link", { name: "Read this review on Google" }).getAttribute(
+        "href",
+      ),
     ).toBe("https://www.google.com/maps/review-2");
   });
 

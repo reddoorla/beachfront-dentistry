@@ -103,7 +103,14 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
     observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          reveal(node);
+          // Double-rAF: for an element already in view at mount the observer
+          // fires in the same frame as applyHidden, and hidden+revealed styles
+          // collapse into one style recalc — the element pops with no
+          // transition. Committing the hidden frame first makes above-fold
+          // reveals actually play (live animates them on load too).
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() => reveal(node)),
+          );
           observer?.disconnect();
         }
       },

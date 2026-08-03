@@ -111,6 +111,30 @@ describe("QuestionList slice — teaser variation", () => {
     await fireEvent.click(toggles[0]!);
     expect(toggles[0]!.getAttribute("aria-expanded")).toBe("true");
     expect((panel as HTMLElement).inert).toBe(false);
+    // Open: the header bar slides out of the clip (live's .qa-label.active),
+    // so its button leaves the tab order while hidden.
+    expect((toggles[0] as HTMLElement).inert).toBe(true);
+  });
+
+  it("the whole card is a click target (live .qa-block): clicking the box toggles, Escape closes", async () => {
+    const { getAllByRole, container } = render(QuestionList, {
+      props: { slice: teaserSlice, context },
+    });
+    const card = container.querySelector("li.qa-item > div")! as HTMLElement;
+    const toggle = getAllByRole("button", { expanded: false })[0]!;
+
+    await fireEvent.click(card);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+
+    // A click that lands on the Read More link must NOT toggle the card
+    // (only the link navigates, exactly like live).
+    const readMore = card.querySelector("a")!;
+    await fireEvent.click(readMore);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+
+    // Escape closes (keyboard path while the bar button is slid out/inert).
+    await fireEvent.keyDown(card, { key: "Escape" });
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
   });
 
   it("renders the side image inside the aria-hidden floating pair", () => {

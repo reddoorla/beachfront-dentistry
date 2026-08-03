@@ -1,10 +1,10 @@
 <script lang="ts">
   import HeroBackgroundImage from "$lib/components/HeroBackgroundImage.svelte";
+  import ReadReviewsExpander from "$lib/components/ReadReviewsExpander.svelte";
   import RichTextBody from "$lib/components/RichTextBody.svelte";
   import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
   import { PrismicLink, PrismicRichText } from "@prismicio/svelte";
   import type { ImageField, LinkField, RichTextField } from "@prismicio/client";
-  import { REVIEWS_URL } from "$lib/site";
 
   // The site's recurring closing band — extracted from Hero's `cta`
   // variation (see src/lib/slices/Hero/index.svelte) so the typed detail
@@ -61,26 +61,24 @@
 {#snippet ctaButtons()}
   <!-- Live reveals the button stack as its own element (rows at op 0 until
        scrolled to), separate from the heading's reveal. -->
-  <div class="mt-10 flex flex-col items-center gap-6" use:animateIn={LIVE_REVEAL}>
+  <div
+    class="mt-10 flex flex-col items-center gap-[30px]"
+    use:animateIn={LIVE_REVEAL}
+  >
     {#if ctaLabel && ctaLink}
+      <!-- Live's `.button.text-color-primary-dark`: 25px museo-slab in a 67px
+           pill, and the hover is opacity .6 + a translucent cyan fill (the
+           border/text colours do NOT change). -->
       <PrismicLink
         field={ctaLink}
-        class="font-slab hover:border-primary hover:text-primary-deep focus-visible:ring-primary-deep inline-block rounded-lg border border-[#365b6d] px-[14px] py-[10px] text-[14px] font-light text-[#365b6d] transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:px-[25px] lg:py-[14px] lg:text-[25px]"
+        class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#365b6d] px-[14px] text-[14px] font-light text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:h-[67px] lg:px-[25px] lg:text-[25px]"
       >
         {ctaLabel}
       </PrismicLink>
     {/if}
-    <!-- "Read Reviews +" secondary CTA (live) → the Yelp business page. -->
-    <a
-      href={REVIEWS_URL}
-      target="_blank"
-      rel="noopener"
-      class="text-dark hover:text-primary-deep focus-visible:ring-primary-deep inline-flex items-center gap-2 text-lg font-light focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
-    >
-      Read Reviews
-      <!-- Live's own Plus.svg asset (its .plus-minus-block is 25×25). -->
-      <img src="/icons/plus.svg" alt="" class="w-[25px]" aria-hidden="true" />
-    </a>
+    <!-- Live's "Read Reviews" expander — discloses the Google/Facebook/Yelp
+         row (same block as under the review slider). -->
+    <ReadReviewsExpander class="mb-20 lg:mb-24" />
   </div>
 {/snippet}
 
@@ -117,13 +115,13 @@
         {@render ctaButtons()}
       </div>
       {#if caption}
-        <!-- Caption legibility: a small bottom-left scrim guarantees the
-             white location label clears AA over any bright photo pixel. -->
-        <div
-          class="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-24 bg-gradient-to-t from-black/50 to-transparent"
-        ></div>
+        <!-- Live's `.cta-beach-label`: museo-sans w300 white, 25px desktop /
+             10px small, absolute at bottom 20% (which clears the footer wave
+             that overlaps the photo's bottom edge — a lower anchor hides under
+             it), 60px / 5% from the left. No scrim on live; the label sits on
+             the darker water band of the photo. -->
         <p
-          class="absolute bottom-4 left-5 z-10 text-xs font-bold tracking-[0.2em] text-white uppercase"
+          class="absolute bottom-[20%] left-[5%] z-10 font-sans text-[10px] leading-[1.15] font-light text-white lg:bottom-[31%] lg:left-20 lg:text-[25px]"
           use:animateIn={LIVE_REVEAL}
         >
           {caption}

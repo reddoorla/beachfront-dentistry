@@ -118,24 +118,29 @@
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
     data-section-layout="services"
-    class="relative isolate w-full overflow-hidden pt-[72px] pb-48 text-white lg:pt-40 lg:pb-80"
+    class="relative isolate w-full pt-[72px] pb-48 text-white lg:pt-40 lg:pb-80"
     style="background:linear-gradient(to right, rgb(18,158,204), rgb(182,170,145))"
   >
     <!-- The top wave seam OVERLAYS the band — live's services section has no
          wave in its own flow (its three children are the two gradients and the
          content box), so leaving ours in flow added 120px/72px of dead space at
-         the top and pushed the whole band down relative to live. -->
+         the top and pushed the whole band down relative to live. `mirror`
+         reproduces live's `.bot-wave.flip` rotateY(180deg): the crest's higher
+         side sits on the LEFT. -->
     <div class="pointer-events-none absolute inset-x-0 top-0">
-      <WaveDivider fill="white" />
+      <WaveDivider fill="white" mirror />
     </div>
-    <!-- The tooth badge (a self-contained cyan disc + white tooth, 130px
-         native) straddles the top wave right-of-centre, sitting on the crest —
-         matching live. Rendered at native size, not shrunk inside a wrapper. -->
+    <!-- The tooth badge (live's big-teal-tooth.svg, byte-identical, 130px
+         native) overlaps the section seam: top edge 20px ABOVE the section
+         line, riding over the white wave (its z beats the wave's), right edge
+         ~25% in from the right — live's .big-teal-tooth placement. The section
+         must NOT clip (live's overflow is visible); the wave clips its own
+         overflow inside WaveDivider. -->
     <img
-      src="/icons/tooth-badge.svg"
+      src="/icons/big-teal-tooth.svg"
       alt=""
       aria-hidden="true"
-      class="absolute top-0 left-[68%] z-20 size-32 -translate-x-1/2 -translate-y-1/2 drop-shadow-md"
+      class="absolute top-[72px] right-[20%] z-20 w-[75px] lg:top-[-20px] lg:right-[24.3%] lg:w-[130px]"
     />
     <!-- Live's `.home-services-transe-to-white-gradient`: a FULL-HEIGHT overlay
          that is transparent to 50% then fades to solid white, so the teal→sand
@@ -175,12 +180,13 @@
           </div>
         {/if}
         {#if hasCta}
-          <!-- Live "View All Services" pill is compact: 154x41, 15px, 8px radius,
-               1px white border — not the big 25px desktop button. -->
+          <!-- Live `.button` (white variant): 25px museo-slab in a 67px pill at
+               desktop; hover = opacity .6 + a translucent cyan fill — the text
+               stays white (a white-fill hover was an invention). -->
           <div class="mt-8" use:animateIn={REVEAL}>
             <PrismicLink
               field={primary.cta_link}
-              class="focus-visible:ring-offset-primary font-slab inline-block rounded-lg border border-white px-[15px] py-[10px] text-[15px] font-light text-white transition-colors hover:bg-white hover:text-primary-deep focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden lg:px-[25px] lg:py-[14px] lg:text-[25px]"
+              class="focus-visible:ring-offset-primary font-slab inline-flex h-[41px] items-center rounded-lg border border-white px-[15px] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden lg:h-[67px] lg:px-[25px] lg:text-[25px]"
             >
               {primary.cta_label}
             </PrismicLink>
@@ -204,8 +210,11 @@
                 alt=""
                 class="size-[60px] shrink-0 lg:size-[100px]"
               />
+              <!-- Live's row label is h3.text-color-white: museo-slab w300
+                   40px/50px WHITE at desktop (the 25px slate value belonged to
+                   a different element). Mobile keeps the measured 20px. -->
               <span
-                class="font-slab text-[20px] font-light text-[#365b6d] lg:text-[25px]"
+                class="font-slab text-[20px] font-light text-[#365b6d] lg:text-[40px] lg:leading-[50px] lg:text-white"
                 >{label}</span
               >
             </PrismicLink>
@@ -221,11 +230,14 @@
        then a CTA. Ports the live "Your Path to Oral Health" section. The
        heading is rendered as a plain element (not PrismicRichText) so the large
        display sizing can override the global h2 scale. -->
+  <!-- Live geometry (2026-08-02, root 40px): content box 1280 (1400 − 60px
+       pads), steps 384 wide at 30% with space-between, steps→CTA gap 80px,
+       CTA→section-end 140px. -->
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
     data-section-layout="steps"
-    class="mx-auto max-w-6xl px-6 pt-24 pb-48"
+    class="mx-auto max-w-[1400px] px-6 pt-24 pb-48 lg:px-[60px] lg:pt-[60px] lg:pb-[140px]"
   >
     <!-- Live animates the heading+photo block as ONE element, then each step
          and the CTA individually as they enter. -->
@@ -242,11 +254,12 @@
           </h2>
         {/if}
         {#if primary.subtitle}
-          <!-- Live subtitle is 20px/30px on mobile, 30px on desktop. The global
+          <!-- Live subtitle is 20px/30px on mobile, 30px on desktop, with a
+               40px top margin (its mt-4 = 1rem at the 40px root). The global
                `main :where(p)` rule is 0-specificity (:where), so an arbitrary
                text-[] utility outranks it — no inline needed. -->
           <p
-            class="mt-4 text-center text-[20px] leading-[30px] font-light text-[#365b6d] lg:text-[30px] lg:leading-[45px]"
+            class="mt-4 text-center text-[20px] leading-[30px] font-light text-[#365b6d] lg:mt-10 lg:text-[30px] lg:leading-[45px]"
           >
             {primary.subtitle}
           </p>
@@ -262,19 +275,21 @@
         </div>
       {/if}
     </div>
-    <ol class="mt-12 grid grid-cols-1 gap-10 text-center sm:grid-cols-3">
+    <ol class="mt-12 grid grid-cols-1 gap-10 text-center sm:grid-cols-3 lg:gap-16">
       {#each items as item, i (item)}
         <li use:animateIn={REVEAL}>
-          <!-- Live step label 12px/400. Step title: 30px/40px weight-100 on
-               mobile, stepping up to 40px/50px weight-300 on desktop (measured
-               2026-07-31 — desktop was rendering 30px/w100, a full size too small). -->
+          <!-- Live's STEP label is an h6: museo-SLAB 400 24px/30px, 1.28px
+               tracking, slate #365b6d at desktop (the small sans eyebrow was
+               an invention). Step title: 30px/40px weight-100 on mobile,
+               stepping up to 40px/50px weight-300 with a 20px top margin on
+               desktop. -->
           <p
-            class="text-secondary text-xs font-bold tracking-[0.2em] uppercase lg:text-sm"
+            class="text-secondary text-xs font-bold tracking-[0.2em] uppercase lg:font-slab lg:text-[24px] lg:leading-[30px] lg:font-normal lg:tracking-[1.28px] lg:text-[#365b6d]"
           >
             Step {pad2(i + 1)}
           </p>
           <h3
-            class="h-primary font-slab mt-2 text-[30px] leading-[40px] font-thin lg:text-[40px] lg:leading-[50px] lg:font-light"
+            class="h-primary font-slab mt-2 text-[30px] leading-[40px] font-thin lg:mt-5 lg:text-[40px] lg:leading-[50px] lg:font-light"
           >
             {asText(item.item_heading)}
           </h3>
@@ -287,10 +302,12 @@
       {/each}
     </ol>
     {#if hasCta}
-      <div class="mt-12 text-center" use:animateIn={REVEAL}>
+      <!-- Live: 80px from the steps row to the CTA; the button is
+           `.button.text-color-primary-dark` (67px pill, live hover). -->
+      <div class="mt-12 text-center lg:mt-20" use:animateIn={REVEAL}>
         <PrismicLink
           field={primary.cta_link}
-          class="font-slab hover:border-primary hover:text-primary-deep focus-visible:ring-primary-deep inline-block rounded-lg border border-[#365b6d] px-[14px] py-[10px] text-[14px] font-light text-[#365b6d] transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:px-[25px] lg:py-[14px] lg:text-[25px]"
+          class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#365b6d] px-[14px] text-[14px] font-light text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:h-[67px] lg:px-[25px] lg:text-[25px]"
         >
           {primary.cta_label}
         </PrismicLink>
@@ -300,10 +317,19 @@
 {:else}
   <!-- reveal={false}: live animates the heading and each card individually
        (per-element), not the whole band as one block. -->
+  <!-- lg:mt-10 on the SECTION: live's settled "Finally…" heading starts 40px
+       below the hero's bottom edge (measured AFTER scroll-settling both pages —
+       the raw scroll-0 read is +160px on both, the un-fired reveal translate;
+       the old pt-2 sat the heading only 8px under the hero wave). It's a
+       section MARGIN, not content padding, because live's 40px sits BETWEEN
+       sections with the heading flush at its section top — and the page-diff
+       anchor cuts at the section box, so inner padding reads as a 40px shift
+       of everything in the region. -->
   <ContentBand
     sliceType={slice.slice_type}
     variation={slice.variation}
-    contentClass="max-w-[1400px] px-[19.5px] pt-[72px] pb-0 lg:px-[60px] lg:pt-2 lg:pb-16"
+    sectionClass="lg:mt-10"
+    contentClass="max-w-[1400px] px-[19.5px] pt-[72px] pb-0 lg:px-[60px] lg:pt-0 lg:pb-16"
     reveal={false}
   >
     {#if isFilled.richText(slice.primary.heading)}

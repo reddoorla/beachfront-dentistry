@@ -195,11 +195,18 @@ main :nth-child(even of section[data-slice-type="media_text"]) .mt-media {
    short bands. The manifest also sets this when it captures height: 100vh, so
    this is a floor for the first hero when a site ships without a manifest. */
 main > section.hero-band:first-child {
-  /* Beachfront's live hero is 90vh (measured 810px at a 900px viewport — aspect
-     1.78, the poster's native ratio, so the photo reads nearly uncropped). The
-     100vh Blux-manifest floor over-crops it and shifts the visible frame; 90vh
-     matches live. */
-  min-height: 90vh;
+  /* Live's `.hero.home` at mobile: 70vh clamped to 240–640px (its ≤480 media
+     block) — an unclamped 90vh ran ~180px taller than live's on a phone. */
+  min-height: clamp(240px, 70vh, 640px);
+}
+@media (min-width: 1024px) {
+  main > section.hero-band:first-child {
+    /* Beachfront's live hero is 90vh at desktop (measured 810px at a 900px
+       viewport — aspect 1.78, the poster's native ratio, so the photo reads
+       nearly uncropped). The 100vh Blux-manifest floor over-crops it and
+       shifts the visible frame; 90vh matches live. */
+    min-height: 90vh;
+  }
 }
 
 /* Multi-paragraph rich_text wants vertical rhythm between paragraphs. */

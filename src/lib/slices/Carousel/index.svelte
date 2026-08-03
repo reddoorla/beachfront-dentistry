@@ -5,9 +5,9 @@
     type CarouselFrame,
   } from "$lib/blux/CarouselFrames.svelte";
   import ContentBand from "$lib/components/ContentBand.svelte";
+  import ReadReviewsExpander from "$lib/components/ReadReviewsExpander.svelte";
   import Slider from "$lib/components/Slider.svelte";
   import { PrismicImage, PrismicRichText } from "@prismicio/svelte";
-  import { Plus } from "@lucide/svelte";
   import {
     isFilled,
     asLink,
@@ -59,10 +59,14 @@
   const trackItems = $derived(isTrackVariation ? (slice.items ?? []) : []);
   const trackCount = $derived(trackItems.length);
 
-  // The live review cards carry a Yelp badge, but the reviews are mixed-source
-  // (Yelp + Google Maps). Only Yelp-sourced reviews get the badge; others get a
-  // neutral link, so a Google review is never mislabelled as Yelp.
+  // Each review card carries its SOURCE's logo badge (live ships the Yelp
+  // logo on every card, even the Google-linked ones — corrected here per
+  // design direction: Google-sourced reviews get the Google G).
   const isYelp = (url: string | null): boolean => /yelp\./i.test(url ?? "");
+  const badgeFor = (url: string | null) =>
+    isYelp(url)
+      ? { icon: "/icons/yelp-logo.png", label: "Yelp" }
+      : { icon: "/icons/google-g.svg", label: "Google" };
 
   const hasHeading = $derived(isFilled.richText(slice.primary.heading));
   const headingText = $derived(hasHeading ? asText(slice.primary.heading) : "");
@@ -164,71 +168,61 @@
                      side) and 48px of space under the card for the overhanging
                      badge. -->
                 <div class="px-[7px] pb-12 lg:px-4 lg:pb-6">
-                  <!-- Pale-blue quote card with the reviewer row and the Yelp
-                       badge overhanging the bottom-right (live "what they say"
-                       card). -->
+                  <!-- Pale-blue quote card (live .big-review, 600×400 at
+                       desktop, #e7f5fa, 25px radius, 30px padding): the
+                       reviewer row sits on TOP with the quote beneath, and the
+                       source's logo badge overhangs the bottom-right edge.
+                       flex-col-reverse keeps <figcaption> last in the DOM
+                       (a11y_figcaption_index) while painting it first. -->
+                  <!-- Order is breakpoint-dependent on live: mobile keeps the
+                       quote on top with the reviewer row at the bottom; desktop
+                       flips to reviewer-on-top (hence reverse at lg only). -->
                   <figure
-                    class="relative mx-auto max-w-2xl rounded-2xl bg-[#e8f3f8] p-[18px] text-left lg:p-8 xl:p-10"
+                    class="relative mx-auto flex max-w-[600px] flex-col justify-between rounded-[25px] bg-[#e7f5fa] p-[18px] text-left lg:h-[400px] lg:flex-col-reverse lg:p-[30px]"
                   >
-                    <!-- Absolutely-positioned, so DOM order is free — kept as
-                         the figure's FIRST child so <figcaption> stays last
-                         (a11y_figcaption_index). -->
                     {#if isFilled.link(item.review_url)}
-                      {#if isYelp(asLink(item.review_url))}
-                        <!-- Yelp-sourced review → the live Yelp badge overhangs
-                             the bottom-right. -->
-                        <a
-                          href={asLink(item.review_url)}
-                          target="_blank"
-                          rel="noopener"
-                          aria-label="Read this review on Yelp"
-                          class="focus-visible:ring-primary-deep absolute -bottom-5 right-6 rounded-2xl shadow-md focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
-                        >
-                          <img
-                            src="/icons/yelp-logo.png"
-                            alt="Yelp"
-                            width="56"
-                            height="56"
-                            class="h-14 w-14 rounded-2xl"
-                          />
-                        </a>
-                      {:else}
-                        <!-- Non-Yelp source (e.g. Google) → a neutral link, so a
-                             Google review is never mislabelled as Yelp. -->
-                        <a
-                          href={asLink(item.review_url)}
-                          target="_blank"
-                          rel="noopener"
-                          class="text-primary-deep focus-visible:ring-primary-deep absolute right-6 bottom-4 text-sm font-semibold underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
-                        >
-                          Read review
-                        </a>
-                      {/if}
+                      {@const badge = badgeFor(asLink(item.review_url))}
+                      <!-- Live .social-logo-big-review: an 80×80 logo anchor
+                           poking 20px below the card's bottom edge, 30px in
+                           from the right — no card chrome of its own. -->
+                      <a
+                        href={asLink(item.review_url)}
+                        target="_blank"
+                        rel="noopener"
+                        aria-label="Read this review on {badge.label}"
+                        class="focus-visible:ring-primary-deep absolute -bottom-5 right-6 transition-opacity hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:right-[30px]"
+                      >
+                        <img
+                          src={badge.icon}
+                          alt={badge.label}
+                          class="h-14 w-14 object-contain lg:h-20 lg:w-20"
+                        />
+                      </a>
                     {/if}
                     <blockquote
-                      class="text-dark/90 text-[16px] leading-relaxed lg:text-lg"
+                      class="text-[16px] leading-relaxed text-[#365b6d] lg:text-[20px] lg:leading-[30px] lg:font-light"
                     >
                       <p>{item.quote}</p>
                     </blockquote>
                     <figcaption
-                      class="mt-[10px] flex items-center gap-4 lg:mt-8"
+                      class="mb-[10px] flex items-center gap-4 lg:mb-6 lg:gap-5"
                     >
                       {#if isFilled.image(item.reviewer_photo)}
                         <PrismicImage
                           field={item.reviewer_photo}
                           fallbackAlt=""
-                          class="h-[72px] w-[72px] rounded-full object-cover lg:h-14 lg:w-14"
+                          class="h-[72px] w-[72px] rounded-full object-cover lg:h-[120px] lg:w-[120px]"
                         />
                       {/if}
                       <div class="flex-1">
                         <p
-                          class="text-dark text-[16px] font-semibold lg:text-xl"
+                          class="text-[16px] font-semibold text-[#365b6d] lg:text-[30px] lg:leading-[40px] lg:font-medium"
                         >
                           {item.reviewer_name}
                         </p>
                         {#if item.reviewer_place}
                           <p
-                            class="text-secondary text-sm tracking-wide uppercase"
+                            class="text-sm font-light tracking-wide text-[#365b6d] uppercase lg:mt-1 lg:text-[16px] lg:leading-[25px]"
                           >
                             {item.reviewer_place}
                           </p>
@@ -255,16 +249,12 @@
           {/snippet}
         </Slider>
       </div>
-      {#if slice.variation === "review" && isFilled.link(trackItems[0]?.review_url)}
-        <a
-          href={asLink(trackItems[0].review_url)}
-          target="_blank"
-          rel="noopener"
-          class="text-dark hover:text-primary-deep focus-visible:ring-primary-deep mt-12 inline-flex items-center gap-2 text-lg font-light focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
-        >
-          Read Reviews
-          <Plus class="text-primary" size={20} aria-hidden="true" />
-        </a>
+      {#if slice.variation === "review"}
+        <!-- Live's .shift-up block: the expander sits tight under the slider
+             (mt -1rem) with 3rem reserved below for the disclosed logo row. -->
+        <div class="mt-2 mb-24 lg:mt-[-16px] lg:mb-28">
+          <ReadReviewsExpander />
+        </div>
       {/if}
     </ContentBand>
   {/if}

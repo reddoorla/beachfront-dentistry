@@ -250,7 +250,7 @@ describe("Footer", () => {
     // Defaults to the footer's own pale-teal canvas so the wave reads as its
     // top edge dipping into whatever band sits above.
     expect(light.container.querySelector("path")?.getAttribute("fill")).toBe(
-      "#e8f3f8",
+      "#e7f5fa",
     );
     cleanup();
 

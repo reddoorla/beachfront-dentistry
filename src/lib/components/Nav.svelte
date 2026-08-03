@@ -107,19 +107,21 @@
     {/if}
   </nav>
 {:else}
-  <!-- site-config (#71) chrome: logo + dropdown nav. Beachfront's live nav is a
-       solid brand-blue band with a white wordmark — primary-deep/text-white here
-       (plain primary is only 3.09:1 under white text; -deep clears AA at 5.10:1),
-       not the translucent bg-background/95 band the unstyled starter shipped. -->
+  <!-- site-config (#71) chrome: logo + dropdown nav. Live's `.header` is an
+       ABSOLUTE transparent overlay (z-10, 120px tall) that scrolls away with
+       the page — never sticky, never solid (the hero's own top gradient
+       carries logo legibility). The hamburgerOnly (Beachfront) chrome matches
+       that; the fleet default keeps the sticky solid-on-scroll band. -->
   <nav
-    class="fixed top-0 left-0 z-50 isolate w-full text-white transition-colors duration-300 {navSolid
-      ? 'bg-primary-deep'
-      : 'bg-transparent'}"
+    class="top-0 left-0 z-50 isolate w-full text-white {hamburgerOnly
+      ? 'absolute bg-transparent'
+      : `fixed transition-colors duration-300 ${navSolid ? 'bg-primary-deep' : 'bg-transparent'}`}"
   >
     <!-- Legibility scrim while transparent over a bright hero; it sits behind
          the content (-z-10, above only the nav's own bg) and fades out as the
-         bar goes solid. -->
-    {#if transparentAtTop}
+         bar goes solid. Live's beachfront header has no scrim — its heroes
+         paint their own top gradient — so the hamburgerOnly chrome skips it. -->
+    {#if transparentAtTop && !hamburgerOnly}
       <div
         aria-hidden="true"
         class="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-black/40 to-transparent transition-opacity duration-300 {navSolid
@@ -130,9 +132,10 @@
     <!-- Content sits in live's `content-width` band: capped at 1400px and
          centred (so on wide screens the logo/hamburger don't hug the edges),
          with 60px side padding at desktop. The nav itself stays full-bleed so
-         its solid band spans edge to edge. -->
+         its solid band spans edge to edge. Live's bar is 120px tall at
+         desktop (.header height 3rem at the 40px root). -->
     <div
-      class="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 lg:px-[60px]"
+      class="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 lg:h-[120px] lg:px-[60px] lg:py-0"
     >
       <a href="/" class="flex items-center text-lg font-bold">
         {#if logo}
