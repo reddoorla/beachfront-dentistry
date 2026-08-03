@@ -244,7 +244,7 @@
                 if (e.key === "Escape" && expanded) toggleExpanded(doc.uid);
               }}
               class="relative block cursor-pointer rounded-[25px] shadow-md ring-1 ring-black/5 transition-[margin-top,opacity] duration-[650ms] ease-out hover:opacity-80 motion-reduce:transition-none {expanded
-                ? 'mt-12 h-[384px] sm:h-[288px] md:mt-16 md:h-[320px] lg:mt-20 lg:h-[400px]'
+                ? 'mt-12 h-[384px] xs:h-[288px] md:mt-16 md:h-[320px] lg:mt-20 lg:h-[400px]'
                 : 'h-[288px] md:h-[320px] lg:h-[400px]'}"
             >
               <!-- Live's real card (.qa-block) is a FIXED-HEIGHT box, not a fixed
@@ -418,7 +418,7 @@
       <div class="mt-12 text-center" use:animateIn={LIVE_REVEAL}>
         <a
           href="/ask-the-doctor"
-          class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#129ecc] px-[15px] text-[14px] font-light text-[#129ecc] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+          class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#129ecc] px-[15px] text-[14px] font-light text-[#129ecc] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:text-[20px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
         >
           View All Questions
         </a>

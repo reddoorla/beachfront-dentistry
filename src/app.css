@@ -14,17 +14,22 @@
   --screen-lg: 1024px;
   --screen-xl: 1340px;
 
-  /* Match live's Webflow breakpoints so our tiers map 1:1 to its rendering:
-     live is desktop ≥992 (root 40px), tablet 768–991 (root 32px), mobile
-     ≤767 (root 24px). Tailwind v4 defaults lg to 1024, which left 992–1023
-     rendering our mobile layout while live was already desktop (a categorical
-     seam) and gave us no tier for the 768–991 tablet band. Moving lg to 992
-     makes `lg:` = live desktop and leaves `md:` (768) = live tablet start, so
-     the mobile-base/`md:`/`lg:` tiers align with live's three ranges.
-     The FULL set is redeclared in ascending order on purpose: overriding lg
-     alone re-registered it out of order, so `md:` emitted AFTER `lg:` and won
-     at desktop (a `md:` value bled past `lg:`). Declaring sm→xl in order
-     restores correct variant emission (lg wins over md at ≥992). */
+  /* Match live's Webflow breakpoints so our tiers map 1:1 to its rendering.
+     Webflow's min-width breakpoints are 480 / 768 / 992 (its max-width edges
+     479 / 767 / 991): desktop ≥992, tablet 768–991, mobile-LANDSCAPE 480–767,
+     mobile-PORTRAIT ≤479. The root font-size only steps 24→32→(desktop), but
+     that is a red herring — Webflow gives most elements their OWN per-breakpoint
+     px, and the biggest step for many is at 480 (e.g. the 3-C labels 24→30, the
+     reviewer name 16→20, footer fine print 10→15), NOT tied to the root. So we
+     need a tier at 480: `xs:` = live mobile-landscape (480–767), base = live
+     mobile-portrait (≤479), `md:` = tablet (768–991), `lg:` = desktop (≥992).
+     `sm:` (640) is a non-live breakpoint kept only for two off-home utilities
+     (catalog grid, footer row); the home page uses xs/md/lg.
+     The FULL set is redeclared in ascending order on purpose: overriding one
+     breakpoint alone re-registers it out of order, so a lower variant emits
+     AFTER a higher one and wins (a `md:` value bled past `lg:` at desktop once).
+     Declaring xs→xl in order restores correct emission (higher wins at its min). */
+  --breakpoint-xs: 480px;
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;
   --breakpoint-lg: 992px;

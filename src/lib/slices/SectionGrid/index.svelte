@@ -260,7 +260,7 @@
                desktop cap but undershot the tablet middle (75px), so md pins
                the flat 120. -->
           <h2
-            class="h-primary font-slab text-center text-[clamp(3.5rem,0.5rem+8vw,7.5rem)] leading-[1.25] font-thin [text-wrap:normal] md:text-[120px] md:leading-[1.167] lg:leading-[1.167]"
+            class="h-primary font-slab text-center text-[clamp(3.5rem,0.5rem+8vw,7.5rem)] leading-[1.25] font-thin [text-wrap:normal] xs:text-[120px] xs:leading-[1.167] md:text-[120px] md:leading-[1.167] lg:leading-[1.167]"
           >
             {asText(primary.heading)}
           </h2>
@@ -304,7 +304,7 @@
             Step {pad2(i + 1)}
           </p>
           <h3
-            class="h-primary font-slab mt-2 text-[30px] leading-[40px] font-thin lg:mt-5 lg:text-[40px] lg:leading-[50px] lg:font-light"
+            class="h-primary font-slab mt-2 text-[30px] leading-[40px] font-thin xs:text-[21px] xs:leading-[26px] xs:font-light lg:mt-5 lg:text-[40px] lg:leading-[50px] lg:font-light"
           >
             {asText(item.item_heading)}
           </h3>
@@ -322,7 +322,7 @@
       <div class="mt-12 text-center lg:mt-20" use:animateIn={REVEAL}>
         <PrismicLink
           field={primary.cta_link}
-          class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#365b6d] px-[14px] text-[14px] font-light text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+          class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#365b6d] px-[14px] text-[14px] font-light text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:text-[20px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
         >
           {primary.cta_label}
         </PrismicLink>
@@ -445,7 +445,7 @@
                      base `main :where(p)` clamp (17.4px at 390), which beats
                      values merely inherited from this wrapper. -->
                 <div
-                  class="absolute inset-x-0 top-0 p-6 font-light text-white [&_*]:text-white [&_p]:text-[20px] [&_p]:leading-[30px] [&_p]:font-light md:[&_p]:text-[18px] md:[&_p]:leading-[27px]"
+                  class="absolute inset-x-0 top-0 p-6 font-light text-white [&_*]:text-white [&_p]:text-[20px] [&_p]:leading-[30px] [&_p]:font-light xs:[&_p]:text-[18px] xs:[&_p]:leading-[27px] md:[&_p]:text-[18px] md:[&_p]:leading-[27px]"
                 >
                   <RichTextBody field={item.item_body} />
                 </div>
@@ -455,7 +455,7 @@
                 class="absolute inset-x-0 bottom-0 flex h-[60px] items-center justify-between bg-[#e7f5fa] px-3"
               >
                 <span
-                  class="font-slab text-[24px] leading-[36px] font-bold text-[#365b6d] md:text-[30px] md:leading-[45px] lg:text-[30px] lg:leading-[45px]"
+                  class="font-slab text-[24px] leading-[36px] font-bold text-[#365b6d] xs:text-[30px] xs:leading-[45px] md:text-[30px] md:leading-[45px] lg:text-[30px] lg:leading-[45px]"
                   >{label}</span
                 >
                 <!-- Live hides the +/- control on these cards at mobile (its

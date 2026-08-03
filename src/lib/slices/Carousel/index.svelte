@@ -223,13 +223,13 @@
                       {/if}
                       <div class="flex-1">
                         <p
-                          class="text-[16px] leading-[24px] font-medium text-[#365b6d] md:text-[20px] md:leading-[60px] lg:text-[30px] lg:leading-[40px]"
+                          class="text-[16px] leading-[24px] font-medium text-[#365b6d] xs:text-[20px] xs:leading-[30px] md:text-[20px] md:leading-[60px] lg:text-[30px] lg:leading-[40px]"
                         >
                           {item.reviewer_name}
                         </p>
                         {#if item.reviewer_place}
                           <p
-                            class="text-[10px] leading-[15px] font-light md:text-[16px] md:leading-[25px] text-[#365b6d] uppercase lg:mt-1 lg:text-[16px] lg:leading-[25px]"
+                            class="text-[10px] leading-[15px] font-light xs:text-[16px] xs:leading-[24px] md:text-[16px] md:leading-[25px] text-[#365b6d] uppercase lg:mt-1 lg:text-[16px] lg:leading-[25px]"
                           >
                             {item.reviewer_place}
                           </p>
