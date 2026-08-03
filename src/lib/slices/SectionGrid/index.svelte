@@ -147,7 +147,7 @@
       src="/icons/big-teal-tooth.svg"
       alt=""
       aria-hidden="true"
-      class="absolute top-[72px] right-[20%] z-20 w-[75px] lg:top-[-20px] lg:right-[24.3%] lg:w-[130px]"
+      class="absolute top-[72px] right-[20%] z-20 w-[75px] xs:w-[55px] md:top-[8px] md:right-[25%] md:w-[130px] lg:top-[-20px] lg:right-[24.3%] lg:w-[130px]"
     />
     <!-- Live's `.home-services-transe-to-white-gradient`: a FULL-HEIGHT overlay
          that is transparent to 50% then fades to solid white, so the teal→sand
