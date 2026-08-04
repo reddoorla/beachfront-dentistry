@@ -174,11 +174,12 @@ const ctaHero = (img) => ({
 // members. Renders `person` docs via CollectionList's `team` variation (the
 // page loader fetches the person collection because this slice references it);
 // each avatar links to its /team-members/<uid> detail route.
-const teamTeaser = () => ({
+/** @param {string} [heading] home says "Meet Your Team"; your-first-visit "Meet Our Team" */
+const teamTeaser = (heading = "Meet Your Team") => ({
   slice_type: "collection_list",
   variation: "team",
   primary: {
-    heading: [head(2, "Meet Your Team")],
+    heading: [head(2, heading)],
     collection_type: "person",
     max_items: 24,
   },
@@ -355,17 +356,12 @@ export function assemblies(img) {
 
     "your-first-visit": [
       {
+        // live `.hero.group-photo`: shorter photo band, lower-left thin slab
+        // headline, NO CTA (the intro + CTAs live in the fv-toc-section below).
         slice_type: "hero",
-        variation: "default",
+        variation: "groupphoto",
         primary: {
           heading: [head(1, "We are excited to meet and care for you.")],
-          body: [
-            para(
-              "We want you to feel comfortable before your first visit. Here some ways to give you a clear idea of what to expect:",
-            ),
-          ],
-          cta_label: "Book an Appointment",
-          cta_link: webLink("#appointment"),
           background_image: img(IMG.heroFirstVisit),
         },
         items: [],
@@ -385,7 +381,7 @@ export function assemblies(img) {
           IMG.tour8,
         ].map((u) => ({ image: img(u), caption: "" })),
       },
-      teamTeaser(),
+      teamTeaser("Meet Our Team"),
       {
         slice_type: "rich_text",
         variation: "default",

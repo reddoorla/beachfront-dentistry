@@ -57,12 +57,28 @@
     };
     items: unknown[];
   };
+  // `groupphoto` = your-first-visit's `.hero.group-photo`: a shorter photo band
+  // (min(60vh,60vw) / 95vw) with a LOWER-LEFT thin slab headline, NO CTA.
+  type HeroGroupPhotoSlice = {
+    slice_type: "hero";
+    variation: "groupphoto";
+    primary: {
+      heading?: RichTextField | null;
+      background_image?: ImageField | null;
+    };
+    items: unknown[];
+  };
 
   let {
     slice,
     context,
   }: {
-    slice: Content.HeroSlice | HeroBandSlice | HeroCtaSlice | HeroSubpageSlice;
+    slice:
+      | Content.HeroSlice
+      | HeroBandSlice
+      | HeroCtaSlice
+      | HeroSubpageSlice
+      | HeroGroupPhotoSlice;
     context?: { presentation?: Presentation };
   } = $props();
 
@@ -163,6 +179,42 @@
     subheadings={slice.primary.subheadings}
     intro={slice.primary.intro}
   />
+{:else if slice.variation === "groupphoto"}
+  <!-- your-first-visit `.hero.group-photo`: a short photo band (min(60vh,60vw)
+       desktop / 95vw ≤479) with a lower-LEFT thin slab headline in white and
+       NO CTA. Same wave + legibility scrim as the other openers. -->
+  <section
+    data-slice-type={slice.slice_type}
+    data-slice-variation={slice.variation}
+    class="relative isolate flex min-h-[95vw] w-full items-end overflow-hidden bg-dark text-white xs:min-h-[min(60vh,60vw)]"
+  >
+    {#if slice.primary.background_image?.url}
+      <HeroBackgroundImage
+        image={slice.primary.background_image}
+        preload={true}
+      />
+    {/if}
+    <div
+      class="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
+      style="background:linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.32))"
+      aria-hidden="true"
+    ></div>
+    <div
+      class="absolute bottom-[24px] left-5 z-10 lg:bottom-20 lg:left-20"
+      use:animateIn={LIVE_REVEAL}
+    >
+      <!-- Inline white: the global `main h1–h3` primary rule outranks text-white. -->
+      <h1
+        class="font-slab text-left text-[25px] leading-[38px] font-light lg:text-[60px] lg:leading-[72px]"
+        style="color:#fff"
+      >
+        {asText(slice.primary.heading)}
+      </h1>
+    </div>
+    <div class="absolute bottom-0 left-0 z-10 w-full">
+      <WaveDivider fill="white" flip />
+    </div>
+  </section>
 {:else}
   <!-- Full-bleed opening hero. Bottom-left slab heading over the background
        media — an autoplaying muted flyover video on home (matching the live
