@@ -77,6 +77,30 @@ export const IMG = {
   rvLeigh: `${B}/657a2280b90d9c4670a3fca0_Leigh%20Lowery%20google.png`,
 };
 
+// Each team member's favorite beach — the `.team-grid-beach` banner + white
+// `.team-beach-name` caption at the bottom of live's /our-team person cards.
+// Live person docs carry this in a `gallery` group (image + caption); the
+// blux-migrated Prismic person docs DON'T yet (gallery is empty on all 11), so
+// this is the verbatim capture off live. Two consumers read it:
+//   - the dev matching route enriches each person doc's gallery from here so the
+//     /our-team gate can verify the full card (banner box + caption), and
+//   - it's the source for the production seed follow-up that will populate
+//     person.gallery for real (5 unique beach photos live in static/beaches/).
+// Keyed by person uid; captions are UPPERCASE on live via CSS (stored as shown).
+export const PERSON_BEACHES = {
+  "dr-robert-quan": { img: "/beaches/bali.jpg", caption: "BALI" },
+  "dr-michael-hopkins": { img: "/beaches/cabo-gaddafi.jpg", caption: "CABO" },
+  stacey: { img: "/beaches/cabo-lalo.jpg", caption: "CABO" },
+  enrique: { img: "/beaches/cabo-lalo.jpg", caption: "CABO" },
+  alicia: { img: "/beaches/santa-barbara.jpg", caption: "SANTA BARBARA" },
+  linda: { img: "/beaches/myrtle-beach.jpg", caption: "MYRTLE BEACH" },
+  michelle: { img: "/beaches/cabo-gaddafi.jpg", caption: "CABO" },
+  christina: { img: "/beaches/myrtle-beach.jpg", caption: "MYRTLE BEACH" },
+  sabrina: { img: "/beaches/santa-barbara.jpg", caption: "SANTA BARBARA" },
+  raquel: { img: "/beaches/bali.jpg", caption: "BALI" },
+  lanette: { img: "/beaches/cabo-gaddafi.jpg", caption: "CABO" },
+};
+
 // Shared review carousel items (verbatim quotes off the live site; truncated
 // exactly as the live teaser cards show them, linking out to Yelp/Google).
 const REVIEWS = [
@@ -422,11 +446,16 @@ export function assemblies(img) {
 
     "our-team": [
       {
-        slice_type: "lead_text",
-        variation: "default",
+        // Live opener: `.hero.redondo` band reading just "Meet" (white slab),
+        // then a `.our-team-subtitle-section` below the wave with two stacked
+        // dark-teal slab headings ("Our" / "Team") over a cyan slab intro.
+        slice_type: "hero",
+        variation: "subpage",
         primary: {
-          eyebrow: "Meet Our Team",
-          body: [
+          heading: [head(2, "Meet")],
+          background_image: img(IMG.heroRedondo),
+          subheadings: ["Our", "Team"],
+          intro: [
             para(
               "We love caring for our patients and we also love the beach, read a little about each of our team members and see their favorite beach beyond the South Bay.",
             ),
@@ -436,7 +465,7 @@ export function assemblies(img) {
       },
       {
         slice_type: "collection_list",
-        variation: "grid",
+        variation: "people",
         primary: { heading: [], collection_type: "person", max_items: 100 },
         items: [],
       },

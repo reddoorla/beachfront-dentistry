@@ -52,6 +52,8 @@
       heading?: RichTextField | null;
       background_image?: ImageField | null;
       subtitle?: string | null;
+      subheadings?: string[] | null;
+      intro?: RichTextField | null;
     };
     items: unknown[];
   };
@@ -158,6 +160,8 @@
     heading={slice.primary.heading}
     backgroundImage={slice.primary.background_image}
     subtitle={slice.primary.subtitle}
+    subheadings={slice.primary.subheadings}
+    intro={slice.primary.intro}
   />
 {:else}
   <!-- Full-bleed opening hero. Bottom-left slab heading over the background

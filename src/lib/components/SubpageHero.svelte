@@ -23,14 +23,21 @@
     heading,
     backgroundImage,
     subtitle,
+    subheadings,
+    intro,
   }: {
     heading?: RichTextField | null;
     backgroundImage?: ImageField | null;
     // optional cyan intro line some subpages carry directly under the heading
     subtitle?: string | null;
+    // our-team's `.our-team-subtitle-section` (below the wave): stacked
+    // dark-teal slab headings ("Our" / "Team") over a cyan slab intro line.
+    subheadings?: string[] | null;
+    intro?: RichTextField | null;
   } = $props();
 
   const headingText = $derived(asText((heading ?? []) as RichTextField));
+  const introText = $derived(asText((intro ?? []) as RichTextField));
 </script>
 
 <section
@@ -78,3 +85,33 @@
     <WaveDivider fill="white" flip />
   </div>
 </section>
+
+{#if subheadings?.length || introText}
+  <!-- `.our-team-subtitle-section`: below the wave on white — two stacked slab
+       headings (dark-teal #365B6D, same 56/70 → 140/168 scale as the band
+       heading) over the cyan slab intro (#129ECC). Colours forced inline for
+       the same reason as the band heading (global `main h1–h3` primary rule). -->
+  <section class="w-full bg-white px-5 text-center" use:animateIn={LIVE_REVEAL}>
+    {#each subheadings ?? [] as line, i}
+      <!-- first heading nudges up 10px into the wave, matching live. -->
+      <h2
+        class="font-slab text-[56px] leading-[70px] font-thin lg:text-[140px] lg:leading-[168px] {i ===
+        0
+          ? '-mt-[10px]'
+          : ''}"
+        style="color:#365b6d"
+      >
+        {line}
+      </h2>
+    {/each}
+    {#if introText}
+      <!-- capped narrow so it wraps to ~5 lines exactly as live does. -->
+      <h3
+        class="font-slab mx-auto mt-5 mb-[10px] max-w-[620px] text-[20px] leading-[30px] font-light lg:text-[40px] lg:leading-[50px]"
+        style="color:#129ecc"
+      >
+        {introText}
+      </h3>
+    {/if}
+  </section>
+{/if}

@@ -5,7 +5,7 @@ import {
   loadCollections,
 } from "$lib/blux-catalog/collections-load";
 import { createClient } from "$lib/prismicio";
-import { assemblies } from "$lib/beachfront-pages.js";
+import { assemblies, PERSON_BEACHES } from "$lib/beachfront-pages.js";
 
 // Local matching gate surface. Renders the EXACT page assembly that
 // scripts/seed-pages.mjs publishes (src/lib/beachfront-pages.js — the shared
@@ -44,6 +44,23 @@ export async function load({ params, fetch, cookies }) {
     client,
     collectionTypesOf(slices as never),
   );
+
+  // The blux-migrated person docs don't carry the favorite-beach `gallery` the
+  // live /our-team cards show (all 11 are empty). Preview the intended card here
+  // from the verbatim capture in PERSON_BEACHES so the gate can verify the full
+  // card (banner box + caption) — the production seed will populate person
+  // .gallery for real (assets in static/beaches/). Dev-route only; leaves any
+  // doc that already has a gallery untouched.
+  const people = (collections.person ?? []) as Array<{
+    uid: string;
+    data: { gallery?: unknown[] };
+  }>;
+  for (const doc of people) {
+    const beach = PERSON_BEACHES[doc.uid as keyof typeof PERSON_BEACHES];
+    if (beach && !(doc.data.gallery && doc.data.gallery.length)) {
+      doc.data.gallery = [{ image: devImg(beach.img), caption: beach.caption }];
+    }
+  }
 
   return { uid: params.uid, slices, collections };
 }
