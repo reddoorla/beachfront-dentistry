@@ -36,11 +36,15 @@ describe("contact-us page", () => {
   });
 
   it("funnels the appointment form through the global modal (#appointment), no body form", () => {
-    const { container, getByText } = render(Page);
+    const { container, getAllByText } = render(Page);
     // No body form on the page — the form is in the global AppointmentModal.
     expect(container.querySelector("form")).toBeNull();
-    // The Book Appointment button opens that modal via the #appointment anchor.
-    const book = getByText("Book Appointment").closest("a");
-    expect(book?.getAttribute("href")).toBe("#appointment");
+    // Both the info-band button and the closing CTA say "Book Appointment" and
+    // open that modal via the #appointment anchor.
+    const books = getAllByText("Book Appointment");
+    expect(books.length).toBeGreaterThanOrEqual(1);
+    for (const el of books) {
+      expect(el.closest("a")?.getAttribute("href")).toBe("#appointment");
+    }
   });
 });
