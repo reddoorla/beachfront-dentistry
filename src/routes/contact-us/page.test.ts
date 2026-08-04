@@ -1,34 +1,27 @@
 import { render, cleanup } from "@testing-library/svelte";
-import { afterEach, describe, expect, it, vi } from "vitest";
-
-// The form pulls in TurnstileWidget, which reads $env/dynamic/public at
-// instance init — same mock as TurnstileWidget.test.ts, unset here so the
-// widget stays dark (no network / no Cloudflare script injection in jsdom).
-vi.mock("$env/dynamic/public", () => ({ env: {} }));
+import { afterEach, describe, expect, it } from "vitest";
 
 import Page from "./+page.svelte";
 
 afterEach(() => cleanup());
 
-const data = { formTs: 1700000000000, title: "Contact" };
-
+// The page takes no props — it matches the live /contact-us: a left-aligned
+// "Contact Us" photo hero, an info band (Book-Appointment button + CONTACT /
+// OFFICE HOURS + map), and the shared CTA. The request-appointment FORM lives
+// in the global AppointmentModal (opened via the #appointment anchor); this
+// route has no body form of its own.
 describe("contact-us page", () => {
-  it("has the Contact Us h1", () => {
-    const { getByRole } = render(Page, {
-      props: { data: data as never, form: null },
-    });
-    expect(getByRole("heading", { level: 1 }).textContent).toBe("Contact Us");
+  it("has the Contact Us heading (h2, matching live)", () => {
+    const { getByRole } = render(Page);
+    expect(getByRole("heading", { level: 2, name: "Contact Us" })).toBeTruthy();
   });
 
-  it("renders an info column with hours, address, and a phone link", () => {
-    const { getByText } = render(Page, {
-      props: { data: data as never, form: null },
-    });
+  it("renders the CONTACT / OFFICE HOURS info with a phone link", () => {
+    const { getByText } = render(Page);
 
-    expect(getByText("Monday - Thursday")).toBeTruthy();
-    expect(getByText("7am - 5pm")).toBeTruthy();
-    expect(getByText("Friday")).toBeTruthy();
-    expect(getByText("7am - 2pm")).toBeTruthy();
+    expect(getByText("Monday - Thursday / 7am - 5pm")).toBeTruthy();
+    expect(getByText("Friday / 7am - 2pm")).toBeTruthy();
+    expect(getByText("Saturday - Sunday / Closed")).toBeTruthy();
 
     expect(getByText("1706 S Elena Ave. Suite B")).toBeTruthy();
     expect(getByText("Redondo Beach, CA 90277")).toBeTruthy();
@@ -38,19 +31,16 @@ describe("contact-us page", () => {
   });
 
   it("renders the map embed with its accessible title", () => {
-    const { getByTitle } = render(Page, {
-      props: { data: data as never, form: null },
-    });
+    const { getByTitle } = render(Page);
     expect(getByTitle("Map to Beachfront Dentistry")).toBeTruthy();
   });
 
-  it("still renders the contact form with the anti-spam fields", () => {
-    const { container } = render(Page, {
-      props: { data: data as never, form: null },
-    });
-    const form = container.querySelector("form");
-    expect(form).toBeTruthy();
-    expect(form?.querySelector('input[name="ts"]')).toBeTruthy();
-    expect(form?.querySelector('input[name="bot-field"]')).toBeTruthy();
+  it("funnels the appointment form through the global modal (#appointment), no body form", () => {
+    const { container, getByText } = render(Page);
+    // No body form on the page — the form is in the global AppointmentModal.
+    expect(container.querySelector("form")).toBeNull();
+    // The Book Appointment button opens that modal via the #appointment anchor.
+    const book = getByText("Book Appointment").closest("a");
+    expect(book?.getAttribute("href")).toBe("#appointment");
   });
 });

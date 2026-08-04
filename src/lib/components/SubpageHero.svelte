@@ -25,6 +25,7 @@
     subtitle,
     subheadings,
     intro,
+    align = "center",
   }: {
     heading?: RichTextField | null;
     backgroundImage?: ImageField | null;
@@ -34,6 +35,9 @@
     // dark-teal slab headings ("Our" / "Team") over a cyan slab intro line.
     subheadings?: string[] | null;
     intro?: RichTextField | null;
+    // most subpage heroes centre the heading at desktop; contact-us keeps it
+    // LEFT-aligned (live `.hero.contact`).
+    align?: "center" | "left";
   } = $props();
 
   const headingText = $derived(asText((heading ?? []) as RichTextField));
@@ -59,14 +63,19 @@
   <!-- `.subpage-hero-heading`: absolute bottom 2%, full-width centered at
        desktop, left-aligned 80% (left 10%) below 992. -->
   <div
-    class="absolute bottom-[2%] left-[10%] z-10 w-4/5 lg:left-0 lg:w-full"
+    class="absolute bottom-[2%] z-10 {align === 'left'
+      ? 'left-5 lg:left-20'
+      : 'left-[10%] w-4/5 lg:left-0 lg:w-full'}"
     use:animateIn={LIVE_REVEAL}
   >
     <!-- Inline white: the unlayered global `main h1–h3` primary-colour rule
          outranks a `text-white` utility (same trap as the QA card title), so
          force the live white heading with an inline style. -->
     <h2
-      class="font-slab text-left text-[56px] leading-[70px] font-thin md:text-[90px] md:leading-[108px] lg:text-center lg:text-[140px] lg:leading-[168px]"
+      class="font-slab text-left text-[56px] leading-[70px] font-thin md:text-[90px] md:leading-[108px] lg:text-[140px] lg:leading-[168px] {align ===
+      'left'
+        ? ''
+        : 'lg:text-center'}"
       style="color:#fff"
     >
       {headingText}
