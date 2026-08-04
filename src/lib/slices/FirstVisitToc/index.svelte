@@ -1,6 +1,10 @@
 <script lang="ts">
   import { PrismicRichText } from "@prismicio/svelte";
-  import { isFilled, type RichTextField, type LinkField } from "@prismicio/client";
+  import {
+    isFilled,
+    type RichTextField,
+    type LinkField,
+  } from "@prismicio/client";
   import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
   import OutlineButton from "$lib/components/OutlineButton.svelte";
 

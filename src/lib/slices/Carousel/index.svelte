@@ -150,7 +150,9 @@
         {#snippet children({ index }: { index: number })}
           {@const item = trackItems[index]}
           {#if item && isFilled.image(item.image)}
-            <div class="h-[293px] w-full overflow-hidden md:h-[560px] lg:h-[900px]">
+            <div
+              class="h-[293px] w-full overflow-hidden md:h-[560px] lg:h-[900px]"
+            >
               <PrismicImage
                 field={item.image}
                 fallbackAlt=""

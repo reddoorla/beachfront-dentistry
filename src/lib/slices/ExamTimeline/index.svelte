@@ -51,8 +51,9 @@
     <div
       class="flex size-20 shrink-0 items-center justify-center rounded-full bg-[#129ecc]"
     >
-      <span class="font-slab text-[45px] leading-none font-light" style="color:#fff"
-        >{number}</span
+      <span
+        class="font-slab text-[45px] leading-none font-light"
+        style="color:#fff">{number}</span
       >
     </div>
     {#if minutes}
@@ -65,7 +66,11 @@
 {/snippet}
 
 {#snippet stepBody(step: Step, center: boolean)}
-  <div class="flex flex-col {center ? 'items-center text-center' : 'items-start text-left'}">
+  <div
+    class="flex flex-col {center
+      ? 'items-center text-center'
+      : 'items-start text-left'}"
+  >
     <h5 class="font-slab text-[30px] leading-[40px] font-light text-[#129ecc]">
       {asText(step.title as RichTextField)}
     </h5>
