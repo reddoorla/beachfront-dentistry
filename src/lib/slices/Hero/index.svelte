@@ -52,7 +52,9 @@
       heading?: RichTextField | null;
       background_image?: ImageField | null;
       subtitle?: string | null;
-      subheadings?: string[] | null;
+      // Modeled as StructuredText (heading2 blocks) so it round-trips through
+      // Prismic — SubpageHero still takes a plain string[]; we map below.
+      subheadings?: RichTextField | null;
       intro?: RichTextField | null;
     };
     items: unknown[];
@@ -81,6 +83,14 @@
       | HeroGroupPhotoSlice;
     context?: { presentation?: Presentation };
   } = $props();
+
+  // The subpage `subheadings` field is StructuredText (heading2 blocks) so it
+  // round-trips through Prismic; SubpageHero wants a plain string[] — pull the
+  // text off each block (tolerant of an already-flat string[] from older data).
+  const blocksToLines = (rt?: RichTextField | null): string[] =>
+    ((rt ?? []) as RichTextField)
+      .map((b) => ("text" in b ? b.text : ""))
+      .filter((t) => t.length > 0);
 
   let hasImage = $derived(
     slice.variation === "default" && !!slice.primary.background_image?.url,
@@ -176,7 +186,7 @@
     heading={slice.primary.heading}
     backgroundImage={slice.primary.background_image}
     subtitle={slice.primary.subtitle}
-    subheadings={slice.primary.subheadings}
+    subheadings={blocksToLines(slice.primary.subheadings)}
     intro={slice.primary.intro}
   />
 {:else if slice.variation === "groupphoto"}

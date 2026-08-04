@@ -450,7 +450,10 @@ export function assemblies(img) {
         primary: {
           heading: [head(2, "Meet")],
           background_image: img(IMG.heroRedondo),
-          subheadings: ["Our", "Team"],
+          // Two heading2 blocks (not a raw string array) so the below-wave
+          // "Our"/"Team" slab lines round-trip through Prismic — Hero/index
+          // maps the blocks back to strings for SubpageHero.
+          subheadings: [head(2, "Our"), head(2, "Team")],
           intro: [
             para(
               "We love caring for our patients and we also love the beach, read a little about each of our team members and see their favorite beach beyond the South Bay.",
