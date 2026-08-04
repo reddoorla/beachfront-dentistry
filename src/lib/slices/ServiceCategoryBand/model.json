@@ -26,6 +26,39 @@
         }
       },
       "items": {}
+    },
+    {
+      "id": "grid",
+      "name": "Grid",
+      "docURL": "...",
+      "version": "initial",
+      "description": "2-col grid of tinted service-category cards over the /services index (intro line + one card per category in items)",
+      "imageUrl": "",
+      "primary": {
+        "intro": {
+          "type": "StructuredText",
+          "config": {
+            "label": "intro (centered cyan we-offer line above the grid)"
+          }
+        }
+      },
+      "items": {
+        "category_tag": {
+          "type": "Text",
+          "config": { "label": "category tag (matches collection_item tags)" }
+        },
+        "heading": {
+          "type": "StructuredText",
+          "config": { "label": "heading", "single": "heading3" }
+        },
+        "intro": {
+          "type": "StructuredText",
+          "config": {
+            "label": "intro",
+            "multi": "paragraph,strong,em,hyperlink"
+          }
+        }
+      }
     }
   ]
 }

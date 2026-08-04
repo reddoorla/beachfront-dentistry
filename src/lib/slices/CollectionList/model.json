@@ -72,6 +72,29 @@
         }
       },
       "items": {}
+    },
+    {
+      "id": "people",
+      "name": "People",
+      "docURL": "...",
+      "version": "initial",
+      "description": "Person cards (headshot / name / role / bio / read-more + favorite-beach banner)",
+      "imageUrl": "",
+      "primary": {
+        "heading": {
+          "type": "StructuredText",
+          "config": { "label": "heading", "single": "heading2,heading3" }
+        },
+        "collection_type": {
+          "type": "Text",
+          "config": { "label": "collection_type" }
+        },
+        "max_items": {
+          "type": "Number",
+          "config": { "label": "max_items", "placeholder": "12" }
+        }
+      },
+      "items": {}
     }
   ]
 }
