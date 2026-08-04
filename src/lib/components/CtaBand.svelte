@@ -92,7 +92,15 @@
          comes from the section above; its mobile H2 sits flush at the section
          top with 24px below to the photo). -->
     <div class="mx-auto max-w-5xl px-6 pt-0 pb-6 text-center lg:pt-2 lg:pb-8">
-      <div class="display-xl h-primary" use:animateIn={LIVE_REVEAL}>
+      <!-- [&_h2]:text-wrap defeats the global `text-wrap: balance` (app.css:401)
+           — live FILLS this heading ("Ready for great / dental health?", 2 lines
+           @650) but balance spread ours over 3 even lines, pushing the pill +
+           Read-Reviews stack down and misaligning the whole band (Hero/steps
+           headings undo the same rule). -->
+      <div
+        class="display-xl h-primary [&_h2]:text-wrap"
+        use:animateIn={LIVE_REVEAL}
+      >
         <PrismicRichText field={heading} />
       </div>
       <RichTextBody field={body} />
@@ -135,7 +143,15 @@
     </div>
   {:else}
     <div class="mx-auto max-w-5xl px-6 py-24 text-center">
-      <div class="display-xl h-primary" use:animateIn={LIVE_REVEAL}>
+      <!-- [&_h2]:text-wrap defeats the global `text-wrap: balance` (app.css:401)
+           — live FILLS this heading ("Ready for great / dental health?", 2 lines
+           @650) but balance spread ours over 3 even lines, pushing the pill +
+           Read-Reviews stack down and misaligning the whole band (Hero/steps
+           headings undo the same rule). -->
+      <div
+        class="display-xl h-primary [&_h2]:text-wrap"
+        use:animateIn={LIVE_REVEAL}
+      >
         <PrismicRichText field={heading} />
       </div>
       <RichTextBody field={body} />
