@@ -86,10 +86,13 @@
       </div>
     {/if}
 
-    <!-- 2-col grid: live tracks are 640px wide / 800px tall around 600×640
-         cards (≈160px vertical gutter); 1-col at mobile (≈96px gutter). -->
+    <!-- 2-col grid. Live centers 600×640 cards in 800px row tracks: 160px
+         visible gutter BETWEEN rows (gap-y) + 80px of slack above the first
+         row and below the last. Mobile: 408px cards in 504px tracks → 96px
+         between + 48px top/bottom. gap-y covers the inter-row gutter; the
+         edge slack is the container's own py (py-12=48 / lg:py-20=80). -->
     <div
-      class="grid grid-cols-1 justify-items-center gap-y-[96px] md:grid-cols-2 lg:gap-y-[160px]"
+      class="grid grid-cols-1 justify-items-center gap-y-[96px] py-12 md:grid-cols-2 lg:gap-y-[160px] lg:py-20"
     >
       {#each categories as cat (asText((cat.heading ?? []) as RichTextField))}
         {@const [col1, col2] = splitCols(docsFor(cat.category_tag))}
