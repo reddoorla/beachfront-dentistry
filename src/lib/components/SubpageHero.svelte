@@ -101,7 +101,7 @@
        heading) over the cyan slab intro (#129ECC). Colours forced inline for
        the same reason as the band heading (global `main h1–h3` primary rule). -->
   <section class="w-full bg-white px-5 text-center" use:animateIn={LIVE_REVEAL}>
-    {#each subheadings ?? [] as line, i}
+    {#each subheadings ?? [] as line, i (line)}
       <!-- first heading nudges up 10px into the wave, matching live. -->
       <h2
         class="font-slab text-[56px] leading-[70px] font-thin lg:text-[140px] lg:leading-[168px] {i ===

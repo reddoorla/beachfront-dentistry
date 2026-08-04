@@ -134,7 +134,7 @@
             style="background:linear-gradient(#129ecc 40%, rgba(54,91,109,0.57))"
           >
             <div class="flex h-full">
-              {#each [col1, col2] as col}
+              {#each [col1, col2] as col, i (i)}
                 <ul class="w-1/2 pt-3 pl-3 lg:pt-5 lg:pl-5">
                   {#each col as doc (doc.uid)}
                     <li>
