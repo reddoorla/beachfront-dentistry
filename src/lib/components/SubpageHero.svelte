@@ -52,12 +52,19 @@
   {#if backgroundImage?.url}
     <HeroBackgroundImage image={backgroundImage} preload={true} />
   {/if}
-  <!-- Bottom scrim: live's photo reads plenty dark at the base, but the white
-       thin heading needs a touch of contrast insurance (a11y) — a soft
-       transparent→dark wash on the bottom third, no design reshape. -->
+  <!-- Live's hero overlay is a CYAN wash, not a neutral scrim (measured off
+       `.hero.contact`): a cyan top-tint fading out over the top third + a
+       transparent→solid-cyan bottom wash (full by 77% of its own height). This
+       is what makes the white thin heading read over a bright photo (the plain
+       dark scrim left "Contact Us" washed out over the loaded office shot). -->
+  <div
+    class="pointer-events-none absolute inset-x-0 top-0 h-1/3"
+    style="background:linear-gradient(rgba(18,158,204,0.8), rgba(0,0,0,0))"
+    aria-hidden="true"
+  ></div>
   <div
     class="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
-    style="background:linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.28))"
+    style="background:linear-gradient(rgba(0,0,0,0), rgba(18,158,204,0.8))"
     aria-hidden="true"
   ></div>
   <!-- `.subpage-hero-heading`: absolute bottom 2%, full-width centered at
