@@ -1,21 +1,9 @@
-import { describe, it, expect, afterEach, beforeAll } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 import { render, fireEvent, cleanup } from "@testing-library/svelte";
 import Accordion from "./Accordion.svelte";
 
-beforeAll(() => {
-  // jsdom lacks Web Animations API used by svelte transitions
-  if (!Element.prototype.animate) {
-    Element.prototype.animate = () =>
-      ({
-        cancel: () => {},
-        finished: Promise.resolve(),
-        onfinish: null,
-        play: () => {},
-        pause: () => {},
-      }) as unknown as Animation;
-  }
-});
-
+// The `element.animate` stub svelte transitions need in jsdom lives in
+// vitest-setup.ts (shared across all component tests).
 afterEach(() => cleanup());
 
 describe("Accordion", () => {

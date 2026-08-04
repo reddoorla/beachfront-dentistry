@@ -5,6 +5,7 @@
     type CarouselFrame,
   } from "$lib/blux/CarouselFrames.svelte";
   import ContentBand from "$lib/components/ContentBand.svelte";
+  import ReadReviewsExpander from "$lib/components/ReadReviewsExpander.svelte";
   import Slider from "$lib/components/Slider.svelte";
   import { PrismicImage, PrismicRichText } from "@prismicio/svelte";
   import {
@@ -58,6 +59,15 @@
   const trackItems = $derived(isTrackVariation ? (slice.items ?? []) : []);
   const trackCount = $derived(trackItems.length);
 
+  // Each review card carries its SOURCE's logo badge (live ships the Yelp
+  // logo on every card, even the Google-linked ones — corrected here per
+  // design direction: Google-sourced reviews get the Google G).
+  const isYelp = (url: string | null): boolean => /yelp\./i.test(url ?? "");
+  const badgeFor = (url: string | null) =>
+    isYelp(url)
+      ? { icon: "/icons/yelp-logo.png", label: "Yelp" }
+      : { icon: "/icons/google-g.svg", label: "Google" };
+
   const hasHeading = $derived(isFilled.richText(slice.primary.heading));
   const headingText = $derived(hasHeading ? asText(slice.primary.heading) : "");
   const trackLabel = $derived(
@@ -88,79 +98,171 @@
   );
 </script>
 
+<!-- Live's review-slider arrow assets (big-review-arrow-left/right, 30×33). -->
+{#snippet reviewArrowLeft()}
+  <img src="/icons/review-arrow-left.svg" alt="" class="h-[33px] w-[30px]" />
+{/snippet}
+{#snippet reviewArrowRight()}
+  <img src="/icons/review-arrow-right.svg" alt="" class="h-[33px] w-[30px]" />
+{/snippet}
+
 {#if isTrackVariation}
   {#if trackCount > 0}
     <ContentBand
       sliceType={slice.slice_type}
       variation={slice.variation}
-      contentClass="max-w-5xl px-6 py-16 text-center"
+      contentClass="max-w-7xl px-[19.5px] pt-0 pb-9 text-center lg:px-6 lg:py-16"
+      reveal
     >
       {#if hasHeading && slice.primary.heading}
-        <div class="mb-10">
+        <!-- Live's mobile review heading is 24px/38 (its 3-C sibling is 28/38 —
+             Webflow uses per-block sizes, so this one is scoped here rather than
+             moved into the global h2 scale). Desktop is unchanged at 60px. -->
+        <div
+          class="h-primary mb-12 [&_h2]:text-[24px] [&_h2]:leading-[38px] md:[&_h2]:text-[32px] md:[&_h2]:leading-[38px] lg:[&_h2]:text-[3.75rem] lg:[&_h2]:leading-[1.2]"
+        >
           <PrismicRichText field={slice.primary.heading} />
         </div>
       {/if}
-      <!-- The slide movement (Slider's transition-transform utility) is a
-           plain CSS transition, so app.css's global prefers-reduced-motion
-           reset flattens it for reduced-motion users — no local gate needed. -->
-      <Slider
-        itemCount={trackCount}
-        label={trackLabel}
-        showDots={false}
-        gap="0px"
-        mobileGap="0px"
-        arrowClass="text-dark hover:bg-light focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
-        transitionClass="duration-500 ease-in-out"
-      >
-        {#snippet children({ index }: { index: number })}
-          {@const item = trackItems[index]}
-          {#if item}
-            <div class="px-4">
+      <div class="relative mx-auto max-w-3xl">
+        {#if slice.variation === "review"}
+          <!-- Live's real hand-drawn "what they say" mark + curved arrow (PNG/SVG
+               assets, NOT redrawn) pointing to the review card. -->
+          <div
+            aria-hidden="true"
+            class="pointer-events-none absolute -top-4 -left-32 z-10 hidden w-56 -rotate-6 lg:block xl:-left-52"
+          >
+            <img src="/annotations/what-they-say.png" alt="" class="w-full" />
+            <img
+              src="/annotations/what-they-say-arrow.svg"
+              alt=""
+              class="mt-1 ml-10 w-16"
+            />
+          </div>
+        {/if}
+        <!-- The slide movement (Slider's transition-transform utility) is a
+             plain CSS transition, so app.css's global prefers-reduced-motion
+             reset flattens it for reduced-motion users — no local gate needed.
+             Timing is live's .big-review-slider rule verbatim: transform 2s
+             cubic-bezier(0.19,1,0.22,1) — the long expo glide, not a quick
+             ease-in-out. Arrows are live's own left-arrow/right-arrow SVGs. -->
+        <Slider
+          itemCount={trackCount}
+          label={trackLabel}
+          showDots={false}
+          gap="0px"
+          mobileGap="0px"
+          arrowLayout={slice.variation === "review" ? "sides" : "below"}
+          arrowClass="text-primary hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          transitionClass="duration-[2000ms] ease-[cubic-bezier(0.19,1,0.22,1)]"
+          prevArrow={slice.variation === "review" ? reviewArrowLeft : undefined}
+          nextArrow={slice.variation === "review"
+            ? reviewArrowRight
+            : undefined}
+        >
+          {#snippet children({ index }: { index: number })}
+            {@const item = trackItems[index]}
+            {#if item}
               {#if slice.variation === "review"}
-                <blockquote class="text-xl italic">
-                  <p>{item.quote}</p>
-                </blockquote>
-                <div class="mt-6 flex items-center justify-center gap-3">
-                  {#if isFilled.image(item.reviewer_photo)}
+                <!-- Live's mobile slide: viewport 337 inside 351 (7px each
+                     side); the holder reserves only ~12px below the card (the
+                     badge's 20px overhang draws over the pulled-up expander
+                     row, same as live's .shift-up overlap). -->
+                <div class="px-[7px] pb-[20px] lg:px-4 lg:pb-6">
+                  <!-- Pale-blue quote card (live .big-review, 600×400 at
+                       desktop, #e7f5fa, 25px radius, padding 24px tablet /
+                       30px desktop): the quote sits on TOP with the reviewer
+                       row beneath, and the source's logo badge overhangs the
+                       bottom-right edge. Order is NOT breakpoint-dependent —
+                       live is quote-on-top at every width (probe-verified
+                       column/QUOTE-top at 390/834/1440), so DOM order
+                       (blockquote then figcaption) maps 1:1 to paint order
+                       with plain flex-col; no reverse anywhere. justify-between
+                       + the fixed tablet/desktop heights open the gap live
+                       shows between the two blocks. -->
+                  <figure
+                    class="relative mx-auto flex max-w-[600px] flex-col justify-between rounded-[25px] bg-[#e7f5fa] p-[18px] text-left md:h-[320px] md:max-w-[480px] md:p-6 lg:h-[400px] lg:max-w-[600px] lg:p-[30px]"
+                  >
+                    {#if isFilled.link(item.review_url)}
+                      {@const badge = badgeFor(asLink(item.review_url))}
+                      <!-- Live .social-logo-big-review: an 80×80 logo anchor
+                           poking 20px below the card's bottom edge, 30px in
+                           from the right — no card chrome of its own. -->
+                      <a
+                        href={asLink(item.review_url)}
+                        target="_blank"
+                        rel="noopener"
+                        aria-label="Read this review on {badge.label}"
+                        class="focus-visible:ring-primary-deep absolute -bottom-5 right-6 transition-opacity hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:right-[30px]"
+                      >
+                        <img
+                          src={badge.icon}
+                          alt={badge.label}
+                          class="h-14 w-14 object-contain lg:h-20 lg:w-20"
+                        />
+                      </a>
+                    {/if}
+                    <!-- Direct [&_p] hits: the base main :where(p) clamp rule
+                         beats inherited sizes on the inner <p>, so the
+                         blockquote's own text-[16px] never reached it
+                         (computed 17.365/19px until pinned here). -->
+                    <blockquote
+                      class="[&_p]:text-[16px] [&_p]:leading-[24px] text-[#365b6d] lg:[&_p]:text-[20px] lg:[&_p]:leading-[30px] lg:font-light"
+                    >
+                      <p>{item.quote}</p>
+                    </blockquote>
+                    <figcaption
+                      class="mb-[10px] flex items-center gap-4 lg:mb-0 lg:gap-5"
+                    >
+                      {#if isFilled.image(item.reviewer_photo)}
+                        <PrismicImage
+                          field={item.reviewer_photo}
+                          fallbackAlt=""
+                          class="h-[72px] w-[72px] rounded-full object-cover lg:h-[120px] lg:w-[120px]"
+                        />
+                      {/if}
+                      <div class="flex-1">
+                        <p
+                          class="text-[16px] leading-[24px] font-medium text-[#365b6d] xs:text-[20px] xs:leading-[30px] md:text-[20px] md:leading-[60px] lg:text-[30px] lg:leading-[40px]"
+                        >
+                          {item.reviewer_name}
+                        </p>
+                        {#if item.reviewer_place}
+                          <p
+                            class="text-[10px] leading-[15px] font-light xs:text-[16px] xs:leading-[24px] md:text-[16px] md:leading-[25px] text-[#365b6d] uppercase lg:mt-1 lg:text-[16px] lg:leading-[25px]"
+                          >
+                            {item.reviewer_place}
+                          </p>
+                        {/if}
+                      </div>
+                    </figcaption>
+                  </figure>
+                </div>
+              {:else if isFilled.image(item.image) || item.caption}
+                <div class="px-4">
+                  {#if isFilled.image(item.image)}
                     <PrismicImage
-                      field={item.reviewer_photo}
+                      field={item.image}
                       fallbackAlt=""
-                      class="h-12 w-12 rounded-full object-cover"
+                      class="h-auto w-full object-cover"
                     />
                   {/if}
-                  <div class="text-left">
-                    <p class="font-semibold">{item.reviewer_name}</p>
-                    <p class="text-sm text-secondary">
-                      {item.reviewer_place}
-                    </p>
-                  </div>
+                  {#if item.caption}
+                    <p class="text-secondary mt-4 text-sm">{item.caption}</p>
+                  {/if}
                 </div>
-                {#if isFilled.link(item.review_url)}
-                  <a
-                    href={asLink(item.review_url)}
-                    target="_blank"
-                    rel="noopener"
-                    class="mt-4 inline-block underline focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
-                  >
-                    Read review
-                  </a>
-                {/if}
-              {:else if isFilled.image(item.image) || item.caption}
-                {#if isFilled.image(item.image)}
-                  <PrismicImage
-                    field={item.image}
-                    fallbackAlt=""
-                    class="h-auto w-full object-cover"
-                  />
-                {/if}
-                {#if item.caption}
-                  <p class="mt-4 text-sm text-secondary">{item.caption}</p>
-                {/if}
               {/if}
-            </div>
-          {/if}
-        {/snippet}
-      </Slider>
+            {/if}
+          {/snippet}
+        </Slider>
+      </div>
+      {#if slice.variation === "review"}
+        <!-- Live's .shift-up block: the expander sits tight under the slider
+             (mt -1rem) with 3rem reserved below for the disclosed logo row. -->
+        <div class="-mt-6 mb-18 lg:mt-[-16px] lg:mb-28">
+          <ReadReviewsExpander />
+        </div>
+      {/if}
     </ContentBand>
   {/if}
 {:else if frames && frames.length > 0}

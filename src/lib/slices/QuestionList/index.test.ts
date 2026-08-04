@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { render, cleanup } from "@testing-library/svelte";
+import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import QuestionList from "./index.svelte";
 
 afterEach(() => cleanup());
@@ -66,25 +66,91 @@ const numberedSlice = {
 } as never;
 
 describe("QuestionList slice — teaser variation", () => {
-  it("renders exactly max_items question links, newest first, to /questions/<uid>", () => {
+  it("renders exactly max_items question cards, newest first, each a disclosure whose Read More links /questions/<uid>, plus a View All link", () => {
+    const { getAllByRole, getByRole } = render(QuestionList, {
+      props: { slice: teaserSlice, context },
+    });
+    // Live's cards are click-to-expand disclosures, NOT links — only the
+    // "Read More" inside each card's answer panel navigates. The title
+    // renders as the card's h3 overlay and in the toggle's accessible name.
+    const readMoreLinks = getAllByRole("link").filter((l) =>
+      /^\/questions\/[^/]+$/.test(l.getAttribute("href") ?? ""),
+    );
+    expect(readMoreLinks).toHaveLength(6);
+    readMoreLinks.forEach((link, i) => {
+      const [uid] = expectedOrder[i]!;
+      expect(link.getAttribute("href")).toBe(`/questions/${uid}`);
+      expect(link.textContent).toContain("Read More");
+    });
+    const titles = getAllByRole("heading", { level: 3 }).map((h) =>
+      h.textContent?.trim(),
+    );
+    // Only the first max_items (6) of the 8 fixture docs render.
+    expectedOrder.slice(0, 6).forEach(([, , title]) => {
+      expect(titles.some((t) => t?.includes(title))).toBe(true);
+    });
+    // The section closes with a "View All Questions" link to the index.
+    expect(
+      getByRole("link", { name: /View All Questions/i }).getAttribute("href"),
+    ).toBe("/ask-the-doctor");
+  });
+
+  it("expands a card in place: toggle flips aria-expanded and un-inerts the answer panel", async () => {
     const { getAllByRole } = render(QuestionList, {
       props: { slice: teaserSlice, context },
     });
-    const links = getAllByRole("link");
-    expect(links).toHaveLength(6);
-    links.forEach((link, i) => {
-      const [uid, , title] = expectedOrder[i]!;
-      expect(link.getAttribute("href")).toBe(`/questions/${uid}`);
-      expect(link.textContent?.trim()).toBe(title);
-    });
+    const toggles = getAllByRole("button", { expanded: false });
+    expect(toggles).toHaveLength(6);
+    const panel = document.getElementById(
+      toggles[0]!.getAttribute("aria-controls")!,
+    )!;
+    // Closed: the answer (excerpt + Read More) sits beyond the card's clip
+    // edge and must be untabbable/inert until opened, like live's .qa-answer.
+    // (Svelte applies `inert` as a DOM property, not an attribute.)
+    expect((panel as HTMLElement).inert).toBe(true);
+    await fireEvent.click(toggles[0]!);
+    expect(toggles[0]!.getAttribute("aria-expanded")).toBe("true");
+    expect((panel as HTMLElement).inert).toBe(false);
+    // Open: the header bar rides up ABOVE the card box but stays VISIBLE
+    // (live's .qa-label.active) — it remains the disclosure toggle, never
+    // inert (no inert attribute is set on it at all).
+    expect((toggles[0] as HTMLElement).inert).toBeFalsy();
   });
 
-  it("renders the side image", () => {
-    const { getByRole } = render(QuestionList, {
+  it("the whole card is a click target (live .qa-block): clicking the box toggles, Escape closes", async () => {
+    const { getAllByRole, container } = render(QuestionList, {
       props: { slice: teaserSlice, context },
     });
-    const img = getByRole("img");
-    expect(img.getAttribute("alt")).toBe("Dr. Smith");
+    const card = container.querySelector("li.qa-item > div")! as HTMLElement;
+    const toggle = getAllByRole("button", { expanded: false })[0]!;
+
+    await fireEvent.click(card);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+
+    // A click that lands on the Read More link must NOT toggle the card
+    // (only the link navigates, exactly like live).
+    const readMore = card.querySelector("a")!;
+    await fireEvent.click(readMore);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+
+    // Escape closes (keyboard path while the bar button is slid out/inert).
+    await fireEvent.keyDown(card, { key: "Escape" });
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("renders the side image inside the aria-hidden floating pair", () => {
+    // The headshot rides the handwriting+headshot anchor pair — pure
+    // decoration on live (click-through), so the wrapper is aria-hidden and
+    // the image is deliberately absent from the accessibility tree.
+    const { container } = render(QuestionList, {
+      props: { slice: teaserSlice, context },
+    });
+    const headshot = container.querySelector(".ask-the-doctor-headshot");
+    expect(headshot).not.toBeNull();
+    expect(headshot!.closest("[aria-hidden='true']")).not.toBeNull();
+    expect(headshot!.querySelector("img")?.getAttribute("alt")).toBe(
+      "Dr. Smith",
+    );
   });
 
   it("marks each question link's list item as a qa-item (floatAlong's tracking target)", () => {

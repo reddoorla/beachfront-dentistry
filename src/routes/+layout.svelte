@@ -25,6 +25,15 @@
   // precedence over this in each chrome component.
   const siteConfig = loadSiteConfig();
 
+  // Routes that open with a full-bleed dark hero can carry a transparent nav
+  // that turns solid on scroll (the live site's behaviour). Every other route
+  // starts on a light section, where a transparent white nav would be
+  // invisible — those keep the solid brand-blue band from the top.
+  const HERO_COVER_ROUTES = new Set(["/", "/your-first-visit"]);
+  const navTransparentAtTop = $derived(
+    HERO_COVER_ROUTES.has(page.url.pathname),
+  );
+
   // Kit's own post-nav scroll (top / hash anchor / popstate restore) runs
   // instantly instead of gliding under app.css's smooth-scroll. See the util.
   beforeNavigate(disableSmoothScroll);
@@ -78,6 +87,10 @@
       navLinks={page.data.navLinks}
       items={siteConfig.nav.items}
       logo={siteConfig.nav.logo}
+      logoClass="h-20 w-auto"
+      transparentAtTop={navTransparentAtTop}
+      hamburgerOnly
+      hamburgerSrc="/icons/menu-white.svg"
     />
 
     <main id="main-content" tabindex="-1" class="flex-1">
@@ -88,6 +101,14 @@
       columns={footerColumns(page.data.footerColumns, siteConfig)}
       socials={siteConfig.footer.socials}
       text={siteConfig.footer.text}
+      heading="Want to learn more?"
+      legal={[
+        "©2023 Beachfront Dentistry",
+        "All Rights Reserved",
+        "Privacy Policy",
+        "Sitemap",
+      ]}
+      showMap
     />
   </div>
   <TransitionOverlay />

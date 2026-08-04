@@ -71,22 +71,6 @@ function withStrong(block, phrase) {
     ],
   };
 }
-// a paragraph containing a hyperlink span over `phrase` → url
-function paraLink(text, phrase, url) {
-  const start = text.indexOf(phrase);
-  const spans =
-    start < 0
-      ? []
-      : [
-          {
-            start,
-            end: start + phrase.length,
-            type: "hyperlink",
-            data: { link_type: "Web", url },
-          },
-        ];
-  return { type: "paragraph", text, spans };
-}
 const webLink = (url) => ({ link_type: "Web", url });
 
 // Prismic rejects an unfilled Link/Image passed as `{}` ("link_type must be
@@ -181,6 +165,11 @@ const CDN = "https://cdn.prod.website-files.com";
 const A = `${CDN}/64af3f93339537d6b661b556`; // primary bucket
 const B = `${CDN}/64b1c843b071dc32170ea053`; // team/reviews bucket
 const IMG = {
+  // hero / closing-CTA backgrounds (home hero is a bg video on the live site;
+  // its poster still is a faithful hero image)
+  heroHome: `${A}/6531a5d33be0526fd5c1bc35_BD_homepage_video_hd_101823-poster-00001.jpg`,
+  heroFirstVisit: `${A}/64b8367c61b87df9edf5b314_DSC_7547.jpg`,
+  ctaBeach: `${A}/64af4c2e1e0b9ad3d901241e_beach-img_sebastien-jermer-n7DY58YFg9E-unsplash.jpg`,
   comfort: `${A}/64b998400e0eb30dcc2adf55_DSC_7650.jpg`,
   comprehensive: `${A}/64b9a0735c910a0ec38efc68_cerec-same-day-machine.jpg`,
   caring: `${A}/64b9a05a616537fb5e59d7e7_BD_office_2020_IMG_2885.jpg`,
@@ -258,8 +247,9 @@ const reviewItems = (img) =>
     review_url: webLink(r.url),
   }));
 
-// Shared closing CTA hero (verbatim off the live site footer band).
-const ctaHero = () => ({
+// Shared closing CTA hero (verbatim off the live site footer band) over the
+// recurring beach photo.
+const ctaHero = (img) => ({
   slice_type: "hero",
   variation: "cta",
   primary: {
@@ -267,23 +257,21 @@ const ctaHero = () => ({
     body: [],
     cta_label: "Book Appointment",
     cta_link: webLink("#appointment"),
+    background_image: img(IMG.ctaBeach),
   },
   items: [],
 });
-// Shared meet-the-team teaser (the live team carousel → a media_text teaser
-// linking to /our-team, per the Task-16 map).
-const teamTeaser = (img) => ({
-  slice_type: "media_text",
-  variation: "imageRight",
+// Shared meet-the-team section — the live circular-avatar carousel of team
+// members. Renders `person` docs via CollectionList's `team` variation (the
+// page loader fetches the person collection because this slice references it);
+// each avatar links to its /team-members/<uid> detail route.
+const teamTeaser = () => ({
+  slice_type: "collection_list",
+  variation: "team",
   primary: {
-    heading: [head(2, "Meet Our Team")],
-    body: [
-      para(
-        "We love caring for our patients and we also love the beach, read a little about each of our team members and see their favorite beach beyond the South Bay.",
-      ),
-      paraLink("Meet our team →", "Meet our team →", "/our-team"),
-    ],
-    media: img(IMG.quan),
+    heading: [head(2, "Meet Your Team")],
+    collection_type: "person",
+    max_items: 24,
   },
   items: [],
 });
@@ -299,6 +287,9 @@ function assemblies(img) {
         variation: "default",
         primary: {
           heading: [
+            // The Prismic hero heading field's model disallows inline bold, so
+            // the live "Beachfront Dentistry" emphasis is applied at render
+            // time in Hero/index.svelte, not carried as a strong span here.
             head(
               1,
               "Have a relaxed dental experience where you are known and cared for at Beachfront Dentistry",
@@ -307,6 +298,7 @@ function assemblies(img) {
           body: [],
           cta_label: "Make Appointment",
           cta_link: webLink("#appointment"),
+          background_image: img(IMG.heroHome),
         },
         items: [],
       },
@@ -314,6 +306,7 @@ function assemblies(img) {
         slice_type: "section_grid",
         variation: "default",
         primary: {
+          layout: "cards",
           heading: [head(2, "Finally have a dentist that puts you first")],
           columns: 3,
         },
@@ -322,7 +315,7 @@ function assemblies(img) {
             item_heading: [head(4, "Comfort")],
             item_body: [
               para(
-                "Our dental care integrates all oral health needs with goals of establishing life-long and healthy habits",
+                "It is our goal to provide you with a relaxing, comfortable, and professional dental experience",
               ),
             ],
             item_media: img(IMG.comfort),
@@ -332,7 +325,7 @@ function assemblies(img) {
             item_heading: [head(4, "Comprehensive")],
             item_body: [
               para(
-                "Our focus on preventative and restorative dental treatments ensures that you receive long-lasting, quality care",
+                "Our dental care integrates all oral health needs with goals of establishing life-long and healthy habits",
               ),
             ],
             item_media: img(IMG.comprehensive),
@@ -340,13 +333,17 @@ function assemblies(img) {
           },
           {
             item_heading: [head(4, "Caring")],
-            item_body: [],
+            item_body: [
+              para(
+                "Our focus on preventative and restorative dental treatments ensures that you receive long-lasting, quality care",
+              ),
+            ],
             item_media: img(IMG.caring),
             item_link: {},
           },
         ],
       },
-      teamTeaser(img),
+      teamTeaser(),
       {
         slice_type: "carousel",
         variation: "review",
@@ -358,7 +355,15 @@ function assemblies(img) {
       {
         slice_type: "section_grid",
         variation: "default",
-        primary: { heading: [head(2, "Your Path to Oral Health")], columns: 3 },
+        primary: {
+          layout: "steps",
+          heading: [head(2, "Your Path to Oral Health")],
+          subtitle: "is like a short walk on the beach",
+          side_image: img(IMG.path),
+          cta_label: "Book an Appointment",
+          cta_link: webLink("#appointment"),
+          columns: 3,
+        },
         items: [
           {
             item_heading: [head(4, "Book an Appointment")],
@@ -384,7 +389,15 @@ function assemblies(img) {
         slice_type: "section_grid",
         variation: "default",
         primary: {
+          layout: "services",
           heading: [head(2, "Services")],
+          body: [
+            para(
+              "Our dental team in Redondo Beach's Riviera Village takes great pride in the wide-range of practices our state-of-the-art facility is capable of providing for your smile.",
+            ),
+          ],
+          cta_label: "View All Services",
+          cta_link: webLink("/services"),
           columns: 3,
         },
         items: [
@@ -418,7 +431,7 @@ function assemblies(img) {
         },
         items: [],
       },
-      ctaHero(),
+      ctaHero(img),
     ],
 
     "your-first-visit": [
@@ -434,6 +447,7 @@ function assemblies(img) {
           ],
           cta_label: "Book an Appointment",
           cta_link: webLink("#appointment"),
+          background_image: img(IMG.heroFirstVisit),
         },
         items: [],
       },
@@ -452,7 +466,7 @@ function assemblies(img) {
           IMG.tour8,
         ].map((u) => ({ image: img(u), caption: "" })),
       },
-      teamTeaser(img),
+      teamTeaser(),
       {
         slice_type: "rich_text",
         variation: "default",
@@ -508,7 +522,7 @@ function assemblies(img) {
         },
         items: reviewItems(img),
       },
-      ctaHero(),
+      ctaHero(img),
     ],
 
     "our-team": [
@@ -531,7 +545,7 @@ function assemblies(img) {
         primary: { heading: [], collection_type: "person", max_items: 100 },
         items: [],
       },
-      ctaHero(),
+      ctaHero(img),
     ],
 
     services: [
@@ -604,7 +618,7 @@ function assemblies(img) {
         },
         items: [],
       },
-      ctaHero(),
+      ctaHero(img),
     ],
 
     "ask-the-doctor": [
@@ -620,7 +634,7 @@ function assemblies(img) {
         primary: { heading: [head(2, "Ask the Doctor")] },
         items: [],
       },
-      ctaHero(),
+      ctaHero(img),
     ],
   };
 }

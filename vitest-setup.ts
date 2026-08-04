@@ -39,3 +39,19 @@ if (
   window.IntersectionObserver =
     NoopIntersectionObserver as unknown as typeof IntersectionObserver;
 }
+
+// jsdom ships no Web Animations API. Svelte's built-in transitions (`slide`,
+// `fly`, …) call `element.animate()` when an element enters/leaves, so any
+// component test that toggles transitioned content (accordions, disclosures)
+// throws an unhandled `element.animate is not a function` — which vitest fails
+// the run on. A no-op Animation keeps those tests green.
+if (typeof Element !== "undefined" && !Element.prototype.animate) {
+  Element.prototype.animate = () =>
+    ({
+      cancel: () => {},
+      finished: Promise.resolve(),
+      onfinish: null,
+      play: () => {},
+      pause: () => {},
+    }) as unknown as Animation;
+}

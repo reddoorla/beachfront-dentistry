@@ -1,3 +1,14 @@
+/** Live's Webflow scroll-reveal, read off the reference (2026-08-02): each
+ *  element rises `--reveal-travel` (96px mobile / 160px desktop — live's 4rem
+ *  in its responsive root) over 1s on the shared expo-out curve, with no
+ *  x-position stagger — same-row elements land together, exactly like the
+ *  Webflow ix2 triggers. Spread into per-element `use:animateIn` calls. */
+export const LIVE_REVEAL = {
+  duration: 1000,
+  translateY: "var(--reveal-travel)",
+  delayMax: 0,
+} as const;
+
 export type AnimateInOptions = {
   trigger?: boolean;
   duration?: number;
@@ -47,9 +58,11 @@ function resolveConfig(param: AnimateInParam): ResolvedConfig {
 function applyHidden(node: HTMLElement, cfg: ResolvedConfig) {
   node.style.opacity = "0";
   node.style.transform = `translateY(${cfg.translateY})`;
+  // --transition-out-expo = cubic-bezier(0.19,1,0.22,1) — the exact curve
+  // live's Webflow reveals run on (read off its anchor transition).
   node.style.transition =
-    `opacity ${cfg.duration}ms var(--transition-fast-slow), ` +
-    `transform ${cfg.duration}ms var(--transition-fast-slow)`;
+    `opacity ${cfg.duration}ms var(--transition-out-expo), ` +
+    `transform ${cfg.duration}ms var(--transition-out-expo)`;
 }
 
 function reveal(node: HTMLElement) {
@@ -90,7 +103,14 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
     observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          reveal(node);
+          // Double-rAF: for an element already in view at mount the observer
+          // fires in the same frame as applyHidden, and hidden+revealed styles
+          // collapse into one style recalc — the element pops with no
+          // transition. Committing the hidden frame first makes above-fold
+          // reveals actually play (live animates them on load too).
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() => reveal(node)),
+          );
           observer?.disconnect();
         }
       },

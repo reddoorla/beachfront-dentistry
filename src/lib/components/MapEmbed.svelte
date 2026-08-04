@@ -11,12 +11,14 @@
   }: Props = $props();
 </script>
 
+<!-- z=12 matches live's Webflow map widget (data-widget-zoom="12"): the wider
+     South Bay area view, not the street-level default the embed opens at. -->
 <iframe
   title="Map to Beachfront Dentistry"
   src={"https://www.google.com/maps?q=" +
     encodeURIComponent(query) +
-    "&output=embed"}
-  class="h-80 w-full rounded border-0"
+    "&z=12&output=embed"}
+  class="h-[400px] w-full rounded border-0"
   loading="lazy"
   referrerpolicy="no-referrer-when-downgrade"
 ></iframe>

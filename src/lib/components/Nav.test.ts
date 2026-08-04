@@ -193,28 +193,21 @@ describe("Nav — mobile menu", () => {
     expect(toggle.getAttribute("aria-expanded")).toBe("false");
   });
 
-  it("expands a dropdown as an accordion and reveals its children", async () => {
+  it("menu overlay renders only leaf links (live's modal has no accordion) plus a Home Page link", async () => {
     const { getByLabelText, getByRole } = render(Nav, {
       items: itemsWithDropdown,
     });
     await fireEvent.click(getByLabelText("Open menu"));
     await frame();
 
-    // Scope to the dialog: the desktop dropdown <ul> also holds these links and
-    // jsdom applies no stylesheet, so Tailwind's `hidden`/`lg:flex` doesn't hide
-    // it — only the dialog's accordion actually collapses its children.
+    // Live's dropdown-modal is a flat column of links — an item that is only
+    // a dropdown parent (no href) simply doesn't appear in the overlay.
     const dialog = getByRole("dialog");
     expect(dialog.textContent).not.toContain("Chairs");
-
-    const toggle = Array.from(dialog.querySelectorAll("button")).find((b) =>
-      b.textContent?.includes("Products"),
-    )!;
-    expect(toggle.getAttribute("aria-expanded")).toBe("false");
-
-    await fireEvent.click(toggle);
-    expect(toggle.getAttribute("aria-expanded")).toBe("true");
-    expect(dialog.textContent).toContain("Chairs");
-    expect(dialog.textContent).toContain("Tables");
+    const home = Array.from(dialog.querySelectorAll("a")).find(
+      (a) => a.textContent === "Home Page",
+    );
+    expect(home?.getAttribute("href")).toBe("/");
   });
 });
 
@@ -299,8 +292,10 @@ describe("Nav — beachfront chrome (siteConfig items + phone/payment CTAs)", ()
     const phone = links.find((a) => a.textContent === "(310) 378-9241");
     expect(phone?.getAttribute("href")).toBe("tel:+13103789241");
 
-    const request = links.find((a) => a.textContent === "Request Appointment");
-    expect(request?.getAttribute("href")).toBe("#appointment");
+    // Live's modal CTA is labelled "Book an Appointment" (not the desktop
+    // band's "Request Appointment").
+    const book = links.find((a) => a.textContent === "Book an Appointment");
+    expect(book?.getAttribute("href")).toBe("#appointment");
 
     const payment = links.find((a) => a.textContent === "Make a Payment");
     expect(payment?.getAttribute("href")).toBe(

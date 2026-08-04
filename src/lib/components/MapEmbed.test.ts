@@ -12,10 +12,11 @@ describe("MapEmbed", () => {
     const iframe = getByTitle(
       "Map to Beachfront Dentistry",
     ) as HTMLIFrameElement;
+    // z=12 = live's Webflow map widget zoom (the wider South Bay area view).
     expect(iframe.getAttribute("src")).toBe(
       "https://www.google.com/maps?q=" +
         encodeURIComponent("123 Main St, Some City, CA") +
-        "&output=embed",
+        "&z=12&output=embed",
     );
     expect(iframe.getAttribute("loading")).toBe("lazy");
     expect(iframe.getAttribute("referrerpolicy")).toBe(

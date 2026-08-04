@@ -14,6 +14,27 @@
   --screen-lg: 1024px;
   --screen-xl: 1340px;
 
+  /* Match live's Webflow breakpoints so our tiers map 1:1 to its rendering.
+     Webflow's min-width breakpoints are 480 / 768 / 992 (its max-width edges
+     479 / 767 / 991): desktop ≥992, tablet 768–991, mobile-LANDSCAPE 480–767,
+     mobile-PORTRAIT ≤479. The root font-size only steps 24→32→(desktop), but
+     that is a red herring — Webflow gives most elements their OWN per-breakpoint
+     px, and the biggest step for many is at 480 (e.g. the 3-C labels 24→30, the
+     reviewer name 16→20, footer fine print 10→15), NOT tied to the root. So we
+     need a tier at 480: `xs:` = live mobile-landscape (480–767), base = live
+     mobile-portrait (≤479), `md:` = tablet (768–991), `lg:` = desktop (≥992).
+     `sm:` (640) is a non-live breakpoint kept only for two off-home utilities
+     (catalog grid, footer row); the home page uses xs/md/lg.
+     The FULL set is redeclared in ascending order on purpose: overriding one
+     breakpoint alone re-registers it out of order, so a lower variant emits
+     AFTER a higher one and wins (a `md:` value bled past `lg:` at desktop once).
+     Declaring xs→xl in order restores correct emission (higher wins at its min). */
+  --breakpoint-xs: 480px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1280px;
+
   --color-transparent: transparent;
   --color-current: currentColor;
   --color-black: black;
@@ -33,8 +54,17 @@
   --color-secondary: #5d6c7b;
   --color-accent: #b6aa91;
 
-  --font-sans: museo-sans, ui-sans-serif, system-ui, sans-serif;
-  --font-slab: museo-slab, ui-serif, Georgia, serif;
+  /* museo-* load from the site's (domain-locked) Adobe kit once its domains are
+     allowlisted. Until then the fallbacks are chosen to sit in the SAME type
+     category as the real faces so the layout reads correctly: Museo Sans is a
+     geometric humanist sans (→ Avenir / Century Gothic), Museo Slab is a
+     geometric SLAB serif (→ Rockwell, not old-style Georgia). */
+  --font-sans:
+    museo-sans, "Avenir Next", Avenir, "Century Gothic", ui-sans-serif,
+    system-ui, sans-serif;
+  --font-slab:
+    museo-slab, "Rockwell", "Rockwell Nova", "Roboto Slab", "Zilla Slab",
+    Georgia, serif;
 
   --transition-in-expo: cubic-bezier(0.95, 0.05, 0.795, 0.035);
   --transition-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
@@ -185,13 +215,103 @@ main :nth-child(even of section[data-slice-type="media_text"]) .mt-media {
 /* The opening hero gets the full-viewport treatment; interstitial heroes are
    short bands. The manifest also sets this when it captures height: 100vh, so
    this is a floor for the first hero when a site ships without a manifest. */
+/* Live's `.hero.home` height ladder, and the middle band is WIDTH-relative (vw),
+   not viewport-relative. The `@media ≤991 {height:80vw}` rule (beachfront.css
+   :7992) matches all the way down to 480 — the ≤767 block (:8456) only adds the
+   240–640 clamp, it does NOT re-set the height — so the WHOLE 480–991 band is
+   80vw clamped, then :9088 (≤479 70vh) and :5330 (≥992 90vh) at the ends.
+   Measured live hero heights confirm 80vw: 384@480, 520@650, 667@834 (all
+   0.80×vw). A vh floor across the band held our hero ~180px too tall at 480 and
+   too short at 650 (page-diff `top` Δh 64%/12%). min-height (not height) lets
+   the bottom-anchored copy grow the band when the headline wraps, like live. */
 main > section.hero-band:first-child {
-  min-height: 100vh;
+  min-height: clamp(240px, 70vh, 640px);
+}
+@media (min-width: 480px) {
+  main > section.hero-band:first-child {
+    min-height: clamp(240px, 80vw, 640px);
+  }
+}
+@media (min-width: 768px) {
+  main > section.hero-band:first-child {
+    min-height: 80vw;
+  }
+}
+@media (min-width: 992px) {
+  main > section.hero-band:first-child {
+    /* Aspect 1.78 = the poster's native ratio, so the photo reads nearly
+       uncropped (the 100vh Blux-manifest floor over-crops + shifts the frame). */
+    min-height: 90vh;
+  }
 }
 
 /* Multi-paragraph rich_text wants vertical rhythm between paragraphs. */
 .richtext-block p + p {
   margin-top: 1em;
+}
+
+/* ── Beachfront colour logic (matches the live Webflow site) ────────────────
+   Display headings (h1–h3) are brand-blue on light content bands and flip to
+   white over the photographic hero / CTA bands. Card titles (h4) and eyebrows
+   (h6) keep their base colours. Unlayered so it wins over Tailwind's base
+   layer; :where() keeps specificity low enough for a component to override. */
+main :where(h1, h2, h3) {
+  color: var(--color-primary-deep);
+}
+
+/* Live's large display headings are #129ecc (--color-primary). Plain primary is
+   only 3.09:1 on white — AA-safe for LARGE text (≥24px, or ≥18.66px bold) but
+   not for small headings (blux `txt-role` bands, dev fixtures), which stay on
+   the AA-safe -deep default above. So primary is opt-in via `.h-primary`, added
+   only to the genuinely large headings (30–140px here). Unlayered + a class
+   selector so it outranks both Tailwind utilities and the -deep default. */
+.h-primary,
+.h-primary :where(h1, h2, h3) {
+  color: var(--color-primary);
+}
+/* Only the opening photographic hero keeps white headings. The closing CTA
+   band ("Ready for great dental health?") is brand-blue on white on the live
+   site, so it stays on the default primary rule above. */
+.hero-band :where(h1, h2, h3) {
+  color: #fff;
+}
+
+/* The closing CTA band's "Ready for great dental health?" is oversized,
+   ultra-light display type on the original (140px/w100). */
+.display-xl :where(h1, h2),
+.display-xl {
+  font-size: clamp(
+    3.125rem,
+    0.5rem + 9.3vw,
+    8.75rem
+  ); /* 50px mobile → 140px @ 1440 */
+  font-weight: 100;
+  line-height: 1.2; /* live's display leading (168/140); 1.05 compacted it */
+}
+
+/* Emphasis inside a slab heading (live bolds "Beachfront Dentistry" in the hero
+   h1) reads as a true bold against the light 300 display weight — Tailwind's
+   preflight `strong { font-weight: bolder }` only lifts 300→400, too faint.
+   Unlayered so it beats that base-layer reset. */
+main :where(h1, h2, h3) strong,
+.display-xl strong {
+  font-weight: 700;
+}
+
+/* Content body copy: light, generous leading, ~18–20px like the original.
+   MUST stay inside @layer base. Unlayered CSS beats every @layer in the
+   cascade, so while this rule sat outside a layer it silently overrode every
+   Tailwind `text-*`/`font-*`/`leading-*` utility applied to a <p> in <main> —
+   the whole page's body copy was pinned to this clamp no matter what a
+   component asked for (measured: a `text-[14px]` eyebrow rendering at 17.4px,
+   `text-[30px]` body copy at 19px). Inside base, utilities win as intended and
+   this stays the default for unstyled paragraphs. */
+@layer base {
+  main :where(p) {
+    font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.1875rem);
+    font-weight: 300;
+    line-height: 1.6;
+  }
 }
 
 /* Blur-up companion to $lib/components/Img.svelte. Outside @layer base so it
@@ -213,17 +333,41 @@ main > section.hero-band:first-child {
 }
 
 @layer base {
+  /* Live's Webflow reveal travel: elements rise 4rem of ITS responsive root
+     (24px mobile → 40px desktop rem) = 96px / 160px. Our root stays 16px, so
+     the travel ships as a breakpoint-stepped var, consumed by animateIn's
+     LIVE_REVEAL preset. */
+  :root {
+    --reveal-travel: 96px;
+  }
+  @media (min-width: 1024px) {
+    :root {
+      --reveal-travel: 160px;
+    }
+  }
+
   html {
     scroll-behavior: smooth;
-    scrollbar-gutter: stable;
+    /* No scrollbar-gutter: live computes `auto`, and `stable` reserved a 15px
+       gutter in any classic-scrollbar environment that live doesn't reserve —
+       squeezing every section 15px narrower than the reference (see the body
+       overflow note below). Every page on this site is taller than the
+       viewport, so the layout-shift protection `stable` buys is moot. */
   }
 
   body {
     font-family: var(--font-sans);
     color: var(--color-dark);
     max-width: 100vw;
+    /* overflow-x: clip WITHOUT overflow-y — visible+clip is the one mixed
+       overflow pair CSS doesn't coerce, so the body never becomes a scroll
+       container and the VIEWPORT scrolls, like live. The starter's old
+       `overflow-y: auto` here made the body the scroller, and in any
+       classic-scrollbar environment (Windows, headless capture) the body then
+       reserved a 15px gutter live doesn't have — every mobile section rendered
+       375px wide against live's 390 (qa cards 336×276 vs 351×288, titles
+       wrapping differently). Measured 2026-08-02. */
     overflow-x: clip;
-    overflow-y: auto;
     margin: 0;
     background-color: var(--color-background);
   }
@@ -241,9 +385,10 @@ main > section.hero-band:first-child {
     width: 0;
   }
 
-  /* Type scale — define per project (h1–h6, p, responsive variants). */
-
-  /* Museo Slab carries all display type on this site. */
+  /* Type scale — measured from the live Webflow site (2026-07-29). Museo Slab
+     carries all display type; headings are light-weight and large, the hallmark
+     of the original's look (h1 60/w300, display h2 up to 120–140px, body 20/w300).
+     Sizes are fluid so mobile scales down from the desktop maxima. */
   h1,
   h2,
   h3,
@@ -251,6 +396,45 @@ main > section.hero-band:first-child {
   h5,
   h6 {
     font-family: var(--font-slab);
+    font-weight: 300;
+    line-height: 1.2; /* live's display leading (72/60); 1.15 ran tight */
+    text-wrap: balance;
+  }
+  h1 {
+    /* live's hero h1 is 28px @390 → 60px @1440 (measured 2026-07-31 with the
+       matching-a-page type probe; the old 2.5rem floor computed ~41px @390,
+       clearly bigger than live's rendered 28px). */
+    font-size: clamp(1.75rem, 1rem + 3.05vw, 3.75rem);
+  }
+  h2 {
+    font-size: clamp(
+      1.75rem,
+      0.95rem + 3.3vw,
+      3.75rem
+    ); /* 28px @390 → 60px @1440 — live's mobile h2 is 28px, not 38px */
+  }
+  h3 {
+    font-size: clamp(1.5rem, 1rem + 2.2vw, 2.25rem); /* → 36px */
+  }
+  h4 {
+    font-size: clamp(1.25rem, 1.05rem + 0.9vw, 1.5rem); /* → 24px */
+    font-weight: 500;
+    line-height: 1.3;
+  }
+  h5 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  h6 {
+    /* Eyebrows/labels: SERVICES, MEET YOUR TEAM, STEP 01 */
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.4;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-secondary);
   }
 
   /* Respect users who ask for less motion: neutralize CSS transitions/animations

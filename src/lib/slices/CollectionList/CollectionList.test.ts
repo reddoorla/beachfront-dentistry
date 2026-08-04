@@ -175,4 +175,30 @@ describe("CollectionList slice — tags line + detail-route links", () => {
       "/services/teeth-whitening",
     );
   });
+
+  it("renders the team variation as a circular-avatar carousel", () => {
+    const teamSlice = {
+      slice_type: "collection_list",
+      variation: "team",
+      primary: {
+        heading: [{ type: "heading2", text: "Meet Your Team", spans: [] }],
+        collection_type: "person",
+        max_items: 24,
+      },
+      items: [],
+    } as unknown as Content.CollectionListSlice;
+    const { getByRole, getByText } = render(CollectionList, {
+      props: { slice: teamSlice, context: teamContext },
+    });
+    // heading renders as a plain eyebrow (not an <h2>), inside a carousel region
+    expect(getByRole("region").getAttribute("aria-roledescription")).toBe(
+      "carousel",
+    );
+    expect(getByText("Meet Your Team")).toBeTruthy();
+    // The live team row shows the headshot only — the person's name is the
+    // avatar link's accessible name (aria-label), not visible text.
+    expect(
+      getByRole("link", { name: "Dr. Jane Smith" }).getAttribute("href"),
+    ).toBe("/team-members/dr-jane-smith");
+  });
 });

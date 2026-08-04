@@ -245,10 +245,12 @@ describe("Footer", () => {
     expect(wave).toBeTruthy();
   });
 
-  it("wave fill defaults to surface-light and is overridable via waveFill", () => {
+  it("wave fill defaults to the footer canvas and is overridable via waveFill", () => {
     const light = render(Footer, { props: { columns: beachfrontColumns } });
+    // Defaults to the footer's own pale-teal canvas so the wave reads as its
+    // top edge dipping into whatever band sits above.
     expect(light.container.querySelector("path")?.getAttribute("fill")).toBe(
-      "var(--color-light)",
+      "#e7f5fa",
     );
     cleanup();
 

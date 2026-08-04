@@ -36,7 +36,7 @@ describe("Seo head output", () => {
     expect(
       head.querySelector('meta[property="og:type"]')?.getAttribute("content"),
     ).toBe("website");
-    expect(attr('meta[property="og:site_name"]')).toBe("Reddoor");
+    expect(attr('meta[property="og:site_name"]')).toBe("Beachfront Dentistry");
     expect(attr('meta[property="og:locale"]')).toBe("en_US");
   });
 

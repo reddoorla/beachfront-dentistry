@@ -49,6 +49,29 @@
         }
       },
       "items": {}
+    },
+    {
+      "id": "team",
+      "name": "Team",
+      "docURL": "...",
+      "version": "initial",
+      "description": "Circular-avatar carousel of team members",
+      "imageUrl": "",
+      "primary": {
+        "heading": {
+          "type": "StructuredText",
+          "config": { "label": "heading", "single": "heading2,heading3" }
+        },
+        "collection_type": {
+          "type": "Text",
+          "config": { "label": "collection_type" }
+        },
+        "max_items": {
+          "type": "Number",
+          "config": { "label": "max_items", "placeholder": "12" }
+        }
+      },
+      "items": {}
     }
   ]
 }

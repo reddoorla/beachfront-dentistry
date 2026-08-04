@@ -9,8 +9,11 @@
      *  ("Customer testimonials"), not "Slider". */
     label: string;
     children: Snippet<[{ index: number }]>;
-    /** Slides visible at once from 768px up; mobile is always 1. */
+    /** Slides visible at once from 768px up. */
     cardsPerView?: number;
+    /** Slides visible below 768px (default 1). The live team row keeps several
+     * headshots on-screen on mobile rather than one giant one. */
+    mobileCardsPerView?: number;
     gap?: string;
     mobileGap?: string;
     /** "slide" translates a track; "fade" cross-dissolves in place
@@ -27,6 +30,37 @@
      *  carousel always keeps a non-swipe control. */
     showDots?: boolean;
     showArrows?: boolean;
+    /** "below" (default) puts prev/next in the centered control row under the
+     * track; "sides" pins them to the left/right edges, vertically centered on
+     * the track (the live team carousel). */
+    arrowLayout?: "below" | "sides";
+    /** Optional custom glyphs for the "sides" prev/next buttons (e.g. the live
+     * team carousel's own arrow assets). Default is the built-in chevron SVG. */
+    prevArrow?: Snippet;
+    nextArrow?: Snippet;
+    /** When set, paints a left/right edge-fade to this colour over the track
+     * (below the arrows) so slides dissolve at the margins — live's full-bleed
+     * team row. */
+    edgeFadeColor?: string;
+    /** Fixed slide width at ≥768px (e.g. "200px"). Matches a reference carousel
+     * whose cells are a fixed size and overflow the container rather than fitting
+     * to it — live's team row: 200px cells, 40px gap, first flush-left, last
+     * clipped at the right edge. When set, `cardsPerView` is ignored at desktop
+     * and how many are visible is measured from the track width. Below 768px the
+     * `mobileCardsPerView` fit-to-container layout is used unchanged. */
+    itemWidth?: string;
+    /** Fixed cell width below 768px (e.g. "120px" — live's team headshots are
+     * 200px desktop / 120px mobile, its rem scaled 0.6× under a 40px→24px root).
+     * When set, mobile uses fixed cells too; otherwise mobile falls back to the
+     * `mobileCardsPerView` fit-to-container layout. */
+    mobileItemWidth?: string;
+    /** Left offset of the first cell (its distance from the track's left edge),
+     * so a full-bleed row can still align its first cell to the content column
+     * (live team: 80px at desktop) while the arrows/edge-fades pin to the true
+     * screen edges. Only applied when `itemWidth` is set. `trackPadStart` at
+     * ≥768px, `mobileTrackPadStart` below. */
+    trackPadStart?: string;
+    mobileTrackPadStart?: string;
     /** Tailwind duration/easing utilities for the slide/fade movement. */
     transitionClass?: string;
     navigationClass?: string;
@@ -43,6 +77,7 @@
     label,
     children,
     cardsPerView = 1,
+    mobileCardsPerView = 1,
     gap = "14px",
     mobileGap = "6px",
     mode = "slide",
@@ -50,6 +85,14 @@
     autoplay = 0,
     showDots = true,
     showArrows = true,
+    arrowLayout = "below",
+    prevArrow,
+    nextArrow,
+    edgeFadeColor,
+    itemWidth,
+    mobileItemWidth,
+    trackPadStart,
+    mobileTrackPadStart,
     transitionClass = "duration-500 ease-in-out",
     navigationClass = "",
     arrowClass = "",
@@ -84,18 +127,57 @@
     return () => document.removeEventListener("visibilitychange", onVisibility);
   });
 
-  const responsiveCardsPerView = $derived(
-    mode === "fade" ? 1 : viewport.width >= 768 ? cardsPerView : 1,
+  // Fixed-cell mode (cells a fixed size, overflowing the track). Desktop uses
+  // `itemWidth`, mobile `mobileItemWidth`; when the active breakpoint's width is
+  // unset, that breakpoint falls back to the fit-to-container layout.
+  const activeItemWidth = $derived(
+    mode === "fade"
+      ? undefined
+      : viewport.width >= 768
+        ? itemWidth
+        : mobileItemWidth,
+  );
+  const fixedMode = $derived(!!activeItemWidth);
+  const currentGap = $derived(viewport.width >= 768 ? gap : mobileGap);
+  // The first cell's left offset — only meaningful in fixed-cell mode.
+  const currentPadStart = $derived(
+    !fixedMode
+      ? "0px"
+      : viewport.width >= 768
+        ? (trackPadStart ?? "0px")
+        : (mobileTrackPadStart ?? "0px"),
   );
 
+  const responsiveCardsPerView = $derived.by(() => {
+    if (mode === "fade") return 1;
+    if (fixedMode) {
+      // How many fixed cells fit across the viewport after the start offset. One
+      // extra partial cell is clipped by overflow-hidden (live's 6th headshot),
+      // which floor() intentionally excludes from the "fully visible" count.
+      // This only bounds arrow travel (maxSlide); the static first frame renders
+      // every cell at itemWidth regardless, so an approximate width is fine and
+      // avoids a ResizeObserver (unavailable in the test env).
+      const iw = parseFloat(activeItemWidth ?? "0");
+      const g = parseFloat(currentGap) || 0;
+      const pad = parseFloat(currentPadStart) || 0;
+      if (!viewport.width || !iw) return 1;
+      return Math.max(1, Math.floor((viewport.width - pad + g) / (iw + g)));
+    }
+    if (viewport.width < 768) return mobileCardsPerView;
+    return cardsPerView;
+  });
+
   const maxSlide = $derived(Math.max(0, itemCount - responsiveCardsPerView));
-  const currentGap = $derived(viewport.width >= 768 ? gap : mobileGap);
 
   // Each step advances one slide width plus one gap. With n cards per view
   // a slide is (100% - (n-1)*gap)/n wide, so the step is (100% + gap)/n —
   // the gap term is divided by n too. (Shifting a full gap per step, the
   // fleet formula, overshoots by gap*(n-1)/n per index and clips slides.)
+  // In itemWidth mode a cell is a fixed size, so the step is simply cell+gap.
   const translateValue = $derived.by(() => {
+    if (fixedMode) {
+      return `translateX(calc(${currentSlide} * (-${activeItemWidth} - ${currentGap})))`;
+    }
     const n = responsiveCardsPerView;
     return `translateX(calc(${currentSlide} * (-100% - ${currentGap}) / ${n}))`;
   });
@@ -184,6 +266,14 @@
 
   const arrowsShown = $derived(showArrows && maxSlide > 0);
   const dotsShown = $derived(showDots || !arrowsShown);
+  // Arrows in the bottom control row only in the default layout; "sides" pins
+  // them to the track edges instead. The bottom row then renders only if it
+  // still holds something (dots or the autoplay pause control).
+  const bottomArrows = $derived(arrowsShown && arrowLayout !== "sides");
+  const sideArrows = $derived(arrowsShown && arrowLayout === "sides");
+  const showBottomNav = $derived(
+    maxSlide > 0 && (bottomArrows || dotsShown || autoplayEligible),
+  );
   const atStart = $derived(!loop && currentSlide === 0);
   const atEnd = $derived(!loop && currentSlide === maxSlide);
 
@@ -211,7 +301,7 @@
     {#if mode === "slide"}
       <div
         class="flex transition-transform {transitionClass}"
-        style="transform: {translateValue}; gap: {currentGap};"
+        style="transform: {translateValue}; gap: {currentGap}; padding-left: {currentPadStart};"
       >
         {#each Array(itemCount) as _, i (i)}
           <div
@@ -221,9 +311,13 @@
             aria-label="{i + 1} of {itemCount}"
             aria-hidden={slideVisible(i) ? undefined : "true"}
             inert={!slideVisible(i)}
-            style={viewport.width >= 768
-              ? `width: calc((100% - ${cardsPerView - 1} * ${gap}) / ${cardsPerView});`
-              : ""}
+            style={fixedMode
+              ? `width: ${activeItemWidth};`
+              : viewport.width >= 768
+                ? `width: calc((100% - ${cardsPerView - 1} * ${gap}) / ${cardsPerView});`
+                : mobileCardsPerView > 1
+                  ? `width: calc((100% - ${mobileCardsPerView - 1} * ${mobileGap}) / ${mobileCardsPerView});`
+                  : ""}
           >
             {@render children({ index: i })}
           </div>
@@ -250,6 +344,80 @@
     {/if}
   </div>
 
+  {#if edgeFadeColor}
+    <!-- Edge fades sit above the track but below the z-10 side arrows. Desktop
+         only: live collapses its `.heads-opacity-gradient` pair to 0x0 at
+         mobile, where the row is a fit-to-container 3-across and a fade would
+         just grey out the third headshot. -->
+    <div
+      class="pointer-events-none absolute inset-y-0 left-0 z-[5] hidden w-20 lg:block"
+      style="background:linear-gradient(90deg, {edgeFadeColor}, rgba(255,255,255,0))"
+      aria-hidden="true"
+    ></div>
+    <div
+      class="pointer-events-none absolute inset-y-0 right-0 z-[5] hidden w-20 lg:block"
+      style="background:linear-gradient(270deg, {edgeFadeColor}, rgba(255,255,255,0))"
+      aria-hidden="true"
+    ></div>
+  {/if}
+
+  {#if sideArrows}
+    <!-- Edge-pinned prev/next, vertically centered on the track (live team
+         carousel). Same handlers/aria as the bottom-row arrows. -->
+    <button
+      type="button"
+      onclick={prevSlide}
+      onkeydown={handleKeydown}
+      aria-disabled={atStart ? "true" : undefined}
+      class="absolute top-1/2 left-0 z-10 flex -translate-y-1/2 items-center justify-center rounded-full transition-colors duration-200 aria-disabled:cursor-default aria-disabled:opacity-40 {arrowClass}"
+      aria-label="Previous slide"
+    >
+      {#if prevArrow}
+        {@render prevArrow()}
+      {:else}
+        <svg
+          class="h-7 w-7"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      {/if}
+    </button>
+    <button
+      type="button"
+      onclick={nextSlide}
+      onkeydown={handleKeydown}
+      aria-disabled={atEnd ? "true" : undefined}
+      class="absolute top-1/2 right-0 z-10 flex -translate-y-1/2 items-center justify-center rounded-full transition-colors duration-200 aria-disabled:cursor-default aria-disabled:opacity-40 {arrowClass}"
+      aria-label="Next slide"
+    >
+      {#if nextArrow}
+        {@render nextArrow()}
+      {:else}
+        <svg
+          class="h-7 w-7"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 5l7 7-7 7"
+          />
+        </svg>
+      {/if}
+    </button>
+  {/if}
+
   <!-- Announce position to screen readers only when the user is driving;
        a rotating carousel announcing every few seconds is noise (APG). -->
   <div
@@ -265,7 +433,7 @@
     {/if}
   </div>
 
-  {#if maxSlide > 0}
+  {#if showBottomNav}
     <div class="flex justify-center items-center gap-4 mt-8 {navigationClass}">
       {#if autoplayEligible}
         <!-- First control in the carousel's tab order (APG). -->
@@ -287,7 +455,7 @@
         </button>
       {/if}
 
-      {#if arrowsShown}
+      {#if bottomArrows}
         <!-- aria-disabled (not disabled) so the bound arrow keeps focus
              instead of dumping the keyboard user back to <body>. -->
         <button
@@ -340,7 +508,7 @@
         </div>
       {/if}
 
-      {#if arrowsShown}
+      {#if bottomArrows}
         <button
           type="button"
           onclick={nextSlide}
