@@ -92,6 +92,12 @@
         "max_items": {
           "type": "Number",
           "config": { "label": "max_items", "placeholder": "12" }
+        },
+        "layout": {
+          "type": "Text",
+          "config": {
+            "label": "layout (empty = grid; \"slider\" = your-first-visit horizontal card slider)"
+          }
         }
       },
       "items": {}

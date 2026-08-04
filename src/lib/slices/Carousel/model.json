@@ -88,6 +88,12 @@
         "label": {
           "type": "Text",
           "config": { "label": "accessible label" }
+        },
+        "layout": {
+          "type": "Text",
+          "config": {
+            "label": "layout (empty = capped strip; \"fullbleed\" = 100vw single-image slider)"
+          }
         }
       },
       "items": {
