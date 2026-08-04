@@ -244,13 +244,20 @@
         <PrismicRichText field={slice.primary.heading} />
       </div>
     {/if}
-    <div class="grid grid-cols-1 gap-y-3 md:grid-cols-2 md:gap-x-5 md:gap-y-5">
+    <div class="grid grid-cols-1 md:grid-cols-2">
       {#each sortedDocs as doc (doc.uid)}
-        <QuestionCard
-          {doc}
-          number={canonicalNumber.get(doc.uid) ?? null}
-          teaser={teaserText(doc)}
-        />
+        <!-- Each cell mirrors live's `.ask-the-doctor-collection-item`: the
+             `.w-col-6` padding 0 10px (the 10px column gutter that makes the
+             card 331 wide @390 / 600 @1440), and the fixed 520px cell over a
+             400 card — i.e. ~120px of empty space below each card at desktop
+             (top-aligned), 12px at mobile (the qa-block's own margin). -->
+        <div class="px-[10px] pb-3 lg:px-[20px] lg:pb-[120px]">
+          <QuestionCard
+            {doc}
+            number={canonicalNumber.get(doc.uid) ?? null}
+            teaser={teaserText(doc)}
+          />
+        </div>
       {/each}
     </div>
   </section>

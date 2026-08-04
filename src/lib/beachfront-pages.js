@@ -48,6 +48,10 @@ export const IMG = {
   // its poster still is a faithful hero image)
   heroHome: `${A}/6531a5d33be0526fd5c1bc35_BD_homepage_video_hd_101823-poster-00001.jpg`,
   heroFirstVisit: `${A}/64b8367c61b87df9edf5b314_DSC_7547.jpg`,
+  // subpage-hero band backgrounds (live `.hero.<modifier>` bg-images): the
+  // redondo-beach shot backs our-team + services; ask-the-doctor reuses the
+  // first-exam office photo (`.hero.ask-a-dentist`, == firstExam below).
+  heroRedondo: `${A}/64af4ef42e7d98b2fdb91769_beach-in-beautiful-morning-light-at-redondo-beach-75226436.jpeg`,
   ctaBeach: `${A}/64af4c2e1e0b9ad3d901241e_beach-img_sebastien-jermer-n7DY58YFg9E-unsplash.jpg`,
   comfort: `${A}/64b998400e0eb30dcc2adf55_DSC_7650.jpg`,
   comprehensive: `${A}/64b9a0735c910a0ec38efc68_cerec-same-day-machine.jpg`,
@@ -514,15 +518,20 @@ export function assemblies(img) {
 
     "ask-the-doctor": [
       {
-        slice_type: "lead_text",
-        variation: "default",
-        primary: { eyebrow: "Ask the Doctor", body: [] },
+        slice_type: "hero",
+        variation: "subpage",
+        primary: {
+          heading: [head(2, "Ask the Doctor")],
+          background_image: img(IMG.firstExam),
+        },
         items: [],
       },
       {
+        // heading lives in the hero band above — the grid is just the cards
+        // (live's /ask-the-doctor has no second "Ask the Doctor" heading).
         slice_type: "question_list",
         variation: "numbered",
-        primary: { heading: [head(2, "Ask the Doctor")] },
+        primary: { heading: [] },
         items: [],
       },
       ctaHero(img),

@@ -4,9 +4,15 @@
   import RichTextBody from "$lib/components/RichTextBody.svelte";
   import CtaBand from "$lib/components/CtaBand.svelte";
   import WaveDivider from "$lib/components/WaveDivider.svelte";
+  import SubpageHero from "$lib/components/SubpageHero.svelte";
   import { PrismicLink, PrismicRichText } from "@prismicio/svelte";
   import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
-  import { asText, type Content } from "@prismicio/client";
+  import {
+    asText,
+    type Content,
+    type ImageField,
+    type RichTextField,
+  } from "@prismicio/client";
   import { bandFor, type Presentation } from "$lib/blux/presentation";
   import BluxSectionBand from "$lib/blux/SectionBand.svelte";
   import BandContent from "$lib/blux/BandContent.svelte";
@@ -37,11 +43,24 @@
     items: unknown[];
   };
 
+  // The `subpage` variation (the shared SubpageHero band) is likewise not in the
+  // generated types yet — widen locally, same as `band`/`cta`.
+  type HeroSubpageSlice = {
+    slice_type: "hero";
+    variation: "subpage";
+    primary: {
+      heading?: RichTextField | null;
+      background_image?: ImageField | null;
+      subtitle?: string | null;
+    };
+    items: unknown[];
+  };
+
   let {
     slice,
     context,
   }: {
-    slice: Content.HeroSlice | HeroBandSlice | HeroCtaSlice;
+    slice: Content.HeroSlice | HeroBandSlice | HeroCtaSlice | HeroSubpageSlice;
     context?: { presentation?: Presentation };
   } = $props();
 
@@ -131,6 +150,14 @@
     caption="FIJI ISLANDS"
     sliceType={slice.slice_type}
     sliceVariation={slice.variation}
+  />
+{:else if slice.variation === "subpage"}
+  <!-- Subpage opener: the shared SubpageHero band (measured spec lives in the
+       component). Delegates like the `cta` variation does to CtaBand. -->
+  <SubpageHero
+    heading={slice.primary.heading}
+    backgroundImage={slice.primary.background_image}
+    subtitle={slice.primary.subtitle}
   />
 {:else}
   <!-- Full-bleed opening hero. Bottom-left slab heading over the background
