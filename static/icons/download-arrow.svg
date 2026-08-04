@@ -1,0 +1,12 @@
+<svg width="51" height="50" viewBox="0 0 51 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Arrow" clip-path="url(#clip0_33_117)">
+<path id="Vector" d="M26.1301 0.959991H25.2201C12.0149 0.959991 1.31006 11.6626 1.31006 24.865C1.31006 38.0674 12.0149 48.77 25.2201 48.77H26.1301C39.3352 48.77 50.0401 38.0674 50.0401 24.865C50.0401 11.6626 39.3352 0.959991 26.1301 0.959991Z" stroke="#129ECC" stroke-width="1.92" stroke-miterlimit="10"/>
+<path id="Vector_2" d="M27.4099 14.13H24.8999V34.66H27.4099V14.13Z" fill="#129ECC"/>
+<path id="Vector_3" d="M15.9102 26.36L17.7502 24.65L26.1502 33.7L34.5702 24.65L36.4002 26.36L26.1502 37.37L15.9102 26.36Z" fill="#129ECC"/>
+</g>
+<defs>
+<clipPath id="clip0_33_117">
+<rect width="50.65" height="49.73" fill="white" transform="translate(0.350098)"/>
+</clipPath>
+</defs>
+</svg>

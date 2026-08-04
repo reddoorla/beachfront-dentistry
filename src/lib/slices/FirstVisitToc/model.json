@@ -1,0 +1,43 @@
+{
+  "id": "first_visit_toc",
+  "type": "SharedSlice",
+  "name": "FirstVisitToc",
+  "description": "your-first-visit opener: intro + numbered nav cards + two outline buttons",
+  "variations": [
+    {
+      "id": "default",
+      "name": "Default",
+      "docURL": "...",
+      "version": "initial",
+      "description": "Intro (left) + three numbered nav cards + Book/Registration buttons",
+      "imageUrl": "",
+      "primary": {
+        "intro": {
+          "type": "StructuredText",
+          "config": {
+            "label": "intro",
+            "multi": "paragraph,strong,em,hyperlink"
+          }
+        },
+        "book_label": { "type": "Text", "config": { "label": "book_label" } },
+        "book_link": {
+          "type": "Link",
+          "config": { "label": "book_link", "allowTargetBlank": true }
+        },
+        "form_label": { "type": "Text", "config": { "label": "form_label" } },
+        "form_link": {
+          "type": "Link",
+          "config": { "label": "form_link", "allowTargetBlank": true }
+        }
+      },
+      "items": {
+        "number": { "type": "Text", "config": { "label": "number" } },
+        "title": { "type": "Text", "config": { "label": "title" } },
+        "target": {
+          "type": "Text",
+          "config": { "label": "target (in-page anchor, e.g. #office-tour)" }
+        }
+      }
+    }
+  ]
+}

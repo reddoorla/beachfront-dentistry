@@ -14,6 +14,8 @@ import BluxTable from "./BluxTable/index.svelte";
 import BluxText from "./BluxText/index.svelte";
 import Carousel from "./Carousel/index.svelte";
 import CollectionList from "./CollectionList/index.svelte";
+import ExamTimeline from "./ExamTimeline/index.svelte";
+import FirstVisitToc from "./FirstVisitToc/index.svelte";
 import Gallery from "./Gallery/index.svelte";
 import GridBand from "./GridBand/index.svelte";
 import Hero from "./Hero/index.svelte";
@@ -44,6 +46,8 @@ export const components = {
   blux_text: BluxText,
   carousel: Carousel,
   collection_list: CollectionList,
+  exam_timeline: ExamTimeline,
+  first_visit_toc: FirstVisitToc,
   gallery: Gallery,
   grid_band: GridBand,
   hero: Hero,

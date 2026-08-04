@@ -367,9 +367,40 @@ export function assemblies(img) {
         items: [],
       },
       {
+        // `.fv-toc-section`: intro (left) + 3 numbered nav cards + two outline
+        // buttons; anchors down to the sections below.
+        slice_type: "first_visit_toc",
+        variation: "default",
+        primary: {
+          intro: [
+            para(
+              "We want you to feel comfortable before your first visit. Here some ways to give you a clear idea of what to expect:",
+            ),
+          ],
+          // Live renders "Book an Apointment" (a typo on the reference); Tucker
+          // asked to ship the correct spelling here, so this intentionally
+          // diverges from the reference's copy on this one label.
+          book_label: "Book an Appointment",
+          book_link: webLink("#appointment"),
+          form_label: "Registration Form",
+          form_link: webLink("#"),
+        },
+        items: [
+          {
+            number: "01",
+            title: "Take a Virtual Tour",
+            target: "#office-tour",
+          },
+          { number: "02", title: "Meet Our Team", target: "#meet-our-team" },
+          { number: "03", title: "First Exam Details", target: "#first-exam" },
+        ],
+      },
+      {
+        // `.fv-virtual-tour-section`: full-bleed single-image Office Tour slider
+        // (8 slides, 8 dots, edge arrows) under a cyan 60px h1.
         slice_type: "carousel",
         variation: "photos",
-        primary: { heading: [head(2, "Office Tour")], label: "Office Tour" },
+        primary: { label: "Office Tour", layout: "fullbleed" },
         items: [
           IMG.tour1,
           IMG.tour2,
@@ -381,53 +412,111 @@ export function assemblies(img) {
           IMG.tour8,
         ].map((u) => ({ image: img(u), caption: "" })),
       },
-      teamTeaser("Meet Our Team"),
       {
-        slice_type: "rich_text",
+        // `.fv-meet-our-team-section`: the /our-team person cards in a
+        // horizontal slider under a big cyan slab heading.
+        slice_type: "collection_list",
+        variation: "people",
+        primary: {
+          heading: [head(2, "Meet Our Team")],
+          collection_type: "person",
+          max_items: 100,
+          layout: "slider",
+        },
+        items: [],
+      },
+      {
+        // `.fv-exam-section`: 2-col numbered timeline. LEFT = heading + intro +
+        // step 00 (centred badge) + two outline buttons; RIGHT = the DSC_7704
+        // photo then steps 01-06. Content is verbatim from live (was a flat
+        // rich_text list; restructured into per-step data here).
+        slice_type: "exam_timeline",
         variation: "default",
         primary: {
-          content: [
-            head(3, "First Exam"),
+          heading: [head(3, "First Exam")],
+          intro: [
             para(
               "To be a long term health partner we need to really understand your current dental condition. We ask for 2 hours of your time. We are gentle but thorough to give you the best plan for the future. Here are the basic steps to that first exam:",
             ),
-            withStrong(
-              para("15 min — Registration Forms"),
-              "15 min — Registration Forms",
-            ),
-            para(
-              "That necessary step to understand your history and your dental helath goals and is completed before appointment",
-            ),
-            withStrong(para("10 min — Check-in"), "10 min — Check-in"),
-            para(
-              "Our front office staff will get you checked in and make sure all your paperwork is in order and gives you an expectation of payment.",
-            ),
-            withStrong(
-              para("15 min — X-rays and Imaging"),
-              "15 min — X-rays and Imaging",
-            ),
-            para(
-              "We are do our best to make you comfortable, like turn on your ceiling TV to your favorite channel, while we take photos and x-rays of your current condition.",
-            ),
-            withStrong(para("20 min — Exam"), "20 min — Exam"),
-            para(
-              "Both our hygienist and dentist will conduct a thorough exam of your x-rays and current dental condition, including a cancer and gum disease screening.",
-            ),
-            withStrong(para("30 min — Cleaning"), "30 min — Cleaning"),
-            para(
-              "Your hygienist will conduct a thorough dental cleaning using the latest techniques and highest safety precautions. Read our yelp reviews to see how other patients love our hygienists.",
-            ),
-            withStrong(para("15 min — Dental Plan"), "15 min — Dental Plan"),
-            para(
-              "Dr. Quan or Dr. Hopkins will review their findings of the exam. If any long term dental is needed he will present the options you have and relative timelines and priorities. Answering any questions you may have so you are empowered to take control of your own long-term dental health.",
-            ),
-            withStrong(para("05 min — Check out"), "05 min — Check out"),
-            para(
-              "You then have a chance to schedule any future visits and take care of any cost questions about future work.",
-            ),
           ],
+          image: img(IMG.firstExam),
+          form_label: "Download Forms",
+          form_link: webLink("#"),
+          book_label: "Book Appointment",
+          book_link: webLink("#appointment"),
         },
-        items: [],
+        items: [
+          {
+            number: "00",
+            minutes: "15 min",
+            title: [head(5, "Registration Forms")],
+            body: [
+              para(
+                "That necessary step to understand your history and your dental helath goals and is completed before appointment",
+              ),
+            ],
+          },
+          {
+            number: "01",
+            minutes: "10 min",
+            title: [head(5, "Check-in")],
+            body: [
+              para(
+                "Our front office staff will get you checked in and make sure all your paperwork is in order and gives you an expectation of payment.",
+              ),
+            ],
+          },
+          {
+            number: "02",
+            minutes: "15 min",
+            title: [head(5, "X-rays and Imaging")],
+            body: [
+              para(
+                "We are do our best to make you comfortable, like turn on your ceiling TV to your favorite channel, while we take photos and x-rays of your current condition.",
+              ),
+            ],
+          },
+          {
+            number: "03",
+            minutes: "20 min",
+            title: [head(5, "Exam")],
+            body: [
+              para(
+                "Both our hygienist and dentist will conduct a thorough exam of your x-rays and current dental condition, including a cancer and gum disease screening.",
+              ),
+            ],
+          },
+          {
+            number: "04",
+            minutes: "30 min",
+            title: [head(5, "Cleaning")],
+            body: [
+              para(
+                "Your hygienist will conduct a thorough dental cleaning using the latest techniques and highest safety precautions. Read our yelp reviews to see how other patients love our hygienists.",
+              ),
+            ],
+          },
+          {
+            number: "05",
+            minutes: "15 min",
+            title: [head(5, "Dental Plan")],
+            body: [
+              para(
+                "Dr. Quan or Dr. Hopkins will review their findings of the exam. If any long term dental is needed he will present the options you have and relative timelines and priorities. Answering any questions you may have so you are empowered to take control of your own long-term dental health.",
+              ),
+            ],
+          },
+          {
+            number: "06",
+            minutes: "05 min",
+            title: [head(5, "Check out")],
+            body: [
+              para(
+                "You then have a chance to schedule any future visits and take care of any cost questions about future work.",
+              ),
+            ],
+          },
+        ],
       },
       {
         slice_type: "carousel",

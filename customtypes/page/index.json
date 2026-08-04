@@ -51,6 +51,12 @@
             "collection_list": {
               "type": "SharedSlice"
             },
+            "first_visit_toc": {
+              "type": "SharedSlice"
+            },
+            "exam_timeline": {
+              "type": "SharedSlice"
+            },
             "question_list": {
               "type": "SharedSlice"
             },
