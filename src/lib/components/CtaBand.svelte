@@ -38,7 +38,9 @@
   let {
     heading = DEFAULT_HEADING,
     body = [],
-    ctaLabel = "Book an Appointment",
+    // Live's closing-band button reads "Book Appointment" (no "an") — the
+    // detail routes render <CtaBand/> with no label and must match it.
+    ctaLabel = "Book Appointment",
     ctaLink = DEFAULT_CTA_LINK,
     backgroundImage = {},
     caption,
