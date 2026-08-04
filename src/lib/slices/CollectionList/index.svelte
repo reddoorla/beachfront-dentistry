@@ -23,6 +23,13 @@
       // routes already read. Doubles as the team grid's Name + role line.
       tags?: string | null;
       media?: { url?: string; alt?: string | null };
+      // person docs carry a bio (`body`) and a favorite-beach `gallery` group
+      // (image + caption) — the `people` variation's teaser + bottom banner.
+      body?: RichTextField;
+      gallery?: {
+        image?: { url?: string; alt?: string | null };
+        caption?: string | null;
+      }[];
     };
   };
 
@@ -40,9 +47,14 @@
     };
     items: unknown[];
   };
+  // `people` = the /our-team full person-card grid (headshot / name / role /
+  // bio teaser / read-more / favorite-beach banner). Same primary as `team`.
+  type PeopleVariation = Omit<TeamVariation, "variation"> & {
+    variation: "people";
+  };
 
   interface Props {
-    slice: Content.CollectionListSlice | TeamVariation;
+    slice: Content.CollectionListSlice | TeamVariation | PeopleVariation;
     context?: { collections?: Record<string, CollectionDoc[]> };
   }
 
@@ -75,7 +87,7 @@
     const all =
       context?.collections?.[slice.primary.collection_type ?? ""] ?? [];
     const ordered =
-      slice.variation === "team"
+      slice.variation === "team" || slice.variation === "people"
         ? [...all].sort((a, b) => teamRank(a.uid) - teamRank(b.uid))
         : all;
     return ordered.slice(0, slice.primary.max_items ?? 24);
@@ -134,6 +146,90 @@
       </span>
     </span>
   {/if}
+{/snippet}
+
+{#snippet personCard(doc: CollectionDoc)}
+  <!-- live `.team-list-item` (320×480 / 303×384, bg #E7F5FA, radius 20): a
+       circular headshot straddling the top edge, then name (cyan slab) / role
+       (teal sans caps) / bio teaser (teal, 3-line clamp) / READ MORE, with the
+       favorite-beach banner + white caption pinned across the card bottom. -->
+  {@const href = hrefFor(doc)}
+  {@const name = asText(doc.data.title as RichTextField)}
+  {@const bio = asText((doc.data.body ?? []) as RichTextField)}
+  {@const beach = doc.data.gallery?.[0]}
+  <article
+    class="team-list-item relative mx-6 mt-24 mb-6 h-96 w-[303px] rounded-[20px] bg-[#e7f5fa] lg:mx-5 lg:mt-40 lg:mb-5 lg:h-[480px] lg:w-80"
+  >
+    {#if doc.data.media?.url}
+      <!-- headshot centred ON the card's top edge (half above, half in). -->
+      <a
+        {href}
+        aria-label={name}
+        class="focus-visible:ring-primary-deep absolute top-0 left-1/2 z-10 block -translate-x-1/2 -translate-y-1/2 rounded-full focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+      >
+        <PrismicImage
+          field={doc.data.media as unknown as ImageField}
+          fallbackAlt=""
+          class="size-[120px] rounded-full object-cover object-top lg:size-[200px]"
+        />
+      </a>
+    {/if}
+    <div
+      class="flex h-full flex-col px-[18px] pt-[70px] text-center lg:px-6 lg:pt-[110px]"
+    >
+      <a {href} class="focus-visible:outline-hidden">
+        <h5
+          class="font-slab text-[30px] leading-[40px] font-light text-[#129ecc]"
+        >
+          {name}
+        </h5>
+      </a>
+      {#if doc.data.tags}
+        <h6
+          class="mt-[6px] text-[16px] leading-[25px] font-light tracking-[1.28px] text-[#365b6d] uppercase"
+        >
+          {doc.data.tags}
+        </h6>
+      {/if}
+      {#if bio}
+        <p
+          class="mt-[10px] line-clamp-3 text-left text-[16px] leading-[24px] font-light text-[#365b6d]"
+        >
+          {bio}
+        </p>
+      {/if}
+      {#if href}
+        <a
+          {href}
+          class="focus-visible:ring-primary-deep mt-[10px] inline-flex items-center gap-1 text-[16px] leading-[24px] font-light text-[#129ecc] uppercase focus-visible:ring-2 focus-visible:outline-hidden"
+        >
+          Read More
+          <!-- live's real Arrow.svg (white-filled), tinted to cyan via mask so
+               we ship the actual vector, never a redraw. -->
+          <span
+            aria-hidden="true"
+            class="h-[11px] w-[10px] shrink-0 bg-[#129ecc] [mask:url(/icons/read-more-arrow.svg)_center/contain_no-repeat] [-webkit-mask:url(/icons/read-more-arrow.svg)_center/contain_no-repeat]"
+          ></span>
+        </a>
+      {/if}
+    </div>
+    {#if beach?.image?.url}
+      <img
+        src={beach.image.url}
+        alt=""
+        aria-hidden="true"
+        class="absolute bottom-0 left-0 h-[115px] w-full rounded-b-[20px] object-cover lg:h-36"
+      />
+      {#if beach.caption}
+        <h6
+          class="font-slab absolute bottom-[10px] left-[18px] z-10 text-[12px] leading-[15px] font-light tracking-[1.28px] uppercase lg:bottom-3 lg:left-6 lg:text-[24px] lg:leading-[30px]"
+          style="color:#fff"
+        >
+          {beach.caption}
+        </h6>
+      {/if}
+    {/if}
+  </article>
 {/snippet}
 
 {#if slice.variation === "team"}
@@ -208,6 +304,20 @@
         </Slider>
       </div>
     {/if}
+  </section>
+{:else if slice.variation === "people"}
+  <!-- live `.team-grid-section` → `.w-dyn-items.w-row` (flex-wrap, justified
+       centre): `.w-col-4` cards, 3-up ≥768 / stacked ≤767. gap-y carries the
+       inter-row gutter; the top padding + card headshot overhang give the
+       first row room for the straddling circles. -->
+  <section
+    data-slice-type={slice.slice_type}
+    data-slice-variation={slice.variation}
+    class="team-grid-section mx-auto flex max-w-[1280px] flex-wrap justify-center px-5 lg:px-0"
+  >
+    {#each docs as doc (doc.uid)}
+      {@render personCard(doc)}
+    {/each}
   </section>
 {:else}
   <section

@@ -121,7 +121,7 @@ describe("QuestionList slice — teaser variation", () => {
     const { getAllByRole, container } = render(QuestionList, {
       props: { slice: teaserSlice, context },
     });
-    const card = container.querySelector("li.qa-item > div")! as HTMLElement;
+    const card = container.querySelector(".qa-item > div")! as HTMLElement;
     const toggle = getAllByRole("button", { expanded: false })[0]!;
 
     await fireEvent.click(card);
@@ -162,25 +162,29 @@ describe("QuestionList slice — teaser variation", () => {
 });
 
 describe("QuestionList slice — numbered variation", () => {
-  it('renders all 8 docs as numbered <details class="qa-item"> items, newest first', () => {
+  // The /ask-the-doctor index renders EVERY question as the same shared
+  // QuestionCard (live's `.qa-block`) in a 2-column grid — NOT a <details>
+  // accordion (the old treatment, which matched neither home nor live). Each
+  // card carries its canonical date-sorted number and a Read More link.
+  it("renders all 8 docs as the shared numbered question cards, newest first", () => {
     const { container } = render(QuestionList, {
       props: { slice: numberedSlice, context },
     });
-    const items = [...container.querySelectorAll("details.qa-item")];
-    expect(items).toHaveLength(8);
+    const cards = [...container.querySelectorAll(".qa-item")];
+    expect(cards).toHaveLength(8);
 
-    items.forEach((details, i) => {
-      const [uid, , title, lead] = expectedOrder[i]!;
-      const summary = details.querySelector("summary");
-      expect(summary?.textContent).toContain(title);
+    cards.forEach((card, i) => {
+      const [uid, , title] = expectedOrder[i]!;
+      // Title renders as the card's h3 overlay.
+      expect(card.querySelector("h3")?.textContent).toContain(title);
 
+      // Canonical number = 1-based position in the date-desc catalog.
       const number = String(i + 1).padStart(2, "0");
-      expect(details.textContent).toContain(number);
+      expect(card.textContent).toContain(number);
 
-      expect(details.textContent).toContain(lead);
-
-      const link = details.querySelector(`a[href="/questions/${uid}"]`);
-      expect(link?.textContent?.trim()).toBe("Read the full answer");
+      // "Read More" navigates to the detail route (the card itself is not a link).
+      const link = card.querySelector(`a[href="/questions/${uid}"]`);
+      expect(link?.textContent?.trim()).toBe("Read More");
     });
   });
 
@@ -188,6 +192,6 @@ describe("QuestionList slice — numbered variation", () => {
     const { container } = render(QuestionList, {
       props: { slice: numberedSlice, context },
     });
-    expect(container.querySelectorAll("details.qa-item")).toHaveLength(8);
+    expect(container.querySelectorAll(".qa-item")).toHaveLength(8);
   });
 });

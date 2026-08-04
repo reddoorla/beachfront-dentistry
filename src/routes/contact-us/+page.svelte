@@ -1,163 +1,108 @@
 <script lang="ts">
-  import { enhance } from "$app/forms";
-  import Field from "$lib/components/Field.svelte";
-  import TurnstileWidget from "$lib/components/TurnstileWidget.svelte";
+  import SubpageHero from "$lib/components/SubpageHero.svelte";
+  import CtaBand from "$lib/components/CtaBand.svelte";
   import MapEmbed from "$lib/components/MapEmbed.svelte";
   import { ADDRESS, HOURS, PHONE } from "$lib/site";
-  import type { ActionData, PageData } from "./$types";
+  import type { ImageField, RichTextField } from "@prismicio/client";
 
-  let { data, form }: { data: PageData; form: ActionData } = $props();
+  // Matches the live /contact-us: a left-aligned "Contact Us" photo hero, then
+  // an info band (a Book-Appointment button + CONTACT/OFFICE-HOURS columns + a
+  // Google map), then the shared closing CTA. There is NO body form — the
+  // request-appointment form lives in the global AppointmentModal, opened by
+  // the #appointment anchor (and by the footer/CtaBand buttons). The modal
+  // POSTs to THIS route's default action (+page.server.ts, untouched), so the
+  // form logic stays reachable exactly as before — just funnelled through the
+  // modal, per the live design.
 
-  let name = $state("");
-  let email = $state("");
-  let phone = $state("");
-  let message = $state("");
-  let submitting = $state(false);
+  const heading: RichTextField = [
+    { type: "heading2", text: "Contact Us", spans: [] },
+  ];
+  // Static hero photo (live `.hero.contact` bg) — served from /static so it
+  // clears the app CSP (img-src is Prismic-only); the real office image, not
+  // a redraw.
+  const officePhoto: ImageField = {
+    url: "/images/contact-hero.jpg",
+    alt: null,
+    copyright: null,
+    dimensions: { width: 1200, height: 1600 },
+    id: "contact-hero",
+    edit: { x: 0, y: 0, zoom: 1, background: "transparent" },
+  };
+  // Closing CTA — match the beach composition the assembly pages get from
+  // ctaHero (heading over white fading into the FIJI beach). The beach is
+  // served from /static so it clears the app CSP on this hand-built route
+  // (the assembly pages resolve it through Prismic). Same "Book Appointment"
+  // label + #appointment target as the rest of the site.
+  const ctaBeach: ImageField = {
+    url: "/images/cta-beach.jpg",
+    alt: null,
+    copyright: null,
+    dimensions: { width: 1600, height: 1067 },
+    id: "cta-beach",
+    edit: { x: 0, y: 0, zoom: 1, background: "transparent" },
+  };
+  const ctaHeading: RichTextField = [
+    { type: "heading2", text: "Ready for great dental health?", spans: [] },
+  ];
 </script>
 
-<!--
-  Canonical contact form (clone skeleton). EDIT PER SITE:
-  - the page title (in +page.server.ts's load → flows to the layout <Seo>),
-    <h1>, and subhead copy below
-  - the success-message copy
-  - the field set (add/remove <Field>s + matching keys in +page.server.ts buildPayload)
-  Forwards to the central dashboard ingest via createIngestAction; spam is handled
-  by the hidden honeypot + a 2s fill-timing screen, plus optional Cloudflare Turnstile
-  (set PUBLIC_TURNSTILE_SITE_KEY to enable — verified centrally by the dashboard).
-  Requires FORMS_INGEST_URL + FORMS_INGEST_TOKEN in the deployed site's env (see .env.example).
--->
+<SubpageHero {heading} backgroundImage={officePhoto} align="left" />
 
-<main class="max-w-5xl mx-auto px-8 py-16 space-y-10">
-  <header class="space-y-2">
-    <h1 class="text-3xl font-bold">Contact Us</h1>
-    <p class="text-secondary">Send us a message and we'll get back to you.</p>
-  </header>
+<section
+  data-section="info"
+  class="info-section mx-auto max-w-[1400px] px-5 pt-8 pb-12 text-[#365b6d] min-[480px]:px-8 lg:px-20 lg:pt-14 lg:pb-20"
+>
+  <!-- Live `.button.text-color-primary-dark`, wired to the global appointment
+       modal via the #appointment anchor (same handler the CTAs use). -->
+  <a
+    href="#appointment"
+    class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#365b6d] px-[14px] text-[14px] font-light text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:text-[20px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+  >
+    Book Appointment
+  </a>
 
-  <div class="grid grid-cols-1 gap-12 md:grid-cols-2">
-    <div class="space-y-8">
-      <!-- One-and-done: on success the form unmounts. To allow another submission, keep the form mounted and reset the field state instead. -->
-      {#if form?.success}
-        <p
-          role="status"
-          class="border-2 border-green-600 bg-green-50 rounded p-4 text-green-900"
-        >
-          Thanks — we'll reach out to schedule your visit.
-        </p>
-      {:else}
-        <form
-          method="POST"
-          class="space-y-4"
-          use:enhance={() => {
-            submitting = true;
-            return async ({ update }) => {
-              await update();
-              submitting = false;
-            };
-          }}
-        >
-          <!-- Single top-level error; for multi-field validation summaries see $lib/components/Form.svelte. -->
-          {#if form?.error}
-            <p
-              role="alert"
-              class="border-2 border-red-600 bg-red-50 rounded p-4 text-red-900"
-            >
-              {form.error}
-            </p>
-          {/if}
-
-          <!-- Anti-bot: per-request timing token + a hidden honeypot. Naive bots
-               fill the honeypot; a too-fast fill is caught by the timing screen. -->
-          <input type="hidden" name="ts" value={data.formTs} />
-          <input
-            type="text"
-            name="bot-field"
-            tabindex="-1"
-            autocomplete="off"
-            aria-hidden="true"
-            class="hidden"
-          />
-
-          <Field
-            name="name"
-            label="Name"
-            autocomplete="name"
-            required
-            bind:value={name}
-          />
-          <Field
-            name="email"
-            label="Email"
-            type="email"
-            autocomplete="email"
-            required
-            bind:value={email}
-          />
-          <Field
-            name="phone"
-            label="Phone"
-            type="tel"
-            autocomplete="tel"
-            bind:value={phone}
-          />
-          <Field
-            name="message"
-            label="Message"
-            type="textarea"
-            maxlength={5000}
-            required
-            bind:value={message}
-          />
-
-          <!-- Optional Cloudflare Turnstile (dark until PUBLIC_TURNSTILE_SITE_KEY is
-               set — the component gates itself). Mounted inside the form so the widget
-               injects a hidden `cf-turnstile-response` input here, which
-               createIngestAction reads and forwards. Verification is central (the
-               dashboard holds TURNSTILE_SECRET_KEY; sites carry only the public key). -->
-          <TurnstileWidget />
-
-          <button
-            type="submit"
-            disabled={submitting}
-            class="px-4 py-2 bg-primary-deep text-white rounded bump disabled:opacity-60"
-          >
-            {submitting ? "Sending…" : "Send message"}
-          </button>
-        </form>
-      {/if}
+  <!-- CONTACT + OFFICE HOURS: side-by-side on desktop, stacked on mobile. -->
+  <div class="mt-8 flex flex-col gap-8 sm:flex-row sm:gap-20 lg:mt-14">
+    <div>
+      <h2
+        class="font-slab text-[20px] leading-[40px] font-medium text-[#365b6d] uppercase"
+      >
+        Contact
+      </h2>
+      <a
+        href={PHONE.href}
+        class="focus-visible:ring-primary-deep block text-[20px] leading-[40px] font-light underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-hidden"
+      >
+        {PHONE.display}
+      </a>
+      <address class="text-[20px] leading-[40px] font-light not-italic">
+        <p>{ADDRESS.line1}</p>
+        <p>{ADDRESS.line2}</p>
+      </address>
     </div>
 
-    <div class="space-y-8">
-      <div>
-        <h2 class="text-xl font-semibold">Office Hours</h2>
-        <dl class="mt-3 space-y-1">
-          {#each HOURS as [days, time] (days)}
-            <div class="flex justify-between gap-4">
-              <dt>{days}</dt>
-              <dd class="text-secondary">{time}</dd>
-            </div>
-          {/each}
-        </dl>
-      </div>
-
-      <div>
-        <h2 class="text-xl font-semibold">Address</h2>
-        <address class="mt-3 not-italic">
-          <p>{ADDRESS.line1}</p>
-          <p>{ADDRESS.line2}</p>
-        </address>
-      </div>
-
-      <div>
-        <h2 class="text-xl font-semibold">Phone</h2>
-        <a
-          href={PHONE.href}
-          class="mt-3 inline-block text-primary-deep underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
-        >
-          {PHONE.display}
-        </a>
-      </div>
-
-      <MapEmbed />
+    <div>
+      <h2
+        class="font-slab text-[20px] leading-[40px] font-medium text-[#365b6d] uppercase"
+      >
+        Office Hours
+      </h2>
+      {#each HOURS as [days, time] (days)}
+        <p class="text-[20px] leading-[40px] font-light">{days} / {time}</p>
+      {/each}
     </div>
   </div>
-</main>
+
+  <!-- Live's `.footer-map` is 512×400 desktop / full-width mobile, left-aligned. -->
+  <div class="mt-8 max-w-[512px] lg:mt-14">
+    <MapEmbed />
+  </div>
+</section>
+
+<CtaBand
+  heading={ctaHeading}
+  ctaLabel="Book Appointment"
+  ctaLink={{ link_type: "Web", url: "#appointment" }}
+  backgroundImage={ctaBeach}
+  caption="FIJI ISLANDS"
+/>

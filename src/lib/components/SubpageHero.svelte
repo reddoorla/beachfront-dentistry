@@ -1,0 +1,133 @@
+<script lang="ts">
+  import HeroBackgroundImage from "$lib/components/HeroBackgroundImage.svelte";
+  import WaveDivider from "$lib/components/WaveDivider.svelte";
+  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
+  import {
+    asText,
+    type ImageField,
+    type RichTextField,
+  } from "@prismicio/client";
+
+  // The recurring subpage opener (live's `.hero.<page>` band): a page-specific
+  // photo cover-filling a short band, a bottom-anchored centered THIN slab
+  // heading in white, and the flip wave seaming into the white section below.
+  // Shared by every subpage via Hero's `subpage` variation so the treatment
+  // (height ladder, heading scale, wave, legibility scrim) lives in one place.
+  //
+  // Height ladder read off live `.hero`/`.hero.redondo`: 33vw (≥992, =475@1440)
+  // / 60vw (768–991) / 70vw (480–767) / 95vw (≤479, =371@390). Heading is the
+  // absolute `.subpage-hero-heading`: white font-weight-100 museo-slab, centered
+  // full-width at desktop, left-aligned at 80%/left-10% below 992 (measured
+  // 140px/168 @1440 → 56px/70 @390).
+  let {
+    heading,
+    backgroundImage,
+    subtitle,
+    subheadings,
+    intro,
+    align = "center",
+  }: {
+    heading?: RichTextField | null;
+    backgroundImage?: ImageField | null;
+    // optional cyan intro line some subpages carry directly under the heading
+    subtitle?: string | null;
+    // our-team's `.our-team-subtitle-section` (below the wave): stacked
+    // dark-teal slab headings ("Our" / "Team") over a cyan slab intro line.
+    subheadings?: string[] | null;
+    intro?: RichTextField | null;
+    // most subpage heroes centre the heading at desktop; contact-us keeps it
+    // LEFT-aligned (live `.hero.contact`).
+    align?: "center" | "left";
+  } = $props();
+
+  const headingText = $derived(asText((heading ?? []) as RichTextField));
+  const introText = $derived(asText((intro ?? []) as RichTextField));
+</script>
+
+<section
+  data-slice-type="hero"
+  data-slice-variation="subpage"
+  class="relative isolate flex min-h-[95vw] w-full items-center justify-center overflow-hidden bg-dark text-white xs:min-h-[70vw] md:min-h-[60vw] lg:min-h-[33vw]"
+>
+  {#if backgroundImage?.url}
+    <HeroBackgroundImage image={backgroundImage} preload={true} />
+  {/if}
+  <!-- Live's hero overlay is a CYAN wash, not a neutral scrim (measured off
+       `.hero.contact`): a cyan top-tint fading out over the top third + a
+       transparent→solid-cyan bottom wash (full by 77% of its own height). This
+       is what makes the white thin heading read over a bright photo (the plain
+       dark scrim left "Contact Us" washed out over the loaded office shot). -->
+  <div
+    class="pointer-events-none absolute inset-x-0 top-0 h-1/3"
+    style="background:linear-gradient(rgba(18,158,204,0.8), rgba(0,0,0,0))"
+    aria-hidden="true"
+  ></div>
+  <div
+    class="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
+    style="background:linear-gradient(rgba(0,0,0,0), rgba(18,158,204,0.8))"
+    aria-hidden="true"
+  ></div>
+  <!-- `.subpage-hero-heading`: absolute bottom 2%, full-width centered at
+       desktop, left-aligned 80% (left 10%) below 992. -->
+  <div
+    class="absolute bottom-[2%] z-10 {align === 'left'
+      ? 'left-5 lg:left-20'
+      : 'left-[10%] w-4/5 lg:left-0 lg:w-full'}"
+    use:animateIn={LIVE_REVEAL}
+  >
+    <!-- Inline white: the unlayered global `main h1–h3` primary-colour rule
+         outranks a `text-white` utility (same trap as the QA card title), so
+         force the live white heading with an inline style. -->
+    <h2
+      class="font-slab text-left text-[56px] leading-[70px] font-thin md:text-[90px] md:leading-[108px] lg:text-[140px] lg:leading-[168px] {align ===
+      'left'
+        ? ''
+        : 'lg:text-center'}"
+      style="color:#fff"
+    >
+      {headingText}
+    </h2>
+    {#if subtitle}
+      <p
+        class="font-slab mt-2 text-left text-[20px] leading-[30px] font-light text-white lg:text-center lg:text-[30px] lg:leading-[45px]"
+      >
+        {subtitle}
+      </p>
+    {/if}
+  </div>
+  <!-- Live's hero wave (`.bot-wave.flip`): rotate(180) so the white
+       next-section edge waves UP into the band. -->
+  <div class="absolute bottom-0 left-0 z-10 w-full">
+    <WaveDivider fill="white" flip />
+  </div>
+</section>
+
+{#if subheadings?.length || introText}
+  <!-- `.our-team-subtitle-section`: below the wave on white — two stacked slab
+       headings (dark-teal #365B6D, same 56/70 → 140/168 scale as the band
+       heading) over the cyan slab intro (#129ECC). Colours forced inline for
+       the same reason as the band heading (global `main h1–h3` primary rule). -->
+  <section class="w-full bg-white px-5 text-center" use:animateIn={LIVE_REVEAL}>
+    {#each subheadings ?? [] as line, i (line)}
+      <!-- first heading nudges up 10px into the wave, matching live. -->
+      <h2
+        class="font-slab text-[56px] leading-[70px] font-thin lg:text-[140px] lg:leading-[168px] {i ===
+        0
+          ? '-mt-[10px]'
+          : ''}"
+        style="color:#365b6d"
+      >
+        {line}
+      </h2>
+    {/each}
+    {#if introText}
+      <!-- capped narrow so it wraps to ~5 lines exactly as live does. -->
+      <h3
+        class="font-slab mx-auto mt-5 mb-[10px] max-w-[620px] text-[20px] leading-[30px] font-light lg:text-[40px] lg:leading-[50px]"
+        style="color:#129ecc"
+      >
+        {introText}
+      </h3>
+    {/if}
+  </section>
+{/if}

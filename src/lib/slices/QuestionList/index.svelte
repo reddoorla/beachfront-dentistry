@@ -8,7 +8,7 @@
   } from "@prismicio/client";
   import { floatAlong } from "$lib/actions/floatAlong";
   import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
-  import { SvelteSet } from "svelte/reactivity";
+  import QuestionCard from "./QuestionCard.svelte";
 
   // QuestionListSlice/QuestionListSliceVariation aren't in the generated
   // Prismic types yet — this is a brand-new slice, and regenerating needs a
@@ -39,9 +39,6 @@
 
   let { slice, context }: Props = $props();
 
-  const titleText = (doc: NewsArticleDoc): string =>
-    asText((doc.data.title ?? []) as RichTextField);
-
   // "Lead paragraph" = the first paragraph-type node in the rich-text body;
   // the numbered list's collapsed-body teaser and the full answer live on
   // the future /questions/<uid> detail page.
@@ -50,8 +47,6 @@
     const lead = nodes.find((node) => node.type === "paragraph");
     return lead ? asText([lead] as RichTextField) : "";
   };
-
-  const pad2 = (n: number): string => String(n).padStart(2, "0");
 
   // Live's card excerpt is a hand-written Webflow teaser, NOT the article
   // body's lead paragraph (verified against live 2026-08-02: only 1 of the 6
@@ -76,15 +71,6 @@
   };
   const teaserText = (doc: NewsArticleDoc): string =>
     TEASERS[doc.uid] ?? leadParagraphText(doc);
-
-  // Live's teaser cards are click-to-expand IN PLACE (measured 2026-08-02):
-  // the card box stays fixed (mobile grows 288→384), a heavier cyan wash fades
-  // in, the title fades out, and the answer excerpt + "Read More" slide up
-  // from below the card's clip edge. The card itself is NOT a link on live —
-  // only "Read More" navigates — so the toggle lives on the header bar.
-  const expandedCards = new SvelteSet<string>();
-  const toggleExpanded = (uid: string) =>
-    expandedCards.has(uid) ? expandedCards.delete(uid) : expandedCards.add(uid);
 
   // collections-load fetches via a plain `getAllByType` with no ordering, so the
   // slice sorts itself — newest first. This date order is the site's canonical
@@ -212,202 +198,17 @@
       {/if}
 
       <!-- Live's card gap: 12px mobile, 20px desktop (measured — the collection
-           item is 300/420 tall around a 288/400 card). -->
+           item is 300/420 tall around a 288/400 card). Each card is the shared
+           QuestionCard (live's `.qa-block`); the parent only decides the column
+           layout and which cards are featured. -->
       <ul class="flex flex-col gap-3 lg:gap-5">
         {#each teaserCards as card (card.doc.uid)}
-          {@const doc = card.doc}
-          {@const expanded = expandedCards.has(doc.uid)}
-          {@const panelId = `qa-panel-${doc.uid}`}
-          <!-- Per-card reveal: live raises each .qa-block as IT enters. -->
-          <li class="qa-item" use:animateIn={LIVE_REVEAL}>
-            <!-- Not a link: live's .qa-block has no wrapping <a> — only the
-                 "Read More" inside the revealed answer navigates. The WHOLE
-                 card is the toggle (live's .qa-block carries cursor:pointer +
-                 the click interaction); the header-bar <button> stays as the
-                 semantic disclosure for keyboard/AT, so this div click is a
-                 pointer convenience only. Opening reproduces live's mechanics:
-                 the card drops 48px/80px (margin-top .65s ease-out) while the
-                 label bar slides up out of the clip. Mobile's card box also
-                 grows 288→384 (measured); desktop's 400 is fixed. -->
-            <!-- svelte-ignore a11y_no_static_element_interactions -->
-            <!-- NOT overflow-hidden: live's .qa-block never clips — when open,
-                 the label bar rides up ABOVE the card box (into the 48/80px the
-                 card's own margin-top just vacated, so it appears stationary on
-                 screen while the body drops). The photo and the answer each
-                 clip inside their own wrappers instead. -->
-            <div
-              onclick={(e) => {
-                if ((e.target as HTMLElement).closest("a, button")) return;
-                toggleExpanded(doc.uid);
-              }}
-              onkeydown={(e) => {
-                if (e.key === "Escape" && expanded) toggleExpanded(doc.uid);
-              }}
-              class="relative block cursor-pointer rounded-[25px] shadow-md ring-1 ring-black/5 transition-[margin-top,opacity] duration-[650ms] ease-out hover:opacity-80 motion-reduce:transition-none {expanded
-                ? 'mt-12 h-[384px] xs:h-[288px] md:mt-16 md:h-[320px] lg:mt-20 lg:h-[400px]'
-                : 'h-[288px] md:h-[320px] lg:h-[400px]'}"
-            >
-              <!-- Live's real card (.qa-block) is a FIXED-HEIGHT box, not a fixed
-                   aspect: height 288 (≤767 — ~351×288 mobile-portrait AND 480×288
-                   landscape) / 320 (tablet 768–991) / 400 (desktop ≥992); width
-                   fills the 480/600-capped column. A single aspect matched 390 by
-                   luck but blew the height out as the card widened (600×492 at
-                   650, peeking the answer over the title). Expanded matches live's
-                   growth: ≤479 → 384, landscape/tablet/desktop stay 288/320/400
-                   (the sm: step approximates live's 480px landscape breakpoint).
-                   The photo (.qa-image) object-cover-centres across the WHOLE card,
-                   a full-card wash on top, the pale bar overlaid on the top
-                   48/80px, and the title overlaid at the bottom. -->
-              <!-- Media + washes clip inside their own rounded box (the card
-                   itself no longer clips). Open: top corners square — live's
-                   .qa-image.active radius 0 0 25 25, the label bar having
-                   ridden above the box. -->
-              <div
-                class="absolute inset-0 overflow-hidden {expanded
-                  ? 'rounded-b-[25px]'
-                  : 'rounded-[25px]'}"
-              >
-                {#if isFilled.image(doc.data.media)}
-                  <PrismicImage
-                    field={doc.data.media}
-                    fallbackAlt=""
-                    class="absolute inset-0 h-full w-full object-cover object-center"
-                  />
-                {:else}
-                  <div
-                    class="from-primary to-accent absolute inset-0 bg-gradient-to-br"
-                  ></div>
-                {/if}
-                <!-- Live's real visible wash, read off `.box-gradient.qa`
-                   (2026-07-31). It is BREAKPOINT-DEPENDENT and identical to the
-                   3-C cards' rule: cyan-0.9 at the TOP on mobile, flipping to
-                   cyan-at-the-BOTTOM on desktop. Verified against live's rendered
-                   pixels (desktop 28% down = rgb(148,210,232), 95% down =
-                   rgb(37,162,201); mobile just-below-bar = rgb(44,167,208)).
-                   NB an earlier pass mis-read this as a near-white veil, from
-                   sampling a transition instead of reading the rule.
-                   `.box-gradient-overlay` (opacity:0) is the HOVER layer — not
-                   this one — and must not be copied. -->
-                <div
-                  class="absolute inset-0 lg:hidden"
-                  style="background:linear-gradient(rgba(18,158,204,0.9) 23%, rgba(5,44,57,0.25) 93%, rgba(0,0,0,0))"
-                  aria-hidden="true"
-                ></div>
-                <div
-                  class="absolute inset-0 hidden lg:block"
-                  style="background:linear-gradient(rgba(0,0,0,0), rgba(18,158,204,0.9) 90%)"
-                  aria-hidden="true"
-                ></div>
-                <!-- Expanded-state wash: live's `.box-gradient-overlay.qa` (the
-                   opacity-0 layer noted below) fades to 1 when the card opens,
-                   deepening the cyan so the white answer copy reads. -->
-                <div
-                  class="absolute inset-0 transition-opacity duration-[650ms] motion-reduce:transition-none {expanded
-                    ? 'opacity-100'
-                    : 'opacity-0'}"
-                  style="background:linear-gradient(rgba(0,0,0,0), rgba(16,137,177,0.78) 31%, rgba(18,158,204,0.9) 80%)"
-                  aria-hidden="true"
-                ></div>
-              </div>
-              <!-- Answer: excerpt + Read More sliding up inside its OWN clip
-                   box (live clips the answer in the small .qa-text box, not
-                   the card). Insets/typography are live's measured values:
-                   text box 281/351 mobile & 480/600 desktop, copy 16/24 →
-                   20/30 w300 white; button 109×41 → 180×67, museo-slab 15px →
-                   25px, white 1px border, radius 8. `inert` keeps the clipped
-                   link untabbable while closed. -->
-              <div
-                class="absolute inset-x-0 top-12 bottom-0 overflow-hidden lg:top-20"
-              >
-                <div
-                  id={panelId}
-                  inert={!expanded}
-                  class="px-[35px] transition-transform duration-[650ms] motion-reduce:transition-none lg:px-[60px] {expanded
-                    ? 'translate-y-0'
-                    : 'translate-y-[400px]'}"
-                >
-                  <p
-                    class="text-[16px] leading-[24px] font-light text-white lg:text-[20px] lg:leading-[30px]"
-                  >
-                    {teaserText(doc)}
-                  </p>
-                  <a
-                    href="/questions/{doc.uid}"
-                    class="font-slab mt-[46px] inline-flex h-[41px] items-center rounded-lg border border-white px-[15px] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:mt-[36px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
-                  >
-                    Read More
-                  </a>
-                </div>
-              </div>
-              <!-- Pale header bar overlaid on the top of the card — live's
-                   .qa-label. When the card opens it rides up ABOVE the card box
-                   (live's .qa-label.active margin-top:-2rem) into the space the
-                   card's margin vacated — it stays visible and remains the
-                   disclosure toggle (minus showing). -->
-              <button
-                type="button"
-                aria-expanded={expanded}
-                aria-controls={panelId}
-                aria-label="{expanded ? 'Collapse' : 'Expand'}: {titleText(
-                  doc,
-                )}"
-                onclick={() => toggleExpanded(doc.uid)}
-                class="focus-visible:ring-primary-deep absolute inset-x-0 top-0 flex h-12 cursor-pointer items-center justify-between rounded-t-[25px] bg-[#e7f5fa] px-5 transition-transform duration-[650ms] ease-out focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden motion-reduce:transition-none lg:h-20 lg:px-5 {expanded
-                  ? '-translate-y-full'
-                  : ''}"
-              >
-                {#if card.number !== null}
-                  <!-- Live's .qa-circle: an h6 in museo-slab BOLD 25px/30px,
-                       a full-strength 1px #365b6d ring, ~52px disc at desktop. -->
-                  <span
-                    class="font-slab grid size-10 place-items-center rounded-full border border-[#365b6d] text-[15px] leading-[15px] font-bold tracking-[1.28px] text-[#365b6d] uppercase md:text-[20px] lg:size-[52px] lg:text-[25px] lg:leading-[30px]"
-                    >{pad2(card.number)}</span
-                  >
-                {:else}
-                  <span aria-hidden="true"></span>
-                {/if}
-                <!-- Live's card +/−: its own Plus.svg / minus.svg assets
-                     (25×25 and 25×5), 15px wide at mobile, 25px at desktop. -->
-                {#if expanded}
-                  <img
-                    src="/icons/minus.svg"
-                    alt=""
-                    class="w-[15px] lg:w-[25px]"
-                    aria-hidden="true"
-                  />
-                {:else}
-                  <img
-                    src="/icons/plus.svg"
-                    alt=""
-                    class="w-[15px] lg:w-[25px]"
-                    aria-hidden="true"
-                  />
-                {/if}
-              </button>
-              <!-- Title is a direct child of the card box (a sibling of the
-                   image wrapper, not nested inside it) so it mirrors live's
-                   standalone `.qa-text` block. This keeps the page-diff anchor
-                   resolving to the title's low position (near the card bottom)
-                   the way live's does, instead of jumping up to a text-bearing
-                   image wrapper and shifting the whole stack by one card.
-                   Inline colour: the unlayered global `main h1–h3` primary rule
-                   outranks any Tailwind text utility. Live title is museo-SANS
-                   (not the base h3 slab), 20px/30px @390 → 30px/45px @1440, w500
-                   (measured 2026-07-31 with the type probe).
-                   BOX: live's .qa-text is 80% of the card width, inset 6.8% from
-                   its left (281/351 mobile, 480/600 desktop — both exactly 0.80).
-                   That narrower measure is what makes live wrap these titles onto
-                   two lines; a full-width title box fits them on one and the
-                   whole card stack then drifts out of vertical alignment. -->
-              <h3
-                class="absolute bottom-4 left-[6.8%] w-4/5 font-sans text-[1.25rem] leading-[30px] font-medium transition-opacity duration-300 motion-reduce:transition-none lg:bottom-5 lg:text-[1.875rem] lg:leading-[45px] {expanded
-                  ? 'opacity-0'
-                  : 'opacity-100'}"
-                style="color:#fff"
-              >
-                {titleText(doc)}
-              </h3>
-            </div>
+          <li>
+            <QuestionCard
+              doc={card.doc}
+              number={card.number}
+              teaser={teaserText(card.doc)}
+            />
           </li>
         {/each}
       </ul>
@@ -426,38 +227,37 @@
     </div>
   </section>
 {:else if slice.variation === "numbered"}
+  <!-- Live "/ask-the-doctor" index: EVERY question as the same `.qa-block`
+       card, laid out in a Webflow 2-column `.w-col-6` row (stacking to 1 at
+       ≤767) inside `.content-width` (max-w 1400, side padding 60/36/19.5px
+       measured, 8%/5% at mobile). The 20px column gutter = live's per-column
+       `padding: 0 10px`. No headshot/handwriting, no featured hero, no "View
+       All" — this IS the full list. Each card's number is its canonical
+       date-sorted position, the same value the home teaser prints. -->
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="mx-auto max-w-3xl px-6 py-16"
-    use:animateIn={LIVE_REVEAL}
+    class="mx-auto max-w-[1400px] px-[5%] py-8 min-[480px]:px-[8%] md:px-9 lg:px-[60px]"
   >
     {#if isFilled.richText(slice.primary.heading)}
-      <PrismicRichText field={slice.primary.heading} />
+      <div class="mb-8" use:animateIn={LIVE_REVEAL}>
+        <PrismicRichText field={slice.primary.heading} />
+      </div>
     {/if}
-    <div class="divide-light mt-8 flex flex-col divide-y">
-      {#each sortedDocs as doc, i (doc.uid)}
-        <details class="qa-item group py-4">
-          <summary
-            class="[&::-webkit-details-marker]:hidden flex cursor-pointer list-none items-baseline gap-3 font-semibold focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
-          >
-            <span class="text-secondary" aria-hidden="true">{pad2(i + 1)}</span>
-            <span>{titleText(doc)}</span>
-            <span class="ml-auto" aria-hidden="true">
-              <span class="hidden group-open:inline">−</span>
-              <span class="inline group-open:hidden">+</span>
-            </span>
-          </summary>
-          <div class="mt-3 pl-9">
-            <p>{leadParagraphText(doc)}</p>
-            <a
-              href="/questions/{doc.uid}"
-              class="mt-2 inline-block underline focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
-            >
-              Read the full answer
-            </a>
-          </div>
-        </details>
+    <div class="grid grid-cols-1 md:grid-cols-2">
+      {#each sortedDocs as doc (doc.uid)}
+        <!-- Each cell mirrors live's `.ask-the-doctor-collection-item`: the
+             `.w-col-6` padding 0 10px (the 10px column gutter that makes the
+             card 331 wide @390 / 600 @1440), and the fixed 520px cell over a
+             400 card — i.e. ~120px of empty space below each card at desktop
+             (top-aligned), 12px at mobile (the qa-block's own margin). -->
+        <div class="px-[10px] pb-3 lg:px-[20px] lg:pb-[120px]">
+          <QuestionCard
+            {doc}
+            number={canonicalNumber.get(doc.uid) ?? null}
+            teaser={teaserText(doc)}
+          />
+        </div>
       {/each}
     </div>
   </section>
