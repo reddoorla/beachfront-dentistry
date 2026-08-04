@@ -377,10 +377,10 @@ export function assemblies(img) {
               "We want you to feel comfortable before your first visit. Here some ways to give you a clear idea of what to expect:",
             ),
           ],
-          // "Book an Apointment" reproduces live's spelling verbatim (a typo on
-          // the live site — flagged for Tucker; do not silently "correct" it or
-          // the content gate diverges from the reference).
-          book_label: "Book an Apointment",
+          // Live renders "Book an Apointment" (a typo on the reference); Tucker
+          // asked to ship the correct spelling here, so this intentionally
+          // diverges from the reference's copy on this one label.
+          book_label: "Book an Appointment",
           book_link: webLink("#appointment"),
           form_label: "Registration Form",
           form_link: webLink("#"),
