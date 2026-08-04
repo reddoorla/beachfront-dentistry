@@ -1,0 +1,58 @@
+{
+  "id": "exam_timeline",
+  "type": "SharedSlice",
+  "name": "ExamTimeline",
+  "description": "your-first-visit First Exam: 2-col numbered timeline (step 00 + buttons left, photo + steps 01-06 right)",
+  "variations": [
+    {
+      "id": "default",
+      "name": "Default",
+      "docURL": "...",
+      "version": "initial",
+      "description": "Heading + intro + step 00 + buttons (left); photo + steps (right)",
+      "imageUrl": "",
+      "primary": {
+        "heading": {
+          "type": "StructuredText",
+          "config": { "label": "heading", "single": "heading2,heading3" }
+        },
+        "intro": {
+          "type": "StructuredText",
+          "config": {
+            "label": "intro",
+            "multi": "paragraph,strong,em,hyperlink"
+          }
+        },
+        "image": {
+          "type": "Image",
+          "config": { "label": "image", "constraint": {}, "thumbnails": [] }
+        },
+        "form_label": { "type": "Text", "config": { "label": "form_label" } },
+        "form_link": {
+          "type": "Link",
+          "config": { "label": "form_link", "allowTargetBlank": true }
+        },
+        "book_label": { "type": "Text", "config": { "label": "book_label" } },
+        "book_link": {
+          "type": "Link",
+          "config": { "label": "book_link", "allowTargetBlank": true }
+        }
+      },
+      "items": {
+        "number": { "type": "Text", "config": { "label": "number" } },
+        "minutes": { "type": "Text", "config": { "label": "minutes" } },
+        "title": {
+          "type": "StructuredText",
+          "config": { "label": "title", "single": "heading5" }
+        },
+        "body": {
+          "type": "StructuredText",
+          "config": {
+            "label": "body",
+            "multi": "paragraph,strong,em,hyperlink"
+          }
+        }
+      }
+    }
+  ]
+}

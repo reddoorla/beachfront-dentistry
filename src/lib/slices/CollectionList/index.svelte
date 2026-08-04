@@ -44,6 +44,9 @@
       heading?: RichTextField;
       collection_type?: string | null;
       max_items?: number | null;
+      // `people`: "grid" (default, /our-team) or "slider" (your-first-visit's
+      // Meet-Our-Team horizontal person-card slider under a big cyan heading).
+      layout?: string | null;
     };
     items: unknown[];
   };
@@ -299,6 +302,60 @@
                   {@render avatar(doc)}
                 {/if}
               </div>
+            {/if}
+          {/snippet}
+        </Slider>
+      </div>
+    {/if}
+  </section>
+{:else if slice.variation === "people" && slice.primary.layout === "slider"}
+  <!-- your-first-visit `.fv-meet-our-team-section`: the SAME person cards as
+       /our-team, in a horizontal slider under a big cyan slab heading (h2
+       museo-slab wt100 120px, content-left x=80). Cells are the card's own
+       width + margins; the first card aligns to the 80px content column while
+       arrows pin to the screen edges (live's edge-arrow slider). -->
+  <section
+    id="meet-our-team"
+    data-slice-type={slice.slice_type}
+    data-slice-variation={slice.variation}
+    class="fv-meet-our-team-section mb-12 w-full scroll-mt-24 overflow-x-clip"
+  >
+    {#if slice.primary.heading}
+      <div class="mb-4 px-5 lg:mb-10 lg:px-20" use:animateIn={LIVE_REVEAL}>
+        <h2
+          class="font-slab text-[48px] leading-[1.05] font-thin lg:text-[120px] lg:leading-[1]"
+        >
+          {asText(slice.primary.heading)}
+        </h2>
+      </div>
+    {/if}
+    {#if docs.length > 0}
+      <!-- extra top room so the cards' straddling headshots + live's larger
+           heading-to-card gap clear (live: ~320px from heading top to card). -->
+      <div class="relative w-full lg:pt-10" use:animateIn={LIVE_REVEAL}>
+        <Slider
+          itemCount={docs.length}
+          label={asText(slice.primary.heading) || "Meet our team"}
+          itemWidth="360px"
+          mobileItemWidth="351px"
+          gap="0px"
+          mobileGap="0px"
+          trackPadStart="60px"
+          mobileTrackPadStart="0px"
+          showDots={false}
+          arrowLayout="sides"
+          arrowClass="max-lg:hidden hover:opacity-70 focus-visible:ring-primary-deep focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+        >
+          {#snippet prevArrow()}
+            <img src="/icons/team-arrow-left.svg" alt="" class="h-10 w-auto" />
+          {/snippet}
+          {#snippet nextArrow()}
+            <img src="/icons/team-arrow-right.svg" alt="" class="h-10 w-auto" />
+          {/snippet}
+          {#snippet children({ index }: { index: number })}
+            {@const doc = docs[index]}
+            {#if doc}
+              {@render personCard(doc)}
             {/if}
           {/snippet}
         </Slider>

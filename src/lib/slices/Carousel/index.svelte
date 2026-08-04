@@ -40,6 +40,10 @@
         band?: number | null;
         label?: string | null;
         heading?: RichTextField;
+        // your-first-visit Office Tour: a full-bleed single-image slider
+        // (100vw slides, 8 dots, edge arrows) rather than the capped multi-up
+        // review strip. `layout: "fullbleed"` selects it on the photos variation.
+        layout?: string | null;
       };
       items?: TrackItem[];
     };
@@ -55,6 +59,10 @@
   // band path below, untouched.
   const isTrackVariation = $derived(
     slice.variation === "review" || slice.variation === "photos",
+  );
+  // Office Tour: photos variation in full-bleed mode.
+  const isFullbleedTour = $derived(
+    slice.variation === "photos" && slice.primary.layout === "fullbleed",
   );
   const trackItems = $derived(isTrackVariation ? (slice.items ?? []) : []);
   const trackCount = $derived(trackItems.length);
@@ -106,7 +114,55 @@
   <img src="/icons/review-arrow-right.svg" alt="" class="h-[33px] w-[30px]" />
 {/snippet}
 
-{#if isTrackVariation}
+{#if isFullbleedTour}
+  <!-- your-first-visit `.fv-virtual-tour-section`: a full-bleed single-image
+       w-slider. Live heading "Office Tour" is a museo-slab cyan 60px h1 at the
+       content margin (x=80); each slide is 100vw of a 4:3 photo clipped to a
+       900px-tall mask; 8 dots below + edge chevron arrows. Photos themselves
+       are a documented pipeline/CSP floor — geometry + dots/arrows are the
+       spec here. -->
+  <section
+    id="office-tour"
+    data-slice-type={slice.slice_type}
+    data-slice-variation={slice.variation}
+    class="mb-10 w-full scroll-mt-24 lg:mb-24 lg:pb-4"
+  >
+    <div class="mb-6 px-5 lg:px-20">
+      <!-- cyan by the global main h1–h3 primary rule; no inline colour needed. -->
+      <h1
+        class="font-slab text-[25px] leading-[38px] font-light lg:text-[60px] lg:leading-[72px]"
+      >
+        {trackLabel}
+      </h1>
+    </div>
+    {#if trackCount > 0}
+      <Slider
+        itemCount={trackCount}
+        label={trackLabel}
+        showDots={true}
+        arrowLayout="sides"
+        gap="0px"
+        mobileGap="0px"
+        arrowClass="h-full !top-0 !translate-y-0 w-14 lg:w-20 text-white [text-shadow:0_1px_4px_rgba(0,0,0,0.4)] hover:bg-black/10 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-hidden"
+        dotClass="bg-primary/40"
+        activeDotClass="bg-primary"
+      >
+        {#snippet children({ index }: { index: number })}
+          {@const item = trackItems[index]}
+          {#if item && isFilled.image(item.image)}
+            <div class="h-[293px] w-full overflow-hidden md:h-[560px] lg:h-[900px]">
+              <PrismicImage
+                field={item.image}
+                fallbackAlt=""
+                class="h-full w-full object-cover object-center"
+              />
+            </div>
+          {/if}
+        {/snippet}
+      </Slider>
+    {/if}
+  </section>
+{:else if isTrackVariation}
   {#if trackCount > 0}
     <ContentBand
       sliceType={slice.slice_type}
