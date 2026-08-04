@@ -309,8 +309,12 @@
           >
             Step {pad2(i + 1)}
           </p>
+          <!-- text-wrap (builtin) defeats the global h1–h6 `text-wrap: balance`
+               (app.css:401): balance split "Receive a No-Pressure Plan" into 2
+               even lines, live fills it — the arbitrary [text-wrap:normal] form
+               silently no-ops here, the builtin utility works (as in Hero). -->
           <h3
-            class="h-primary font-slab mt-2 text-[30px] leading-[40px] font-thin xs:text-[21px] xs:leading-[26px] xs:font-light lg:mt-5 lg:text-[40px] lg:leading-[50px] lg:font-light"
+            class="h-primary font-slab mt-2 text-[30px] leading-[40px] font-thin text-wrap xs:text-[21px] xs:leading-[26px] xs:font-light lg:mt-5 lg:text-[40px] lg:leading-[50px] lg:font-light"
           >
             {asText(item.item_heading)}
           </h3>
