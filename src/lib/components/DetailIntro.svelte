@@ -23,18 +23,22 @@
      padding), so the section box itself starts 20px below the wave. -->
 <section class="mt-5 w-full">
   <div class="mx-auto max-w-[1440px] px-5 lg:px-20">
+    <!-- Live mobile title sizes (read off `.hero`+title @390): xl=56px/70,
+         lg=50px/60 → 140/168, 100/120 desktop. -->
     <h1
       class="font-slab font-thin {titleSize === 'xl'
-        ? 'text-[48px] leading-[54px] lg:text-[140px] lg:leading-[168px]'
-        : 'text-[40px] leading-[46px] lg:text-[100px] lg:leading-[120px]'}"
+        ? 'text-[56px] leading-[70px] lg:text-[140px] lg:leading-[168px]'
+        : 'text-[50px] leading-[60px] lg:text-[100px] lg:leading-[120px]'}"
       style="color:#129ecc"
       use:animateIn={LIVE_REVEAL}
     >
       {title}
     </h1>
     {#if lede}
+      <!-- Live's lede is `.text-body-large`: 20px/30 mobile → 30px/45 desktop
+           (right-indented ~⅓ at desktop). -->
       <p
-        class="font-slab mt-8 text-[18px] leading-[27px] font-light lg:mt-[50px] lg:ml-[33%] lg:max-w-[845px] lg:text-[30px] lg:leading-[45px]"
+        class="font-slab mt-8 text-[20px] leading-[30px] font-light lg:mt-[50px] lg:ml-[33%] lg:max-w-[845px] lg:text-[30px] lg:leading-[45px]"
         style="color:#129ecc"
         use:animateIn={LIVE_REVEAL}
       >

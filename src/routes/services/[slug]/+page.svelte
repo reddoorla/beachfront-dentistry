@@ -54,10 +54,11 @@
 
 <DetailIntro title={data.title} lede={split.lede} titleSize="xl" />
 
-<!-- Live's `.service-page-body-section` carries generous whitespace before the
-     closing CTA (~236px gap @1440); match it so the page isn't compact. -->
+<!-- Live's `.service-page-body-section`: ~263px above the body heading and
+     ~236px of whitespace below before the closing CTA (measured @1440) — match
+     both so the page isn't compact. -->
 <section
-  class="mx-auto max-w-[1440px] px-5 pt-10 pb-16 lg:px-20 lg:pt-16 lg:pb-[190px]"
+  class="mx-auto max-w-[1440px] px-5 pt-14 pb-20 lg:px-20 lg:pt-[100px] lg:pb-[228px]"
 >
   <!-- Live body copy: 12px/18 mobile → 20px/30 desktop, 10px paragraph gap,
        capped ~1024px. Paragraphs inherit the wrapper font-size. -->
