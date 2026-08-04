@@ -2,7 +2,8 @@
   import { isFilled } from "@prismicio/client";
   import { PrismicImage } from "@prismicio/svelte";
   import DetailHero from "$lib/components/DetailHero.svelte";
-  import RichTextBody from "$lib/components/RichTextBody.svelte";
+  import DetailBody from "$lib/components/DetailBody.svelte";
+  import OutlineButton from "$lib/components/OutlineButton.svelte";
   import CtaBand from "$lib/components/CtaBand.svelte";
   import { CTA_BEACH } from "$lib/cta-beach";
   import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
@@ -61,31 +62,25 @@
     <!-- Role line: teal slab bold (live `.team-member-role`). Inline colour
          defeats the global `main h1–h3` primary rule. -->
     <h2
-      class="font-slab text-[24px] leading-[32px] font-bold lg:text-[30px] lg:leading-[40px]"
+      class="font-slab text-[24px] leading-[32px] font-bold lg:text-[30px] lg:leading-[45px]"
       style="color:#365b6d"
     >
       {data.role}
     </h2>
   {/if}
 
-  <!-- Live's body copy: 12px/18 mobile → 20px/30 desktop, 10px between
-       paragraphs (museo-sans dark). Paragraphs inherit the wrapper font-size
-       (RichTextBody's <p> carry no class); own the paragraph gap here (10px)
-       instead of `.richtext-block`'s 1em so the height tracks live. -->
-  <div
-    class="mt-6 text-[#333] [&_p+p]:mt-[10px] [&_p]:text-[12px] [&_p]:leading-[18px] lg:mt-10 lg:[&_p]:text-[20px] lg:[&_p]:leading-[30px]"
-    use:animateIn={LIVE_REVEAL}
-  >
-    <RichTextBody field={data.doc.data.body} />
-  </div>
+  <!-- Live's body copy: museo-sans slate #365b6d, 12px/18 mobile → 20px/30
+       desktop, 10px between blocks (shared DetailBody). -->
+  <DetailBody field={data.doc.data.body} class="mt-6 lg:mt-10" />
 
-  <!-- Live's cyan outline "Back to Team" pill (`.button` skin, primary cyan). -->
-  <a
-    href="/our-team"
-    class="font-slab focus-visible:ring-primary-deep mt-10 inline-flex h-[56px] items-center rounded-lg border border-[#129ecc] px-6 text-[20px] font-light text-[#129ecc] transition-opacity hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:h-[66px] lg:px-8 lg:text-[25px]"
-  >
-    Back to Team
-  </a>
+  <!-- Live's cyan outline "Back to Team" pill (`.button` skin), left-aligned. -->
+  <OutlineButton
+    label="Back to Team"
+    link="/our-team"
+    variant="cyan"
+    size="detail"
+    class="mt-10"
+  />
 </section>
 
 <CtaBand backgroundImage={CTA_BEACH} caption="FIJI ISLANDS" />

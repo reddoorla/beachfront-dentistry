@@ -10,15 +10,24 @@
     label,
     link,
     variant = "teal",
+    size = "default",
     class: cls = "",
   }: {
     label: string;
     link?: LinkField | string | null;
     variant?: "teal" | "cyan";
+    // "detail" matches live's smaller detail-page back-links (38px/14px on
+    // mobile) while keeping the full 66px/25px pill at desktop.
+    size?: "default" | "detail";
     class?: string;
   } = $props();
 
   const color = $derived(variant === "cyan" ? "#129ecc" : "#365b6d");
+  const sizing = $derived(
+    size === "detail"
+      ? "h-[38px] px-[14px] text-[14px] lg:h-[66px] lg:px-6 lg:text-[25px]"
+      : "h-[66px] px-6 text-[20px] lg:text-[25px]",
+  );
   const href = $derived(
     typeof link === "string" ? link : (asLink(link ?? undefined) ?? undefined),
   );
@@ -26,7 +35,7 @@
 
 <a
   {href}
-  class="focus-visible:ring-primary-deep inline-flex h-[66px] items-center justify-center rounded-lg border px-6 font-slab text-[20px] font-light transition-opacity hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:text-[25px] {cls}"
+  class="focus-visible:ring-primary-deep inline-flex items-center justify-center rounded-lg border font-slab font-light transition-opacity hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden {sizing} {cls}"
   style="color:{color};border-color:{color}"
 >
   {label}

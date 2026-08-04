@@ -226,7 +226,7 @@
                the desktop max-width reproduces live's row spanning only the
                link-columns area (845px of the 1280 content box), not the map. -->
           <div
-            class="mt-12 flex flex-wrap justify-between font-sans text-[7px] leading-[8.4px] font-light text-[#365b6d] xs:text-[10px] xs:leading-[12px] md:text-[12px] md:leading-[14px] lg:mt-20 lg:max-w-[845px] lg:text-[12px] lg:leading-[14.4px]"
+            class="mt-12 flex flex-wrap justify-between font-sans text-[7px] leading-[8.4px] font-light text-[#365b6d] xs:text-[10px] xs:leading-[12px] md:text-[12px] md:leading-[14px] lg:mt-[140px] lg:max-w-[845px] lg:text-[12px] lg:leading-[14.4px]"
           >
             {#each legal as item (item)}
               <p>{item}</p>

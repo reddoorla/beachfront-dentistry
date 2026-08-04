@@ -2,10 +2,10 @@
   import { asLink, isFilled } from "@prismicio/client";
   import DetailHero from "$lib/components/DetailHero.svelte";
   import DetailIntro from "$lib/components/DetailIntro.svelte";
-  import RichTextBody from "$lib/components/RichTextBody.svelte";
+  import DetailBody from "$lib/components/DetailBody.svelte";
+  import OutlineButton from "$lib/components/OutlineButton.svelte";
   import CtaBand from "$lib/components/CtaBand.svelte";
   import { CTA_BEACH } from "$lib/cta-beach";
-  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
   import { splitLede } from "./lede";
   import type { ImageField } from "@prismicio/client";
   import type { PageData } from "./$types";
@@ -54,20 +54,11 @@
 
 <DetailIntro title={data.title} lede={split.lede} titleSize="xl" />
 
-<!-- Live's `.service-page-body-section`: ~263px above the body heading and
-     ~236px of whitespace below before the closing CTA (measured @1440) — match
-     both so the page isn't compact. -->
-<section
-  class="mx-auto max-w-[1440px] px-5 pt-14 pb-20 lg:px-20 lg:pt-[100px] lg:pb-[228px]"
->
-  <!-- Live body copy: 12px/18 mobile → 20px/30 desktop, 10px paragraph gap,
-       capped ~1024px. Paragraphs inherit the wrapper font-size. -->
-  <div
-    class="max-w-[1024px] text-[#333] [&_p+p]:mt-[10px] [&_p]:text-[12px] [&_p]:leading-[18px] lg:[&_p]:text-[20px] lg:[&_p]:leading-[30px]"
-    use:animateIn={LIVE_REVEAL}
-  >
-    <RichTextBody field={split.rest} />
-  </div>
+<!-- Live's `.service-page-body-section`: ~263px above the body heading, then
+     the body copy, then a centered "Back to All Services" pill (~80px above and
+     below) before the closing CTA. -->
+<section class="mx-auto max-w-[1440px] px-5 pt-14 lg:px-20 lg:pt-[100px]">
+  <DetailBody field={split.rest} class="max-w-[1024px]" />
 
   {#if youtubeUrl}
     <div class="mt-8 aspect-video w-full max-w-[1020px]">
@@ -82,5 +73,21 @@
     </div>
   {/if}
 </section>
+
+<!-- Live's back-link: a centered teal `.button` outline pill, ~80px above and
+     below (mb clears straight into the CTA band). -->
+<!-- Top gap is a MARGIN (page-diff cuts at this box's top, so padding-top would
+     count into the pill region instead of the body above it); the pill→CTA gap
+     stays padding, inside the pill region. -->
+<div
+  class="mx-auto flex max-w-[1440px] justify-center px-5 mt-[58px] pb-[108px] lg:px-20 lg:mt-[90px] lg:pb-[80px]"
+>
+  <OutlineButton
+    label="Back to All Services"
+    link="/services"
+    variant="teal"
+    size="detail"
+  />
+</div>
 
 <CtaBand backgroundImage={CTA_BEACH} caption="FIJI ISLANDS" />

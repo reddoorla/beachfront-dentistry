@@ -144,7 +144,10 @@
       {/if}
     </div>
   {:else}
-    <div class="mx-auto max-w-5xl px-6 py-24 text-center">
+    <!-- No-image (detail-route) close: live gives the "Ready" heading ~0 top
+         padding — the gap above comes from each page's back-link section — so
+         only the bottom padding lives here. -->
+    <div class="mx-auto max-w-5xl px-6 pt-0 pb-24 text-center">
       <!-- [&_h2]:text-wrap defeats the global `text-wrap: balance` (app.css:401)
            — live FILLS this heading ("Ready for great / dental health?", 2 lines
            @650) but balance spread ours over 3 even lines, pushing the pill +
