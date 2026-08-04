@@ -445,73 +445,66 @@ export function assemblies(img) {
 
     services: [
       {
-        slice_type: "lead_text",
-        variation: "default",
+        slice_type: "hero",
+        variation: "subpage",
         primary: {
-          eyebrow: "Services",
-          body: [
+          heading: [head(2, "Services")],
+          background_image: img(IMG.heroRedondo),
+        },
+        items: [],
+      },
+      {
+        // A single grid slice renders all 4 category cards in live's 2-col
+        // `.service-grid` (SliceZone can't grid sibling slices). `primary.intro`
+        // is the centered cyan `.we-offer-section` line above the grid; each
+        // `items[]` entry is one `.service-block` card.
+        slice_type: "service_category_band",
+        variation: "grid",
+        primary: {
+          intro: [
             para(
               "We offer a wide array of services in cosmetic, implant, and general dentistry. From present issues like discoloration, decay and misalignment to preventative measures for oral cancer and enamel loss- we have you covered.",
             ),
           ],
         },
-        items: [],
-      },
-      {
-        slice_type: "service_category_band",
-        variation: "default",
-        primary: {
-          category_tag: "Cosmetic Dentistry",
-          heading: [head(3, "Cosmetic Dentistry")],
-          intro: [
-            para(
-              "Cosmetic dentistry focuses on improving the appearance of your smile. If discoloration, a need for whitening and brightening or veneer replacements are causing you to lack confidence in your smile, take a look at our options below.",
-            ),
-          ],
-        },
-        items: [],
-      },
-      {
-        slice_type: "service_category_band",
-        variation: "default",
-        primary: {
-          category_tag: "Restore Your Smile",
-          heading: [head(3, "Restore Your Smile")],
-          intro: [
-            para(
-              "With solutions in implant dentistry, you no longer have to feel embarrassed by gaps and missing or dead teeth. Dental implants are the next best thing to your natural teeth, which makes them your best long-term, cost-effective solution. Talk to our team about the restorative options that are best for you.",
-            ),
-          ],
-        },
-        items: [],
-      },
-      {
-        slice_type: "service_category_band",
-        variation: "default",
-        primary: {
-          category_tag: "General Dentistry",
-          heading: [head(3, "General Dentistry")],
-          intro: [
-            para(
-              "Regular check-ups and cleanings are necessary for the prevention, diagnosis, and treatment of conditions that affect your gums, teeth, and oral cavity. Making a plan for prevention is equally as important as treatment for larger issues and can save you thousands in more invasive treatments down the road.",
-            ),
-          ],
-        },
-        items: [],
-      },
-      {
-        slice_type: "service_category_band",
-        variation: "default",
-        primary: {
-          category_tag: "Specialty Services",
-          heading: [head(3, "Specialty Services")],
-          intro: [
-            para(
-              "Take a look at our products that allow for quality at-home care in whitening, enamel-loss prevention, tooth sensitivity relief, and more! Including Invisalign, which is a series of virtually invisible aligners. Wire-free and bracket-free, you could have straight teeth within 12 months!",
-            ),
-          ],
-        },
-        items: [],
+        items: [
+          {
+            category_tag: "Cosmetic Dentistry",
+            heading: [head(3, "Cosmetic Dentistry")],
+            intro: [
+              para(
+                "Cosmetic dentistry focuses on improving the appearance of your smile. If discoloration, a need for whitening and brightening or veneer replacements are causing you to lack confidence in your smile, take a look at our options below.",
+              ),
+            ],
+          },
+          {
+            category_tag: "Restore Your Smile",
+            heading: [head(3, "Restore Your Smile")],
+            intro: [
+              para(
+                "With solutions in implant dentistry, you no longer have to feel embarrassed by gaps and missing or dead teeth. Dental implants are the next best thing to your natural teeth, which makes them your best long-term, cost-effective solution. Talk to our team about the restorative options that are best for you.",
+              ),
+            ],
+          },
+          {
+            category_tag: "General Dentistry",
+            heading: [head(3, "General Dentistry")],
+            intro: [
+              para(
+                "Regular check-ups and cleanings are necessary for the prevention, diagnosis, and treatment of conditions that affect your gums, teeth, and oral cavity. Making a plan for prevention is equally as important as treatment for larger issues and can save you thousands in more invasive treatments down the road.",
+              ),
+            ],
+          },
+          {
+            category_tag: "Specialty Services",
+            heading: [head(3, "Specialty Services")],
+            intro: [
+              para(
+                "Take a look at our products that allow for quality at-home care in whitening, enamel-loss prevention, tooth sensitivity relief, and more! Including Invisalign, which is a series of virtually invisible aligners. Wire-free and bracket-free, you could have straight teeth within 12 months!",
+              ),
+            ],
+          },
+        ],
       },
       ctaHero(img),
     ],
