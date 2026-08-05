@@ -106,14 +106,23 @@
 
 <!-- One config column. Live's footer links: museo-sans, 12px/24 mobile and
      20px/40 desktop, weight 300, with 12px/20px between rows (its labels are
-     slab-500 at the same sizes — rendered as <p> below). -->
-{#snippet colBlock(col: FooterColumn)}
-  <!-- Desktop row rhythm comes from live's own spacing, not a uniform gap:
-       links carry .footer-links' 10px margins (60px pitch) while the
-       hours/address/label rows are margin-less (the 40px line-height IS the
-       pitch). Mobile keeps the measured gap-3. -->
+     slab-500 at the same sizes — rendered as <p> below).
+
+     `linkRhythm` mirrors live's own two footer row classes, which carry
+     DIFFERENT vertical rhythm and can't share one container gap:
+       .footer-links       (the page-links column) — margins 12/16/20px, so the
+                            pitch is line-height + margin = 36/48/60px.
+       .footer-contact-info (hours + address, INCLUDING the tel: link) — no
+                            margins at all; the 24/32/40px line-height IS the
+                            pitch.
+     A uniform gap gave the contact rows the link pitch (36 vs live's 24 at
+     mobile) and inflated the whole footer; the tel: row is a link but belongs
+     to the contact rhythm, so the split is per COLUMN, not per item. -->
+{#snippet colBlock(col: FooterColumn, linkRhythm: boolean)}
+  <!-- gap-0 at every breakpoint: the rhythm is the rows' own margins (above),
+       exactly as live does it. -->
   <div
-    class="flex flex-col gap-3 font-sans text-[12px] leading-[24px] font-light text-[#365b6d] md:text-[16px] md:leading-[32px] lg:gap-0 lg:text-[20px] lg:leading-[40px]"
+    class="flex flex-col gap-0 font-sans text-[12px] leading-[24px] font-light text-[#365b6d] md:text-[16px] md:leading-[32px] lg:text-[20px] lg:leading-[40px]"
   >
     {#each col.items as item, itemIndex (itemIndex)}
       {#if isImage(item)}
@@ -124,18 +133,23 @@
         {/if}
       {:else if item.href && /make a payment/i.test(item.text)}
         <!-- Live renders Make a Payment as a full
-             `.button.text-color-primary-dark` pill (250×66 slab 25px at
-             desktop), not a text link. -->
+             `.button.text-color-primary-dark` pill, not a text link. Measured
+             rects on live: 141×38 / 200×54 / 250×66 (the pill's own lh:0 trick
+             is the ledgered deviation — we match the RECT).
+             mt = live's last-link → button gap (48/41/37) minus the link row's
+             own bottom margin (6/8/10). mb closes the gap to the next stacked
+             block: live puts 60px there at mobile and the grid supplies 24. -->
         <a
           {...linkAttrs(item.href)}
-          class="font-slab focus-visible:ring-primary-deep mt-2 inline-flex h-[41px] w-fit items-center rounded-lg border border-[#365b6d] px-[14px] text-[14px] font-light whitespace-nowrap text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:text-[20px] lg:mt-[27px] lg:h-[66px] lg:px-[25px] lg:text-[25px]"
+          class="font-slab focus-visible:ring-primary-deep mt-[42px] mb-[36px] inline-flex h-[38px] w-fit items-center rounded-lg border border-[#365b6d] px-[14px] text-[14px] font-light whitespace-nowrap text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:mt-[33px] md:mb-0 md:h-[54px] md:px-[20px] md:text-[20px] lg:mt-[27px] lg:h-[66px] lg:px-[25px] lg:text-[25px]"
           >{item.text}</a
         >
       {:else if item.href}
         <a
           {...linkAttrs(item.href)}
-          class="hover:text-primary-deep transition-colors lg:my-[10px] lg:first:mt-0"
-          >{item.text}</a
+          class="hover:text-primary-deep transition-colors {linkRhythm
+            ? 'my-[6px] first:mt-0 md:my-[8px] lg:my-[10px]'
+            : ''}">{item.text}</a
         >
       {:else if item.text === item.text.toUpperCase()}
         <!-- ALL-CAPS non-link rows are live's column labels (OFFICE HOURS,
@@ -180,7 +194,12 @@
   <!-- Live gives the copy 20px of lead-in below the wave ("Want to learn
        more?" sits 20px from the info-section top), then 40px more before the
        link columns. -->
-  <div class="px-[19.5px] pt-3 pb-6 lg:px-8 lg:pt-5 lg:pb-12">
+  <!-- Live's footer gutter, measured off `.footer-cols` at every band: 5% of
+       the viewport ≤479 (19.5px at 390), 8% from 480–767, then a flat 48px
+       from 768 up (it's `1.5rem` against live's own stepped root; ours is a
+       fixed root, so it's written in px). At 1440 the max-w-1280 below still
+       wins and centres the box at x=80, exactly as live does. -->
+  <div class="px-[5%] pt-3 pb-6 xs:px-[8%] md:px-[48px] lg:pt-5 lg:pb-12">
     <div class="mx-auto max-w-[1280px]">
       {#if heading}
         <!-- Live: 16px/40 mobile, 30px/40 desktop, weight 100, museo-slab, 10px
@@ -199,21 +218,46 @@
              col-2 = the OFFICE HOURS and CONTACT blocks STACKED, col-3 = the
              map. Rendering every config column side-by-side squeezed them to
              ~250px and wrapped the hours/address lines. -->
+        <!-- Live's `.footer-cols` is a wrapping flex row of three 33% columns
+             whose widths restack per band (read off its own rules in
+             matching/spec/beachfront.css and confirmed by computed geometry):
+               ≤479      col-1/2/3 100%  → all stacked, full width
+               480–767   col-1/2/3 66%   → all stacked, but only 66% wide
+               768–991   col-3 66%       → cols 1+2 sit SIDE BY SIDE at 33%
+                                            and the map wraps below at 66%
+               ≥992      33/33/33        → three across
+             The 480–991 half of that ladder was missing here (everything
+             stacked full-width), which is why the tablet footer read as one
+             tall column against live's two.
+             The grid's own gap is the space BETWEEN live's stacked blocks
+             (button→OFFICE HOURS, hours→CONTACT, address→map): 24px mobile,
+             32px tablet. Horizontal gap is 0 so the spanned map lands on
+             exactly 66%. `mt` is live's heading→first-row gap (10/32/40) — it
+             collapses with the heading's own mb-[10px], so mobile needs none. -->
         <div
-          class="grid gap-10 lg:mt-[30px] lg:grid-cols-[1fr_1fr_26rem] lg:gap-4"
+          class="grid gap-6 xs:w-[66%] md:mt-[32px] md:w-full md:grid-cols-3 md:gap-x-0 md:gap-y-8 lg:mt-[40px] lg:grid-cols-[1fr_1fr_26rem] lg:gap-4"
         >
           {#if columns[0]}
-            {@render colBlock(columns[0])}
+            {@render colBlock(columns[0], true)}
           {/if}
           {#if columns.length > 1}
-            <div class="contents lg:flex lg:flex-col lg:gap-10">
+            <!-- OFFICE HOURS + CONTACT are ONE column on live (its col-2),
+                 stacked — `contents` only while the whole footer stacks. -->
+            <div class="contents md:flex md:flex-col md:gap-8 lg:gap-10">
               {#each columns.slice(1) as col, colIndex (colIndex)}
-                {@render colBlock(col)}
+                {@render colBlock(col, false)}
               {/each}
             </div>
           {/if}
           {#if showMap}
-            <div class="w-full">
+            <!-- Tablet: the map wraps below the two 33% columns, spanning 66%.
+                 At lg it must return to normal auto-placement (3rd column of
+                 row 1) — `lg:row-start-1` is NOT the reset, it's an explicit
+                 placement that claims row 1 col 1 and shunts the real columns
+                 one slot right; `row-start-auto` is. -->
+            <div
+              class="w-full md:col-span-2 md:row-start-2 lg:col-span-1 lg:row-start-auto"
+            >
               <MapEmbed query={mapQuery} />
             </div>
           {/if}
@@ -225,8 +269,9 @@
                the grid so on mobile it lands below the map, at the very bottom;
                the desktop max-width reproduces live's row spanning only the
                link-columns area (845px of the 1280 content box), not the map. -->
+          <!-- Live's map→boilerplate gap, measured: 84/112/140px. -->
           <div
-            class="mt-12 flex flex-wrap justify-between font-sans text-[7px] leading-[8.4px] font-light text-[#365b6d] xs:text-[10px] xs:leading-[12px] md:text-[12px] md:leading-[14px] lg:mt-[140px] lg:max-w-[845px] lg:text-[12px] lg:leading-[14.4px]"
+            class="mt-[84px] flex flex-wrap justify-between font-sans text-[7px] leading-[8.4px] font-light text-[#365b6d] xs:text-[10px] xs:leading-[12px] md:mt-[112px] md:ml-[16px] md:w-[75%] md:text-[12px] md:leading-[14px] lg:mt-[140px] lg:ml-[20px] lg:w-auto lg:max-w-[845px] lg:text-[12px] lg:leading-[14.4px]"
           >
             {#each legal as item (item)}
               <p>{item}</p>

@@ -32,15 +32,25 @@
 </script>
 
 {#snippet headshot()}
-  <!-- Live's circular headshot (320px @1440) overhangs the hero's bottom-right,
-       ~13% from the right edge, dipping past the wave into the bio section. -->
+  <!-- Live's circular headshot overhangs the hero's bottom-right, dipping past
+       the wave into the bio section. Its `.member-page-headshot` rule is
+       `width/height: 8rem; bottom: -2rem` against live's own stepped root
+       (24/32/40), with two narrow-band overrides — so in px the ladder is
+       96 / 144 / 256 / 320 and the overhang -14 / -14 / -64 / -80. Only the
+       desktop 320 had been matched; mobile was 130 (36% too big) and the whole
+       480–991 range sat at the mobile size.
+       Live pins it with `right: auto` + a left offset that lands on 64.2% of
+       the viewport at EVERY breakpoint (measured 251/390, 535/834, 925/1440),
+       so one left value replaces the old right-4 / right-13% pair.
+       No white ring: live's rule has no border — the photo fills the circle.
+       `object-position: 50% 0%` anchors a headshot to the top of its crop. -->
   <div
-    class="absolute right-4 bottom-[-24px] z-20 size-[130px] overflow-hidden rounded-full border-4 border-white bg-white lg:right-[13%] lg:bottom-[-80px] lg:size-[320px]"
+    class="absolute bottom-[-14px] left-[64.2%] z-20 size-[96px] overflow-hidden rounded-full xs:size-[144px] md:bottom-[-64px] md:size-[256px] lg:bottom-[-80px] lg:size-[320px]"
     use:animateIn={LIVE_REVEAL}
   >
     <PrismicImage
       field={data.doc.data.media}
-      class="h-full w-full object-cover"
+      class="h-full w-full object-cover object-top"
     />
   </div>
 {/snippet}
@@ -56,13 +66,16 @@
      hero — a MARGIN that also clears the overhanging headshot — so the role
      lands at that offset, not flush to the wave. -->
 <section
-  class="mx-auto mt-12 max-w-[1440px] px-5 pb-12 lg:mt-20 lg:px-20 lg:pb-20"
+  class="mx-auto mt-12 max-w-[1440px] px-5 pb-12 md:px-12 lg:mt-20 lg:px-20 lg:pb-20"
 >
   {#if data.role}
     <!-- Role line: teal slab bold (live `.team-member-role`). Inline colour
-         defeats the global `main h1–h3` primary rule. -->
+         defeats the global `main h1–h3` primary rule.
+         Live measures 16px/24 from 390 all the way through 991, then 30px/45
+         at desktop — the 24px/32 here was never checked against live and put
+         an 8px drift into every paragraph below it. -->
     <h2
-      class="font-slab text-[24px] leading-[32px] font-bold lg:text-[30px] lg:leading-[45px]"
+      class="font-slab text-[16px] leading-[24px] font-bold lg:text-[30px] lg:leading-[45px]"
       style="color:#365b6d"
     >
       {data.role}

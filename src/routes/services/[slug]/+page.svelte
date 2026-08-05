@@ -60,7 +60,9 @@
 <!-- Top gap is a MARGIN, not padding: page-diff cuts the region at this
      section's box top, so padding-top would fold the gap into the body region
      (mismatching live, whose gap sits above the "What to expect" heading). -->
-<section class="mx-auto mt-14 max-w-[1440px] px-5 lg:mt-[100px] lg:px-20">
+<section
+  class="mx-auto mt-14 max-w-[1440px] px-5 md:px-12 lg:mt-[100px] lg:px-20"
+>
   <DetailBody field={split.rest} class="max-w-[1024px]" />
 
   {#if youtubeUrl}
@@ -83,7 +85,7 @@
      count into the pill region instead of the body above it); the pill→CTA gap
      stays padding, inside the pill region. -->
 <div
-  class="mx-auto flex max-w-[1440px] justify-center px-5 mt-[86px] pb-[108px] lg:px-20 lg:mt-[130px] lg:pb-[80px]"
+  class="mx-auto flex max-w-[1440px] justify-center px-5 md:px-12 mt-[86px] pb-[108px] lg:px-20 lg:mt-[130px] lg:pb-[80px]"
 >
   <OutlineButton
     label="Back to All Services"

@@ -22,15 +22,16 @@
 <!-- Live places a ~20px MARGIN between the hero and this title band (not
      padding), so the section box itself starts 20px below the wave. -->
 <section class="mt-5 w-full">
-  <div class="mx-auto max-w-[1440px] px-5 lg:px-20">
-    <!-- Live mobile title sizes (read off `.hero`+title @390): xl=56px/70,
-         lg=50px/60 → 140/168, 100/120 desktop. The lg (question) title also
-         carries live's 20px top padding inside the box (the xl service title
-         has none), so its text sits 20px lower and the box is one pad taller. -->
+  <div class="mx-auto max-w-[1440px] px-5 md:px-12 lg:px-20">
+    <!-- Live title sizes (read off `.hero`+title): xl=56px/70 @390, 72/80
+         across 768–991, 140/168 desktop; lg=50px/60 @390, 100/120 from 768 up.
+         The lg (question) title also carries live's 20px top padding inside
+         the box (the xl service title has none), so its text sits 20px lower
+         and the box is one pad taller. -->
     <h1
       class="font-slab font-thin {titleSize === 'xl'
-        ? 'text-[56px] leading-[70px] lg:text-[140px] lg:leading-[168px]'
-        : 'pt-[20px] text-[50px] leading-[60px] lg:text-[100px] lg:leading-[120px]'}"
+        ? 'text-[56px] leading-[70px] md:text-[72px] md:leading-[80px] lg:text-[140px] lg:leading-[168px]'
+        : 'pt-[20px] text-[50px] leading-[60px] md:text-[100px] md:leading-[120px] lg:text-[100px] lg:leading-[120px]'}"
       style="color:#129ecc"
       use:animateIn={LIVE_REVEAL}
     >

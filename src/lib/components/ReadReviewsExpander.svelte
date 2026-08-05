@@ -23,8 +23,13 @@
     onclick={() => (open = !open)}
     class="flex cursor-pointer items-center transition-opacity hover:opacity-60 focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
   >
+    <!-- Live's label line-height is the unitless ratio 2.75, tracking the font
+         size at every breakpoint (38.5 / 41.25 / 55 / 68.75). The per-breakpoint
+         px values that used to sit here left mobile at 21px (18px short) and
+         desktop at 55px (14px short) — invisible to the pixel gate, caught by
+         the style census. -->
     <span
-      class="font-slab mr-3 text-[14px] font-light text-[#365b6d] xs:text-[15px] xs:leading-[41px] md:text-[20px] md:leading-[55px] lg:text-[25px]"
+      class="font-slab mr-3 text-[14px] leading-[2.75] font-light text-[#365b6d] xs:text-[15px] md:text-[20px] lg:text-[25px]"
       >Read Reviews</span
     >
     <!-- Live's plus/minus crossfade: the (pre-rotated) plus fades out over

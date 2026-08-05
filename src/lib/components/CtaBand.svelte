@@ -134,9 +134,12 @@
              10px small, absolute at bottom 20% (which clears the footer wave
              that overlaps the photo's bottom edge — a lower anchor hides under
              it), 60px / 5% from the left. No scrim on live; the label sits on
-             the darker water band of the photo. -->
+             the darker water band of the photo.
+             Its line-height is the unitless ratio 1.15, so it tracks the font
+             size at every breakpoint (11.5/17.25/23/28.75); the per-breakpoint
+             px values that used to sit here were 6px short at desktop. -->
         <p
-          class="absolute bottom-[20%] left-[5%] z-10 font-sans text-[10px] leading-[1.15] font-light text-white xs:text-[15px] xs:leading-[17px] md:text-[20px] md:leading-[23px] lg:bottom-[31%] lg:left-20 lg:text-[25px]"
+          class="absolute bottom-[20%] left-[5%] z-10 font-sans text-[10px] leading-[1.15] font-light text-white xs:text-[15px] md:text-[20px] lg:bottom-[31%] lg:left-20 lg:text-[25px]"
           use:animateIn={LIVE_REVEAL}
         >
           {caption}

@@ -33,8 +33,13 @@
 <!-- Live's lede→body gap is 20px mobile / 40px desktop, as a MARGIN (page-diff
      cuts at this section's box top, so padding would fold the gap into the body
      region instead of above the "At Beachfront" heading). -->
-<section class="mx-auto mt-[20px] max-w-[1440px] px-5 lg:mt-[40px] lg:px-20">
-  <DetailBody field={split.rest} class="max-w-[1024px]" />
+<section
+  class="mx-auto mt-[20px] max-w-[1440px] px-5 md:px-12 lg:mt-[40px] lg:px-20"
+>
+  <!-- The Q&A bodies were authored with a trailing <br> above each sub-heading
+       rather than the empty block the service bodies use (28px vs 38px) — see
+       DetailBody. -->
+  <DetailBody field={split.rest} class="max-w-[1024px]" subheadingGap="break" />
 </section>
 
 <!-- Live's `.other-questions-section`: a centered cyan "Have another question?"
@@ -44,7 +49,7 @@
      count into the pill region instead of the body above it); the pill→CTA gap
      stays padding, inside the pill region. -->
 <div
-  class="mx-auto flex max-w-[1440px] justify-center px-5 mt-[86px] pb-[24px] lg:px-20 lg:mt-[130px] lg:pb-[40px]"
+  class="mx-auto flex max-w-[1440px] justify-center px-5 md:px-12 mt-[86px] pb-[24px] lg:px-20 lg:mt-[130px] lg:pb-[40px]"
 >
   <OutlineButton
     label="Have another question?"

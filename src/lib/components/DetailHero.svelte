@@ -56,23 +56,25 @@
     <!-- Bottom-left label. Inline white defeats the global `main h1–h3`
          primary-colour rule (same trap SubpageHero documents). -->
     <div
-      class="absolute bottom-[10%] left-5 z-10 lg:left-20"
+      class="absolute bottom-[10%] left-5 z-10 md:left-12 lg:left-20"
       use:animateIn={LIVE_REVEAL}
     >
       {#if labelSize === "name"}
         <!-- Live's name h1 (`.hero` title): 25px/38 @390 (must clear the
-             headshot on the right) → 60px/72 @1440, museo-slab THIN (w100). -->
+             headshot on the right) → 60px/72 @1440, museo-slab THIN (w100).
+             The md tier is live's own measured 28px/38 — flat right across
+             768–991; the 44px here was never calibrated against live. -->
         <h1
-          class="font-slab text-[25px] leading-[38px] font-thin md:text-[44px] md:leading-[52px] lg:text-[60px] lg:leading-[72px]"
+          class="font-slab text-[25px] leading-[38px] font-thin md:text-[28px] md:leading-[38px] lg:text-[60px] lg:leading-[72px]"
           style="color:#fff"
         >
           {label}
         </h1>
       {:else}
-        <!-- Live's breadcrumb h3: 20px/26 @390 → 40px/50 @1440, museo-slab
-             LIGHT (w300 — NOT the name's thin). -->
+        <!-- Live's breadcrumb h3: 20px/26 @390 → 21px/26 across 768–991 →
+             40px/50 @1440, museo-slab LIGHT (w300 — NOT the name's thin). -->
         <p
-          class="font-slab text-[20px] leading-[26px] font-light md:text-[30px] md:leading-[40px] lg:text-[40px] lg:leading-[50px]"
+          class="font-slab text-[20px] leading-[26px] font-light md:text-[21px] md:leading-[26px] lg:text-[40px] lg:leading-[50px]"
           style="color:#fff"
         >
           {label}

@@ -131,8 +131,10 @@
          with 60px side padding at desktop. The nav itself stays full-bleed so
          its solid band spans edge to edge. Live's bar is 120px tall at
          desktop (.header height 3rem at the 40px root). -->
+    <!-- Live's bar gutter matches its content gutter: 20px @390, 48px across
+         the tablet band, then 60px + the 1400 cap (= x-80 at 1440). -->
     <div
-      class="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 lg:h-[120px] lg:px-[60px] lg:py-0"
+      class="mx-auto flex max-w-[1400px] items-center justify-between px-5 py-5 md:px-12 md:py-6 lg:h-[120px] lg:px-[60px] lg:py-0"
     >
       <a href="/" class="flex items-center text-lg font-bold">
         {#if logo}
@@ -251,19 +253,25 @@
           </div>
 
           {#if !isMenuOpen}
+            <!-- justify-END, not center: the min-w-11 box is an a11y tap target
+                 we add on top of live's icon, and centring the glyph inside it
+                 pushed it 10px inboard of live's right edge at every
+                 breakpoint. Ending it keeps the 44px target AND live's x. -->
             <button
               bind:this={openButtonEl}
               type="button"
-              class="flex min-h-11 min-w-11 items-center justify-center {hamburgerOnly
+              class="flex min-h-11 min-w-11 items-center justify-end {hamburgerOnly
                 ? ''
                 : 'lg:hidden'}"
               onclick={openMenu}
               aria-label="Open menu"
             >
               {#if hamburgerSrc}
-                <!-- Live's exact icon (40×31, #E7F5FA, thick bars) — matches the
-                   reference's weight/colour where the Lucide glyph would not. -->
-                <img src={hamburgerSrc} alt="" class="w-10" />
+                <!-- Live's exact icon (#E7F5FA, thick bars) — matches the
+                   reference's weight/colour where the Lucide glyph would not.
+                   Its `.header-hamburger` is 1rem of live's stepped root, so
+                   it steps 24×19 / 32×25 / 40×31 with the logo. -->
+                <img src={hamburgerSrc} alt="" class="w-6 md:w-8 lg:w-10" />
               {:else}
                 <Menu size={28} />
               {/if}
