@@ -101,9 +101,7 @@
          the box was 976 wide at 1440 instead of 1440, changing where the text
          wraps) and had no vertical margin at all, which pulled the whole CTA
          24-40px up into the section above it. -->
-    <div
-      class="w-full px-6 py-[24px] text-center md:py-[32px] lg:px-0 lg:py-[40px]"
-    >
+    <div class="w-full px-6 text-center lg:px-0">
       <!-- [&_h2]:text-wrap defeats the global `text-wrap: balance` (app.css:401)
            — live FILLS this heading ("Ready for great / dental health?", 2 lines
            @650) but balance spread ours over 3 even lines, pushing the pill +

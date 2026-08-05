@@ -292,6 +292,24 @@ main :where(h1, h2, h3) {
   line-height: 60px;
   font-weight: 100;
 }
+/* Live's `.my-4{margin:1rem 0}` on the h2 ITSELF — 24/32/40 against its stepped
+   root. It has to be a margin on the heading, not padding on a wrapper: the
+   gate cuts its region AT the element whose text starts with the anchor, so
+   wrapper padding lands INSIDE the region and shifts the whole band down
+   relative to live, while live's margin sits outside the h2's border box. */
+.display-xl :where(h1, h2) {
+  margin-block: 24px;
+}
+@media (min-width: 768px) {
+  .display-xl :where(h1, h2) {
+    margin-block: 32px;
+  }
+}
+@media (min-width: 992px) {
+  .display-xl :where(h1, h2) {
+    margin-block: 40px;
+  }
+}
 @media (min-width: 480px) {
   .display-xl :where(h1, h2),
   .display-xl {

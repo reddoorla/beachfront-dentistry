@@ -160,25 +160,36 @@
   {@const name = asText(doc.data.title as RichTextField)}
   {@const bio = asText((doc.data.body ?? []) as RichTextField)}
   {@const beach = doc.data.gallery?.[0]}
+  <!-- Live's `.team-list-item` is sized in REM against its stepped root
+       (24/32/40), so the real ladder is four tiers, not two:
+         <=479    303x384   mt 96   mx 24 mb 24   (already matched)
+         480-767  384x576   mt 192  mx 24 mb 24   (root 24)   <- was missing
+         768-991  512x768   mt 256  mx 32 mb 32   (root 32)   <- was missing
+         >=992    320x480   mt 160  mx 20 mb 20   (root 40, desktop 3-up)
+       The 480-991 half was rendering the MOBILE card, which packed two cards
+       per row where live shows one and left the our-team grid 61% short.
+       NB the yfv Meet-Our-Team SLIDER uses a different ladder (240x432 at
+       <=479) — do not copy one onto the other; that regressed /our-team @390
+       from 5.2% to 33% before it was caught. -->
   <article
-    class="team-list-item relative mx-6 mt-24 mb-6 h-96 w-[303px] rounded-[20px] bg-[#e7f5fa] lg:mx-5 lg:mt-40 lg:mb-5 lg:h-[480px] lg:w-80"
+    class="team-list-item relative mx-6 mt-24 mb-6 h-96 w-[303px] rounded-[20px] bg-[#e7f5fa] xs:mt-[192px] xs:h-[576px] xs:w-[384px] md:mx-8 md:mt-[256px] md:mb-8 md:h-[768px] md:w-[512px] lg:mx-5 lg:mt-40 lg:mb-5 lg:h-[480px] lg:w-80"
   >
     {#if doc.data.media?.url}
       <!-- headshot centred ON the card's top edge (half above, half in). -->
       <a
         {href}
         aria-label={name}
-        class="focus-visible:ring-primary-deep absolute top-0 left-1/2 z-10 block -translate-x-1/2 -translate-y-1/2 rounded-full focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+        class="focus-visible:ring-primary-deep absolute top-0 left-1/2 z-10 block w-[120px] -translate-x-1/2 -translate-y-1/2 rounded-full xs:w-[240px] md:w-[320px] lg:w-[200px] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
       >
         <PrismicImage
           field={doc.data.media as unknown as ImageField}
           fallbackAlt=""
-          class="size-[120px] rounded-full object-cover object-top lg:size-[200px]"
+          class="size-[120px] max-w-none rounded-full object-cover object-top xs:size-[240px] md:size-[320px] lg:size-[200px]"
         />
       </a>
     {/if}
     <div
-      class="flex h-full flex-col px-[18px] pt-[70px] text-center lg:px-6 lg:pt-[110px]"
+      class="flex h-full flex-col px-[18px] pt-[70px] text-center xs:pt-[130px] md:pt-[170px] lg:px-6 lg:pt-[110px]"
     >
       <a {href} class="focus-visible:outline-hidden">
         <h5
@@ -189,14 +200,14 @@
       </a>
       {#if doc.data.tags}
         <h6
-          class="mt-[6px] text-[16px] leading-[25px] font-light tracking-[1.28px] text-[#365b6d] uppercase"
+          class="mt-[10px] text-[16px] leading-[25px] font-light tracking-[1.28px] text-[#365b6d] uppercase"
         >
           {doc.data.tags}
         </h6>
       {/if}
       {#if bio}
         <p
-          class="mt-[10px] line-clamp-3 text-left text-[16px] leading-[24px] font-light text-[#365b6d]"
+          class="mt-[12px] h-[75px] overflow-hidden text-left text-[16px] leading-[24px] font-light text-[#365b6d] md:mt-[16px] lg:mt-[20px]"
         >
           {bio}
         </p>
@@ -204,14 +215,14 @@
       {#if href}
         <a
           {href}
-          class="focus-visible:ring-primary-deep mt-[10px] inline-flex items-center gap-1 text-[16px] leading-[24px] font-light text-[#129ecc] uppercase focus-visible:ring-2 focus-visible:outline-hidden"
+          class="focus-visible:ring-primary-deep mt-[6px] inline-flex items-center gap-[12px] text-[16px] leading-[24px] font-light tracking-[1.03px] text-[#365b6d] uppercase md:mt-[8px] md:gap-[16px] lg:mt-[10px] lg:gap-[20px] focus-visible:ring-2 focus-visible:outline-hidden"
         >
           Read More
           <!-- live's real Arrow.svg (white-filled), tinted to cyan via mask so
                we ship the actual vector, never a redraw. -->
           <span
             aria-hidden="true"
-            class="h-[11px] w-[10px] shrink-0 bg-[#129ecc] [mask:url(/icons/read-more-arrow.svg)_center/contain_no-repeat] [-webkit-mask:url(/icons/read-more-arrow.svg)_center/contain_no-repeat]"
+            class="h-[11px] w-[10px] shrink-0 bg-[#365b6d] [mask:url(/icons/read-more-arrow.svg)_center/contain_no-repeat] [-webkit-mask:url(/icons/read-more-arrow.svg)_center/contain_no-repeat]"
           ></span>
         </a>
       {/if}
@@ -221,7 +232,7 @@
         src={beach.image.url}
         alt=""
         aria-hidden="true"
-        class="absolute bottom-0 left-0 h-[115px] w-full rounded-b-[20px] object-cover lg:h-36"
+        class="absolute bottom-0 left-0 h-[30%] w-full rounded-b-[20px] object-cover"
       />
       {#if beach.caption}
         <h6
@@ -370,7 +381,7 @@
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="team-grid-section mx-auto flex max-w-[1280px] flex-wrap justify-center px-5 lg:px-0"
+    class="team-grid-section mx-auto flex max-w-[1280px] flex-wrap justify-center px-5 md:px-12 lg:px-0"
   >
     {#each docs as doc (doc.uid)}
       {@render personCard(doc)}
