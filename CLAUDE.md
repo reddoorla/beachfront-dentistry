@@ -52,6 +52,22 @@ every page, never a subset.
 
 **Operator's challenge:** _"paste the gate header."_
 
+### 5. A commit is a checkpoint, not a stopping point
+
+Do not hand control back between rounds. After committing, run
+`node matching/next.mjs`: while it exits 1 there is a named next action, and the
+round continues. Report when the backlog is empty, when a decision is genuinely
+the operator's (three strikes, a novel floor, a threshold change), or when
+asked — not because a commit felt like a natural place to summarise.
+
+This exists because the failure was habitual, not deliberate: a turn ends when
+user-facing prose gets written, and "I just committed something good" is the
+moment that invites writing it. The gate stops incorrect work; this stops
+premature stopping.
+
+**Check:** `node matching/next.mjs` — exits 1 while any non-floor region fails.
+**Operator's challenge:** _"what does next.mjs say?"_
+
 ## Standing project facts
 
 - **Live's root-font ladder is the systemic trap.** An inline `<style>` steps
