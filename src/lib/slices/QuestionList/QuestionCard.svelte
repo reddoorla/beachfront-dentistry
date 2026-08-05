@@ -74,8 +74,8 @@
       if (e.key === "Escape" && expanded) toggle();
     }}
     class="relative block cursor-pointer rounded-[25px] shadow-md ring-1 ring-black/5 transition-[margin-top,opacity] duration-[650ms] ease-out hover:opacity-80 motion-reduce:transition-none {expanded
-      ? 'mt-12 h-[384px] xs:h-[288px] md:mt-16 md:h-[240px] lg:mt-20 lg:h-[400px]'
-      : 'h-[288px] md:h-[240px] lg:h-[400px]'}"
+      ? 'mt-12 h-[384px] xs:h-[288px] md:mt-16 md:h-[320px] lg:mt-20 lg:h-[400px]'
+      : 'h-[288px] md:h-[320px] lg:h-[400px]'}"
   >
     <!-- Media + washes clip inside their own rounded box (the card itself no
          longer clips). Open: top corners square — live's .qa-image.active
@@ -97,16 +97,19 @@
         ></div>
       {/if}
       <!-- Live's real visible wash, read off `.box-gradient.qa`: cyan-0.9 at
-           the TOP on mobile, flipping to cyan-at-the-BOTTOM on desktop
+           the TOP on mobile, flipping to cyan-at-the-BOTTOM from 768 up
            (identical to the 3-C cards' rule). `.box-gradient-overlay`
-           (opacity:0) is the HOVER layer — not this one. -->
+           (opacity:0) is the HOVER layer — not this one.
+           The flip is live's <=767 rule, so it happens at md (768), NOT lg:
+           probing live at 834 returns the DESKTOP gradient while ours was
+           still painting the mobile one across the whole tablet band. -->
       <div
-        class="absolute inset-0 lg:hidden"
+        class="absolute inset-0 md:hidden"
         style="background:linear-gradient(rgba(18,158,204,0.9) 23%, rgba(5,44,57,0.25) 93%, rgba(0,0,0,0))"
         aria-hidden="true"
       ></div>
       <div
-        class="absolute inset-0 hidden lg:block"
+        class="absolute inset-0 hidden md:block"
         style="background:linear-gradient(rgba(0,0,0,0), rgba(18,158,204,0.9) 90%)"
         aria-hidden="true"
       ></div>
@@ -127,7 +130,7 @@
       <div
         id={panelId}
         inert={!expanded}
-        class="px-[35px] transition-transform duration-[650ms] motion-reduce:transition-none lg:px-[60px] {expanded
+        class="px-[4%] transition-transform duration-[650ms] motion-reduce:transition-none {expanded
           ? 'translate-y-0'
           : 'translate-y-[400px]'}"
       >
@@ -138,7 +141,7 @@
         </p>
         <a
           href="/questions/{doc.uid}"
-          class="font-slab mt-[46px] inline-flex h-[41px] items-center rounded-lg border border-white px-[15px] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:mt-[36px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+          class="font-slab mt-[46px] inline-flex h-[41px] items-center rounded-lg border border-white px-[15px] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden md:h-[54px] md:px-[20px] md:text-[20px] lg:mt-[36px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
         >
           Read More
         </a>
@@ -190,7 +193,7 @@
          w500. BOX: 80% card width, inset 6.8% left (that narrower measure is
          what wraps these titles onto two lines like live). -->
     <h3
-      class="absolute bottom-4 left-[6.8%] w-4/5 font-sans text-[1.25rem] leading-[30px] font-medium transition-opacity duration-300 motion-reduce:transition-none lg:bottom-5 lg:text-[1.875rem] lg:leading-[45px] {expanded
+      class="absolute bottom-3 left-[4%] w-[92%] font-sans text-[1.25rem] leading-[30px] font-medium transition-opacity duration-300 motion-reduce:transition-none md:bottom-4 lg:bottom-5 lg:text-[1.875rem] lg:leading-[40px] {expanded
         ? 'opacity-0'
         : 'opacity-100'}"
       style="color:#fff"

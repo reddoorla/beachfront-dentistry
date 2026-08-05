@@ -237,21 +237,24 @@
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="mx-auto max-w-[1400px] px-[5%] py-8 min-[480px]:px-[8%] md:px-9 lg:px-[60px]"
+    class="mx-auto max-w-[1400px] px-[5%] min-[480px]:px-[8%] md:px-12 lg:px-[60px]"
   >
     {#if isFilled.richText(slice.primary.heading)}
       <div class="mb-8" use:animateIn={LIVE_REVEAL}>
         <PrismicRichText field={slice.primary.heading} />
       </div>
     {/if}
-    <div class="grid grid-cols-1 md:grid-cols-2">
+    <!-- live's `.content-width.my-8` = 2rem block margins against the stepped
+         root (48/64/80px), NOT the flat 32px section padding we had: the whole
+         40-card grid sat 48/32/16px high and lost the same again below. -->
+    <div class="my-12 grid grid-cols-1 md:my-16 md:grid-cols-2 lg:my-20">
       {#each sortedDocs as doc (doc.uid)}
         <!-- Each cell mirrors live's `.ask-the-doctor-collection-item`: the
              `.w-col-6` padding 0 10px (the 10px column gutter that makes the
              card 331 wide @390 / 600 @1440), and the fixed 520px cell over a
              400 card — i.e. ~120px of empty space below each card at desktop
              (top-aligned), 12px at mobile (the qa-block's own margin). -->
-        <div class="px-[10px] pb-3 lg:px-[20px] lg:pb-[120px]">
+        <div class="px-[10px] pb-3 md:pb-[96px] lg:px-[10px] lg:pb-[120px]">
           <QuestionCard
             {doc}
             number={canonicalNumber.get(doc.uid) ?? null}
@@ -259,6 +262,21 @@
           />
         </div>
       {/each}
+    </div>
+    <!-- Live closes the list with a `.content-width` row carrying a cyan
+         outline `Back to Top` pill (`<a href="#hero" class="button
+         text-color-primary">`). It was the only whole element missing from
+         this page — and because the gate anchors on it, its absence hard-failed
+         the whole ask-the-doctor run. Rect matched per the ledgered pill
+         convention (match the RENDERED box, not live's line-height:0 trick):
+         116.6x41 <=767 / 154.8x54 tablet / 193x67 desktop. -->
+    <div class="flex items-center justify-center">
+      <a
+        href="#hero"
+        class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#129ecc] px-[15px] text-[15px] font-light whitespace-nowrap text-[#129ecc] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden md:h-[54px] md:px-[20px] md:text-[20px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+      >
+        Back to Top
+      </a>
     </div>
   </section>
 {/if}
