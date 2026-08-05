@@ -342,10 +342,20 @@
           {/snippet}
         </Slider>
       </div>
-      {#if slice.variation === "review"}
+      {#if isHomeSsb}
         <!-- Live's .shift-up block: the expander sits tight under the slider
-             (mt -1rem) with 3rem reserved below for the disclosed logo row. -->
-        <div class="-mt-6 mb-18 lg:mt-[-16px] lg:mb-28">
+             with room reserved below for the disclosed logo row. Measured on
+             live: h 69, margin -40px/120px @1440 · h 55, margin -32px/96px @834.
+
+             HOME ONLY. `.home-ssb-section > .content-width` has THREE children
+             on index.html (h1, .review-slider-holder, this row) and only TWO on
+             your-first-visit.html — its `.fv-review-section` ends at the
+             slider. Rendering it on both is what made our yfv review section
+             +53/+31/+15 too tall and cost yfv its Serving region. The holders
+             themselves are byte-identical on the two live pages (1280x480 mt=0
+             / 738x384 mt=128 / 351x322 mt=0 pb=12), which is how this was
+             isolated to content rather than to a rule. -->
+        <div class="-mt-6 mb-18 md:-mt-8 md:mb-24 lg:-mt-10 lg:mb-30">
           <ReadReviewsExpander />
         </div>
       {/if}
