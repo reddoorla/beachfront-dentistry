@@ -277,16 +277,34 @@ main :where(h1, h2, h3) {
 }
 
 /* The closing CTA band's "Ready for great dental health?" is oversized,
-   ultra-light display type on the original (140px/w100). */
+   ultra-light display type on the original (140px/w100).
+   Live sizes it from its GLOBAL h2 rule, which has exactly three hard steps and
+   NO <=767 block, so 72/80 holds flat right across 480-991:
+     <=479  50/60   (its `.text-align-center.my-4` override)
+     480-991  72/80
+     >=992  140/168
+   A fluid clamp only agreed with live at the two ends — mid-band it read
+   85.6px at 834 and 100.2px at 991 against live's flat 72px, which changed the
+   line COUNT of the heading (2 lines vs live's 3) and shifted the whole band. */
 .display-xl :where(h1, h2),
 .display-xl {
-  font-size: clamp(
-    3.125rem,
-    0.5rem + 9.3vw,
-    8.75rem
-  ); /* 50px mobile → 140px @ 1440 */
+  font-size: 50px;
+  line-height: 60px;
   font-weight: 100;
-  line-height: 1.2; /* live's display leading (168/140); 1.05 compacted it */
+}
+@media (min-width: 480px) {
+  .display-xl :where(h1, h2),
+  .display-xl {
+    font-size: 72px;
+    line-height: 80px;
+  }
+}
+@media (min-width: 992px) {
+  .display-xl :where(h1, h2),
+  .display-xl {
+    font-size: 140px;
+    line-height: 168px;
+  }
 }
 
 /* Emphasis inside a slab heading (live bolds "Beachfront Dentistry" in the hero

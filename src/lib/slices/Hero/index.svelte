@@ -56,6 +56,9 @@
       // Prismic — SubpageHero still takes a plain string[]; we map below.
       subheadings?: RichTextField | null;
       intro?: RichTextField | null;
+      // our-team's band uses live's `.meet-heading` (centred and full-width at
+      // EVERY width, bottom .75rem) rather than `.subpage-hero-heading`.
+      heading_style?: "subpage" | "meet" | null;
     };
     items: unknown[];
   };
@@ -188,6 +191,7 @@
     subtitle={slice.primary.subtitle}
     subheadings={blocksToLines(slice.primary.subheadings)}
     intro={slice.primary.intro}
+    headingStyle={slice.primary.heading_style ?? "subpage"}
   />
 {:else if slice.variation === "groupphoto"}
   <!-- your-first-visit `.hero.group-photo`: a short photo band (min(60vh,60vw)

@@ -13,7 +13,12 @@
   // unchanged, passing its own slice fields straight through; every other
   // caller renders with no props and gets the live band's defaults below.
   const DEFAULT_HEADING: RichTextField = [
-    { type: "heading2", text: "Ready for great dental health?", spans: [] },
+    // Live hard-breaks this heading — `Ready for <br/>great dental <br/>health?`
+    // — so it is THREE lines at every width, independent of the box width. That
+    // is why its h2 can span the full band (x=0, w=viewport) without the text
+    // spreading out. Matching the box without the breaks would drop us to two
+    // lines at >=768.
+    { type: "heading2", text: "Ready for \ngreat dental \nhealth?", spans: [] },
   ];
   const DEFAULT_CTA_LINK: LinkField = { link_type: "Web", url: "#appointment" };
 
@@ -87,13 +92,18 @@
 <section
   data-slice-type={sliceType}
   data-slice-variation={sliceVariation}
-  class="w-full {hasImage ? '-mb-[39px] lg:-mb-36' : ''}"
+  class="w-full {hasImage ? '-mb-[10%]' : ''}"
 >
   {#if hasImage}
-    <!-- Heading on white; live's CTA band has ~0 top padding (the gap above
-         comes from the section above; its mobile H2 sits flush at the section
-         top with 24px below to the photo). -->
-    <div class="mx-auto max-w-5xl px-6 pt-0 pb-6 text-center lg:pt-2 lg:pb-8">
+    <!-- Live's heading is `h2.text-align-center.my-4` sitting at x=0 spanning
+         the FULL band width, with `.my-4{margin:1rem 0}` against the stepped
+         root = 24/32/40px above and below. Ours was capped at max-w-5xl (so
+         the box was 976 wide at 1440 instead of 1440, changing where the text
+         wraps) and had no vertical margin at all, which pulled the whole CTA
+         24-40px up into the section above it. -->
+    <div
+      class="w-full px-6 py-[24px] text-center md:py-[32px] lg:px-0 lg:py-[40px]"
+    >
       <!-- [&_h2]:text-wrap defeats the global `text-wrap: balance` (app.css:401)
            — live FILLS this heading ("Ready for great / dental health?", 2 lines
            @650) but balance spread ours over 3 even lines, pushing the pill +
@@ -113,8 +123,15 @@
          landscape band (page-diff Ready Δh 9–12%). 70vw tracks it; desktop keeps
          the measured ~800px (20rem at the scaled root). Its white-faded top
          carries the CTAs. -->
+    <!-- `.fiji-section{height:20rem;margin-bottom:-10%}` with a `height:70vw`
+         override at <=767. Against the stepped root that is 640px across
+         769-991 and 800px at >=993 — the md step was missing, so the band ran
+         56px short right through the tablet band. The -10% bottom margin
+         resolves against the containing block's WIDTH, reproducing live's
+         -144/-83/-60/-39 at 1440/834/600/390 in one declaration (the old flat
+         -39px was 44px short at 834). -->
     <div
-      class="relative isolate min-h-[70vw] w-full overflow-hidden lg:min-h-[800px]"
+      class="relative isolate min-h-[70vw] w-full overflow-hidden md:min-h-[640px] lg:min-h-[800px]"
     >
       <HeroBackgroundImage image={backgroundImage} preload={false} />
       <!-- White for the top ~18% fading to clear by ~60%, so the heading above

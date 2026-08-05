@@ -42,7 +42,7 @@
     edit: { x: 0, y: 0, zoom: 1, background: "transparent" },
   };
   const ctaHeading: RichTextField = [
-    { type: "heading2", text: "Ready for great dental health?", spans: [] },
+    { type: "heading2", text: "Ready for \ngreat dental \nhealth?", spans: [] },
   ];
 </script>
 

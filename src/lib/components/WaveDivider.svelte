@@ -4,11 +4,16 @@
    *
    * The path lives in a `0 0 1200 120` viewBox with `preserveAspectRatio="none"`,
    * so the CSS height IS the crest amplitude (the old 48px squashed it into a
-   * flat, wrong-looking ripple). Live steps the height at 992px and 1280px:
-   * the section waves run 72→96→120 and the deeper footer wave 96→128→160, so
-   * `heightClass` carries those responsive utilities (default = the section
-   * triple). Width is constant across breakpoints — ~133% for the section
-   * waves, ~169% for the broad, shallow footer arc. */
+   * flat, wrong-looking ripple).
+   *
+   * Live sizes these in REM — `.bot-wave svg{height:3rem}` and the footer arc
+   * `height:4rem` — against its stepped root (40px >=993 / 32px 769-992 / 24px
+   * <=768). So the real ladders are 72/96/120 and 96/128/160, and they step at
+   * 768 and 992, NOT at 992 and 1280. The old 992/1280 defaults left every
+   * section wave 24px shallow across the whole 769-991 band and again across
+   * 993-1279, so the crest sat ~24px lower into the white on every page.
+   * Width is constant across breakpoints — ~133% for the section waves, ~169%
+   * for the broad, shallow footer arc. */
   interface Props {
     fill?: string;
     /** Rotate the divider 180° — live's `.bot-wave` / shape-divider-bottom sit
@@ -24,7 +29,7 @@
      * flips both axes. */
     mirror?: boolean;
     /** Responsive Tailwind height utilities (see the block comment for live's
-     * 72/96/120 vs 96/128/160 steps at the 992px and 1280px breakpoints). */
+     * 72/96/120 vs 96/128/160 rem ladders, stepping at 768 and 992). */
     heightClass?: string;
     /** CSS width of the stretched SVG (it overflows the container so the crest
      * clears the edges). */
@@ -35,7 +40,7 @@
     fill = "white",
     flip = false,
     mirror = false,
-    heightClass = "h-[72px] min-[992px]:h-[96px] xl:h-[120px]",
+    heightClass = "h-[72px] md:h-[96px] lg:h-[120px]",
     width = "calc(133% + 1.3px)",
   }: Props = $props();
 </script>

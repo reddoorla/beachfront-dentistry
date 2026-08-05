@@ -186,7 +186,7 @@
     <WaveDivider
       fill={waveFill}
       flip
-      heightClass="h-[39px] min-[992px]:h-[128px] lg:h-[160px]"
+      heightClass="h-[96px] md:h-[128px] lg:h-[160px]"
       width="169%"
     />
   </div>

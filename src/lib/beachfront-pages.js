@@ -162,7 +162,9 @@ const ctaHero = (img) => ({
   slice_type: "hero",
   variation: "cta",
   primary: {
-    heading: [head(2, "Ready for great dental health?")],
+    // Live hard-breaks this into three lines (`Ready for <br/>great dental
+    // <br/>health?`) — see CtaBand.
+    heading: [head(2, "Ready for \ngreat dental \nhealth?")],
     body: [],
     cta_label: "Book Appointment",
     cta_link: webLink("#appointment"),
@@ -539,6 +541,11 @@ export function assemblies(img) {
         primary: {
           heading: [head(2, "Meet")],
           background_image: img(IMG.heroRedondo),
+          // Live styles THIS band's heading with `.meet-heading`, not
+          // `.subpage-hero-heading` — centred and full-width at every width
+          // (no media override), bottom .75rem. The subpage class instead goes
+          // left/80% below 992, which put "Meet" hard against the left edge.
+          heading_style: "meet",
           // Two heading2 blocks (not a raw string array) so the below-wave
           // "Our"/"Team" slab lines round-trip through Prismic — Hero/index
           // maps the blocks back to strings for SubpageHero.
