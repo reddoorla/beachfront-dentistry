@@ -30,7 +30,10 @@
 
 <DetailIntro title={data.title} lede={split.lede} titleSize="lg" />
 
-<section class="mx-auto max-w-[1440px] px-5 pt-10 lg:px-20 lg:pt-16">
+<!-- Live's lede→body gap is 20px mobile / 40px desktop, as a MARGIN (page-diff
+     cuts at this section's box top, so padding would fold the gap into the body
+     region instead of above the "At Beachfront" heading). -->
+<section class="mx-auto mt-[20px] max-w-[1440px] px-5 lg:mt-[40px] lg:px-20">
   <DetailBody field={split.rest} class="max-w-[1024px]" />
 </section>
 
@@ -41,7 +44,7 @@
      count into the pill region instead of the body above it); the pill→CTA gap
      stays padding, inside the pill region. -->
 <div
-  class="mx-auto flex max-w-[1440px] justify-center px-5 mt-[62px] pb-[24px] lg:px-20 lg:mt-[90px] lg:pb-[40px]"
+  class="mx-auto flex max-w-[1440px] justify-center px-5 mt-[86px] pb-[24px] lg:px-20 lg:mt-[130px] lg:pb-[40px]"
 >
   <OutlineButton
     label="Have another question?"

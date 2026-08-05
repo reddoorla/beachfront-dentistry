@@ -24,11 +24,13 @@
 <section class="mt-5 w-full">
   <div class="mx-auto max-w-[1440px] px-5 lg:px-20">
     <!-- Live mobile title sizes (read off `.hero`+title @390): xl=56px/70,
-         lg=50px/60 → 140/168, 100/120 desktop. -->
+         lg=50px/60 → 140/168, 100/120 desktop. The lg (question) title also
+         carries live's 20px top padding inside the box (the xl service title
+         has none), so its text sits 20px lower and the box is one pad taller. -->
     <h1
       class="font-slab font-thin {titleSize === 'xl'
         ? 'text-[56px] leading-[70px] lg:text-[140px] lg:leading-[168px]'
-        : 'text-[50px] leading-[60px] lg:text-[100px] lg:leading-[120px]'}"
+        : 'pt-[20px] text-[50px] leading-[60px] lg:text-[100px] lg:leading-[120px]'}"
       style="color:#129ecc"
       use:animateIn={LIVE_REVEAL}
     >
@@ -36,9 +38,9 @@
     </h1>
     {#if lede}
       <!-- Live's lede is `.text-body-large`: 20px/30 mobile → 30px/45 desktop
-           (right-indented ~⅓ at desktop). -->
+           (right-indented ~⅓ at desktop), 30px below the title box. -->
       <p
-        class="font-slab mt-8 text-[20px] leading-[30px] font-light lg:mt-[50px] lg:ml-[33%] lg:max-w-[845px] lg:text-[30px] lg:leading-[45px]"
+        class="font-slab mt-[30px] text-[20px] leading-[30px] font-light lg:ml-[33%] lg:max-w-[845px] lg:text-[30px] lg:leading-[45px]"
         style="color:#129ecc"
         use:animateIn={LIVE_REVEAL}
       >

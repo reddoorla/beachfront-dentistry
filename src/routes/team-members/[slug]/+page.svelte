@@ -79,7 +79,7 @@
     link="/our-team"
     variant="cyan"
     size="detail"
-    class="mt-10"
+    class="mt-[22px] lg:mt-[30px]"
   />
 </section>
 

@@ -56,21 +56,23 @@
     <!-- Bottom-left label. Inline white defeats the global `main h1–h3`
          primary-colour rule (same trap SubpageHero documents). -->
     <div
-      class="absolute bottom-[13%] left-5 z-10 lg:left-20"
+      class="absolute bottom-[10%] left-5 z-10 lg:left-20"
       use:animateIn={LIVE_REVEAL}
     >
       {#if labelSize === "name"}
-        <!-- Live's name @390 is ~24px (must clear the headshot on the right);
-             scales to 64px @1440. -->
+        <!-- Live's name h1 (`.hero` title): 25px/38 @390 (must clear the
+             headshot on the right) → 60px/72 @1440, museo-slab THIN (w100). -->
         <h1
-          class="font-slab text-[24px] leading-[30px] font-thin md:text-[44px] md:leading-[52px] lg:text-[64px] lg:leading-[76px]"
+          class="font-slab text-[25px] leading-[38px] font-thin md:text-[44px] md:leading-[52px] lg:text-[60px] lg:leading-[72px]"
           style="color:#fff"
         >
           {label}
         </h1>
       {:else}
+        <!-- Live's breadcrumb h3: 20px/26 @390 → 40px/50 @1440, museo-slab
+             LIGHT (w300 — NOT the name's thin). -->
         <p
-          class="font-slab text-[22px] leading-[28px] font-thin md:text-[26px] md:leading-[34px] lg:text-[30px] lg:leading-[40px]"
+          class="font-slab text-[20px] leading-[26px] font-light md:text-[30px] md:leading-[40px] lg:text-[40px] lg:leading-[50px]"
           style="color:#fff"
         >
           {label}
