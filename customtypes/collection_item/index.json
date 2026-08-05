@@ -18,6 +18,18 @@
           "multi": "paragraph,strong,em,hyperlink,list-item,o-list-item"
         }
       },
+      "link_label": {
+        "type": "Text",
+        "config": {
+          "label": "link label (category-panel wording — falls back to title)"
+        }
+      },
+      "order": {
+        "type": "Number",
+        "config": {
+          "label": "order within its category panel (lowest first)"
+        }
+      },
       "media": {
         "type": "Image",
         "config": { "label": "media", "constraint": {}, "thumbnails": [] }

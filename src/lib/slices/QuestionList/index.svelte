@@ -21,6 +21,10 @@
       body?: RichTextField;
       media?: ImageField;
       date?: string | null;
+      // authored card excerpt (news_article.summary) — see `teaserText`
+      summary?: string | null;
+      // position in the home page's featured row (news_article.home_order)
+      home_order?: number | null;
     };
   };
 
@@ -48,29 +52,13 @@
     return lead ? asText([lead] as RichTextField) : "";
   };
 
-  // Live's card excerpt is a hand-written Webflow teaser, NOT the article
-  // body's lead paragraph (verified against live 2026-08-02: only 1 of the 6
-  // leads matches its card's excerpt). The import didn't capture that field
-  // and news_article has no summary field, so — like the curated selection
-  // below — live's teasers are pinned verbatim by uid, with the lead
-  // paragraph as the fallback for other docs. (TODO: promote to a CMS field
-  // once Slice Machine is wired.)
-  const TEASERS: Record<string, string> = {
-    "regular-dental-cleanings-support-your-whole-body-health":
-      "Routine cleanings aren’t just about keeping your smile bright—they’re a powerful tool for protecting your entire body",
-    "best-routine-for-my-dental-health":
-      "This simple and effective daily routine will keep your smile healthy and bright between visits.",
-    "do-teeth-turn-yellow-as-you-age":
-      'Tooth discoloration and "Do Teeth Turn Yellow As You Age?" is one of the most common patient concerns/questions that we hear each day. There are a number of reasons why your teeth may...',
-    "creating-perfect-smiles-artistry-or-science":
-      "We’re often asked: Is cosmetic dentistry more of an art or a science? Our answer? It’s both—beautifully intertwined.",
-    "tooth-broke-off":
-      "If your tooth broke off, it is a serious dental problem, whether or not it hurts. The lack of pain implies that you have only a minor break; however, even these sorts of tooth injuries...",
-    "why-does-my-tooth-hurt-when-i-bite-down":
-      "Pain when biting down can signal a cracked tooth, cavity, or infection. Learn common causes, what helps, and when dental care is needed.",
-  };
+  // The card excerpt is AUTHORED (`news_article.summary`), not the article
+  // body's lead paragraph: 18 of the 40 live summaries are not even a prefix
+  // of their body, and the 22 that are all cut at a different point. It is a
+  // real CMS field, so it is read from the document; the lead paragraph stays
+  // as the fallback for a doc whose summary an author hasn't filled in.
   const teaserText = (doc: NewsArticleDoc): string =>
-    TEASERS[doc.uid] ?? leadParagraphText(doc);
+    doc.data.summary?.trim() || leadParagraphText(doc);
 
   // collections-load fetches via a plain `getAllByType` with no ordering, so the
   // slice sorts itself — newest first. This date order is the site's canonical
@@ -87,38 +75,16 @@
     new Map(sortedDocs.map((doc, i) => [doc.uid, i + 1])),
   );
 
-  // The home teaser is an editorial pick, not "newest N": live features one hero
-  // question (no number) then five specific ones, each showing its catalog
-  // number. Webflow stored that as a "featured" flag; the import didn't capture
-  // it and the news_article model has no such field, so the selection is pinned
-  // here by uid, ported verbatim from the live home page. (TODO: promote to a
-  // CMS field once Slice Machine is wired.) Other sites reusing this slice fall
-  // back to newest-N below.
-  const FEATURED_UID =
-    "regular-dental-cleanings-support-your-whole-body-health";
-  const CURATED_UIDS = [
-    "best-routine-for-my-dental-health",
-    "do-teeth-turn-yellow-as-you-age",
-    "creating-perfect-smiles-artistry-or-science",
-    "tooth-broke-off",
-    "why-does-my-tooth-hurt-when-i-bite-down",
-  ];
-
-  // Each teaser card carries its doc + the number to print (null = hero card).
+  // The home row is an editorial pick, not "newest N": one hero question then
+  // five specific ones, each still showing its CATALOG number. That selection
+  // is authored (`news_article.home_order`, 1 = hero) — a doc with no
+  // home_order simply isn't featured. Sites that haven't filled the field in
+  // fall back to newest-N below, so the slice still works uncurated.
   let teaserCards = $derived.by(() => {
-    const byUid = new Map(sortedDocs.map((doc) => [doc.uid, doc]));
-    const cards: { doc: NewsArticleDoc; number: number | null }[] = [];
-    const featured = byUid.get(FEATURED_UID);
-    if (featured)
-      cards.push({
-        doc: featured,
-        number: canonicalNumber.get(FEATURED_UID) ?? 1,
-      });
-    for (const uid of CURATED_UIDS) {
-      const doc = byUid.get(uid);
-      if (doc) cards.push({ doc, number: canonicalNumber.get(uid) ?? null });
-    }
-    // Fallback for other sites / missing curated docs: newest N, hero first.
+    const cards = sortedDocs
+      .filter((doc) => isFilled.number(doc.data.home_order))
+      .sort((a, b) => (a.data.home_order ?? 0) - (b.data.home_order ?? 0))
+      .map((doc) => ({ doc, number: canonicalNumber.get(doc.uid) ?? null }));
     if (cards.length <= 1) {
       const n = isFilled.number(slice.primary.max_items)
         ? slice.primary.max_items

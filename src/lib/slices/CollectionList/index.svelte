@@ -26,6 +26,10 @@
       // person docs carry a bio (`body`) and a favorite-beach `gallery` group
       // (image + caption) — the `people` variation's teaser + bottom banner.
       body?: RichTextField;
+      // authored card excerpt (person.teaser) and editorial roster position
+      // (person.order) — see `teamRank` and the personCard snippet.
+      teaser?: string | null;
+      order?: number | null;
       gallery?: {
         image?: { url?: string; alt?: string | null };
         caption?: string | null;
@@ -63,35 +67,20 @@
 
   let { slice, context }: Props = $props();
 
-  // Live pins an editorial team order (the two doctors first, then staff in a
-  // hand-set sequence). getAllByType returns Prismic's default order, so the
-  // `team` variation re-sorts its roster to match live. Pinned by uid, ported
-  // verbatim from the live home page; docs not listed keep their source order
-  // at the end. (TODO: promote to a CMS ordering field once Slice Machine is
-  // wired.)
-  const TEAM_ORDER = [
-    "dr-robert-quan",
-    "dr-michael-hopkins",
-    "stacey",
-    "enrique",
-    "alicia",
-    "linda",
-    "michelle",
-    "christina",
-    "sabrina",
-    "raquel",
-    "lanette",
-  ];
-  const teamRank = (uid: string) => {
-    const i = TEAM_ORDER.indexOf(uid);
-    return i === -1 ? Number.POSITIVE_INFINITY : i;
-  };
+  // The roster order is editorial (the two doctors first, then staff in a
+  // hand-set sequence) and getAllByType returns Prismic's own document order,
+  // so the `team`/`people` variations sort on the authored `order` field. A
+  // doc with no order keeps its source position, at the end.
+  const teamRank = (doc: CollectionDoc) =>
+    typeof doc.data.order === "number"
+      ? doc.data.order
+      : Number.POSITIVE_INFINITY;
   let docs = $derived.by(() => {
     const all =
       context?.collections?.[slice.primary.collection_type ?? ""] ?? [];
     const ordered =
       slice.variation === "team" || slice.variation === "people"
-        ? [...all].sort((a, b) => teamRank(a.uid) - teamRank(b.uid))
+        ? [...all].sort((a, b) => teamRank(a) - teamRank(b))
         : all;
     return ordered.slice(0, slice.primary.max_items ?? 24);
   });
@@ -158,7 +147,12 @@
        favorite-beach banner + white caption pinned across the card bottom. -->
   {@const href = hrefFor(doc)}
   {@const name = asText(doc.data.title as RichTextField)}
-  {@const bio = asText((doc.data.body ?? []) as RichTextField)}
+  <!-- The card excerpt is AUTHORED (`person.teaser`), not a clamp of the bio:
+       9 of live's 11 teasers are a prefix of the body but every cut point is
+       different, and 2 don't match the body at all. Read it from the doc; a
+       person whose teaser an author hasn't filled falls back to the bio. -->
+  {@const bio =
+    doc.data.teaser?.trim() || asText((doc.data.body ?? []) as RichTextField)}
   {@const beach = doc.data.gallery?.[0]}
   <!-- Live's `.team-list-item` is sized in REM against its stepped root
        (24/32/40), so the real ladder is four tiers, not two:

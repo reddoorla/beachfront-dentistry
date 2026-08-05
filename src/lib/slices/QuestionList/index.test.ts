@@ -195,3 +195,74 @@ describe("QuestionList slice — numbered variation", () => {
     expect(container.querySelectorAll(".qa-item")).toHaveLength(8);
   });
 });
+
+// The card excerpt and the home page's featured row are AUTHORED fields
+// (news_article.summary / news_article.home_order), not derived from the body
+// and not "newest N" — see the notes on `teaserText` and `teaserCards`.
+describe("QuestionList slice — authored summary + home_order", () => {
+  const withField = (uid: string, field: Record<string, unknown>) => ({
+    ...newsArticleDocs.find((d) => d.uid === uid)!,
+    data: { ...newsArticleDocs.find((d) => d.uid === uid)!.data, ...field },
+  });
+
+  it("prints news_article.summary rather than the body's lead paragraph", () => {
+    const docs = [withField("q-3", { summary: "An authored card excerpt." })];
+    const { container } = render(QuestionList, {
+      props: {
+        slice: numberedSlice,
+        context: { collections: { news_article: docs } } as never,
+      },
+    });
+    expect(container.textContent).toContain("An authored card excerpt.");
+    expect(container.textContent).not.toContain("Lead answer 3.");
+  });
+
+  it("falls back to the lead paragraph when summary is empty", () => {
+    const docs = [withField("q-3", { summary: "   " })];
+    const { container } = render(QuestionList, {
+      props: {
+        slice: numberedSlice,
+        context: { collections: { news_article: docs } } as never,
+      },
+    });
+    expect(container.textContent).toContain("Lead answer 3.");
+  });
+
+  it("features exactly the home_order docs, in that order, each still showing its CATALOG number", () => {
+    // q-3 is newest (catalog 01), q-6 is 02, q-1 is 03 … feature 3 of the 8 in
+    // an order that is deliberately not the catalog order.
+    const docs = newsArticleDocs.map((d) =>
+      d.uid === "q-1"
+        ? { ...d, data: { ...d.data, home_order: 1 } }
+        : d.uid === "q-6"
+          ? { ...d, data: { ...d.data, home_order: 3 } }
+          : d.uid === "q-4"
+            ? { ...d, data: { ...d.data, home_order: 2 } }
+            : d,
+    );
+    const { container } = render(QuestionList, {
+      props: {
+        slice: teaserSlice,
+        context: { collections: { news_article: docs } } as never,
+      },
+    });
+    const cards = [...container.querySelectorAll(".qa-item")];
+    expect(cards).toHaveLength(3);
+    expect(
+      cards.map((c) =>
+        c.querySelector("a[href^='/questions/']")?.getAttribute("href"),
+      ),
+    ).toEqual(["/questions/q-1", "/questions/q-4", "/questions/q-6"]);
+    // q-1 is 3rd newest and q-4 is oldest (8th) — the printed number is the
+    // catalog position, not the row position.
+    expect(cards[0]!.textContent).toContain("03");
+    expect(cards[1]!.textContent).toContain("08");
+  });
+
+  it("falls back to newest-N when no doc carries a home_order", () => {
+    const { container } = render(QuestionList, {
+      props: { slice: teaserSlice, context },
+    });
+    expect(container.querySelectorAll(".qa-item")).toHaveLength(6);
+  });
+});

@@ -11,6 +11,15 @@
     data: {
       title?: RichTextField;
       tags?: string | null;
+      // The panel prints an authored SHORT label, not the document title:
+      // live's Cosmetic Dentistry panel links read "dental veneers" while the
+      // detail page's h2 reads "Dental Veneers" (both text-transform:none), and
+      // three differ outright ("oral cancer screening" for Oral Cancer
+      // Dentistry, "Mi paste / Mi Paste plus", "Nitrous oxide (n2O)").
+      link_label?: string | null;
+      // Position within the category panel. Prismic's default document order
+      // matches live in none of the four panels, so the sort key is authored.
+      order?: number | null;
     };
   };
   // One category card in the `grid` variation.
@@ -36,19 +45,29 @@
 
   let { slice, context }: Props = $props();
 
+  // The panel's wording, falling back to the document title when no author has
+  // set a short label (so this slice still reads correctly on other sites).
   const titleText = (doc: CollectionItemDoc): string =>
+    doc.data.link_label?.trim() ||
     asText((doc.data.title ?? []) as RichTextField);
 
   // The tags field is a comma-separated STRING on collection_item docs (e.g.
   // "Cosmetic Dentistry" or "General Dentistry, Specialty Services"), not a
-  // Prismic tags array — split/trim it into a parsed list per doc.
+  // Prismic tags array — split/trim it into a parsed list per doc. Sorted by
+  // the authored `order`; docs without one keep their source position, last.
+  const rank = (doc: CollectionItemDoc) =>
+    typeof doc.data.order === "number"
+      ? doc.data.order
+      : Number.POSITIVE_INFINITY;
   const docsFor = (tag?: string | null): CollectionItemDoc[] =>
-    (context?.collections?.collection_item ?? []).filter((doc) =>
-      (doc.data.tags ?? "")
-        .split(",")
-        .map((t) => t.trim())
-        .includes(tag ?? ""),
-    );
+    (context?.collections?.collection_item ?? [])
+      .filter((doc) =>
+        (doc.data.tags ?? "")
+          .split(",")
+          .map((t) => t.trim())
+          .includes(tag ?? ""),
+      )
+      .sort((a, b) => rank(a) - rank(b));
 
   // default variation still shows one category's matching docs.
   let matchingDocs = $derived(docsFor(slice.primary.category_tag));

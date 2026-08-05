@@ -18,6 +18,18 @@
           "multi": "paragraph,strong,em,hyperlink,list-item,o-list-item"
         }
       },
+      "summary": {
+        "type": "Text",
+        "config": {
+          "label": "summary (card excerpt — falls back to the body lead)"
+        }
+      },
+      "home_order": {
+        "type": "Number",
+        "config": {
+          "label": "home feature order (1 = hero card; empty = not featured)"
+        }
+      },
       "media": {
         "type": "Image",
         "config": { "label": "media", "constraint": {}, "thumbnails": [] }
