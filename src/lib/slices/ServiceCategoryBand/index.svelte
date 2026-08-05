@@ -150,7 +150,7 @@
                two columns of vertically-stacked uppercase slab links. -->
           <div
             class="relative h-[40%] overflow-hidden rounded-b-[25px] px-[6px] pb-[6px] md:px-2 md:pb-2 lg:px-[10px] lg:pb-[10px]"
-            style="background:linear-gradient(#129ecc 40%, rgba(54,91,109,0.57))"
+            style="background-color:#129ecc; background-image:linear-gradient(#129ecc 40%, rgba(54,91,109,0.57))"
           >
             <div class="flex h-full">
               {#each [col1, col2] as col, i (i)}
