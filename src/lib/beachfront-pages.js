@@ -582,6 +582,10 @@ export function assemblies(img) {
           background_image: img(IMG.heroRedondo),
           // `.hero.redondo` -> background-position: 0 100%
           image_position: "left-bottom",
+          // /services is the ONE page whose hero markup carries NEITHER
+          // gradient div — its whole hero is the section, the bot-wave and the
+          // h2 (matching/spec/services-top.html). Every other subpage has both.
+          hero_wash: false,
         },
         items: [],
       },

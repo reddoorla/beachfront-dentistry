@@ -28,6 +28,8 @@
     align = "center",
     headingStyle = "subpage",
     imagePosition = "center",
+    wash = true,
+    botGradient = "base",
   }: {
     heading?: RichTextField | null;
     backgroundImage?: ImageField | null;
@@ -58,6 +60,24 @@
      *  see — a blanket left-bottom put plants where live's contact hero shows
      *  the office sign. */
     imagePosition?: "center" | "left-bottom" | "top";
+    /** Whether this hero paints live's cyan wash at all. `/services` is the ONE
+     *  page whose hero markup has NEITHER gradient div: its whole hero is
+     *  `<section class="hero redondo"><div class="bot-wave">…</div><h2
+     *  class="subpage-hero-heading">Services</h2></section>`
+     *  (`matching/spec/services-top.html`). Counting the divs across the saved
+     *  documents: index/our-team/ask-the-doctor/your-first-visit/contact-us all
+     *  carry both, services carries zero. Painting them there covered ~half the
+     *  region in cyan at dE 40-90. */
+    wash?: boolean;
+    /** Which bottom-gradient stop. Live has two and they are NOT interchangeable:
+     *   • "base" (`.hero-bot-gradient`, beachfront.css:6484-6490) —
+     *     `linear-gradient(#0000, #129ecccc)`, alpha 0.8, never closes.
+     *   • "dark" (`.hero-bot-gradient.dark`, :6492-6494) —
+     *     `linear-gradient(#0000, #129ecc 77%)`, OPAQUE from 77% down.
+     *  Grepping the saved documents for `hero-bot-gradient dark`: contact-us is
+     *  the only page that has it. We were emitting the opaque `.dark` stop on
+     *  every subpage, which is most of the `top` mismatch on the others. */
+    botGradient?: "base" | "dark";
   } = $props();
 
   const objectPos = $derived(
@@ -85,26 +105,29 @@
       class="absolute bottom-0 left-0 h-full w-full object-cover {objectPos}"
     />
   {/if}
-  <!-- Live's hero overlay is a CYAN wash, not a neutral scrim (measured off
-       `.hero.contact`): a cyan top-tint fading out over the top third + a
-       transparent→solid-cyan bottom wash (full by 77% of its own height). This
-       is what makes the white thin heading read over a bright photo (the plain
-       dark scrim left "Contact Us" washed out over the loaded office shot). -->
-  <!-- `.hero-top-gradient{height:25%}` — a quarter, not a third. -->
-  <div
-    class="pointer-events-none absolute inset-x-0 top-0 h-1/4"
-    style="background:linear-gradient(rgba(18,158,204,0.8), rgba(0,0,0,0))"
-    aria-hidden="true"
-  ></div>
-  <!-- `.hero-bot-gradient.dark{background-image:linear-gradient(#0000,#129ecc 77%)}`
-       — SOLID cyan from 77% down, not an 0.8 alpha that never closes. The
-       0.8 cap let the office sign in the contact photo read straight through
-       a wash live paints out completely. -->
-  <div
-    class="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
-    style="background:linear-gradient(rgba(0,0,0,0), #129ecc 77%)"
-    aria-hidden="true"
-  ></div>
+  <!-- Live's hero overlay is a CYAN wash, not a neutral scrim: a cyan top-tint
+       fading out over the top QUARTER (`.hero-top-gradient{height:25%}`,
+       beachfront.css:6477-6482) plus a transparent→cyan bottom wash over the
+       bottom half (`.hero-bot-gradient`, :6484-6490). Both are real <div>s in
+       live's markup, so a page that omits them gets no wash at all — see
+       `wash`. -->
+  {#if wash}
+    <div
+      class="pointer-events-none absolute inset-x-0 top-0 h-1/4"
+      style="background:linear-gradient(rgba(18,158,204,0.8), rgba(0,0,0,0))"
+      aria-hidden="true"
+    ></div>
+    <!-- base = `linear-gradient(#0000, #129ecccc)` (alpha 0.8, never closes);
+         dark = `linear-gradient(#0000, #129ecc 77%)` (opaque from 77% down) and
+         is contact-us ONLY. See `botGradient`. -->
+    <div
+      class="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
+      style="background:linear-gradient(rgba(0,0,0,0), {botGradient === 'dark'
+        ? '#129ecc 77%'
+        : 'rgba(18,158,204,0.8)'})"
+      aria-hidden="true"
+    ></div>
+  {/if}
   <!-- Live's three heading treatments (see `headingStyle`). The bottom offsets
        are live's own rem values against its stepped root (24/32/40):
          subpage  bottom:2%      + margin-bottom:5% of the hero WIDTH

@@ -61,6 +61,9 @@
       heading_style?: "subpage" | "meet" | null;
       // live sets the band photo anchor per page (see SubpageHero.imagePosition)
       image_position?: "center" | "left-bottom" | "top" | null;
+      // `/services` is the one page whose hero markup omits BOTH gradient divs
+      // (matching/spec/services-top.html) — see SubpageHero.wash.
+      hero_wash?: boolean | null;
     };
     items: unknown[];
   };
@@ -195,6 +198,7 @@
     intro={slice.primary.intro}
     headingStyle={slice.primary.heading_style ?? "subpage"}
     imagePosition={slice.primary.image_position ?? "center"}
+    wash={slice.primary.hero_wash ?? true}
   />
 {:else if slice.variation === "groupphoto"}
   <!-- your-first-visit `.hero.group-photo`: a short photo band (min(60vh,60vw)

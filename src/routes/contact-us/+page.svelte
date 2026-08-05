@@ -46,7 +46,15 @@
   ];
 </script>
 
-<SubpageHero {heading} backgroundImage={officePhoto} align="left" />
+<!-- contact-us is the ONLY page carrying `.hero-bot-gradient.dark`
+     (beachfront.css:6492-6494, opaque cyan from 77% down). Every other subpage
+     uses the base 0.8-alpha stop, so that is SubpageHero's default. -->
+<SubpageHero
+  {heading}
+  backgroundImage={officePhoto}
+  align="left"
+  botGradient="dark"
+/>
 
 <section
   data-section="info"
