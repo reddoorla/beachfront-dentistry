@@ -59,6 +59,8 @@
       // our-team's band uses live's `.meet-heading` (centred and full-width at
       // EVERY width, bottom .75rem) rather than `.subpage-hero-heading`.
       heading_style?: "subpage" | "meet" | null;
+      // live sets the band photo anchor per page (see SubpageHero.imagePosition)
+      image_position?: "center" | "left-bottom" | "top" | null;
     };
     items: unknown[];
   };
@@ -192,6 +194,7 @@
     subheadings={blocksToLines(slice.primary.subheadings)}
     intro={slice.primary.intro}
     headingStyle={slice.primary.heading_style ?? "subpage"}
+    imagePosition={slice.primary.image_position ?? "center"}
   />
 {:else if slice.variation === "groupphoto"}
   <!-- your-first-visit `.hero.group-photo`: a short photo band (min(60vh,60vw)

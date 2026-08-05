@@ -151,7 +151,7 @@
   {/if}
 {/snippet}
 
-{#snippet personCard(doc: CollectionDoc)}
+{#snippet personCard(doc: CollectionDoc, tabletTiers = true)}
   <!-- live `.team-list-item` (320×480 / 303×384, bg #E7F5FA, radius 20): a
        circular headshot straddling the top edge, then name (cyan slab) / role
        (teal sans caps) / bio teaser (teal, 3-line clamp) / READ MORE, with the
@@ -172,24 +172,32 @@
        <=479) — do not copy one onto the other; that regressed /our-team @390
        from 5.2% to 33% before it was caught. -->
   <article
-    class="team-list-item relative mx-6 mt-24 mb-6 h-96 w-[303px] rounded-[20px] bg-[#e7f5fa] xs:mt-[192px] xs:h-[576px] xs:w-[384px] md:mx-8 md:mt-[256px] md:mb-8 md:h-[768px] md:w-[512px] lg:mx-5 lg:mt-40 lg:mb-5 lg:h-[480px] lg:w-80"
+    class="team-list-item relative mx-6 mt-24 mb-6 h-96 w-[303px] rounded-[20px] bg-[#e7f5fa] lg:mx-5 lg:mt-40 lg:mb-5 lg:h-[480px] lg:w-80 {tabletTiers
+      ? 'xs:mt-[192px] xs:h-[576px] xs:w-[384px] md:mx-8 md:mt-[256px] md:mb-8 md:h-[768px] md:w-[512px]'
+      : ''}"
   >
     {#if doc.data.media?.url}
       <!-- headshot centred ON the card's top edge (half above, half in). -->
       <a
         {href}
         aria-label={name}
-        class="focus-visible:ring-primary-deep absolute top-0 left-1/2 z-10 block w-[120px] -translate-x-1/2 -translate-y-1/2 rounded-full xs:w-[240px] md:w-[320px] lg:w-[200px] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+        class="focus-visible:ring-primary-deep absolute top-0 left-1/2 z-10 block w-[120px] -translate-x-1/2 -translate-y-1/2 rounded-full lg:w-[200px] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden {tabletTiers
+          ? 'xs:w-[240px] md:w-[320px]'
+          : ''}"
       >
         <PrismicImage
           field={doc.data.media as unknown as ImageField}
           fallbackAlt=""
-          class="size-[120px] max-w-none rounded-full object-cover object-top xs:size-[240px] md:size-[320px] lg:size-[200px]"
+          class="size-[120px] max-w-none rounded-full object-cover object-top lg:size-[200px] {tabletTiers
+            ? 'xs:size-[240px] md:size-[320px]'
+            : ''}"
         />
       </a>
     {/if}
     <div
-      class="flex h-full flex-col px-[18px] pt-[70px] text-center xs:pt-[130px] md:pt-[170px] lg:px-6 lg:pt-[110px]"
+      class="flex h-full flex-col px-[18px] pt-[70px] text-center lg:px-6 lg:pt-[110px] {tabletTiers
+        ? 'xs:pt-[130px] md:pt-[170px]'
+        : ''}"
     >
       <a {href} class="focus-visible:outline-hidden">
         <h5
@@ -366,7 +374,7 @@
           {#snippet children({ index }: { index: number })}
             {@const doc = docs[index]}
             {#if doc}
-              {@render personCard(doc)}
+              {@render personCard(doc, false)}
             {/if}
           {/snippet}
         </Slider>

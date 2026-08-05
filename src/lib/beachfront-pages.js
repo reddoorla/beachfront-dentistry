@@ -546,6 +546,8 @@ export function assemblies(img) {
           // (no media override), bottom .75rem. The subpage class instead goes
           // left/80% below 992, which put "Meet" hard against the left edge.
           heading_style: "meet",
+          // `.hero.redondo` -> background-position: 0 100%
+          image_position: "left-bottom",
           // Two heading2 blocks (not a raw string array) so the below-wave
           // "Our"/"Team" slab lines round-trip through Prismic — Hero/index
           // maps the blocks back to strings for SubpageHero.
@@ -574,6 +576,8 @@ export function assemblies(img) {
         primary: {
           heading: [head(2, "Services")],
           background_image: img(IMG.heroRedondo),
+          // `.hero.redondo` -> background-position: 0 100%
+          image_position: "left-bottom",
         },
         items: [],
       },
@@ -640,6 +644,8 @@ export function assemblies(img) {
         primary: {
           heading: [head(2, "Ask the Doctor")],
           background_image: img(IMG.firstExam),
+          // `.hero.ask-a-dentist` -> background-position: 50% 0
+          image_position: "top",
         },
         items: [],
       },

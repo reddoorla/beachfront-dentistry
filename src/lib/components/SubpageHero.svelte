@@ -27,6 +27,7 @@
     intro,
     align = "center",
     headingStyle = "subpage",
+    imagePosition = "center",
   }: {
     heading?: RichTextField | null;
     backgroundImage?: ImageField | null;
@@ -49,7 +50,23 @@
      *     size ladder and padding-right:33%. Selected by align="left".
      */
     headingStyle?: "subpage" | "meet";
+    /** object-position for the band photo. Live sets this PER PAGE, not once:
+     *    .hero.redondo      (our-team, services)  background-position: 0 100%
+     *    .hero.contact      (contact-us)          background-position: 50% 50%
+     *    .hero.ask-a-dentist(ask-the-doctor)      background-position: 50% 0
+     *  Applying one of them to all of them swaps which slice of the photo you
+     *  see — a blanket left-bottom put plants where live's contact hero shows
+     *  the office sign. */
+    imagePosition?: "center" | "left-bottom" | "top";
   } = $props();
+
+  const objectPos = $derived(
+    imagePosition === "left-bottom"
+      ? "object-left-bottom"
+      : imagePosition === "top"
+        ? "object-top"
+        : "object-center",
+  );
 
   const headingText = $derived(asText((heading ?? []) as RichTextField));
   const introText = $derived(asText((intro ?? []) as RichTextField));
@@ -61,17 +78,11 @@
   class="relative isolate flex min-h-[95vw] w-full items-center justify-center overflow-hidden bg-dark text-white xs:min-h-[70vw] md:min-h-[60vw] lg:min-h-[33vw]"
 >
   {#if backgroundImage?.url}
-    <!-- Live's subpage bands set `background-position: 0 100%` (its
-         `.hero.redondo` / `.hero.contact` rules), i.e. anchored LEFT-BOTTOM,
-         not centred. `cover` resolves to the same scale as live's
-         `background-size:100%` for these photos, so the anchor was the only
-         difference — but it is a big one: at 1440 a centre crop shows a
-         200px-higher slice, which put the hillside where live shows the
-         shoreline and lifeguard tower. -->
+    <!-- Anchor per live's own per-page rule — see `imagePosition`. -->
     <HeroBackgroundImage
       image={backgroundImage}
       preload={true}
-      class="absolute bottom-0 left-0 h-full w-full object-cover object-left-bottom"
+      class="absolute bottom-0 left-0 h-full w-full object-cover {objectPos}"
     />
   {/if}
   <!-- Live's hero overlay is a CYAN wash, not a neutral scrim (measured off
