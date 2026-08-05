@@ -108,7 +108,7 @@
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="relative -mt-[193px] mx-auto max-w-4xl px-[19.5px] py-20 lg:-mt-[320px] lg:px-6"
+    class="relative -mt-[193px] mx-auto max-w-4xl px-[19.5px] py-20 md:-mt-64 lg:-mt-80 lg:px-6"
   >
     <!-- Live's .qa-block width is 480px across the WHOLE ≤991 range (100% capped
          at max-width:20rem), widening to 600 only at desktop (≥992). An earlier

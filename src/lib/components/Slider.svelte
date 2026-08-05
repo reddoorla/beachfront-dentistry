@@ -42,13 +42,18 @@
      * (below the arrows) so slides dissolve at the margins — live's full-bleed
      * team row. */
     edgeFadeColor?: string;
-    /** Fixed slide width at ≥768px (e.g. "200px"). Matches a reference carousel
+    /** Fixed slide width at ≥992px (e.g. "200px"). Matches a reference carousel
      * whose cells are a fixed size and overflow the container rather than fitting
      * to it — live's team row: 200px cells, 40px gap, first flush-left, last
      * clipped at the right edge. When set, `cardsPerView` is ignored at desktop
      * and how many are visible is measured from the track width. Below 768px the
      * `mobileCardsPerView` fit-to-container layout is used unchanged. */
     itemWidth?: string;
+    /** Fixed cell width in the 768–991 band. A reference sized in REM against a
+     * stepped root font (live: 40px ≥992 / 32px 768–991 / 24px ≤767) has THREE
+     * tiers, not two — its 5rem headshot is 200/160/120px. Defaults to
+     * `itemWidth`, which is the pre-tablet-tier behaviour. */
+    tabletItemWidth?: string;
     /** Fixed cell width below 768px (e.g. "120px" — live's team headshots are
      * 200px desktop / 120px mobile, its rem scaled 0.6× under a 40px→24px root).
      * When set, mobile uses fixed cells too; otherwise mobile falls back to the
@@ -58,9 +63,17 @@
      * so a full-bleed row can still align its first cell to the content column
      * (live team: 80px at desktop) while the arrows/edge-fades pin to the true
      * screen edges. Only applied when `itemWidth` is set. `trackPadStart` at
-     * ≥768px, `mobileTrackPadStart` below. */
+     * ≥992px, `tabletTrackPadStart` at 768–991, `mobileTrackPadStart` below. */
     trackPadStart?: string;
+    tabletTrackPadStart?: string;
+    /** Offset in the 480–767 band. Live's content gutter is a PERCENTAGE below
+     * 768 and steps 8% → 5% at 480, so this band needs its own value even
+     * though its cell size (a rem against the same 24px root) does not.
+     * Defaults to `mobileTrackPadStart`. */
+    xsTrackPadStart?: string;
     mobileTrackPadStart?: string;
+    /** Gap in the 768–991 band; defaults to `gap`. */
+    tabletGap?: string;
     /** Tailwind duration/easing utilities for the slide/fade movement. */
     transitionClass?: string;
     navigationClass?: string;
@@ -90,9 +103,13 @@
     nextArrow,
     edgeFadeColor,
     itemWidth,
+    tabletItemWidth,
     mobileItemWidth,
     trackPadStart,
+    tabletTrackPadStart,
+    xsTrackPadStart,
     mobileTrackPadStart,
+    tabletGap,
     transitionClass = "duration-500 ease-in-out",
     navigationClass = "",
     arrowClass = "",
@@ -127,25 +144,48 @@
     return () => document.removeEventListener("visibilitychange", onVisibility);
   });
 
-  // Fixed-cell mode (cells a fixed size, overflowing the track). Desktop uses
-  // `itemWidth`, mobile `mobileItemWidth`; when the active breakpoint's width is
-  // unset, that breakpoint falls back to the fit-to-container layout.
+  // Fixed-cell mode (cells a fixed size, overflowing the track), keyed to
+  // live's own breakpoints (992 / 768 / 480). A reference sized in REM against
+  // a stepped root font (40px ≥992, 32px 768–991, 24px ≤767) has three distinct
+  // cell sizes, so calibrating only "desktop" and "mobile" leaves the whole
+  // 768–991 band rendering the DESKTOP cell — live's 5rem headshot is
+  // 200/160/120px and ours was 200px down to 767. The 480 tier exists only for
+  // the track offset, whose gutter is a percentage below 768 and steps 8% → 5%.
+  // Every tablet/xs prop falls back to its desktop counterpart, so a caller
+  // that sets none behaves exactly as before.
+  const tier = $derived(
+    viewport.width >= 992
+      ? "lg"
+      : viewport.width >= 768
+        ? "md"
+        : viewport.width >= 480
+          ? "xs"
+          : "sm",
+  );
   const activeItemWidth = $derived(
     mode === "fade"
       ? undefined
-      : viewport.width >= 768
+      : tier === "lg"
         ? itemWidth
-        : mobileItemWidth,
+        : tier === "md"
+          ? (tabletItemWidth ?? itemWidth)
+          : mobileItemWidth,
   );
   const fixedMode = $derived(!!activeItemWidth);
-  const currentGap = $derived(viewport.width >= 768 ? gap : mobileGap);
+  const currentGap = $derived(
+    tier === "lg" ? gap : tier === "md" ? (tabletGap ?? gap) : mobileGap,
+  );
   // The first cell's left offset — only meaningful in fixed-cell mode.
   const currentPadStart = $derived(
     !fixedMode
       ? "0px"
-      : viewport.width >= 768
+      : tier === "lg"
         ? (trackPadStart ?? "0px")
-        : (mobileTrackPadStart ?? "0px"),
+        : tier === "md"
+          ? (tabletTrackPadStart ?? trackPadStart ?? "0px")
+          : tier === "xs"
+            ? (xsTrackPadStart ?? mobileTrackPadStart ?? "0px")
+            : (mobileTrackPadStart ?? "0px"),
   );
 
   const responsiveCardsPerView = $derived.by(() => {

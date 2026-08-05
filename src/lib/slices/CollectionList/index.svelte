@@ -255,15 +255,21 @@
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="overflow-x-clip pt-0 pb-9 lg:pb-16"
+    class="overflow-x-clip pt-0 pb-12 md:pb-16 lg:pb-20"
   >
     {#if slice.primary.heading}
-      <!-- Eyebrow aligns to the same 80px content-left as live and as the
-           headshot row below it (lg:pl-20). Live reveals the eyebrow and the
-           headshot row as separate elements, not the section as one block. -->
-      <div class="px-5 lg:pl-20" use:animateIn={LIVE_REVEAL}>
+      <!-- Live wraps the eyebrow in `.content-width` — max-width 1400 centred,
+           padding-x 1.5rem against the stepped root (60px >=992, 48px 768-991)
+           stepping to 8% at <=767 and 5% at <=479. Measured content-left:
+           80 @1440 / 48 @834 / 19.5 @390. Live reveals the eyebrow and the
+           headshot row as separate elements, not the section as one block.
+           `mb-4` is 1rem on the same root: 40 / 32 / 24. -->
+      <div
+        class="mx-auto w-full max-w-[1400px] px-[5%] xs:px-[8%] md:px-12 lg:px-[60px]"
+        use:animateIn={LIVE_REVEAL}
+      >
         <p
-          class="font-slab mb-6 text-[12px] leading-[15px] font-medium tracking-[1.28px] text-[#365b6d] uppercase lg:mb-10 lg:text-[24px] lg:leading-[30px]"
+          class="font-slab mb-6 text-[12px] leading-[15px] font-medium tracking-[1.28px] text-[#365b6d] uppercase md:mb-8 lg:mb-10 lg:text-[24px] lg:leading-[30px]"
         >
           {asText(slice.primary.heading)}
         </p>
@@ -272,21 +278,29 @@
     {#if docs.length > 0}
       <!-- Full-bleed row that reaches both screen edges, with live's white
            edge-fade gradients (.heads-opacity-gradient) so the headshots
-           dissolve at the margins. Desktop matches live's fixed-cell carousel
-           exactly — 200px headshots, 40px gaps, the first flush with the
-           content column (80px) while the arrows/fades pin to the true screen
-           edges, the 6th clipped at the right edge. Mobile keeps the px-8
-           fit-to-container 3-across layout unchanged. -->
+           dissolve at the margins. Live's cell is `.heads{width:5rem;
+           height:5rem;margin-right:1rem}` with NO media override — so against
+           its stepped root (40/32/24) the real ladder is three sizes, not two:
+             >=992   200px cell, 40px gap, first flush at the 80px content-left
+             768-991 160px cell, 32px gap, 48px content-left
+             <=767   120px cell, 24px gap, 8%/5% content-left
+           The 768-991 band was rendering the 200px DESKTOP cell (measured 200
+           vs live's 160 at 834), which is what pinned this region at 45.9%.
+           The arrows/fades still pin to the true screen edges. -->
       <div class="relative w-full" use:animateIn={LIVE_REVEAL}>
         <Slider
           itemCount={docs.length}
           label={asText(slice.primary.heading) || "Meet the team"}
           itemWidth="200px"
+          tabletItemWidth="160px"
           mobileItemWidth="120px"
           gap="40px"
+          tabletGap="32px"
           mobileGap="24px"
           trackPadStart="80px"
-          mobileTrackPadStart="20px"
+          tabletTrackPadStart="48px"
+          xsTrackPadStart="8%"
+          mobileTrackPadStart="5%"
           showDots={false}
           arrowLayout="sides"
           edgeFadeColor="#fff"
