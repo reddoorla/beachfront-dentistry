@@ -140,7 +140,7 @@
   {/if}
 {/snippet}
 
-{#snippet personCard(doc: CollectionDoc, tabletTiers = true)}
+{#snippet personCard(doc: CollectionDoc, variant: "grid" | "slider" = "grid")}
   <!-- live `.team-list-item` (320×480 / 303×384, bg #E7F5FA, radius 20): a
        circular headshot straddling the top edge, then name (cyan slab) / role
        (teal sans caps) / bio teaser (teal, 3-line clamp) / READ MORE, with the
@@ -154,44 +154,39 @@
   {@const bio =
     doc.data.teaser?.trim() || asText((doc.data.body ?? []) as RichTextField)}
   {@const beach = doc.data.gallery?.[0]}
-  <!-- Live's `.team-list-item` is sized in REM against its stepped root
-       (24/32/40), so the real ladder is four tiers, not two:
-         <=479    303x384   mt 96   mx 24 mb 24   (already matched)
-         480-767  384x576   mt 192  mx 24 mb 24   (root 24)   <- was missing
-         768-991  512x768   mt 256  mx 32 mb 32   (root 32)   <- was missing
-         >=992    320x480   mt 160  mx 20 mb 20   (root 40, desktop 3-up)
-       The 480-991 half was rendering the MOBILE card, which packed two cards
-       per row where live shows one and left the our-team grid 61% short.
-       NB the yfv Meet-Our-Team SLIDER uses a different ladder (240x432 at
-       <=479) — do not copy one onto the other; that regressed /our-team @390
-       from 5.2% to 33% before it was caught. -->
+  <!-- Live's `.team-list-item.m-2` is sized in REM against its stepped root:
+         <=479    100% x 16rem  mt 4rem            -> 303x384  mt 96
+         480-767  16rem x 24rem m 8rem 1rem 1rem   -> 384x576  mt 192 mx 24
+         768-991  16rem x 24rem m 8rem 1rem 1rem   -> 512x768  mt 256 mx 32
+         >=992    8rem x 12rem  mt 4rem            -> 320x480  mt 160 mx 20
+       The yfv Meet-Our-Team SLIDER is the same element plus `.display-inline`,
+       which overrides the width at the two EXTREMES only — 8.5rem (340) at
+       >=992 and 10rem x 18rem (240x432) at <=479. Between 480 and 991 the two
+       are byte-identical, so gating the tablet tiers off for the slider (the
+       earlier reading of this) left it rendering the phone card across the
+       whole band and cost the section 846px of height at 834. -->
   <article
-    class="team-list-item relative mx-6 mt-24 mb-6 h-96 w-[303px] rounded-[20px] bg-[#e7f5fa] lg:mx-5 lg:mt-40 lg:mb-5 lg:h-[480px] lg:w-80 {tabletTiers
-      ? 'xs:mt-[192px] xs:h-[576px] xs:w-[384px] md:mx-8 md:mt-[256px] md:mb-8 md:h-[768px] md:w-[512px]'
-      : ''}"
+    class="team-list-item relative mx-6 mt-24 mb-6 rounded-[20px] bg-[#e7f5fa] xs:mt-[192px] xs:h-[576px] xs:w-[384px] md:mx-8 md:mt-[256px] md:mb-8 md:h-[768px] md:w-[512px] lg:mx-5 lg:mt-40 lg:mb-5 lg:h-[480px] {variant ===
+    'slider'
+      ? 'h-[432px] w-[240px] lg:mx-[43.33px] lg:w-[340px]'
+      : 'h-96 w-[303px] lg:w-80'}"
   >
     {#if doc.data.media?.url}
       <!-- headshot centred ON the card's top edge (half above, half in). -->
       <a
         {href}
         aria-label={name}
-        class="focus-visible:ring-primary-deep absolute top-0 left-1/2 z-10 block w-[120px] -translate-x-1/2 -translate-y-1/2 rounded-full lg:w-[200px] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden {tabletTiers
-          ? 'xs:w-[240px] md:w-[320px]'
-          : ''}"
+        class="focus-visible:ring-primary-deep absolute top-0 left-1/2 z-10 block w-[120px] -translate-x-1/2 -translate-y-1/2 rounded-full xs:w-[240px] md:w-[320px] lg:w-[200px] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
       >
         <PrismicImage
           field={doc.data.media as unknown as ImageField}
           fallbackAlt=""
-          class="size-[120px] max-w-none rounded-full object-cover object-top lg:size-[200px] {tabletTiers
-            ? 'xs:size-[240px] md:size-[320px]'
-            : ''}"
+          class="size-[120px] max-w-none rounded-full object-cover object-top xs:size-[240px] md:size-[320px] lg:size-[200px]"
         />
       </a>
     {/if}
     <div
-      class="flex h-full flex-col px-[18px] pt-[70px] text-center lg:px-6 lg:pt-[110px] {tabletTiers
-        ? 'xs:pt-[130px] md:pt-[170px]'
-        : ''}"
+      class="flex h-full flex-col px-[18px] pt-[70px] text-center xs:pt-[130px] md:pt-[170px] lg:px-6 lg:pt-[110px]"
     >
       <a {href} class="focus-visible:outline-hidden">
         <h5
@@ -345,12 +340,15 @@
     id="meet-our-team"
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="fv-meet-our-team-section mb-12 w-full scroll-mt-24 overflow-x-clip"
+    class="fv-meet-our-team-section mb-[72px] w-full scroll-mt-24 overflow-x-clip md:mb-24 lg:mb-[120px]"
   >
     {#if slice.primary.heading}
-      <div class="mb-4 px-5 lg:mb-10 lg:px-20" use:animateIn={LIVE_REVEAL}>
+      <div
+        class="mb-3 px-[5%] xs:px-[8%] md:mb-4 md:px-12 lg:mb-5 lg:px-[60px]"
+        use:animateIn={LIVE_REVEAL}
+      >
         <h2
-          class="font-slab text-[48px] leading-[1.05] font-thin lg:text-[120px] lg:leading-[1]"
+          class="font-slab text-[56px] leading-[70px] font-thin md:text-[120px] md:leading-[140px]"
         >
           {asText(slice.primary.heading)}
         </h2>
@@ -359,16 +357,20 @@
     {#if docs.length > 0}
       <!-- extra top room so the cards' straddling headshots + live's larger
            heading-to-card gap clear (live: ~320px from heading top to card). -->
-      <div class="relative w-full lg:pt-10" use:animateIn={LIVE_REVEAL}>
+      <div class="relative w-full" use:animateIn={LIVE_REVEAL}>
         <Slider
           itemCount={docs.length}
           label={asText(slice.primary.heading) || "Meet our team"}
-          itemWidth="360px"
-          mobileItemWidth="351px"
+          itemWidth="426.67px"
+          tabletItemWidth="640px"
+          mobileItemWidth="288px"
           gap="0px"
+          tabletGap="0px"
           mobileGap="0px"
-          trackPadStart="60px"
-          mobileTrackPadStart="0px"
+          trackPadStart="80px"
+          tabletTrackPadStart="129px"
+          xsTrackPadStart="8%"
+          mobileTrackPadStart="51px"
           showDots={false}
           arrowLayout="sides"
           arrowClass="max-lg:hidden hover:opacity-70 focus-visible:ring-primary-deep focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
@@ -382,7 +384,7 @@
           {#snippet children({ index }: { index: number })}
             {@const doc = docs[index]}
             {#if doc}
-              {@render personCard(doc, false)}
+              {@render personCard(doc, "slider")}
             {/if}
           {/snippet}
         </Slider>
