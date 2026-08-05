@@ -66,10 +66,18 @@
   </a>
 {/snippet}
 
+<!-- Live's space above this section is `.content-width.mt-6` INSIDE it —
+     `1.5rem` against the stepped root = 60 / 48 / 36 — and `.fv-toc-section`
+     has no padding, so that margin COLLAPSES OUT and the section's border box
+     starts 60/48/36 below the hero. We had it as padding-top, which keeps the
+     box against the hero. That matters beyond spacing: this section IS the
+     "We want you to feel comfortable" anchor, and page-diff cuts on the box, so
+     padding-vs-margin was the whole of `top`'s residual height delta
+     (10.0 / 7.6 / 8.8%) once the hero ladder was right. -->
 <section
   data-slice-type={slice.slice_type}
   data-slice-variation={slice.variation}
-  class="fv-toc-section w-full pt-9 lg:pt-[60px]"
+  class="fv-toc-section mt-9 w-full md:mt-12 lg:mt-[60px]"
 >
   <div class="mx-auto max-w-[1400px] px-5 lg:px-20">
     <div class="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-8">

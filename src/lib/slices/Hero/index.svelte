@@ -201,23 +201,61 @@
     wash={slice.primary.hero_wash ?? true}
   />
 {:else if slice.variation === "groupphoto"}
-  <!-- your-first-visit `.hero.group-photo`: a short photo band (min(60vh,60vw)
-       desktop / 95vw ≤479) with a lower-LEFT thin slab headline in white and
-       NO CTA. Same wave + legibility scrim as the other openers. -->
+  <!-- your-first-visit `.hero.group-photo`: a short photo band with a
+       lower-LEFT thin slab headline in white and NO CTA. Same wave + scrim as
+       the other openers.
+
+       It has its OWN four-step height ladder, distinct from the `.hero.redondo`
+       one every other subpage uses — and the top step is viewport-HEIGHT based
+       while the rest are width-based:
+         ≥992  `height:60vh; max-height:60vw`   (beachfront.css:5322-5328) = 540
+         ≤991  `height:70vw; max-height:100vw`  (:7984-7990)               = 583.8
+         ≤767  `height:80vh; max-height:70vw`   (:8451-8454)
+         ≤479  `height:95vw; max-height:none`   (:9082-9086)               = 370.5
+       We had only two steps (95vw / min(60vh,60vw)), so the whole 480–991 band
+       rendered the DESKTOP value: 500.4 at 834 against live's 583.8. -->
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="relative isolate flex min-h-[95vw] w-full items-end overflow-hidden bg-dark text-white xs:min-h-[min(60vh,60vw)]"
+    class="relative isolate flex min-h-[95vw] w-full items-end overflow-hidden bg-dark text-white xs:min-h-[min(80vh,70vw)] md:min-h-[70vw] lg:min-h-[min(60vh,60vw)]"
   >
     {#if slice.primary.background_image?.url}
+      <!-- The ≤991 rule (beachfront.css:7984-7990) does not just change the
+           height — it reframes the photo: `background-position: 0%` (left, with
+           vertical defaulting to 50%) and `background-size: 115%` (115% of the
+           container WIDTH, height auto), where ≥992 is plain
+           `background-size: cover; background-position: 50%` (:5322-5328).
+           Translated for an <img>: 115% wide, height auto, left-anchored and
+           vertically centred — object-fit no longer applies once width and
+           height are set explicitly.
+
+           But this is a THREE-step ladder, not two: at ≤479 `:9082-9086` puts
+           `background-size` back to `cover` while `background-position: 0%`
+           from `:7985` still cascades. So the 115% framing is the 480–991 band
+           ONLY. Applying it at ≤479 as well took `top` @390 from 42.2% to
+           47.6% (matching/out-spec14-yfv). -->
       <HeroBackgroundImage
         image={slice.primary.background_image}
         preload={true}
+        class="absolute inset-0 h-full w-full object-cover object-left lg:object-center xs:max-lg:inset-auto xs:max-lg:top-1/2 xs:max-lg:left-0 xs:max-lg:h-auto xs:max-lg:w-[115%] xs:max-lg:max-w-none xs:max-lg:-translate-y-1/2"
       />
     {/if}
+    <!-- Live's group-photo hero carries the SAME two cyan overlay divs as the
+         other openers, not a neutral scrim: `.hero-top-gradient`
+         `linear-gradient(#129ecccc, #0000)` over the top 25%
+         (beachfront.css:6477-6482) and `.hero-bot-gradient`
+         `linear-gradient(#0000, #129ecccc)` over the bottom 50% (:6484-6490),
+         both at alpha 0.8 — the `.dark` variant is contact-us only. We were
+         painting a single `rgba(0,0,0,0.32)` dark wash, which is the bulk of
+         this region's 44.7-72.5% mismatch (dE 17.8-29.8). -->
+    <div
+      class="pointer-events-none absolute inset-x-0 top-0 h-1/4"
+      style="background:linear-gradient(rgba(18,158,204,0.8), rgba(0,0,0,0))"
+      aria-hidden="true"
+    ></div>
     <div
       class="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
-      style="background:linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.32))"
+      style="background:linear-gradient(rgba(0,0,0,0), rgba(18,158,204,0.8))"
       aria-hidden="true"
     ></div>
     <div
