@@ -50,7 +50,7 @@
 </script>
 
 <div
-  class="text-[#365b6d] [&>*+*]:mt-[10px] {subheadingClass} [&_strong]:font-bold [&_p]:text-[12px] [&_p]:leading-[18px] [&_p]:font-light [&_ol]:list-decimal [&_ol]:pl-10 [&_ul]:list-disc [&_ul]:pl-10 [&_li]:text-[12px] [&_li]:leading-[21.6px] [&_li]:font-light md:[&_p]:text-[16px] md:[&_p]:leading-[24px] md:[&_li]:text-[16px] md:[&_li]:leading-[28.8px] lg:[&_p]:text-[20px] lg:[&_p]:leading-[30px] lg:[&_li]:text-[20px] lg:[&_li]:leading-[36px] {cls}"
+  class="text-[#365b6d] [&>*+*]:mt-[10px] {subheadingClass} [&_strong]:font-bold [&_p]:text-[12px] [&_p]:leading-[18px] [&_p]:font-light [&_ol]:list-decimal [&_ol]:pl-10 [&_ul]:list-disc [&_ul]:pl-10 [&_li]:text-[12px] [&_li]:leading-[21.6px] [&_li]:font-light md:[&_p]:text-[16px] md:[&_p]:leading-[24px] md:[&_li]:text-[20px] md:[&_li]:leading-[36px] lg:[&_p]:text-[20px] lg:[&_p]:leading-[30px] lg:[&_li]:text-[20px] lg:[&_li]:leading-[36px] {cls}"
   use:animateIn={LIVE_REVEAL}
 >
   <RichTextBody {field} components={{ paragraph: DetailParagraph }} />

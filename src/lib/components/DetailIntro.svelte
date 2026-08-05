@@ -41,7 +41,7 @@
       <!-- Live's lede is `.text-body-large`: 20px/30 mobile → 30px/45 desktop
            (right-indented ~⅓ at desktop), 30px below the title box. -->
       <p
-        class="font-slab mt-[30px] text-[20px] leading-[30px] font-light lg:ml-[33%] lg:max-w-[845px] lg:text-[30px] lg:leading-[45px]"
+        class="font-slab mt-[30px] text-[20px] leading-[30px] font-light md:ml-[33%] md:w-[66%] lg:max-w-[845px] lg:text-[30px] lg:leading-[45px]"
         style="color:#129ecc"
         use:animateIn={LIVE_REVEAL}
       >
