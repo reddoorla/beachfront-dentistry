@@ -64,6 +64,15 @@
   const isFullbleedTour = $derived(
     slice.variation === "photos" && slice.primary.layout === "fullbleed",
   );
+  // `.home-ssb-section { margin-bottom: 1.5rem }` (beachfront.css:7140-7142)
+  // exists ONLY on the home page — the class name says so and index.html is the
+  // only document carrying it. your-first-visit renders the same
+  // `.review-slider-holder` with NO section wrapper, so applying this margin to
+  // the shared slice put 36–60px onto yfv that live does not have (it cost yfv
+  // a region: 5/24 → 4/24 in matching/out-spec3-yfv). Home opts in explicitly.
+  const isHomeSsb = $derived(
+    slice.variation === "review" && slice.primary.layout === "home",
+  );
   const trackItems = $derived(isTrackVariation ? (slice.items ?? []) : []);
   const trackCount = $derived(trackItems.length);
 
@@ -169,20 +178,39 @@
     <ContentBand
       sliceType={slice.slice_type}
       variation={slice.variation}
-      contentClass="max-w-7xl px-[19.5px] pt-0 pb-9 text-center lg:px-6 lg:py-16"
+      contentClass="max-w-7xl px-[19.5px] text-center lg:px-6"
+      sectionClass={isHomeSsb ? "mb-9 md:mb-12 lg:mb-[60px]" : ""}
       reveal
     >
       {#if hasHeading && slice.primary.heading}
-        <!-- Live's mobile review heading is 24px/38 (its 3-C sibling is 28/38 —
-             Webflow uses per-block sizes, so this one is scoped here rather than
-             moved into the global h2 scale). Desktop is unchanged at 60px. -->
+        <!-- Live is `h1.text-align-center.mb-8`. `.mb-8` is a SPACING utility
+             that also carries `font-size: 1rem` inside the ≤991 block
+             (beachfront.css:7972-7974), so against the stepped root this
+             heading has THREE sizes — 60 @1440 / 32 across the whole 769–991
+             band / 24 @≤768 — not two. Line-height: h1 :2111 = 72, ≤991 :7855
+             = 38. Bottom margin is `.mb-8` = 2rem (:3998-4000) → 80/64/48; we
+             had a flat 48.
+
+             Live's h1 also carries `margin-top: 20px` (:2106) — do NOT
+             reproduce it. `.content-width` has no padding, so that margin
+             COLLAPSES out of `.home-ssb-section` and lands in the gap above,
+             which is why live's anchor sits at the section's border-box top.
+             Adding it as a wrapper margin here double-counts: it pushed our
+             anchor 20px down, and since page-diff cuts AT the anchor that
+             shortened the region from the top (Serving @834 Δh 15.5% → 18.5%,
+             gate run matching/out-spec1-home). -->
         <div
-          class="h-primary mb-12 [&_h2]:text-[24px] [&_h2]:leading-[38px] md:[&_h2]:text-[32px] md:[&_h2]:leading-[38px] lg:[&_h2]:text-[3.75rem] lg:[&_h2]:leading-[1.2]"
+          class="h-primary mb-12 md:mb-16 lg:mb-20 [&_h2]:text-[24px] [&_h2]:leading-[38px] md:[&_h2]:text-[32px] md:[&_h2]:leading-[38px] lg:[&_h2]:text-[3.75rem] lg:[&_h2]:leading-[1.2]"
         >
           <PrismicRichText field={slice.primary.heading} />
         </div>
       {/if}
-      <div class="relative mx-auto max-w-3xl">
+      <!-- `.review-slider-holder` margin-top is TABLET-ONLY: `4rem` lives in
+           the ≤991 block (beachfront.css:8338) and is reset to 0 at ≤767
+           (:8940), with no rule at all ≥992 — so the ladder is 0 / 128 / 0,
+           not a two-tier step. Against the 32px root at 834 that is 128px, and
+           it collapses with the heading's 64px bottom margin to 128 total. -->
+      <div class="relative mx-auto max-w-3xl md:mt-32 lg:mt-0">
         {#if slice.variation === "review"}
           <!-- Live's real hand-drawn "what they say" mark + curved arrow (PNG/SVG
                assets, NOT redrawn) pointing to the review card. -->
@@ -226,7 +254,7 @@
                      side); the holder reserves only ~12px below the card (the
                      badge's 20px overhang draws over the pulled-up expander
                      row, same as live's .shift-up overlap). -->
-                <div class="px-[7px] pb-[20px] lg:px-4 lg:pb-6">
+                <div class="px-[7px] pb-3 md:pb-16 lg:px-4 lg:pb-20">
                   <!-- Pale-blue quote card (live .big-review, 600×400 at
                        desktop, #e7f5fa, 25px radius, padding 24px tablet /
                        30px desktop): the quote sits on TOP with the reviewer
@@ -239,7 +267,7 @@
                        + the fixed tablet/desktop heights open the gap live
                        shows between the two blocks. -->
                   <figure
-                    class="relative mx-auto flex max-w-[600px] flex-col justify-between rounded-[25px] bg-[#e7f5fa] p-[18px] text-left md:h-[320px] md:max-w-[480px] md:p-6 lg:h-[400px] lg:max-w-[600px] lg:p-[30px]"
+                    class="relative mx-auto mb-12 flex max-w-[600px] flex-col justify-between rounded-[25px] bg-[#e7f5fa] p-[18px] text-left xs:mb-0 md:h-[320px] md:max-w-[480px] md:p-6 lg:h-[400px] lg:max-w-[600px] lg:p-[30px]"
                   >
                     {#if isFilled.link(item.review_url)}
                       {@const badge = badgeFor(asLink(item.review_url))}

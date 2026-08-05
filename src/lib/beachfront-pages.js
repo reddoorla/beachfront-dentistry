@@ -269,7 +269,11 @@ export function assemblies(img) {
       {
         slice_type: "carousel",
         variation: "review",
+        // Selects live's `.home-ssb-section` wrapper margin (1.5rem → 60/48/36),
+        // which exists on the home document only — your-first-visit renders the
+        // same review slider with no section wrapper.
         primary: {
+          layout: "home",
           heading: [head(2, "Serving the South Bay for over 40 years")],
         },
         items: reviewItems(img),
