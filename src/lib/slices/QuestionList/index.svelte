@@ -174,6 +174,7 @@
               doc={card.doc}
               number={card.number}
               teaser={teaserText(card.doc)}
+              variant="teaser"
             />
           </li>
         {/each}
