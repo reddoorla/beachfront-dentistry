@@ -7,6 +7,7 @@
   import ContentBand from "$lib/components/ContentBand.svelte";
   import ReadReviewsExpander from "$lib/components/ReadReviewsExpander.svelte";
   import Slider from "$lib/components/Slider.svelte";
+  import { ADDRESS, HOURS, PHONE } from "$lib/site";
   import { PrismicImage, PrismicRichText } from "@prismicio/svelte";
   import {
     isFilled,
@@ -159,9 +160,15 @@
         {#snippet children({ index }: { index: number })}
           {@const item = trackItems[index]}
           {#if item && isFilled.image(item.image)}
-            <div
-              class="h-[293px] w-full overflow-hidden md:h-[560px] lg:h-[900px]"
-            >
+            <!-- Live's slider holder carries TWO competing 0,1,0 rules:
+                 `.h-half-screen-width` `height:50vw` (beachfront.css:3173-3175)
+                 and `.su-h-screen-to-tablet` `height:100vh` (:5656-5658). The
+                 second is later in the sheet, so **100vh wins at ≥768** — the
+                 box is viewport-HEIGHT dependent, not width dependent. At ≤767
+                 `:8554-8556` sets `height:auto` and the image's own height
+                 governs. We had fixed pixels (293/560/900), which is why this
+                 section was 718px short at 834. -->
+            <div class="w-full overflow-hidden md:h-screen">
               <PrismicImage
                 field={item.image}
                 fallbackAlt=""
@@ -172,6 +179,66 @@
         {/snippet}
       </Slider>
     {/if}
+    <!-- Live's §8 "Hours + contact pair" — `.content-width >
+         div.w-layout-hflex.mt-6.su-flex-v-mobile` holding two
+         `.footer-contact-block.mb-4.mr-8`. It lives INSIDE
+         `<section id="tour" class="fv-virtual-tour-section">`, i.e. this same
+         section, which is why it belongs here and not in its own slice.
+
+         It was missing entirely, and it is 184px of the Office Tour region at
+         834. The copy is not new hardcoding — it is the same PHONE/ADDRESS/HOURS
+         data `site.ts` already feeds the footer and /contact-us.
+
+         Ladders (all against the stepped root):
+           `.mt-6`  margin-top 1.5rem  = 60 / 48 / 36   beachfront.css:3917-3919
+           `.mb-4`  margin-bottom 1rem = 40 / 32 / 24   :3985-3988
+           `.mr-8`  margin-right 2rem  = 80 / 64 / 48   :3961-3963
+           `.su-flex-v-mobile` is `display:flex` (:5291-5293) going
+           `flex-direction:column` at ≤767 ONLY (:8434-8436) — still a ROW at 834.
+           `.footer-contact-header` 20/40 · 16/32 · 16/32 (:6337-6343, :8130-8132)
+           `div.text-body`          20/30 · 16/24 · 16/24 (:7751-7754, :8359-8361)
+         The header text carries a non-breaking space in the source
+         ("OFFICE&nbsp;HOURS"). -->
+    <div
+      class="mx-auto mt-9 flex max-w-[1400px] flex-col px-[19.5px] text-[#333] md:mt-12 md:flex-row md:px-12 lg:mt-[60px] lg:px-[60px]"
+    >
+      <div class="mb-6 md:mr-16 md:mb-8 lg:mr-20 lg:mb-10">
+        <div
+          class="font-slab text-[16px] leading-[32px] font-medium text-[#365b6d] lg:text-[20px] lg:leading-[40px]"
+        >
+          OFFICE&nbsp;HOURS
+        </div>
+        {#each HOURS as [days, time] (days)}
+          <div
+            class="text-[16px] leading-[24px] lg:text-[20px] lg:leading-[30px]"
+          >
+            {days} / {time}
+          </div>
+        {/each}
+      </div>
+      <div class="mb-6 md:mb-8 lg:mb-10">
+        <div
+          class="font-slab text-[16px] leading-[32px] font-medium text-[#365b6d] lg:text-[20px] lg:leading-[40px]"
+        >
+          CONTACT
+        </div>
+        <div
+          class="text-[16px] leading-[24px] lg:text-[20px] lg:leading-[30px]"
+        >
+          {PHONE.display}
+        </div>
+        <div
+          class="text-[16px] leading-[24px] lg:text-[20px] lg:leading-[30px]"
+        >
+          {ADDRESS.line1}
+        </div>
+        <div
+          class="text-[16px] leading-[24px] lg:text-[20px] lg:leading-[30px]"
+        >
+          {ADDRESS.line2}
+        </div>
+      </div>
+    </div>
   </section>
 {:else if isTrackVariation}
   {#if trackCount > 0}
