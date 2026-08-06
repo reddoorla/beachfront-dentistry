@@ -356,7 +356,7 @@
              on mobile. Hover is live's .button hover (opacity + cyan fill). -->
         <PrismicLink
           field={slice.primary.cta_link}
-          class="focus-visible:ring-offset-dark inline-flex h-[41px] shrink-0 items-center rounded-lg border border-white px-[14px] font-slab text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:absolute lg:right-20 lg:bottom-40 lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+          class="focus-visible:ring-offset-dark inline-flex shrink-0 items-center rounded-lg border border-white font-slab px-[1em] py-[1.3em] leading-[0] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:absolute lg:right-20 lg:bottom-40 lg:text-[25px]"
         >
           {slice.primary.cta_label}
         </PrismicLink>

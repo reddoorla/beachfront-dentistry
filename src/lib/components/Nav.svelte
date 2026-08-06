@@ -385,7 +385,7 @@
         <a
           href="#appointment"
           onclick={closeMenu}
-          class="font-slab mt-5 mb-2.5 inline-flex h-[41px] items-center rounded-lg border border-white px-[14px] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+          class="font-slab px-[1em] py-[1.3em] leading-[0] mt-5 mb-2.5 inline-flex items-center rounded-lg border border-white text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 lg:text-[25px]"
           >Book an Appointment</a
         >
         <a
@@ -393,7 +393,7 @@
           target="_blank"
           rel="noopener"
           onclick={closeMenu}
-          class="font-slab mt-5 mb-2.5 inline-flex h-[41px] items-center rounded-lg border border-white px-[14px] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+          class="font-slab px-[1em] py-[1.3em] leading-[0] mt-5 mb-2.5 inline-flex items-center rounded-lg border border-white text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 lg:text-[25px]"
           >Make a Payment</a
         >
       </nav>

@@ -200,7 +200,7 @@
           <div use:animateIn={REVEAL}>
             <PrismicLink
               field={primary.cta_link}
-              class="focus-visible:ring-offset-primary font-slab inline-flex h-[41px] items-center rounded-lg border border-white px-[15px] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden md:h-[54px] md:px-5 md:text-[20px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+              class="focus-visible:ring-offset-primary font-slab px-[1em] py-[1.3em] leading-[0] inline-flex items-center rounded-lg border border-white text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:text-[25px]"
             >
               {primary.cta_label}
             </PrismicLink>
