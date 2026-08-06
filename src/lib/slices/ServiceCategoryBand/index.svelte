@@ -110,12 +110,27 @@
          row and below the last. Mobile: 408px cards in 504px tracks → 96px
          between + 48px top/bottom. gap-y covers the inter-row gutter; the
          edge slack is the container's own py (py-12=48 / lg:py-20=80). -->
+    <!-- `.service-grid.my-8` also carries `margin: 2rem 0` = 48 / 64 / 80, and
+         that margin sits OUTSIDE the grid box: live's section ends flush with
+         the grid and the 80px below it is the collapsed `my-8`. We had only the
+         40/32/24 the next section's own leading margin collapses out, so the
+         last region was one `1rem` short at every viewport (-40/-32/-24).
+         Bottom only — a matching `mt` would move the section's border box,
+         which is where the "Cosmetic Dentistry" region is cut. -->
     <div
-      class="grid grid-cols-[384px] justify-start justify-items-center gap-y-[96px] py-12 md:grid-cols-[512px] md:justify-center md:gap-y-[128px] md:py-16 lg:grid-cols-[640px_640px] lg:gap-y-[160px] lg:py-20"
+      class="mb-12 grid grid-cols-[384px] justify-start justify-items-center gap-y-[96px] py-12 md:mb-16 md:grid-cols-[512px] md:justify-center md:gap-y-[128px] md:py-16 lg:mb-20 lg:grid-cols-[640px_640px] lg:gap-y-[160px] lg:py-20"
     >
       {#each categories as cat (asText((cat.heading ?? []) as RichTextField))}
         {@const [col1, col2] = splitCols(docsFor(cat.category_tag))}
-        <article
+        <!-- A DIV, as live's `.service-block` is. page-diff's anchor finder
+             only looks at h1-h6,p,a,li,span,div,section,button — `article` is
+             not in that list, so with an <article> here the "General Dentistry"
+             cut skipped our card box entirely and landed on the inner 60%
+             block 80px lower, comparing misaligned windows (region 680 against
+             live's 800). The card is a navigational panel of links under an h3,
+             not standalone syndicated content, so the element is div either
+             way; this just stops the two pages being cut in different places. -->
+        <div
           class="service-block relative h-[408px] w-full max-w-[312px] rounded-[25px] bg-[#e7f5fa] xs:max-w-[360px] md:h-[608px] md:max-w-[480px] lg:h-[640px] lg:max-w-[600px]"
           use:animateIn={LIVE_REVEAL}
         >
@@ -182,7 +197,7 @@
               {/each}
             </div>
           </div>
-        </article>
+        </div>
       {/each}
     </div>
   </section>
