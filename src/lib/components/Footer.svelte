@@ -147,7 +147,7 @@
       {:else if item.href}
         <a
           {...linkAttrs(item.href)}
-          class="hover:text-primary-deep transition-colors {linkRhythm
+          class="transition-opacity hover:opacity-60 {linkRhythm
             ? 'my-[6px] first:mt-0 md:my-[8px] lg:my-[10px]'
             : ''}">{item.text}</a
         >

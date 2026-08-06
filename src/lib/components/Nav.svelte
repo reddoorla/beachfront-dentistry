@@ -335,7 +335,7 @@
           <a
             href="/"
             onclick={closeMenu}
-            class="transition-opacity hover:opacity-50"
+            class="transition-opacity hover:opacity-60"
           >
             <img src={logo.url} alt="Home" class={logoClass} />
           </a>
@@ -344,7 +344,7 @@
         {/if}
         <button
           type="button"
-          class="flex min-h-11 min-w-11 items-center justify-center transition-opacity hover:opacity-50"
+          class="flex min-h-11 min-w-11 items-center justify-center transition-opacity hover:opacity-60"
           onclick={closeMenu}
           aria-label="Close menu"
         >
@@ -363,7 +363,7 @@
         <a
           href="/"
           onclick={closeMenu}
-          class="font-slab mt-5 mb-2.5 text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-50 lg:text-[40px] lg:leading-[50px]"
+          class="font-slab mt-5 mb-2.5 text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
           >Home Page</a
         >
         {#each items as item, i (i)}
@@ -371,7 +371,7 @@
             <a
               href={item.href}
               onclick={closeMenu}
-              class="font-slab mt-5 mb-2.5 text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-50 lg:text-[40px] lg:leading-[50px]"
+              class="font-slab mt-5 mb-2.5 text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
               >{item.label}</a
             >
           {/if}
@@ -379,7 +379,7 @@
         <a
           href={PHONE.href}
           onclick={closeMenu}
-          class="font-slab mt-5 mb-2.5 text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-50 lg:text-[40px] lg:leading-[50px]"
+          class="font-slab mt-5 mb-2.5 text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
           >{PHONE.display}</a
         >
         <a
