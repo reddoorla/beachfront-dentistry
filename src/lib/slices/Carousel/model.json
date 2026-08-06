@@ -47,6 +47,13 @@
         "heading": {
           "type": "StructuredText",
           "config": { "label": "heading", "single": "heading2" }
+        },
+        "layout": {
+          "type": "Select",
+          "config": {
+            "label": "layout (\"home\" = .home-ssb-section wrapper + Read Reviews expander)",
+            "options": ["home"]
+          }
         }
       },
       "items": {
