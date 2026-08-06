@@ -151,7 +151,7 @@
            `.content-width` wrapper exactly as it does here. We had `mb-6` on
            the wrapper: 24px, +14 per viewport. -->
       <h1
-        class="font-slab mb-[10px] text-[25px] leading-[38px] font-light lg:text-[60px] lg:leading-[72px]"
+        class="font-slab h-primary mb-[10px] text-[28px] leading-[38px] font-light lg:text-[60px] lg:leading-[72px]"
       >
         {trackLabel}
       </h1>

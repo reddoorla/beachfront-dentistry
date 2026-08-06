@@ -98,7 +98,7 @@
     {#if isFilled.richText(slice.primary.intro)}
       <!-- `.we-offer-section`: centered cyan slab intro, capped ~620px. -->
       <div
-        class="mx-auto my-8 max-w-[620px] text-center font-slab text-[20px] leading-[30px] font-light text-[#129ecc] lg:mb-10 lg:text-[30px] lg:leading-[45px] [&_p]:text-[20px] [&_p]:lg:text-[30px]"
+        class="mx-auto my-8 max-w-[620px] text-center font-slab text-[20px] leading-[30px] font-light text-[#129ecc] lg:mb-10 lg:text-[30px] lg:leading-[45px] [&_p]:text-[20px] [&_p]:leading-[30px] [&_p]:lg:text-[30px] [&_p]:lg:leading-[45px]"
         use:animateIn={LIVE_REVEAL}
       >
         <PrismicRichText field={slice.primary.intro} />
@@ -147,7 +147,7 @@
           <div class="h-[60%] text-left">
             <div class="mx-[18px] mt-12 md:mx-6 md:mt-16 lg:mx-[30px] lg:mt-20">
               <div
-                class="mb-6 md:mb-8 lg:mb-10 [&_h3]:font-slab [&_h3]:text-[21px] [&_h3]:leading-[26px] [&_h3]:font-light [&_h3]:text-[#129ecc] lg:[&_h3]:text-[40px] lg:[&_h3]:leading-[50px]"
+                class="h-primary-lg mb-6 md:mb-8 lg:mb-10 [&_h3]:font-slab [&_h3]:text-[21px] [&_h3]:leading-[26px] [&_h3]:font-light lg:[&_h3]:text-[40px] lg:[&_h3]:leading-[50px]"
               >
                 <PrismicRichText field={(cat.heading ?? []) as RichTextField} />
               </div>

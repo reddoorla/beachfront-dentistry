@@ -372,7 +372,7 @@
         use:animateIn={LIVE_REVEAL}
       >
         <h2
-          class="font-slab text-[56px] leading-[70px] font-thin md:text-[120px] md:leading-[140px]"
+          class="font-slab h-primary text-[56px] leading-[70px] font-thin md:text-[120px] md:leading-[140px]"
         >
           {asText(slice.primary.heading)}
         </h2>
