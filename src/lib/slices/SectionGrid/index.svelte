@@ -210,7 +210,7 @@
       <ul class="flex flex-col gap-9 md:gap-12 lg:gap-[61px]">
         {#each items as item (item)}
           {@const label = asText(item.item_heading)}
-          <li use:animateIn={REVEAL}>
+          <li class="md:w-[30%] md:min-w-0" use:animateIn={REVEAL}>
             <PrismicLink
               field={item.item_link}
               class="group flex items-center gap-4 rounded-lg transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent focus-visible:outline-hidden lg:gap-5"
@@ -249,15 +249,16 @@
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
     data-section-layout="steps"
-    class="mx-auto max-w-[1400px] px-6 pt-24 pb-48 lg:px-[60px] lg:pt-[60px] lg:pb-[140px]"
+    class="mx-auto max-w-[1400px] px-[5%] pb-[84px] xs:px-[8%] md:px-12 md:pb-28 lg:px-[60px] lg:pb-[140px]"
   >
     <!-- Live animates the heading+photo block as ONE element, then each step
          and the CTA individually as they enter. -->
-    <div
-      class="grid grid-cols-1 items-center gap-10 md:grid-cols-[1.1fr_1fr]"
-      use:animateIn={REVEAL}
-    >
-      <div>
+    <div class="lg:flex" use:animateIn={REVEAL}>
+      <!-- `._w-half.p-4.su-w-full-tablet`: 50% (`beachfront.css:2867-2871`)
+           going 100% at <=991, padding `1rem` = 24/32/40. That padding is what
+           wraps live's 120px heading to THREE lines at 834 (a 674 column, not
+           738); without it ours wrapped to two and the block was 244px short. -->
+      <div class="w-full p-6 md:p-8 lg:w-1/2 lg:p-10">
         {#if isFilled.richText(primary.heading)}
           <!-- Live steps its display heading (not a smooth clamp): ~56px on
                mobile, then a flat 120px/140 across the whole tablet+desktop
@@ -271,7 +272,7 @@
                width in the landscape band; md+ the grid column already narrows
                it so reset there. -->
           <h2
-            class="h-primary font-slab text-center text-[clamp(3.5rem,0.5rem+8vw,7.5rem)] leading-[1.25] font-thin [text-wrap:normal] xs:mx-auto xs:max-w-[85%] xs:text-[120px] xs:leading-[1.167] md:max-w-none md:text-[120px] md:leading-[1.167] lg:leading-[1.167]"
+            class="h-primary font-slab mb-2.5 text-center text-[clamp(3.5rem,0.5rem+8vw,7.5rem)] leading-[1.25] font-thin [text-wrap:normal] xs:mx-auto xs:max-w-[85%] xs:text-[120px] xs:leading-[1.167] md:mb-4 md:max-w-none md:text-[120px] md:leading-[1.167] lg:mb-5 lg:leading-[1.167]"
           >
             {asText(primary.heading)}
           </h2>
@@ -282,14 +283,16 @@
                `main :where(p)` rule is 0-specificity (:where), so an arbitrary
                text-[] utility outranks it — no inline needed. -->
           <p
-            class="mt-4 text-center text-[20px] leading-[30px] font-light text-[#365b6d] lg:mt-10 lg:text-[30px] lg:leading-[45px]"
+            class="mt-6 mb-10 text-center text-[20px] leading-[30px] font-light text-[#365b6d] md:mt-8 lg:mt-10 lg:text-[30px] lg:leading-[45px]"
           >
             {primary.subtitle}
           </p>
         {/if}
       </div>
       {#if isFilled.image(primary.side_image)}
-        <div class="mx-auto w-full max-w-[560px]">
+        <div
+          class="mx-auto w-full px-6 pt-3 pb-6 md:w-1/2 md:px-8 md:pt-4 md:pb-8 lg:w-1/2 lg:px-10 lg:pt-5 lg:pb-10"
+        >
           <PrismicImage
             field={primary.side_image}
             fallbackAlt=""
@@ -299,7 +302,7 @@
       {/if}
     </div>
     <ol
-      class="mt-12 grid grid-cols-1 gap-10 text-center lg:grid-cols-3 lg:gap-16"
+      class="flex flex-col gap-10 text-center md:flex-row md:justify-between md:gap-0"
     >
       {#each items as item, i (item)}
         <li use:animateIn={REVEAL}>
@@ -310,7 +313,7 @@
                weight-100 on mobile, stepping up to 40px/50px weight-300 with
                a 20px top margin on desktop. -->
           <p
-            class="font-slab text-[12px] leading-[15px] font-normal tracking-[1.28px] text-[#365b6d] uppercase lg:text-[24px] lg:leading-[30px]"
+            class="font-slab my-2.5 text-[12px] leading-[15px] font-normal tracking-[1.28px] text-[#365b6d] uppercase lg:text-[24px] lg:leading-[30px]"
           >
             Step {pad2(i + 1)}
           </p>
@@ -319,7 +322,7 @@
                even lines, live fills it — the arbitrary [text-wrap:normal] form
                silently no-ops here, the builtin utility works (as in Hero). -->
           <h3
-            class="h-primary font-slab mt-2 text-[30px] leading-[40px] font-thin text-wrap xs:text-[21px] xs:leading-[26px] xs:font-light lg:mt-5 lg:text-[40px] lg:leading-[50px] lg:font-light"
+            class="h-primary font-slab mt-2.5 mb-5 text-[30px] leading-[40px] font-thin text-wrap xs:mt-5 xs:mb-2.5 xs:text-[21px] xs:leading-[26px] xs:font-light lg:text-[40px] lg:leading-[50px] lg:font-light"
           >
             {asText(item.item_heading)}
           </h3>
@@ -334,10 +337,10 @@
     {#if hasCta}
       <!-- Live: 80px from the steps row to the CTA; the button is
            `.button.text-color-primary-dark` (67px pill, live hover). -->
-      <div class="mt-12 text-center lg:mt-20" use:animateIn={REVEAL}>
+      <div class="mt-12 text-center md:mt-16 lg:mt-20" use:animateIn={REVEAL}>
         <PrismicLink
           field={primary.cta_link}
-          class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#365b6d] px-[14px] text-[14px] font-light text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:text-[20px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+          class="font-slab focus-visible:ring-primary-deep inline-flex items-center rounded-lg border border-[#365b6d] px-[1em] py-[1.3em] text-[14px] leading-[0] font-light text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:text-[20px] lg:text-[25px]"
         >
           {primary.cta_label}
         </PrismicLink>
