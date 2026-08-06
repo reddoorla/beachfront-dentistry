@@ -136,7 +136,10 @@
     <div
       class="mx-auto flex max-w-[1400px] items-center justify-between px-5 py-5 md:px-12 md:py-6 lg:h-[120px] lg:px-[60px] lg:py-0"
     >
-      <a href="/" class="flex items-center text-lg font-bold">
+      <a
+        href="/"
+        class="flex items-center text-lg font-bold transition-opacity hover:opacity-60"
+      >
         {#if logo}
           <img
             src={logo.url}

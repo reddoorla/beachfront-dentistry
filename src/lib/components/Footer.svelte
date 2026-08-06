@@ -141,7 +141,7 @@
              block: live puts 60px there at mobile and the grid supplies 24. -->
         <a
           {...linkAttrs(item.href)}
-          class="font-slab px-[1em] py-[1.3em] leading-[0] focus-visible:ring-primary-deep mt-[42px] mb-[36px] inline-flex w-fit items-center rounded-lg border border-[#365b6d] text-[14px] font-light whitespace-nowrap text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:mt-[33px] md:mb-0 md:text-[20px] lg:mt-[27px] lg:text-[25px]"
+          class="font-slab px-[1em] py-[1.3em] leading-[0] focus-visible:ring-primary-deep mt-[42px] mb-[36px] inline-flex w-fit items-center rounded-lg border border-[#365b6d] text-[14px] font-light whitespace-nowrap text-[#365b6d] transition-[background-color] hover:bg-[#129ecc4a] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:mt-[33px] md:mb-0 md:text-[20px] lg:mt-[27px] lg:text-[25px]"
           >{item.text}</a
         >
       {:else if item.href}
