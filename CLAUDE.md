@@ -80,6 +80,20 @@ premature stopping.
   merges, and `GET /documents` 403s at the gateway with the write token.
   Consequence: exactly ONE script may write a given document type. See
   `docs/migration.md`.
+- **The Migration API loses content SILENTLY — HTTP 200, no warning.** Two
+  mechanisms, both of which shipped defects:
+  (1) it drops every field the slice model registered in Prismic does not
+  declare, so a fixture field is only real once its `model.json` has it AND
+  the model has been pushed (`node scripts/push-slice-models.mjs`);
+  (2) it strips `\n` out of StructuredText, so a hard line break cannot live
+  in seeded content — it belongs in the component, or must be modelled as
+  real structure. Prismic's serializer renders `\n` as `<br>` faithfully; it
+  just never receives one.
+  **Neither is visible to any gate**, because every gate runs against
+  `/dev/match/*`, which reads `src/lib/beachfront-pages.js` directly and never
+  round-trips through Prismic. `src/lib/beachfront-pages.test.ts` is the
+  mechanical check for both; after any seed, diff a real route against its
+  `/dev/match/*` twin rather than assuming they agree.
 - Commit per logical round and push `feat/detail-templates-and-footer`. **No PR**
   unless asked.
 - Seed scripts read `BEACHFRONT_DENTISTRY_WRITE_TOKEN` from
