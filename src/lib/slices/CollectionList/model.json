@@ -98,6 +98,12 @@
           "config": {
             "label": "layout (empty = grid; \"slider\" = your-first-visit horizontal card slider)"
           }
+        },
+        "order_uids": {
+          "type": "Text",
+          "config": {
+            "label": "order_uids (comma-separated uids; overrides person.order for THIS list)"
+          }
         }
       },
       "items": {}

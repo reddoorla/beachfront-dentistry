@@ -51,6 +51,10 @@
       // `people`: "grid" (default, /our-team) or "slider" (your-first-visit's
       // Meet-Our-Team horizontal person-card slider under a big cyan heading).
       layout?: string | null;
+      // Comma-separated uids. A Collection List's sort is a per-LIST setting,
+      // so a page whose order differs from `person.order` carries its own here
+      // rather than fighting the shared field.
+      order_uids?: string | null;
     };
     items: unknown[];
   };
@@ -75,12 +79,25 @@
     typeof doc.data.order === "number"
       ? doc.data.order
       : Number.POSITIVE_INFINITY;
+  // An explicit per-list uid sequence wins over `person.order`; uids it does
+  // not name keep their `order` rank behind the named ones, so a newly added
+  // person still renders rather than vanishing from the list.
+  const listOrder = $derived(
+    ((slice.primary as { order_uids?: string | null }).order_uids ?? "")
+      .split(",")
+      .map((u) => u.trim())
+      .filter(Boolean),
+  );
+  const rankOf = (doc: CollectionDoc) => {
+    const i = listOrder.indexOf(doc.uid);
+    return i === -1 ? listOrder.length + teamRank(doc) : i;
+  };
   let docs = $derived.by(() => {
     const all =
       context?.collections?.[slice.primary.collection_type ?? ""] ?? [];
     const ordered =
       slice.variation === "team" || slice.variation === "people"
-        ? [...all].sort((a, b) => teamRank(a) - teamRank(b))
+        ? [...all].sort((a, b) => rankOf(a) - rankOf(b))
         : all;
     return ordered.slice(0, slice.primary.max_items ?? 24);
   });
@@ -165,11 +182,18 @@
        are byte-identical, so gating the tablet tiers off for the slider (the
        earlier reading of this) left it rendering the phone card across the
        whole band and cost the section 846px of height at 834. -->
+  <!-- The top margin (live `.m-2` `beachfront.css:6538-6540` / ≤991 `:8183-8187`
+       / ≤479 `:9271-9276`) stays on the CARD in the grid, where the card is the
+       outermost per-card box exactly as it is on live. In the SLIDER it moves
+       to the Slider's cell (`slideClass` below), because there the cell is the
+       outermost per-card box and live has no cell — leaving the margin here put
+       our card box 160/256/96px below the box the reference draws, which is
+       where page-diff cuts the "Dr. Robert Quan" region. -->
   <article
-    class="team-list-item relative mx-6 mt-24 mb-6 rounded-[20px] bg-[#e7f5fa] xs:mt-[192px] xs:h-[576px] xs:w-[384px] md:mx-8 md:mt-[256px] md:mb-8 md:h-[768px] md:w-[512px] lg:mx-5 lg:mt-40 lg:mb-5 lg:h-[480px] {variant ===
+    class="team-list-item relative mx-6 mb-6 rounded-[20px] bg-[#e7f5fa] xs:h-[576px] xs:w-[384px] md:mx-8 md:mb-8 md:h-[768px] md:w-[512px] lg:mx-5 lg:mb-5 lg:h-[480px] {variant ===
     'slider'
       ? 'h-[432px] w-[240px] lg:mx-[43.33px] lg:w-[340px]'
-      : 'h-96 w-[303px] lg:w-80'}"
+      : 'mt-24 h-96 w-[303px] xs:mt-[192px] md:mt-[256px] lg:mt-40 lg:w-80'}"
   >
     {#if doc.data.media?.url}
       <!-- headshot centred ON the card's top edge (half above, half in). -->
@@ -367,6 +391,7 @@
           gap="0px"
           tabletGap="0px"
           mobileGap="0px"
+          slideClass="mt-24 xs:mt-[192px] md:mt-[256px] lg:mt-40"
           trackPadStart="80px"
           tabletTrackPadStart="129px"
           xsTrackPadStart="8%"

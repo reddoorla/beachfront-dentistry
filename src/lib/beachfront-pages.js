@@ -428,6 +428,14 @@ export function assemblies(img) {
           collection_type: "person",
           max_items: 100,
           layout: "slider",
+          // Live sorts THIS list differently from /our-team's grid — a
+          // Collection List's sort is a per-list setting, and the two disagree:
+          // /our-team is Quan, Hopkins, Stacey, Enrique, Alicia, Linda,
+          // Michelle, Christina, Sabrina, Raquel, Lanette (= `person.order`),
+          // while the your-first-visit slider is the two doctors by surname
+          // then everyone alphabetically. Both orders read off live 2026-08-05.
+          order_uids:
+            "dr-michael-hopkins,dr-robert-quan,alicia,christina,enrique,lanette,linda,michelle,raquel,sabrina,stacey",
         },
         items: [],
       },

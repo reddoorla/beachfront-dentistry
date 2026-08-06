@@ -78,6 +78,13 @@
     transitionClass?: string;
     navigationClass?: string;
     arrowClass?: string;
+    /** Classes for each slide CELL. A reference whose track has no per-slide
+     * wrapper (live's `.team-slider` holds `.team-list-item` cards directly)
+     * puts the card's own margin on the card; our generic cell sits between
+     * them, so the cell — not the card — is the outermost per-card box, and
+     * any margin that belongs to that box has to live here or the two DOMs
+     * describe different rectangles. See CollectionList's team slider. */
+    slideClass?: string;
     pauseClass?: string;
     /** Style the dot visuals (the button hit areas stay 24px+). */
     dotClass?: string;
@@ -113,6 +120,7 @@
     transitionClass = "duration-500 ease-in-out",
     navigationClass = "",
     arrowClass = "",
+    slideClass = "",
     pauseClass = "",
     dotClass = "bg-gray-500 group-hover:bg-gray-600 group-active:bg-gray-700",
     activeDotClass = "bg-gray-800",
@@ -345,7 +353,7 @@
       >
         {#each Array(itemCount) as _, i (i)}
           <div
-            class="w-full shrink-0"
+            class="w-full shrink-0 {slideClass}"
             role="group"
             aria-roledescription="slide"
             aria-label="{i + 1} of {itemCount}"
