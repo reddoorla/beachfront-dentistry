@@ -28,8 +28,14 @@
   // `.button.text-color-primary` `:9185-9187`). Resolved heights 38 / 41 / 54 /
   // 67 — we shipped 66 at every width. Expressing the padding in `em` the way
   // live does makes the box follow the ladder instead of restating it.
-  const sizing =
-    "px-[1em] py-[1.3em] leading-[0] text-[14px] xs:text-[15px] md:text-[20px] lg:text-[25px]";
+  // The dark colourway is the one exception to the `em` box:
+  // `.button.text-color-primary-dark` (`beachfront.css:6047-6051`) replaces the
+  // `1.3em` with a hard 32px at >=992, so it is 66 tall where the cyan variant
+  // is 67. The <=991 rule (`:8049-8052`) puts `1.3em` back and they converge.
+  const sizing = $derived(
+    "px-[1em] py-[1.3em] leading-[0] text-[14px] xs:text-[15px] md:text-[20px] lg:text-[25px]" +
+      (variant === "teal" ? " lg:py-8" : ""),
+  );
   const href = $derived(
     typeof link === "string" ? link : (asLink(link ?? undefined) ?? undefined),
   );
