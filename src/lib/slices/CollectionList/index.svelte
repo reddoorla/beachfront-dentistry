@@ -236,7 +236,7 @@
       {#if href}
         <a
           {href}
-          class="focus-visible:ring-primary-deep mt-[6px] inline-flex items-center gap-[12px] text-[14px] leading-[22px] font-light tracking-[1.03px] text-[#365b6d] uppercase md:mt-[8px] md:gap-[16px] lg:mt-[10px] lg:gap-[20px] lg:text-[16px] lg:leading-[24px] focus-visible:ring-2 focus-visible:outline-hidden"
+          class="focus-visible:ring-primary-deep mt-[6px] inline-flex items-center gap-[12px] text-[14.4px] leading-[21.6px] font-light tracking-[1.03px] text-[#365b6d] uppercase md:mt-[8px] md:gap-[16px] md:text-[19.2px] md:leading-[28.8px] lg:mt-[10px] lg:gap-[20px] lg:text-[16px] lg:leading-[24px] focus-visible:ring-2 focus-visible:outline-hidden"
         >
           Read More
           <!-- live's real Arrow.svg (white-filled), tinted to cyan via mask so

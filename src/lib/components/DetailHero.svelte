@@ -71,10 +71,12 @@
           {label}
         </h1>
       {:else}
-        <!-- Live's breadcrumb h3: 20px/26 @390 → 21px/26 across 768–991 →
-             40px/50 @1440, museo-slab LIGHT (w300 — NOT the name's thin). -->
+        <!-- Live's breadcrumb h3: 21px/26 from 390 right through 991, then
+             40px/50 at >=992, museo-slab LIGHT (w300 — NOT the name's thin).
+             The "20px @390" this comment used to claim was wrong: the style
+             census reads 21px there on live. -->
         <p
-          class="font-slab text-[20px] leading-[26px] font-light md:text-[21px] md:leading-[26px] lg:text-[40px] lg:leading-[50px]"
+          class="font-slab text-[21px] leading-[26px] font-light lg:text-[40px] lg:leading-[50px]"
           style="color:#fff"
         >
           {label}
