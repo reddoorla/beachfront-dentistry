@@ -138,13 +138,13 @@
     >
       <a
         href="/"
-        class="flex items-center text-lg font-bold transition-opacity hover:opacity-60"
+        class="group flex items-center text-lg font-bold transition-opacity hover:opacity-60"
       >
         {#if logo}
           <img
             src={logo.url}
             alt="Home"
-            class={logoClass}
+            class="{logoClass} transition-opacity group-hover:opacity-50"
             style={logo.maxWidth ? `max-width:${logo.maxWidth}` : undefined}
           />
         {:else}
@@ -263,7 +263,7 @@
             <button
               bind:this={openButtonEl}
               type="button"
-              class="flex min-h-11 min-w-11 items-center justify-end {hamburgerOnly
+              class="flex min-h-11 min-w-11 items-center justify-end transition-opacity hover:opacity-40 {hamburgerOnly
                 ? ''
                 : 'lg:hidden'}"
               onclick={openMenu}
@@ -340,7 +340,11 @@
             onclick={closeMenu}
             class="transition-opacity hover:opacity-60"
           >
-            <img src={logo.url} alt="Home" class={logoClass} />
+            <img
+              src={logo.url}
+              alt="Home"
+              class="{logoClass} transition-opacity group-hover:opacity-50"
+            />
           </a>
         {:else}
           <span></span>

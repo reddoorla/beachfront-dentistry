@@ -1962,3 +1962,24 @@ gradient on top rather than a wash over an image. No blanket change made.
   sweep), 5 (small-text sweep), 6 (paired walkthrough) and 7 (ledger
   reconciliation) still open; item 2 (interaction inventory complete) is blocked
   on the per-page Phase 5 work and on the UNRECONCILED chrome counts.
+
+- [PHASE 6, item 3 — hover sweep] `matching/hover-sweep.mjs`. Parses every
+  `:hover`/`:focus` rule block out of `beachfront.css` (42 of them), strips the
+  pseudo-class, finds the element on LIVE and measures the rest→hover delta for
+  the properties the rule actually declares. Rules whose selector matches
+  nothing on a page are ABSENT (they belong to another page); rules whose
+  element is present but changes nothing measurable are INERT. Across home + yfv:
+  18 ACTIVE, 13 INERT, 53 ABSENT-instances.
+  DEFECT FOUND: three DISTINCT hover values that I had flattened to one, two of
+  which COMPOUND on live — `a:hover` .6, `.header-logo:hover` .5
+  (`beachfront.css:6096`, census row 16) on the IMG, and
+  `.header-hamburger:hover` .4 (`:6114`, row 17). Live's logo therefore settles
+  at .6 x .5 = .3 effective and its hamburger at .4, where ours sat at a flat
+  .6 for all three. The Phase 5 chrome round did NOT catch this: its state
+  checks the LINK, and the link's .6 was right — the compounding img was
+  invisible to it. That is the value of sweeping the stylesheet rather than
+  only the states you thought to write.
+  Still to verify against ours (all page-specific, i.e. Phase 5 per-page work):
+  `.expanding-box` 0→1, `.qa-block` 0→1, `.plus-minus-block` .51,
+  `.head-link` .6, `.primary-on-hover` 0→1, `.big-review-arrow-*` 0→1,
+  `.visit-list-item`, `.services-links` .6, `.social-logo-big-review` .6.
