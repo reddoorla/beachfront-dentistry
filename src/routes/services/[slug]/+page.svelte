@@ -63,7 +63,12 @@
 <section
   class="mx-auto mt-14 max-w-[1440px] px-5 md:px-12 lg:mt-[100px] lg:px-20"
 >
-  <DetailBody field={split.rest} class="max-w-[1024px]" />
+  <!-- Live's body column is `._w-80pc.su-w-full-mobile.w-richtext`: 80%
+       (`beachfront.css:3561-3563`) dropping to 100% at <=767 (`:8426-8428`).
+       `max-w-[1024px]` happens to equal 80% at 1440 and nowhere else — at 834
+       it left the column 738 wide against live's 590, so the same copy wrapped
+       to 306px less height. -->
+  <DetailBody field={split.rest} class="w-full md:w-4/5" />
 
   {#if youtubeUrl}
     <div class="mt-8 aspect-video w-full max-w-[1020px]">
@@ -79,19 +84,26 @@
   {/if}
 </section>
 
-<!-- Live's back-link: a centered teal `.button` outline pill, ~80px above and
-     below (mb clears straight into the CTA band). -->
-<!-- Top gap is a MARGIN (page-diff cuts at this box's top, so padding-top would
-     count into the pill region instead of the body above it); the pill→CTA gap
-     stays padding, inside the pill region. -->
+<!-- Live wraps the back-link in
+     `div.content-width.flex-align-center.flex-justify-center.my-8`, and `.my-8`
+     is `margin: 2rem 0` (`beachfront.css:3839-3842`) = 48 / 64 / 80. BOTH halves
+     are margin: page-diff cuts at this box's top, so the top gap belongs to the
+     body region above it and the bottom gap collapses into the CTA band. We had
+     invented 86/130 above and 108/80 below. -->
 <div
-  class="mx-auto flex max-w-[1440px] justify-center px-5 md:px-12 mt-[86px] pb-[108px] lg:px-20 lg:mt-[130px] lg:pb-[80px]"
+  class="mx-auto my-12 flex max-w-[1440px] justify-center px-5 md:my-16 md:px-12 lg:my-20 lg:px-20"
 >
+  <!-- This back-link is `.button.text-color-primary-dark` with no `.mt-2`, so
+       the <=767 rule `beachfront.css:8636-8638` gives it `margin-bottom:60px`
+       — inside the flex holder, so live's holder is 98 tall at 390 against our
+       38. (The team back-link carries `.mt-2`, which overrides that margin to
+       0 and adds 12/16 above instead; the questions one has neither. Measured
+       on all three templates 2026-08-05.) -->
   <OutlineButton
     label="Back to All Services"
     link="/services"
     variant="teal"
-    size="detail"
+    class="mb-[60px] md:mb-0"
   />
 </div>
 

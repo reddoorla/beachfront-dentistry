@@ -91,7 +91,6 @@
     label="Back to Team"
     link="/our-team"
     variant="cyan"
-    size="detail"
     class="mt-[22px] lg:mt-[30px]"
   />
 </section>

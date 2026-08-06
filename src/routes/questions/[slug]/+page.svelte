@@ -55,7 +55,6 @@
     label="Have another question?"
     link="/ask-the-doctor"
     variant="cyan"
-    size="detail"
   />
 </div>
 

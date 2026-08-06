@@ -10,15 +10,11 @@
     label,
     link,
     variant = "teal",
-    size = "default",
     class: cls = "",
   }: {
     label: string;
     link?: LinkField | string | null;
     variant?: "teal" | "cyan";
-    // "detail" matches live's smaller detail-page back-links (38px/14px on
-    // mobile) while keeping the full 66px/25px pill at desktop.
-    size?: "default" | "detail";
     class?: string;
   } = $props();
 
@@ -32,11 +28,8 @@
   // `.button.text-color-primary` `:9185-9187`). Resolved heights 38 / 41 / 54 /
   // 67 — we shipped 66 at every width. Expressing the padding in `em` the way
   // live does makes the box follow the ladder instead of restating it.
-  const sizing = $derived(
-    size === "detail"
-      ? "h-[38px] px-[14px] text-[14px] lg:h-[66px] lg:px-6 lg:text-[25px]"
-      : "px-[1em] py-[1.3em] leading-[0] text-[14px] xs:text-[15px] md:text-[20px] lg:text-[25px]",
-  );
+  const sizing =
+    "px-[1em] py-[1.3em] leading-[0] text-[14px] xs:text-[15px] md:text-[20px] lg:text-[25px]";
   const href = $derived(
     typeof link === "string" ? link : (asLink(link ?? undefined) ?? undefined),
   );
