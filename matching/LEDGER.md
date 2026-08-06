@@ -2060,3 +2060,27 @@ gradient on top rather than a wash over an image. No blanket change made.
   wrapper sets `[&_p]:font-light` (300) and preflight's `strong{font-weight:
   bolder}` resolves RELATIVE to it. Fixed with an absolute `[&_strong]:font-bold`
   — the same direct-hit rule the sizes beside it already follow.
+
+- [PHASE 6, item 6 — home @1440 pairs 05 and 07 reviewed]
+  VERDICT 07 (footer): our three columns were 416 wide with a 16px gap
+  (`lg:gap-4`), pushing the middle column to x=512 and the map to x=943. Live's
+  are 422 and BUTT together: col1 x=80, col2 x=502, col3 x=924 [probed].
+  FIXED — ours now 422 @ 502. Residual, unfixed: the boilerplate row is
+  distributed ~4% wider than live's (live x=100/397/643/861, ours
+  100/410/670/901), and the map's own Google UI differs (declared floor).
+  VERDICT 05 — a finding the pixel gate STRUCTURALLY CANNOT SEE, and the reason
+  is worth recording. Live's `.ask-the-doctor-handwriting-anchor.click-through`
+  is `position:sticky; top:0; height:10rem` [probed: sticky, top 0, h 400, z 6],
+  so the hand mark and Dr Quan's headshot TRAVEL with the scroll. Ours is
+  `absolute; top:100px; height:0` with a JS glide (`floatAlong`), and at the
+  same scroll offset the pair sits ~150px below live's. A full-page screenshot
+  renders a sticky element at its UN-STUCK position, so page-diff scores the two
+  as identical; only scrolling to the section and shooting the viewport shows it.
+  ATTEMPTED AND REVERTED: `md:sticky md:h-[320px] lg:h-[400px]` reproduces live's
+  computed box exactly (sticky, top 0, h 400) but adds 400px of FLOW height to
+  our list container, and home fell 24/27 -> 23/27 with "Our dental team in
+  Redondo" at Δh 48.5%. So live absorbs that 400px somewhere our DOM does not —
+  the next attempt needs live's list container measured with the anchor IN it,
+  not the anchor alone. Reverted; home back to 24/27.
+  Also unfixed in 05: our `.qa-text` wraps ~100px narrower than live's (live's
+  card-07 title breaks after "for my", ours after "routine").

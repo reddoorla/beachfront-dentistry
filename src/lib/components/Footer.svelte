@@ -235,7 +235,7 @@
              exactly 66%. `mt` is live's heading→first-row gap (10/32/40) — it
              collapses with the heading's own mb-[10px], so mobile needs none. -->
         <div
-          class="grid gap-6 xs:w-[66%] md:mt-[32px] md:w-full md:grid-cols-3 md:gap-x-0 md:gap-y-8 lg:mt-[40px] lg:grid-cols-[1fr_1fr_26rem] lg:gap-4"
+          class="grid gap-6 xs:w-[66%] md:mt-[32px] md:w-full md:grid-cols-3 md:gap-x-0 md:gap-y-8 lg:mt-[40px] lg:grid-cols-[422px_422px_1fr] lg:gap-0"
         >
           {#if columns[0]}
             {@render colBlock(columns[0], true)}
