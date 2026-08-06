@@ -66,7 +66,7 @@
   bug) and (b) made the whole page a full band taller (9→8 bands, pageH
   9423→8522). Fix: container `max-w-[480px] lg:max-w-[600px]`; card closed
   `h-[288px] md:h-[320px] lg:h-[400px]`, expanded `h-[384px] sm:h-[288px]
-  md:h-[320px] lg:h-[400px]` (sm: approximates live's 480px landscape bp).
+md:h-[320px] lg:h-[400px]` (sm: approximates live's 480px landscape bp).
   Re-probe: cand==ref at 390/650/834/1440 (351×288 / 480×288 / 480×320 /
   600×400). Expanded verified clean (Read More inside card, no clip) at 390+650.
 - [480–767 mobile-landscape band — CALIBRATED 2026-08-03] Only 390 and the
@@ -98,7 +98,7 @@
   8975/9542) gives width 75(≤479)/55(480–767)/130(768–991)/130(≥992) and right
   20%(≤767)/25%(≥768). Added `xs:w-[55px]` (keeps top-72/right-20% — a 55px tooth
   at that top re-straddles the crest) and `md:w-[130px] md:right-[25%]
-  md:top-[8px]` (the big tablet tooth shifted up to straddle). Verified vs ref
+md:top-[8px]` (the big tablet tooth shifted up to straddle). Verified vs ref
   at 650 (55px on crest) and 834 (130px mostly above seam, crest through lower
   third). base(390)+lg(1440) untouched. Vertical set by visual straddle (the
   wave-crest Y at the tooth's x isn't cleanly probe-able); within tolerance.
@@ -151,15 +151,15 @@
   (≤767): Ready 650 Δh 12.5%→2.2%, 480 Δh 9.4%→5.7%, 834 mm 35%→16.5%.
   RESIDUAL (deferred — finer layout, operator to scope a dedicated round):
   • Finally@480/650/834 still Δh 15–20% — cards match, so it's SECTION spacing
-    (heading→cards + section padding), tangled with Webflow's root-rem scaling
-    (live card margins are 0.5rem = scales 12/17/22px per breakpoint).
+  (heading→cards + section padding), tangled with Webflow's root-rem scaling
+  (live card margins are 0.5rem = scales 12/17/22px per breakpoint).
   • MEET-YOUR-TEAM 16/22/30% + Our-dental-team 13/13/36% — the team slider's
-    landscape/tablet card layout (untuned; 834 is the ACK'd tablet residual).
+  landscape/tablet card layout (untuned; 834 is the ACK'd tablet residual).
   • Your-Path 17/17/24% — steps section landscape spacing/type.
   • Ready mm 16–22% @480/650 — the CTA stack (pill + Read-Reviews gap-[65px])
-    position within the now-correct band height; + photo floor.
+  position within the now-correct band height; + photo floor.
   • top@480 11.5% (just over) — hero h1 sits ~73px higher than live (live sets
-    the pill BESIDE the h1 at landscape; ours stacks it below → h1 rides up).
+  the pill BESIDE the h1 at landscape; ours stacks it below → h1 rides up).
   • Serving@834 Δh 15.5% — pre-existing ACK'd tablet residual.
   All FIXED items re-verified: svelte-check 0/0, prettier clean, unit 20/20 on
   touched components (SectionGrid/Hero/CtaBand/QuestionList).
@@ -173,30 +173,30 @@
   Finally 15/10, top@480 11.5 — all MODERATE (was 44–70%). REMAINING DIAGNOSES
   (fonts already match live per report.json css dumps — these are LAYOUT/wrap):
   • Your-Path — h2 heading wraps WIDER than live (cand 602 vs live 498 @650, 5
-    vs 4 lines): live's `.content-width` uses %-side-padding (8%/5%, :8627+) not
-    our fixed px-6, so live's content is narrower → different line breaks. A
-    landscape max-width/%-padding on the steps heading would align it. Step
-    title + subtitle FONTS already match (steps-font-m 21/300, 20/300, 120/100).
+  vs 4 lines): live's `.content-width` uses %-side-padding (8%/5%, :8627+) not
+  our fixed px-6, so live's content is narrower → different line breaks. A
+  landscape max-width/%-padding on the steps heading would align it. Step
+  title + subtitle FONTS already match (steps-font-m 21/300, 20/300, 120/100).
   • Ready mm 20–22% — band height now correct (70vw), residual is the CTA stack
-    (pill + Read-Reviews, gap-[65px]) vertical position on the white-fade + the
-    photo floor.
+  (pill + Read-Reviews, gap-[65px]) vertical position on the white-fade + the
+  photo floor.
   • MEET-YOUR-TEAM — the masked-avatar team slider (CollectionList) landscape row
-    layout; "Our dental team in Redondo" is a COMPOSITE region (services band +
-    ask-the-doctor + QA), not one section — mm spread across it.
+  layout; "Our dental team in Redondo" is a COMPOSITE region (services band +
+  ask-the-doctor + QA), not one section — mm spread across it.
   • top@480 11.5% — hero h1 rides ~73px high: live sets the pill BESIDE the h1 at
-    landscape, ours stacks it below (flex-col). Marginal (1.5% over).
+  landscape, ours stacks it below (flex-col). Marginal (1.5% over).
 - [480–767 LAYOUT PASS — ROUND 3, commits 4701cad/48c7ec0/d2d1424, gate out-band7]
   Worked the tail. FIXED (all verified by settled probe before commit):
   • Your-Path HEADING — capped to live's width at xs (xs:max-w-[85%] mx-auto,
-    reset at md where the 2-col grid narrows it): cand 367px/5-line @480 (=live
-    355/5), 512/4 @650 (=live 498/4). Your-Path 17→16 @480, 17→13 @650 (Δh→1–2%).
+  reset at md where the 2-col grid narrows it): cand 367px/5-line @480 (=live
+  355/5), 512/4 @650 (=live 498/4). Your-Path 17→16 @480, 17→13 @650 (Δh→1–2%).
   • Your-Path STEP TITLES — h3 inherited the global h1–h6 `text-wrap: balance`
-    (app.css:401) → "Receive a No-Pressure Plan" split to 2 even lines; live fills.
-    Added builtin `text-wrap` (the arbitrary [text-wrap:normal] no-ops; builtin
-    works, as in Hero h1). Re-probe: all 3 titles 1 line = live.
+  (app.css:401) → "Receive a No-Pressure Plan" split to 2 even lines; live fills.
+  Added builtin `text-wrap` (the arbitrary [text-wrap:normal] no-ops; builtin
+  works, as in Hero h1). Re-probe: all 3 titles 1 line = live.
   • Ready HEADING — same balance→fill fix ([&_h2]:text-wrap on the display-xl
-    div, both CtaBand instances): cand now 2 lines @480/650 (=live), 3 @1440
-    (=live, text-wrap:wrap h=504) — no desktop regression.
+  div, both CtaBand instances): cand now 2 lines @480/650 (=live), 3 @1440
+  (=live, text-wrap:wrap h=504) — no desktop regression.
   KEY FINDING — the Ready-heading fill was CORRECT but did NOT move the region mm
   (Ready 480 held 22.5% across band4/5/6): the "Ready" anchor region is a huge
   COMPOSITE (heading + fiji band + the WHOLE footer + the Google MAP = the
@@ -207,23 +207,23 @@
   embed ledger below) — the fidelity work inside them is done.
   STILL OPEN (finer, deferred to a focused follow-up):
   • MEET-YOUR-TEAM 16/22 — masked-avatar team slider (CollectionList) landscape
-    row layout + eyebrow; avatars are photo-floor so headroom is limited.
+  row layout + eyebrow; avatars are photo-floor so headroom is limited.
   • top@480 11.5% (1.5% over) — hero h1 rides high (pill stacks below vs live's
-    beside); low value, flex-row change risks squish at 480 — left alone.
+  beside); low value, flex-row change risks squish at 480 — left alone.
   • Finally 15/10 (Δh 3) — sizes+gaps match; residual is finer sub-block spacing.
   • 834 tablet band — the pre-ACK'd residuals (Finally/team/Your-Path card heights).
   Net: the band went from catastrophic (mm 44–70%, Δh 64%) to mostly 10–16% with
   many regions passing; hero + card sizes + Ready band + Finally/Your-Path spacing
-  + heading fills all live-matched and committed. svelte-check 0/0, prettier
-  clean, unit 20/20 on touched components across all commits.
-  CONFIRMED by out-band7 (all 6 commits): IDENTICAL to out-band6 to the decimal
-  (Your-Path 16.0/13.0, Ready 22.5/21.0) even though the step-title fill landed
-  (probe-verified 1-line=live) — same signature as the Ready-heading fill. So the
-  remaining region mm is FLOOR/COMPOSITE-bound (masked photos, the wave+SERVICES
-  band, the footer map, composite anchors), NOT unfixed layout: element-level
-  typography/geometry now matches live where measured. Path to gate-green is
-  declaring the floors (a --mask on the map/composite regions — OPERATOR call per
-  the escalation rule), not more layout work. Stopping the layout pass here.
+  - heading fills all live-matched and committed. svelte-check 0/0, prettier
+    clean, unit 20/20 on touched components across all commits.
+    CONFIRMED by out-band7 (all 6 commits): IDENTICAL to out-band6 to the decimal
+    (Your-Path 16.0/13.0, Ready 22.5/21.0) even though the step-title fill landed
+    (probe-verified 1-line=live) — same signature as the Ready-heading fill. So the
+    remaining region mm is FLOOR/COMPOSITE-bound (masked photos, the wave+SERVICES
+    band, the footer map, composite anchors), NOT unfixed layout: element-level
+    typography/geometry now matches live where measured. Path to gate-green is
+    declaring the floors (a --mask on the map/composite regions — OPERATOR call per
+    the escalation rule), not more layout work. Stopping the layout pass here.
 - [note — Serving@1440 Δh 5.4%] just over the 5%/24px height-delta floor (mm
   4.9% PASSES); was 3.2% in out-all4. Single-run, boundary-rect noise band per
   the skill (±2px) — re-measure with two settled reads before treating as real.
@@ -352,14 +352,16 @@ CONTRADICTION RESOLVED (re-probed live source 2026-08-04): the exam section IS a
 2-col numbered TIMELINE (`.fv-exam-section` → h3 "First Exam" + intro left, image
 DSC_7704 top-right 768×539, steps in `.exam-step` = `.circle-time-holder`("01"+"10
 min" stacked badge) + `.exam-content-holder`(title h5 + para); step 00 Registration
-+ 2 buttons in the LEFT col; steps 01-06 stacked RIGHT under the image). The
-current assembly's "15 min — X" CONTENT is correct; only the LAYOUT was a plain
-rich_text list. REMAINING-SPECS.md line 21 ("no timed labels, prose") was an
-earlier MIS-PROBE — disregard it. Authoritative 1440 geo now in probe-yfv-exact.mjs.
+
+- 2 buttons in the LEFT col; steps 01-06 stacked RIGHT under the image). The
+  current assembly's "15 min — X" CONTENT is correct; only the LAYOUT was a plain
+  rich_text list. REMAINING-SPECS.md line 21 ("no timed labels, prose") was an
+  earlier MIS-PROBE — disregard it. Authoritative 1440 geo now in probe-yfv-exact.mjs.
 
 ## your-first-visit — 4 SECTIONS BUILT (2026-08-04 session 2, branch feat/first-visit-sections)
 
 All four deferred sections BUILT + wired + gated (out-yfv-r1..r3):
+
 - fv-toc: new `first_visit_toc` slice (intro + 3 numbered nav cards + 2 outline buttons).
 - Office Tour: Carousel `photos` fullbleed mode (100vw slides, 8 dots, edge arrows).
 - Meet Our Team: CollectionList `people` + `layout:"slider"` (personCard in horizontal slider).
@@ -380,22 +382,24 @@ COPY FLAG for Tucker: TOC button reproduces live's typo "Book an Apointment" ver
 (text-diff fidelity) — candidate to correct. Registration/Download-Forms links are "#"
 placeholders (need the real patient-forms URL).
 Models: first_visit_toc + exam_timeline INSERTED, carousel/collection_list layout fields
-+ page slice-zone UPDATED (Custom Types API). Seeded into the Migration release (yfv 7
-slices). IMPORTANT git lesson: this build started on STALE main (2 behind) — rebased onto
-origin/main; a stray `layout` field landed on `team` and my push briefly wiped `people`
-from Prismic — restored. ALWAYS `git fetch`+rebase before a build session.
+
+- page slice-zone UPDATED (Custom Types API). Seeded into the Migration release (yfv 7
+  slices). IMPORTANT git lesson: this build started on STALE main (2 behind) — rebased onto
+  origin/main; a stray `layout` field landed on `team` and my push briefly wiped `people`
+  from Prismic — restored. ALWAYS `git fetch`+rebase before a build session.
 
 ## your-first-visit — PARTIAL (hero done; 4 bespoke sections deferred w/ measurements)
 
 Live census (measured 2026-08-04, 6 sections + footer):
+
 1. `.hero.group-photo` (h=540 @1440 = min(60vh,60vw) / 371 @390 = 95vw). H1
    "We are excited to meet and care for you." museo-slab wt300 60px/72 (25/38
    @390) WHITE, LOWER-LEFT (x=80 / x=20), NO CTA. ✅ BUILT (hero/groupphoto
    variation) — hero height 540 matches live exactly (paired anchor: Office Tour
    lands at my 540). Residual = redondo/group-photo bg is CSP-blocked in dev.
 2. `.fv-toc-section` (h=497, y=600) — ⏳ DEFERRED (candidate MISSING it entirely;
-   this is the ~617px height gap that shifts every downstream region). 2-COLUMN:
-   LEFT = intro p (museo-sans 30px, w~490) "We want you to feel comfortable
+   this is the ~~617px height gap that shifts every downstream region). 2-COLUMN:
+   LEFT = intro p (museo-sans 30px, w~~490) "We want you to feel comfortable
    before your first visit. Here some ways to give you a clear idea of what to
    expect:". RIGHT (x=760) = 3 NUMBERED nav-cards, each an <a> = h6 number
    "01"/"02"/"03" (museo-slab wt700 24px) + h3 title (museo-slab wt300 40px)
@@ -424,7 +428,8 @@ Live census (measured 2026-08-04, 6 sections + footer):
    step = number "00" (h6) + "15 MIN" (h6 wt500 24px) + h5 title 30px + p 20px.
    Candidate renders the same content as a plain rich_text list ("15 min — X").
 6. `.fv-review-section` "Serving the South Bay for over 40 years" review carousel
-   + footer CTA — ✅ (shared carousel/review + ctaHero, same as other pages).
+   - footer CTA — ✅ (shared carousel/review + ctaHero, same as other pages).
+
 - Gate is red overall PURELY from the missing TOC (617px) + compact office/exam
   vs live's tall sections shifting all anchors; individual built pieces (hero,
   reviews, CTA) match. `Serving`/`Ready` regions' own mm are low (5%/18-22%);
@@ -438,6 +443,7 @@ Live census (measured 2026-08-04, 6 sections + footer):
 Live census: hero.contact ("Contact Us") → info-section (Book Appointment btn +
 CONTACT + OFFICE HOURS + Google map, NO email) → footer CTA. Rebuilt the route's
 +page.svelte (server action untouched — the global AppointmentModal POSTs to it).
+
 - [gate] /contact-us — `Book Appointment` region (the info band: Book-Appointment
   pill → CONTACT/OFFICE-HOURS columns → map) PASS 5.9%@1440 / 8.9%@390 (Δh
   1.2/1.7%). Anchors resolve at identical y (475=475, 371=371). Hero heading
@@ -486,6 +492,7 @@ CONTACT + OFFICE HOURS + Google map, NO email) → footer CTA. Rebuilt the route
 
 Re-ran page-diff on all 6 pages at 1440,390 on the CURRENT branch (post-yfv +
 typo fix) to prove no regression. Results (matching/out-verify-*):
+
 - our-team / services / contact-us used neutralize-media=true (matching their
   recorded runs) and REPRODUCED the recorded PASS numbers to the decimal:
   services Cosmetic 9.8%@1440, our-team Dr-Quan 6.2%@1440/5.2%@390, contact
@@ -505,12 +512,12 @@ typo fix) to prove no regression. Results (matching/out-verify-*):
   pages (mm 22.9%@1440 / 18.1%@390) — proving it is the SHARED CtaBand+footer
   floor (FIJI-beach media + neutralize asymmetry + the footer-map gap), not a
   per-page defect.
-VERDICT: all 6 nav/content pages remain matched modulo the documented floors.
-The only UNMATCHED pages are the 3 detail /[slug] templates (plain article vs
-live hero+bio) — see the detail-templates section above.
-CAVEAT: --neutralize-media flattens live's <img> hero but not our CSS/CSP-blocked
-bg → it INFLATES `top`/`Ready` mm asymmetrically. For subpage-hero pages, the
-recorded non-neutralize runs (or a photo mask) are the truer instrument.
+  VERDICT: all 6 nav/content pages remain matched modulo the documented floors.
+  The only UNMATCHED pages are the 3 detail /[slug] templates (plain article vs
+  live hero+bio) — see the detail-templates section above.
+  CAVEAT: --neutralize-media flattens live's <img> hero but not our CSS/CSP-blocked
+  bg → it INFLATES `top`/`Ready` mm asymmetrically. For subpage-hero pages, the
+  recorded non-neutralize runs (or a photo mask) are the truer instrument.
 
 ## DETAIL TEMPLATES BUILT (2026-08-04 session 3, branch feat/detail-templates-and-footer)
 
@@ -532,6 +539,7 @@ CTA_BEACH ImageField), $lib/detail-lede (splitLede promoted from services).
   CtaBand(beach).
 
 KEY LIVE MEASUREMENTS (read from source, not eyeballed):
+
 - Detail hero ladder = 70vw(<768,=273@390) / 60vw(768-991) / 33vw(≥992,=475) —
   SHORTER than the subpage-hero 95vw base (that mismatch put mobile `top` at
   mm 65-68%; fixed → 5-12%).
@@ -553,6 +561,7 @@ GATE (5 rounds, matching/out-detail{,2,3,4,5}-*): @1440 `top`+`Ready` PASS on al
 3 (top 1.6-6.4%, Ready 5.4% Δh 4.3%); content regions mm 4.5-7.4%. @390 `top`
 PASS on all 3. Anchors land exactly at every viewport.
 DECLARED RESIDUALS (floors / stop-after-5-rounds):
+
 - [floor-photo-pipeline] mm 4.5-15% across regions = Prismic-imgix heroes +
   team headshot vs live's webflow originals, plus text AA fringing (dE 5-11);
   positions match. Same floor as every nav page.
@@ -562,11 +571,12 @@ DECLARED RESIDUALS (floors / stop-after-5-rounds):
   (body content probe: 10-11 paras, 1964 vs 1956 chars, identical 20/30 font).
   Same "deferred mobile-spacing polish" class as yfv — would settle with a
   focused mobile pass; not a structural defect.
-Visual screenshots (matching/dt-{team,svc,qa}-{live,cand}.png) confirm
-near-identical rendering. Content parity verified. svelte-check 0, eslint clean,
-656/656 tests, prettier clean.
+  Visual screenshots (matching/dt-{team,svc,qa}-{live,cand}.png) confirm
+  near-identical rendering. Content parity verified. svelte-check 0, eslint clean,
+  656/656 tests, prettier clean.
 
 ## SHARED FOOTER (same branch)
+
 - CtaBand default label "Book an Appointment" → "Book Appointment" (live) — the
   detail routes render `<CtaBand/>` and must match. Home passes its own label
   (unaffected); Hero/cta.test.ts passes an explicit label (still green).
@@ -577,6 +587,7 @@ near-identical rendering. Content parity verified. svelte-check 0, eslint clean,
   both show the South Bay map. No change needed.
 
 ## SHARED FOOTER — geometry rebuilt from live's own rules (2026-08-04, round 8)
+
 The footer region ("Want to learn more") had sat at EXACTLY 13.7% @390 across
 19 consecutive gate runs (out-q1..q8, out-svc1..7, out-team1..6) — it had never
 actually been worked, only carried. Probed live's ladder element-by-element at
@@ -584,6 +595,7 @@ actually been worked, only carried. Probed live's ladder element-by-element at
 values, NOT from the strip.
 
 DEFECTS FOUND + FIXED (all measured, all three bands):
+
 - Row rhythm: live has TWO footer row classes with different rhythm —
   `.footer-links` (margins 12/16/20 → pitch 36/48/60) and
   `.footer-contact-info` (NO margins; the 24/32/40 line-height IS the pitch).
@@ -607,7 +619,7 @@ DEFECTS FOUND + FIXED (all measured, all three bands):
 
 EVIDENCE — chrome-only diff (map hidden on BOTH sides, since live's map is a
 same-origin JS widget and ours a cross-origin iframe):
-  @390 0.65%   @650 0.64%   @834 0.90%   @1440 0.83%
+@390 0.65% @650 0.64% @834 0.90% @1440 0.83%
 matching/probe-footer-chrome.mjs; ladder probes matching/footerB{390,834,1440}.txt
 — every measured gap equals live's at all three bands.
 
@@ -630,6 +642,7 @@ matching/probe-footer-chrome.mjs; ladder probes matching/footerB{390,834,1440}.t
   a sparse region proves nothing; read the diff image. Belongs in the trap table.
 
 ## DETAIL TEMPLATES + SHARED CHROME — round 8→16 (2026-08-04)
+
 Gate: page-diff @1440,390, threshold 0.10, NO masks, not truncated
 (matching/out-r10-{team,svc,qa} = the final run, 02:46–02:47Z).
 RESULT: 27/30 detail-template regions PASS. The 3 remaining fails are the same
@@ -637,6 +650,7 @@ region on all three pages — "Want to learn more" @390 — which is the footer'
 live-embed floor (below).
 
 FIXED THIS ROUND (each measured off live, then read back computed):
+
 - Shared NAV: `.header-logo` is 2rem of live's stepped root = 48/64/80px and
   `.header-hamburger` 1rem = 24×19 / 32×25 / 40×31. Only the desktop 80/40 had
   ever been matched — the mobile bar carried an 80px logo (67% too big) and a
@@ -679,6 +693,7 @@ FIXED THIS ROUND (each measured off live, then read back computed):
   qa @1440 2.0% → 1.8%.
 
 DECLARED RESIDUALS:
+
 - [floor-live-embed] "Want to learn more" @390 13.4/13.4/12.8% — entirely the
   footer Google map (Chromium does not composite a cross-origin iframe in a
   full-page capture; live's is a same-origin JS widget). Chrome-only diff with
@@ -704,18 +719,21 @@ migration), untouched by this round.
 Verification: 656/656 unit, 8/8 playwright, svelte-check 0 errors, lint clean.
 
 ### Addendum — style-census sweep (Phase 6), same round
+
 Re-running the cheap gates after the fixes caught two SHARED-CHROME defects the
 pixel gate is structurally blind to (small text, no layout shift):
+
 - "Read Reviews" label line-height: live uses the unitless ratio **2.75**
   (38.5 / 41.25 / 55 / 68.75 px). Ours hard-coded px and was 18px short at
   mobile and 14px short at desktop.
 - CTA beach caption ("FIJI ISLANDS"): live uses **1.15** (11.5 / 17.25 / 23 /
   28.75). Ours was 6px short at desktop.
-Both now match live at 390/480/767/834/1440 (matching/probe-cta-labels.mjs).
+  Both now match live at 390/480/767/834/1440 (matching/probe-cta-labels.mjs).
 
 FINAL GATE STATE (matching/out-final-*, run alone, threshold 0.10, no masks,
 not truncated; reference index.html sha256 re-verified UNCHANGED
 e9ef1363…d11d7a52):
+
 - detail templates 27/30 regions PASS — the 3 fails are all
   "Want to learn more" @390 (the footer map embed floor, 0.65% on chrome).
 - svc "What to expect" @1440 = 0.0%, team "Dentist" @1440 = 0.0%.
@@ -729,18 +747,20 @@ e9ef1363…d11d7a52):
 - text-diff exit 0 (clean) on all three templates at 1440 and 390.
 
 ## SYSTEMIC — live's root-font ladder is OFFSET BY 1px from its class breakpoints
+
 Read straight from live's source (matching/spec/index.html inline <style> and
 matching/spec/beachfront.css), confirmed by measuring the root at 14 widths:
 
-  root font-size:  html{40px}  @media(max-width:992px){32px}  @media(max-width:768px){24px}
-  Webflow CLASS breakpoints:   max-width 991 / 767 / 479   (the ONLY widths in beachfront.css)
+root font-size: html{40px} @media(max-width:992px){32px} @media(max-width:768px){24px}
+Webflow CLASS breakpoints: max-width 991 / 767 / 479 (the ONLY widths in beachfront.css)
 
 So the root has just THREE values — 40px >=993, 32px 769-992, 24px <=768 — and
 the two ladders disagree by 1px at 768 and at 992. That produces two DEGENERATE
 1px-wide states on live:
-  - at exactly 768: root 24 with the >=768 class layout (page 7769px vs 9338px at 769)
-  - at exactly 992: root 32 with the >=992 class layout
-NEITHER can be reproduced with a fixed root, and neither should be chased.
+
+- at exactly 768: root 24 with the >=768 class layout (page 7769px vs 9338px at 769)
+- at exactly 992: root 32 with the >=992 class layout
+  NEITHER can be reproduced with a fixed root, and neither should be chased.
 
 CONSEQUENCE — this is the root cause of the whole tablet band being wrong:
 our md tier is 768-991, and anything calibrated by measuring live at EXACTLY
@@ -756,6 +776,7 @@ calibrated at 768 and are 4/3 short — itemised in the round below.
 Belongs in the matching-a-page trap table.
 
 ## GATE-SURFACE BUG — the dev CSP was blocking live's image CDN
+
 `/dev/match/<uid>` renders the canonical assemblies with LIVE's own image URLs
 (cdn.prod.website-files.com) so the gates can run without a Prismic publish —
 but `img-src` in svelte.config.js never allowed that host. Every subpage hero
@@ -769,7 +790,7 @@ photos `background-position: 0 100%` (left-bottom) while ours centre-cropped, so
 at 1440 we showed a slice 200px higher than live (hillside where live has the
 shoreline and lifeguard tower).
 our-team `top`, measured at the same threshold, no masks:
-    1440  58.7% -> 17.8%      834  76.3% -> 18.9%      390  69.8% -> 20.5%
+1440 58.7% -> 17.8% 834 76.3% -> 18.9% 390 69.8% -> 20.5%
 The residual is the documented photo-pipeline floor (our imgix re-export vs
 live's webflow original).
 LESSON for the trap table: when a whole region reads 50-80% and its Δh is ~0,
@@ -777,14 +798,16 @@ suspect a BLOCKED or missing asset before suspecting layout — geometry that
 wrong would move the height too.
 
 ## OVERNIGHT ROUND CLOSE (2026-08-05) — 52/138 -> 83/153 regions
+
 Full sweep `matching/out-final-*`, 9 pages x 1440/834/390, threshold 0.10, NO
 masks, no truncation. Per-page baseline -> final:
-  home 9/27->17/27 · our-team 6/15->10/15 · contact 5/12->9/12 ·
-  services 1/15->4/15 · atd (gate hard-failed)->7/15 · yfv 2/24->5/24 ·
-  team-detail 10/15->12/15 · svc-detail 9/15 · qa-detail 10/15
+home 9/27->17/27 · our-team 6/15->10/15 · contact 5/12->9/12 ·
+services 1/15->4/15 · atd (gate hard-failed)->7/15 · yfv 2/24->5/24 ·
+team-detail 10/15->12/15 · svc-detail 9/15 · qa-detail 10/15
 Reference index.html sha256 re-verified UNCHANGED at close.
 
 DECLARED FLOORS confirmed this round:
+
 - [floor-photo-pipeline] subpage hero `top` regions settle at 17-29% unmasked;
   with --mask-photos ask-the-doctor's `top` drops 40-48% -> 3.9-6.6%, which
   confirms the residual is the Prismic/imgix re-export vs live's webflow
@@ -793,6 +816,7 @@ DECLARED FLOORS confirmed this round:
   cross-origin map iframe, unchanged and already evidenced at 0.65% chrome.
 
 OPEN / ACK-REQUIRED:
+
 - [ACK-REQUIRED — unexplained] ask-the-doctor's 40-card grid stays at 78-81%
   WITH --mask-photos while its geometry matches live exactly (349x320 cards,
   2 columns, 40 cards in live's order, Δh 1.4-2.2%). dE 34 means a large-area
@@ -815,19 +839,21 @@ OPEN / ACK-REQUIRED:
   operator should see the list before it is pinned into the assemblies file.
 
 ## CMS CONTENT ROUND (2026-08-05) — the four authored fields, modelled not pinned
+
 Operator direction: "fix the content gaps right, those data should be modeled in
 and served from prismic". Superseded the "curate in beachfront-pages.js + flag"
 call from the overnight round.
 
 MODELLED (customtypes/*/index.json + src/prismicio-types.d.ts):
-  person.teaser              Text    /our-team card excerpt
-  person.order               Number  editorial roster order
-  news_article.summary       Text    Ask-the-Doctor card copy
-  news_article.home_order     Number  home featured row, 1 = hero card
-  collection_item.link_label Text    services-panel link wording
-  collection_item.order      Number  position within its category panel
+person.teaser Text /our-team card excerpt
+person.order Number editorial roster order
+news_article.summary Text Ask-the-Doctor card copy
+news_article.home_order Number home featured row, 1 = hero card
+collection_item.link_label Text services-panel link wording
+collection_item.order Number position within its category panel
 
 EVIDENCE that each is genuinely AUTHORED, not derivable:
+
 - person.teaser — 9 of 11 are a prefix of `body` but every cut point differs
   (74/90/75/64/83/98/92/93/89/75/88 chars, no char, word, or sentence rule
   fits); linda and michelle do not match the body at all.
@@ -850,6 +876,7 @@ Each render site now reads the document and keeps the old derivation as the
 fallback for an unfilled field, so the slices still work on other sites.
 
 PAYLOAD + MECHANISM:
+
 - src/lib/beachfront-entities.js — machine-transcribed from live by
   matching/gen-entities.mjs (no value typed by hand). 11 + 40 + 24 entries.
 - scripts/seed-entity-content.mjs — stages all three types into the Migration
@@ -866,6 +893,7 @@ PAYLOAD + MECHANISM:
   no-op the moment the release is published.
 
 GATES:
+
 - text-diff our-team/services/atd/home at 1440 and 390: every residual row is
   one of the four documented artifact classes — off-canvas nav (negative y),
   the Google map iframe's internals ("find us here!" is injected by the embed;
@@ -884,6 +912,7 @@ GATES:
   live's omission is a defect, not a target. Does not affect any exit code.
 
 ## GEOMETRY ROUND 1 (2026-08-05) — home 17/27 -> 19/27, 0 regressions
+
 Three systemic findings, all read from live's own stylesheet, all confirmed by
 two consecutive SETTLED probe reads:
 
@@ -925,6 +954,7 @@ Smile" at -53 where it is +43 — i.e. they had the SIGN wrong. Any conclusion
 drawn from a probe without that settle is worthless.
 
 ## GEOMETRY ROUND 2 (2026-08-05) — services 4/15 -> 6/15
+
 `.service-block{width:15rem;height:16rem;margin:2rem .5rem}` with `height:19rem`
 at <=991, `17rem` at <=767 and `width:13rem` at <=479 — so live's card is
 600x640 / 480x608 / 360x408 / 312x408 and we were rendering the <=479 card
@@ -946,16 +976,18 @@ blank space, so growing our region only widened the compared area over a
 mismatch. The region's real defect is inside it, not below it.
 
 ## GEOMETRY ROUND 3 (2026-08-05) — your-first-visit person slider
+
 [CORRECTS AN EARLIER LEDGER ENTRY] The 2026-08-04 round recorded that "the yfv
 Meet-Our-Team SLIDER uses a different ladder — do not copy the grid's tiers onto
 it". That is wrong. `.team-list-item.m-2` is ONE element; the slider adds
 `.display-inline`, which overrides the width at the two EXTREMES only:
-  >=992   grid 8rem (320) vs slider 8.5rem (340)
-  <=479   grid 100% x 16rem (303x384) vs slider 10rem x 18rem (240x432)
-Between 480 and 991 they are byte-identical (16rem x 24rem = 512x768 @834).
-Gating the tablet tiers off for the slider therefore left it rendering the PHONE
-card across the whole band and cost `.fv-meet-our-team-section` 846px of height
-at 834 (live 1416, ours 570). Replaced the boolean with a `variant` prop.
+
+> =992 grid 8rem (320) vs slider 8.5rem (340)
+> <=479 grid 100% x 16rem (303x384) vs slider 10rem x 18rem (240x432)
+> Between 480 and 991 they are byte-identical (16rem x 24rem = 512x768 @834).
+> Gating the tablet tiers off for the slider therefore left it rendering the PHONE
+> card across the whole band and cost `.fv-meet-our-team-section` 846px of height
+> at 834 (live 1416, ours 570). Replaced the boolean with a `variant` prop.
 
 Measured live's slider (settled, two agreeing reads): card 340x480 / 512x768 /
 240x432, pitch 426.67 / 640 / 288, first card x 123 / 161 / 75, heading
@@ -999,12 +1031,12 @@ STALL detector (upper bound on attempts), not a literal attempt counter.
    earlier conclusion.
 
    Full @1440 history (mm / dE / dh):
-     out-atd-r1  64.3%  26.9  22.7%
-     out-atd-r3  64.9%  24.0  22.7%   (neutralize-media)
-     out-atd-r4  77.3%  30.2   3.5%   <-- height FIXED, pixels got WORSE
-     out-atd-r6  77.5%  34.4   3.5%
-     out-atdcheck 79.1% 35.5   2.1%
-     out-cms-atd 79.1%  35.5   2.1%
+   out-atd-r1 64.3% 26.9 22.7%
+   out-atd-r3 64.9% 24.0 22.7% (neutralize-media)
+   out-atd-r4 77.3% 30.2 3.5% <-- height FIXED, pixels got WORSE
+   out-atd-r6 77.5% 34.4 3.5%
+   out-atdcheck 79.1% 35.5 2.1%
+   out-cms-atd 79.1% 35.5 2.1%
 
    The earlier entry concluded "dE 34 means a large-area COLOUR delta, not
    layout." The r3->r4 transition argues the opposite. If the 40 cards were
@@ -1026,6 +1058,7 @@ STALL detector (upper bound on attempts), not a literal attempt counter.
    treated as UNSUPPORTED pending the offset probe above.
 
 ### atd "Beyond the Smile" — RESOLVED as a GATE-SURFACE BUG (2026-08-05)
+
 The offset hypothesis above is CONFIRMED, and the cause is not colour, not the
 grid, and not ours-vs-live rendering at all. Probe: matching/probe-atd-offset.mjs
 (selectors READ FROM matching/spec/ask-the-doctor.html, not guessed — the first
@@ -1033,18 +1066,18 @@ version of the probe climbed the DOM heuristically, landed on a 1440x10547
 page wrapper, and produced garbage; recorded as a harness lesson).
 
 Grid internals are IDENTICAL at 1440:
-  row pitch      live 520  ours 520
-  cell height    live 520  ours 520
-  card height    live 400  ours 400
-  grid absolute y  live 555  ours 555   <-- same place on the page
-  card width     live 600  ours 620     <-- the one real defect, +20px
+row pitch live 520 ours 520
+cell height live 520 ours 520
+card height live 400 ours 400
+grid absolute y live 555 ours 555 <-- same place on the page
+card width live 600 ours 620 <-- the one real defect, +20px
 
 Every cell is offset -220px RELATIVE TO THE REGION TOP while sitting at the same
 ABSOLUTE y. So the anchor moved, not the content. Resolving the anchor element:
 
-  live: <div class="qa-text">      y=636 h=320  "beyond the smile: ...healthrout"
-        <h5 class="qa-question">   y=856 h=80   "beyond the smile: ...health"
-  ours: <h3 class="absolute bottom-3 left-[4%] ..."> y=855 h=80
+live: <div class="qa-text"> y=636 h=320 "beyond the smile: ...healthrout"
+<h5 class="qa-question"> y=856 h=80 "beyond the smile: ...health"
+ours: <h3 class="absolute bottom-3 left-[4%] ..."> y=855 h=80
 
 page-diff cuts at the FIRST document-order element whose collapsed text starts
 with the anchor. Live has a `.qa-text` WRAPPER (question + teaser, 320 tall)
@@ -1067,6 +1100,7 @@ so it is done against the Phase 1 spec rather than patched blind.
 STILL OPEN after this: card width 600 vs 620 (+20px).
 
 ### ANCHOR PARITY SWEEP (2026-08-05) — 4 gate anchors measure the wrong windows
+
 New instrument: matching/probe-anchor-parity.mjs. After the atd finding above,
 checked EVERY gate anchor on all 9 pages for whether page-diff's cut lands on a
 structurally comparable element on both sides.
@@ -1078,10 +1112,10 @@ where we use <footer> for the same ~710px block is cosmetic; live wrapping a
 heading in a 320px `.qa-text` where we cut at the 80px heading is fatal.
 Re-flagged on ratio >= 1.5x. Honest count: 4.
 
-  atd   "Beyond the Smile"       <div.qa-text> h=320 vs <h3> h=80   4.0x
-  svc   "Back to All Services"   <div> h=66  vs <div> h=146         2.2x
-  qa    "Have another question"  <section> h=67 vs <div> h=106      1.6x
-  home  "Beyond the Smile"       <div> h=120 vs <h3> h=80           1.5x
+atd "Beyond the Smile" <div.qa-text> h=320 vs <h3> h=80 4.0x
+svc "Back to All Services" <div> h=66 vs <div> h=146 2.2x
+qa "Have another question" <section> h=67 vs <div> h=106 1.6x
+home "Beyond the Smile" <div> h=120 vs <h3> h=80 1.5x
 
 Consequence: those four region scores are arithmetic on misaligned windows and
 must NOT be treated as rendering defects until the cut is comparable. atd and
@@ -1099,11 +1133,13 @@ and <footer> on ours, 714 vs 702px — comparable, NOT a problem. Recorded becau
 it looks alarming in a tag-only diff and will otherwise be re-investigated.
 
 ## SPEC-DRIVEN ROUND 1 (2026-08-05) — home 19/27 -> 21/27
+
 First round run under the new discipline: Phase 1 spec written FIRST
 (matching/SPEC.md, 10,717 lines, 1,315 citations, built from
 matching/spec-sections/ by matching/build-spec.mjs), every fix citing a line.
 
 FIXED — the review band (`.home-ssb-section` / `.review-slider-holder`):
+
 - heading bottom margin `.mb-8` = 2rem (beachfront.css:3998-4000) -> 80/64/48.
   We had a flat 48. NB `.mb-8` also carries `font-size:1rem` inside the <=991
   block (:7972-7974), so this heading is 60/32/24 — our sizes were already
@@ -1124,6 +1160,7 @@ drift at 834 collapsed: Your Path -104->-16, Redondo -122->-34, Beyond -102->-14
 Page 19/27 -> 21/27. 665 unit tests pass, svelte-check 0 errors.
 
 TWO MISTAKES MADE AND CAUGHT BY THE GATE (recorded, not hidden):
+
 1. Added live's h1 `margin-top:20px` (:2106) as a wrapper margin. WRONG —
    `.content-width` has no padding, so on live that margin COLLAPSES out of the
    section and lands in the gap above; live's anchor therefore sits at the
@@ -1143,9 +1180,9 @@ its height at the other two viewports (@1440 dh 30.5->18.6, @390 17.4->13.4).
 
 OPEN QUESTION behind it (measured, cause NOT established — do not guess):
 live renders this identical slider markup SHORTER on yfv than on home —
-  live home  661 / 573 / 451   (1440 / 834 / 390)
-  live yfv   632 / 550 / 446
-  ours       685 / 581 / 461   (same component on both pages)
+live home 661 / 573 / 451 (1440 / 834 / 390)
+live yfv 632 / 550 / 446
+ours 685 / 581 / 461 (same component on both pages)
 A 29 / 23 / 5 px per-page difference on live with no per-page class other than
 `.home-ssb-section` (which is a MARGIN, outside the section box). Until that is
 explained, a single shared component cannot match both pages, and forcing yfv
@@ -1154,18 +1191,19 @@ stop. Next step is to diff the two documents' review-section markup, not to
 tune a number.
 
 ### RESOLVED — live's yfv review section is 29/23/5px shorter because of CONTENT
+
 The open question from the round above is closed, and it was not a rule.
 
 Dumping the direct children of `.content-width` inside the review section on
 both LIVE pages (matching probe /tmp/probe-kids.mjs, settled):
 
-  live home `.home-ssb-section`  secH 661 @1440 / 573 @834 — THREE children
-      <h1 .text-align-center.mb-8>      h 72  m 20/80
-      <div .review-slider-holder>       h 480 m 0/0
-      <div .display-flex.flex-align-…>  h 69  m -40/120   <-- Read Reviews row
-  live yfv  `.fv-review-section`  secH 632 @1440 / 550 @834 — TWO children
-      <h1 .text-align-center.mb-8>      h 72  m 20/80
-      <div .review-slider-holder>       h 480 m 0/0
+live home `.home-ssb-section` secH 661 @1440 / 573 @834 — THREE children
+<h1 .text-align-center.mb-8> h 72 m 20/80
+<div .review-slider-holder> h 480 m 0/0
+<div .display-flex.flex-align-…> h 69 m -40/120 <-- Read Reviews row
+live yfv `.fv-review-section` secH 632 @1440 / 550 @834 — TWO children
+<h1 .text-align-center.mb-8> h 72 m 20/80
+<div .review-slider-holder> h 480 m 0/0
 
 632 = 72 + 80 + 480 exactly. Home adds the Read Reviews row at -40 margin-top,
 giving 661. The holders are BYTE-IDENTICAL on the two pages at all three
@@ -1185,7 +1223,7 @@ the section margin, and its own ladder corrected to live's measured
 
 RESULT — home 21/27 (held), yfv 5/24 -> **7/24**. Serving now PASSes on BOTH
 pages at all three viewports with no height failure:
-  home  mm 0.6 / 1.8 / 4.7      yfv  mm 0.6 / 1.9 / 5.0
+home mm 0.6 / 1.8 / 4.7 yfv mm 0.6 / 1.9 / 5.0
 The disclosed yfv regression from the previous round is therefore CLEARED, not
 carried.
 
@@ -1196,14 +1234,15 @@ This is the two-tier trap inverted, and it is worth noting that writing the
 ladder out as three explicit values is what made it obvious.
 
 ### contact — fix list APPLIED and REVERTED (2026-08-05). Values right, DOM wrong.
+
 Applied all 8 geometry items from matching/fix-lists/contact.md. Every value was
 re-verified against the stylesheet by hand before applying, and every one held:
-  .info-section          margin-bottom:35px, NO padding      :6589-6591  VERIFIED
-  ._w-40pc / .su-w-full-tablet  40% -> 100% at <=991         :3530, :8215 VERIFIED
-  .footer-contact-header 20 base / 16 at <=991 / 16 at <=479 :6337,:8130,:9240 VERIFIED
-  .footer-contact-info   20 base / 16 at <=991 / 12 at <=767 :6345,:8130,:8699 VERIFIED
-  .button.text-color-primary-dark margin-bottom:60px <=767   :8636-8638  VERIFIED
-  .mr-8 + .pr-8 = 2rem each -> 160/128/96 inter-column       :3961,:4219  VERIFIED
+.info-section margin-bottom:35px, NO padding :6589-6591 VERIFIED
+._w-40pc / .su-w-full-tablet 40% -> 100% at <=991 :3530, :8215 VERIFIED
+.footer-contact-header 20 base / 16 at <=991 / 16 at <=479 :6337,:8130,:9240 VERIFIED
+.footer-contact-info 20 base / 16 at <=991 / 12 at <=767 :6345,:8130,:8699 VERIFIED
+.button.text-color-primary-dark margin-bottom:60px <=767 :8636-8638 VERIFIED
+.mr-8 + .pr-8 = 2rem each -> 160/128/96 inter-column :3961,:4219 VERIFIED
 
 RESULT: contact 9/12 -> 7/12. Book Appointment @834 mm IMPROVED 18.8% -> 14.3%
 but its dh went 2.0% -> 6.1%, and @390 went PASS -> FAIL (12.3%). Reverted;
@@ -1229,6 +1268,7 @@ the container, not just per-property citations. The contact list's own
 correctly and neither could have caught this.
 
 ## SPEC-DRIVEN ROUND 2 (2026-08-05) — the shared hero-gradient bug: +6 regions
+
 Two independent fix lists (services, our-team) landed on the SAME shared
 component, SubpageHero, and together they explain three pages' `top` regions —
 including services `top`, which strikes.mjs had flagged as stalled for 3+ runs.
@@ -1237,18 +1277,19 @@ THE BUG: `SubpageHero` painted BOTH of live's hero gradient divs, unconditionall
 using the `.dark` bottom stop, on every subpage. Counting the divs in the saved
 documents settles what live actually does:
 
-  document                top  bot  bot.dark
-  index.html               1    1     0
-  our-team.html            1    1     0
-  ask-the-doctor.html      1    1     0
-  your-first-visit.html    1    1     0
-  contact-us.html          1    1     1   <-- the ONLY .dark
-  services-live.html       0    0     0   <-- the ONLY page with NO wash
+document top bot bot.dark
+index.html 1 1 0
+our-team.html 1 1 0
+ask-the-doctor.html 1 1 0
+your-first-visit.html 1 1 0
+contact-us.html 1 1 1 <-- the ONLY .dark
+services-live.html 0 0 0 <-- the ONLY page with NO wash
 
 So we were wrong in two different ways at once:
+
 - `/services` gets NO wash at all. Its entire hero is
   `<section class="hero redondo"><div class="bot-wave">…</div><h2
-  class="subpage-hero-heading">Services</h2></section>`
+class="subpage-hero-heading">Services</h2></section>`
   (matching/spec/services-top.html). We were painting ~half the region cyan at
   dE 40-90.
 - Every page except contact-us uses the BASE bottom stop
@@ -1261,10 +1302,10 @@ FIX: `wash` (default true, false for /services via `hero_wash` on the assembly)
 and `botGradient` ("base" default, "dark" for contact-us only).
 
 RESULT:
-  services   6/15 -> 9/15   top mm 23.9-29.7% -> 1.9 / 2.0 / 4.5%   all PASS
-  our-team  10/15 -> 13/15  top mm 17.8-20.5% -> 0.2 / 0.4 / 1.2%   all PASS
-  contact    9/12 -> 9/12   held (it keeps .dark, correctly)
-  atd        7/15 -> 7/15   top mm 40-48% -> 0.2 / 0.7 / 1.3%
+services 6/15 -> 9/15 top mm 23.9-29.7% -> 1.9 / 2.0 / 4.5% all PASS
+our-team 10/15 -> 13/15 top mm 17.8-20.5% -> 0.2 / 0.4 / 1.2% all PASS
+contact 9/12 -> 9/12 held (it keeps .dark, correctly)
+atd 7/15 -> 7/15 top mm 40-48% -> 0.2 / 0.7 / 1.3%
 665 unit + 8 e2e pass, svelte-check 0 errors. Net +6 regions.
 
 NEW, CLEANLY EXPOSED: ask-the-doctor's `top` now matches almost exactly on
@@ -1282,13 +1323,13 @@ BOTH were true and that contact-us was the single exception justifying the
 current code. Cross-page evidence beat per-page evidence.
 
 ## SPEC-DRIVEN ROUND 3 (2026-08-05) — detail templates, qa 10/15 -> 13/15
+
 Applied items 1-4 of matching/fix-lists/qa.md. Every citation re-verified by
 hand before applying; all four held:
-  .my-4 { margin-top:1rem; margin-bottom:1rem }        :3824-3827  VERIFIED
-  li { font-size:20px; line-height:1.8em } base
-     + li { font-size:12px } at <=767                  :2192, :8383 VERIFIED
-  .col-2-of-3 {66%} / .col-1-of-3 {33%}                :6440-6447  VERIFIED
-  .text-body-large { margin-top:20; margin-bottom:40 } :7760-7765  VERIFIED
+.my-4 { margin-top:1rem; margin-bottom:1rem } :3824-3827 VERIFIED
+li { font-size:20px; line-height:1.8em } base + li { font-size:12px } at <=767 :2192, :8383 VERIFIED
+.col-2-of-3 {66%} / .col-1-of-3 {33%} :6440-6447 VERIFIED
+.text-body-large { margin-top:20; margin-bottom:40 } :7760-7765 VERIFIED
 
 THE `li` LADDER is the interesting one and is a textbook instance of the trap:
 there is NO `li` rule in the <=991 block at all. The base 20px/1.8em therefore
@@ -1317,23 +1358,24 @@ gives 8/8 every time. Flake in the combined run, not a regression — recorded s
 it is not mistaken for one later.
 
 ## SPEC-DRIVEN ROUND 4 (2026-08-05) — atd 7/15 -> 13/15. The stalled region is SOLVED.
+
 `ask-the-doctor` "Beyond the Smile" — 79-83% across 8 gate runs, carried as
 ACK-REQUIRED/unexplained since 2026-08-04, twice given a WRONG cause in this
 ledger ("large-area colour delta", then my own "vertically offset grid") — is
 fixed. It was a missing wrapper element.
 
 LIVE'S CARD (matching/spec/ask-the-doctor.html + beachfront.css):
-  .qa-block                       width 15rem, height 10rem (12rem <=767)
-    .qa-label                     FLOW child, height 2rem
-    img.qa-image                  absolute, inset 0
-    .qa-text                      FLOW child, height 8rem (10rem <=767), mx 4%
-      h5.qa-question              absolute inside .qa-text
-      .qa-answer                  translateY(200%) until opened
+.qa-block width 15rem, height 10rem (12rem <=767)
+.qa-label FLOW child, height 2rem
+img.qa-image absolute, inset 0
+.qa-text FLOW child, height 8rem (10rem <=767), mx 4%
+h5.qa-question absolute inside .qa-text
+.qa-answer translateY(200%) until opened
 Resolved against the stepped root, and they SUM:
-  card   10rem/10rem/12rem = 400 / 320 / 288
-  label   2rem              =  80 /  64 /  48
-  text    8rem/8rem/10rem   = 320 / 256 / 240
-  80+320=400 · 64+256=320 · 48+240=288  exact at all three.
+card 10rem/10rem/12rem = 400 / 320 / 288
+label 2rem = 80 / 64 / 48
+text 8rem/8rem/10rem = 320 / 256 / 240
+80+320=400 · 64+256=320 · 48+240=288 exact at all three.
 
 OURS made all three children ABSOLUTE, so no element wrapped the question. Live's
 `.qa-text` collapses to text starting with the question, so page-diff cut live at
@@ -1349,12 +1391,12 @@ box to both took home's parity ratio from 1.5x to 2.7x. QuestionCard now takes
 `variant: "numbered" | "teaser"`.
 
 RESULT:
-  ask-the-doctor  7/15 -> 13/15
-     Beyond the Smile  79.1/79.3/82.7%  ->  4.6 / 1.0 / 1.7   all PASS
-     top               dh 34.6/28.7/36.0% ->  0.2 / 0.3 / 0.7   all PASS
-     Back to Top                          ->  0.1 / 0.0 / 2.8   all PASS
-     remaining 2 fails = the declared [floor-live-embed] map iframe only
-  home 21/27 -> 22/27
+ask-the-doctor 7/15 -> 13/15
+Beyond the Smile 79.1/79.3/82.7% -> 4.6 / 1.0 / 1.7 all PASS
+top dh 34.6/28.7/36.0% -> 0.2 / 0.3 / 0.7 all PASS
+Back to Top -> 0.1 / 0.0 / 2.8 all PASS
+remaining 2 fails = the declared [floor-live-embed] map iframe only
+home 21/27 -> 22/27
 665 unit + 8 e2e pass, svelte-check 0 errors.
 
 ANCHOR PARITY IS NOW CLEAN: probe-anchor-parity.mjs reports "All anchors resolve
@@ -1370,18 +1412,20 @@ side?" That question is now a standing instrument (matching/probe-anchor-parity.
 and should be run BEFORE any region is treated as geometry.
 
 ## SPEC-DRIVEN ROUND 5 (2026-08-05) — yfv hero, 7/24 -> 11/24. All three `top` PASS.
+
 Four defects in one region, each cited, applied one at a time with a gate between
 so each could be attributed:
 
 1. HEIGHT LADDER. `.hero.group-photo` has its OWN four-step ladder, and the top
    step is viewport-HEIGHT based while the rest are width-based:
-     >=992 `height:60vh; max-height:60vw`  (beachfront.css:5322-5328) = 540
-     <=991 `height:70vw; max-height:100vw` (:7984-7990)               = 583.8
-     <=767 `height:80vh; max-height:70vw`  (:8451-8454)
-     <=479 `height:95vw; max-height:none`  (:9082-9086)               = 370.5
-   We had TWO steps (95vw / min(60vh,60vw)), so 480-991 rendered the desktop
-   value: 500.4 at 834 vs live's 583.8. After the fix the hero measures
-   540/584/371 on BOTH sides — exact.
+
+   > =992 `height:60vh; max-height:60vw` (beachfront.css:5322-5328) = 540
+   > <=991 `height:70vw; max-height:100vw` (:7984-7990) = 583.8
+   > <=767 `height:80vh; max-height:70vw` (:8451-8454)
+   > <=479 `height:95vw; max-height:none` (:9082-9086) = 370.5
+   > We had TWO steps (95vw / min(60vh,60vw)), so 480-991 rendered the desktop
+   > value: 500.4 at 834 vs live's 583.8. After the fix the hero measures
+   > 540/584/371 on BOTH sides — exact.
 
 2. OVERLAYS. Our group-photo hero painted ONE neutral scrim
    `rgba(0,0,0,0.32)`; live carries the same two CYAN divs as every other
@@ -1418,6 +1462,7 @@ the wrong DOM; the gate does. Do not treat a clean svelte-check as evidence the
 page renders.
 
 ### yfv Office Tour — slider height + the MISSING §8 hours block (same round)
+
 Two defects, both cited:
 
 1. HEIGHT. The slider holder carries two competing 0,1,0 rules —
@@ -1430,7 +1475,7 @@ Two defects, both cited:
 2. MISSING CONTENT. Census §8 "Hours + contact pair" was not built at all —
    `.content-width > div.w-layout-hflex.mt-6.su-flex-v-mobile` with two
    `.footer-contact-block.mb-4.mr-8`, INSIDE `<section id="tour"
-   class="fv-virtual-tour-section">` (verified in the saved HTML), which is why
+class="fv-virtual-tour-section">` (verified in the saved HTML), which is why
    it belongs in the Carousel fullbleed branch and not a new slice. 184px of the
    region at 834. NOT new hardcoded copy: it renders the same PHONE/ADDRESS/
    HOURS from src/lib/site.ts that already feed the footer and /contact-us.
@@ -1450,16 +1495,18 @@ photo pipeline explains roughly half at 834 and all of the margin at 390; the
 rest of 834 is still real and unexplained. Not masked, not rethresholded.
 
 ### yfv "Dr. Robert Quan" — attempt 2 REVERTED. Escalating rather than a third pass.
+
 Applied `.team-slider-holder`'s explicit clipped-viewport ladder
 (beachfront.css:6654-6659 / :8226-8231 / :8777-8779):
-  >=992 width:100%  height:16rem = 100% x 640
-  <=991 width:20rem height:35rem = 640 x 1120
-  <=767 width:16rem              = 384 x 840
-All three citations verified by hand. Result was NET NEGATIVE:
-  @1440  mm 43.4 -> 43.4   dh 24.4 -> 21.5   (marginally better)
-  @834   mm 37.8 -> 36.5   dh 19.9 -> 26.2   (worse)
-  @390   mm 29.5 -> 29.1   dh 18.2 -> 67.5   (much worse)
-our-team held at 13/15, so the shared card is not implicated. Reverted.
+
+> =992 width:100% height:16rem = 100% x 640
+> <=991 width:20rem height:35rem = 640 x 1120
+> <=767 width:16rem = 384 x 840
+> All three citations verified by hand. Result was NET NEGATIVE:
+> @1440 mm 43.4 -> 43.4 dh 24.4 -> 21.5 (marginally better)
+> @834 mm 37.8 -> 36.5 dh 19.9 -> 26.2 (worse)
+> @390 mm 29.5 -> 29.1 dh 18.2 -> 67.5 (much worse)
+> our-team held at 13/15, so the shared card is not implicated. Reverted.
 
 WHY IT IS WRONG: there is no <=479 HEIGHT override for `.team-slider-holder`,
 so `35rem` should still be 840 at 390 — but our cards are 432 tall there, and a
@@ -1478,15 +1525,16 @@ live at all three viewports and compare child-by-child, rather than reasoning
 from the stylesheet alone.
 
 ### services — the `background` SHORTHAND was erasing the card's base colour
+
 One-line fix, six regions moved. Live's service-card panel is TWO layers:
-  `.bg-color-primary { background-color: var(--primary) }`  beachfront.css:5885-5887
-  plus a gradient IMAGE on top.
+`.bg-color-primary { background-color: var(--primary) }` beachfront.css:5885-5887
+plus a gradient IMAGE on top.
 We wrote it as the `background` shorthand, which RESETS `background-color` to
 transparent — so the gradient's translucent lower stop (rgba(54,91,109,0.57))
 had nothing behind it and composited against the card instead of against cyan.
 
-  Cosmetic Dentistry  8.3 / 8.3 / 5.9  ->  0.5 / 0.4 / 0.1   (already passing; now near-exact)
-  General Dentistry  28.8 / 28.7 / 18.0 -> 18.3 / 19.3 / 11.3
+Cosmetic Dentistry 8.3 / 8.3 / 5.9 -> 0.5 / 0.4 / 0.1 (already passing; now near-exact)
+General Dentistry 28.8 / 28.7 / 18.0 -> 18.3 / 19.3 / 11.3
 
 Region count holds at 9/15 because Cosmetic was already inside threshold and
 General still fails, but this is the largest colour correction on the page and
@@ -1528,24 +1576,24 @@ gradient on top rather than a wash over an image. No blanket change made.
 - [deviation] yfv `#tour.fv-virtual-tour-section` — the section is now
   box-for-box identical to live (1212 / 1132 / 660 at 1440/834/390, same three
   children at the same offsets). Four defects, each read from source:
-  * `h1{margin-bottom:10px}` `beachfront.css:2104-2108` is a FIXED px and does
+  - `h1{margin-bottom:10px}` `beachfront.css:2104-2108` is a FIXED px and does
     not step with the root ladder; we had `mb-6` (24) on the wrapper. -14/vp.
-  * live's dot strip is `div.display-none.w-slider-nav` and `.display-none` is
+  - live's dot strip is `div.display-none.w-slider-nav` and `.display-none` is
     `display:none` `beachfront.css:2214-2216` — the 8 dots exist and are never
     operable. Ours rendered them in FLOW: 24px + a 32px margin = +56.
-  * section trailing space is `.mb-6` `beachfront.css:3994-3996` = 60/48/36; we
+  - section trailing space is `.mb-6` `beachfront.css:3994-3996` = 60/48/36; we
     had `mb-10 lg:mb-24` (40/40/96) plus an invented `lg:pb-4` (live's section
     has no padding at all).
-  * `.content-width` padding is `1.5rem` = 60/48/36 stepping to 8%/5% below 768;
+  - `.content-width` padding is `1.5rem` = 60/48/36 stepping to 8%/5% below 768;
     `px-5 lg:px-20` landed 80 at 1440 by coincidence but put the heading at
     x=20 where live has x=48.
-  The slide image is NOT an object-fit: live sets none, so the img is
-  `max-width:100%` (`beachfront.css:232-236`) at natural aspect, top of the
-  block box — 1440x1080 clipped by a 900 mask at 1440, but 834x626 LETTERBOXED
-  in the same 900 mask at 834, over `.w-slider{background:#ddd}` (`:1190-1198`).
-  `object-cover` filled the grey band live leaves empty; `h-auto w-full` +
-  `bg-[#ddd]` reproduces all three. Office Tour 26.7/33.4/18.4% -> pass at
-  1440/834/390. yfv 13/24 -> 16/24 (matching/out-y25-yfv).
+    The slide image is NOT an object-fit: live sets none, so the img is
+    `max-width:100%` (`beachfront.css:232-236`) at natural aspect, top of the
+    block box — 1440x1080 clipped by a 900 mask at 1440, but 834x626 LETTERBOXED
+    in the same 900 mask at 834, over `.w-slider{background:#ddd}` (`:1190-1198`).
+    `object-cover` filled the grey band live leaves empty; `h-auto w-full` +
+    `bg-[#ddd]` reproduces all three. Office Tour 26.7/33.4/18.4% -> pass at
+    1440/834/390. yfv 13/24 -> 16/24 (matching/out-y25-yfv).
 
 - [deviation] yfv `#exam.fv-exam-section` (census §11-13, the largest region on
   the page) — rebuilt from live's composition, which is TWO rows inside
@@ -1553,11 +1601,11 @@ gradient on top rather than a wash over an image. No blanket change made.
   intro column with §12's registration box and hung the six steps off the photo;
   the section came out 458px short at 834 with the wrong x on every child.
   Structure now: row 1 = `._w-30pc.su-w-60pc-tablet.su-w-full-mobile` (30/60/100%)
-  + `img._w-60pc.su-w-full-mobile`; row 2 = `.registration-forms-box` +
-  `.first-exam-step-container`. Both rows are `su-flex-v-tablet` (column ≤991,
-  `beachfront.css:8004`) with `align-items:center` (`:7886-7888`).
-  Section box after: 2169 / 3025 / 2274 == live at 1440/834/390, child-for-child.
-  Two spec corrections found while doing it, both now in the SPEC:
+  - `img._w-60pc.su-w-full-mobile`; row 2 = `.registration-forms-box` +
+    `.first-exam-step-container`. Both rows are `su-flex-v-tablet` (column ≤991,
+    `beachfront.css:8004`) with `align-items:center` (`:7886-7888`).
+    Section box after: 2169 / 3025 / 2274 == live at 1440/834/390, child-for-child.
+    Two spec corrections found while doing it, both now in the SPEC:
   * `.button` has NO height — `height:auto; padding:1.3em 1em; line-height:0`
     (`beachfront.css:6028-6040`) — so its box is 2.6em+2 and follows a FOUR-tier
     font ladder: 25 base, 20 ≤991 (`:8045-8047`), 15 ≤767 (`:8632-8634`), 14
@@ -1568,9 +1616,9 @@ gradient on top rather than a wash over an image. No blanket change made.
     `[probed 390]`, so the "10 MIN" label wraps to two lines inside the 48px
     circle column. The `.text-breaking-no-wrap` citation in §12 does not apply
     to the exam-step h6; SPEC corrected.
-  yfv 16/24 -> 20/24 (matching/out-y26-yfv). "To be a long term health partner"
-  27.3/23.5/8.5% -> pass at all three; "We want you to feel comfortable" @390
-  also cleared on the button ladder.
+    yfv 16/24 -> 20/24 (matching/out-y26-yfv). "To be a long term health partner"
+    27.3/23.5/8.5% -> pass at all three; "We want you to feel comfortable" @390
+    also cleared on the button ladder.
 
 - [deviation] yfv `.fv-toc-section` (census §3-5) — rebuilt. Live keeps the
   BUTTON PAIR in the right column under the visit list, not beside the lede:
@@ -1582,11 +1630,11 @@ gradient on top rather than a wash over an image. No blanket change made.
   against `.content-width`'s 60). Section box after: 497 / 475 == live at
   1440/834.
   Two things worth recording beyond the ladders:
-  * the `.my-6` on the inner row (`beachfront.css:3834-3837`) collapses out
+  - the `.my-6` on the inner row (`beachfront.css:3834-3837`) collapses out
     BOTH ways. We had reproduced the top half (as this section's `mt`) and
     missed the bottom, leaving the region exactly 60/48/36 short — Δh
     10.8/9.2/7.8% with the pixels already at ~1%.
-  * the button holder is UNCLASSED, so it keeps live's inherited
+  - the button holder is UNCLASSED, so it keeps live's inherited
     `body{font-size:64px; line-height:1.2em}` (`beachfront.css:2096-2102`) and
     that 76.8px strut — not the buttons — sets the line-box height: the pair is
     167 / 79 / 134 tall against 133 / 54 / 136 of button. This is the only
@@ -1667,32 +1715,31 @@ gradient on top rather than a wash over an image. No blanket change made.
 - [deviation] contact `.info-section` — the structural diff the previous entry
   demanded, done before touching values. Live is
   `section > div.content-width > (a.button.mt-6, div.w-layout-hflex.mt-6
-  .su-flex-v-mobile > 2x .footer-contact-block.mb-4[.mr-8],
-  div.w-layout-hflex.mt-6 > div._w-40pc.su-w-full-tablet)`. Five defects, none
+.su-flex-v-mobile > 2x .footer-contact-block.mb-4[.mr-8],
+div.w-layout-hflex.mt-6 > div._w-40pc.su-w-full-tablet)`. Five defects, none
   of which the earlier probed fix list would have caught:
-  * the map column is `._w-40pc.su-w-full-tablet` — 40% (`beachfront.css:3530`)
+  - the map column is `._w-40pc.su-w-full-tablet` — 40% (`beachfront.css:3530`)
     at ≥992 and 100% at ≤991 (`:8215-8217`). `max-w-[512px]` equals 40% at 1440
     and nowhere else; at 834 the map was 512 wide inside live's 738. That is
     226x400px of the region and most of its 18.8%.
-  * `.footer-contact-info` (`:6345-6351`) is `20px / 2em` — 16px ≤991
+  - `.footer-contact-info` (`:6345-6351`) is `20px / 2em` — 16px ≤991
     (`:8130-8132`), 12px ≤767 (`:8699-8701`) — and because the line-height is
     `2em` it is ALWAYS 2x the size: 40 / 32 / 24. We had a flat 24 on 16px type,
     so every block was one line short.
-  * the button is the same `.button` ladder (54/67/38) and carries
+  - the button is the same `.button` ladder (54/67/38) and carries
     `margin-bottom:60px` at ≤767 (`:8636-8638`); being inline-level it does NOT
     collapse with the next block's margin, it adds to it.
-  * spacing between blocks is `.mt-6` = 36/48/60 (`:3917-3919`), not `mt-8`.
-  * the section has NO padding-bottom on live — its box ends flush with the map.
-  contact 9/12 -> 10/12 (matching/out-c3-contact); the 2 open rows are the
-  declared map-iframe floors.
+  - spacing between blocks is `.mt-6` = 36/48/60 (`:3917-3919`), not `mt-8`.
+  - the section has NO padding-bottom on live — its box ends flush with the map.
+    contact 9/12 -> 10/12 (matching/out-c3-contact); the 2 open rows are the
+    declared map-iframe floors.
 
 - [deviation] team detail — live's role line is `h4.text-color-primary-dark
-  .mt-8.mb-4`; `.mb-4` is `margin-bottom:1rem` (`beachfront.css:3985-3988`) =
+.mt-8.mb-4`; `.mb-4` is `margin-bottom:1rem` (`beachfront.css:3985-3988`) =
   24/32/40 and we had a flat `mt-6` (24) on the body, so every paragraph below
   carried the drift (8px at 834, 16 at 1440). The back-link carries `.mt-2` =
   12/16/20 (`:3901-3903`) inside a `.w-layout-hflex.flex-align-center.mb-8`
-  holder; the 22/30 we shipped was probed rather than read and was 6px out at
-  834. team 12/15 -> 13/15 (matching/out-t2-team); the 2 open rows are the
+  holder; the 22/30 we shipped was probed rather than read and was 6px out at 834. team 12/15 -> 13/15 (matching/out-t2-team); the 2 open rows are the
   declared map-iframe floors.
 
 - [deviation] home `.home-healthy-mouth-section` ("Your Path to Oral Health") —
@@ -1703,7 +1750,7 @@ gradient on top rather than a wash over an image. No blanket change made.
   `._w-half.p-4.su-mx-auto-mobile` (the photo) stays 50% until ≤767. So at 834
   live is a full-width heading over a HALF-width centred photo, and we rendered
   a 2-column row. The steps below are the mirror image: `.home-steps-container
-  .su-flex-v-mobile` is a `space-between` ROW of 30%-wide `.home-step`s from
+.su-flex-v-mobile` is a `space-between` ROW of 30%-wide `.home-step`s from
   768 up and only stacks at ≤767 — we stacked them at 834.
   Three more, all read from source: the `.p-4` padding (24/32/40) is what wraps
   live's 120px heading to THREE lines at 834 (a 674 column, not 738); the
@@ -1823,20 +1870,20 @@ gradient on top rather than a wash over an image. No blanket change made.
   Phase 5 to find it independently.
 
 - [PHASE 3, round 2] census 124 -> 100. Three real defects, all on yfv:
-  * `.circle-time-number` is museo-SANS on live — `beachfront.css:6722-6727`
+  - `.circle-time-number` is museo-SANS on live — `beachfront.css:6722-6727`
     sets only colour/align/size/line-height, so it inherits the body family. We
     had it on museo-slab (8 rows).
-  * the TOC and exam `h3`s were rendering our AA-safe `-deep` where live is
+  - the TOC and exam `h3`s were rendering our AA-safe `-deep` where live is
     cyan. They CROSS the 24px AA line across the ladder (40px at ≥992, 21px
     below), which the all-or-nothing `.h-primary` opt-in cannot express, so
     app.css gains `.h-primary-lg`: live's cyan at ≥992 only, keyed at 992 to
     match live's own rem ladder rather than Tailwind's `lg`.
-  Geometry unchanged (gate p2: yfv 21/24, home 24/27, threshold 0.10, no masks).
-  Of the ~100 remaining rows a large share are the census's TEXT-collision
-  class — it matches snippets by text, so live's exam-step "01" (museo-sans
-  45px white) is being compared against our TOC visit-number "01" (museo-slab
-  24px teal), and "meet our team" collides between live's 120px h2 and our 40px
-  h3. Those need adjudicating one at a time, not fixing.
+    Geometry unchanged (gate p2: yfv 21/24, home 24/27, threshold 0.10, no masks).
+    Of the ~100 remaining rows a large share are the census's TEXT-collision
+    class — it matches snippets by text, so live's exam-step "01" (museo-sans
+    45px white) is being compared against our TOC visit-number "01" (museo-slab
+    24px teal), and "meet our team" collides between live's 120px h2 and our 40px
+    h3. Those need adjudicating one at a time, not fixing.
 
 - [HARNESS FIX, shared skill] `style-census.mjs` keys on TEXT, not on elements,
   so every element carrying a string lands under one key — and the old rule
@@ -1865,7 +1912,7 @@ gradient on top rather than a wash over an image. No blanket change made.
 
 - [PHASE 3, round 4] census 57 -> 48 mismatches. Fixes: the person card's
   READ MORE is 14/22 at 834 AND 390 and 16/24 at 1440 `[probed in the census
-  run]` — we had a flat 16/24, and the §10 spec table also had it wrong (it
+run]` — we had a flat 16/24, and the §10 spec table also had it wrong (it
   recorded 19.2/28.8 at 834); "Back to Top" is `.button.text-color-primary`, so
   it takes the fourth tier of the button ladder (14px ≤479, `:9185-9187`) and
   we had started at 15.
@@ -1944,24 +1991,24 @@ gradient on top rather than a wash over an image. No blanket change made.
 - [PHASE 6, round 1 — content gate re-run] Checklist item 4 ("re-run text-diff
   AND style-census — fixes since Phase 2/3 regress content and styles").
   style-census: CLEAN. text-diff yfv @1440: 26 residual rows, EVERY one assigned:
-  * 14 negative-y — the off-canvas nav + form modal artifact class.
-  * 3 — `<br>`-split heading: live is `We are excited to meet <br>and care for
-    you.`, verified in the saved HTML, so live yields two text nodes to our one.
-  * 5 — Google Maps embed internals ("keyboard shortcuts", "terms", "report a
+  - 14 negative-y — the off-canvas nav + form modal artifact class.
+  - 3 — `<br>`-split heading: live is `We are excited to meet <br>and care for
+you.`, verified in the saved HTML, so live yields two text nodes to our one.
+  - 5 — Google Maps embed internals ("keyboard shortcuts", "terms", "report a
     map error"…), inside the already-declared floor.
-  * 3 — our slider live-region announcements, the declared a11y additions.
-  * 1 — "book an apointment": live's typo against the corrected spelling Tucker
+  - 3 — our slider live-region announcements, the declared a11y additions.
+  - 1 — "book an apointment": live's typo against the corrected spelling Tucker
     chose to ship. The ACK'd copy deviation, showing up in a second gate.
-  ONE REAL DEFECT FOUND AND FIXED: live's exam intro carries an inline
-  `<strong>We ask for 2 hours of your time.</strong>` — SPEC.md §11 recorded it
-  ("keep the tag") and the migration had dropped it, so live's paragraph is
-  three text nodes to our one. Restored via `withStrong` in beachfront-pages.js,
-  which propagates to the seed as well as the gate surface.
-  Geometry and type unchanged: gate p8 yfv 21/24; census CLEAN.
-  Checklist status: item 4 DONE. Items 1 (floors judged by chrome), 3 (hover
-  sweep), 5 (small-text sweep), 6 (paired walkthrough) and 7 (ledger
-  reconciliation) still open; item 2 (interaction inventory complete) is blocked
-  on the per-page Phase 5 work and on the UNRECONCILED chrome counts.
+    ONE REAL DEFECT FOUND AND FIXED: live's exam intro carries an inline
+    `<strong>We ask for 2 hours of your time.</strong>` — SPEC.md §11 recorded it
+    ("keep the tag") and the migration had dropped it, so live's paragraph is
+    three text nodes to our one. Restored via `withStrong` in beachfront-pages.js,
+    which propagates to the seed as well as the gate surface.
+    Geometry and type unchanged: gate p8 yfv 21/24; census CLEAN.
+    Checklist status: item 4 DONE. Items 1 (floors judged by chrome), 3 (hover
+    sweep), 5 (small-text sweep), 6 (paired walkthrough) and 7 (ledger
+    reconciliation) still open; item 2 (interaction inventory complete) is blocked
+    on the per-page Phase 5 work and on the UNRECONCILED chrome counts.
 
 - [PHASE 6, item 3 — hover sweep] `matching/hover-sweep.mjs`. Parses every
   `:hover`/`:focus` rule block out of `beachfront.css` (42 of them), strips the
@@ -2007,25 +2054,25 @@ gradient on top rather than a wash over an image. No blanket change made.
   region for a fourth attempt on the strength of the walkthrough's new model.
   Result: 10.9% -> 10.8% -> 10.9%. It did NOT close, and the attempt is only
   half kept:
-  * KEPT (verified): the icon→label gap is 40 on live against our 20. Our label
+  - KEPT (verified): the icon→label gap is 40 on live against our 20. Our label
     now starts at x=860 at 1440, matching live's 860 exactly [probed after].
-  * REVERTED (a no-op): `h-full justify-center` on the link list. The walkthrough
+  - REVERTED (a no-op): `h-full justify-center` on the link list. The walkthrough
     said live's list is centred in a 480-tall column with ~30px above; ours
     measures 640x422 with row0 at the column's very top, so there is nothing to
     centre — our column is exactly as tall as its content and never stretches to
     live's 480. Keeping a change that provably did nothing would be carrying an
     unevidenced edit.
-  What the fourth attempt established: the ROW is the missing piece. Live's
-  `._w-full.display-flex` is 520 tall with both columns at 480; ours is 502 with
-  columns at 422. So neither column stretches on our side and both are ~58 short
-  — the offset the walkthrough saw is a symptom of that, not its cause.
-  Blocked on evidence I could not get: live's service rows are not
-  `<a>`-with-text, so the selector that measured ours returned NONE on live and
-  I could not dump its row/column boxes directly. The next attempt needs live's
-  actual `.head-link` / `.flex-vertical` markup read out of the saved HTML
-  first — the same "read the real class names from source" step that fixed
-  probe-atd-offset.mjs and cracked ask-the-doctor.
-  Stopped here rather than taking a fifth swing.
+    What the fourth attempt established: the ROW is the missing piece. Live's
+    `._w-full.display-flex` is 520 tall with both columns at 480; ours is 502 with
+    columns at 422. So neither column stretches on our side and both are ~58 short
+    — the offset the walkthrough saw is a symptom of that, not its cause.
+    Blocked on evidence I could not get: live's service rows are not
+    `<a>`-with-text, so the selector that measured ours returned NONE on live and
+    I could not dump its row/column boxes directly. The next attempt needs live's
+    actual `.head-link` / `.flex-vertical` markup read out of the saved HTML
+    first — the same "read the real class names from source" step that fixed
+    probe-atd-offset.mjs and cracked ask-the-doctor.
+    Stopped here rather than taking a fifth swing.
 
 - [PHASE 6, item 6 — home @1440 pairs 00 and 02 reviewed]
   VERDICT 00 "Finally have a dentist": MATCH. Heading, the three Comfort/
@@ -2035,31 +2082,31 @@ gradient on top rather than a wash over an image. No blanket change made.
   VERDICT 02 "Serving the South Bay": two real defects, BOTH now fixed, and
   both were passing the pixel gate at 0.10 — this is the walkthrough earning
   its place.
-  * the "what they say:" hand mark carried a `-rotate-6` live does not apply.
+  - the "what they say:" hand mark carried a `-rotate-6` live does not apply.
     Live's slant is IN the artwork, which is why its box is 240x57 against our
     rotated 228x77, and its arrow is 120x51 where ours was 67x34 — barely half
     size. Both now measure live's box exactly: 240x57 @ x=160 y=1956 and
     120x51 @ x=260 y=2016 [probed after].
-  * the review-slider arrows sat 24px further out on each side and 64px lower.
+  - the review-slider arrows sat 24px further out on each side and 64px lower.
     Now x=360 / x=1050 @ y=2116 — live's own 360/2116 and 1050/2114.
-  Geometry and type held: gate w1 home 24/27, census CLEAN.
+    Geometry and type held: gate w1 home 24/27, census CLEAN.
 
 - [PHASE 6, item 6 — home @1440 pair 06 reviewed] "Ready for great dental
   health": the heading lands exactly; two spacing defects below it, both inside
   a region the pixel gate passes.
-  * heading→"Book Appointment" gap was 96 against live's 85 [probed both].
-  * live's "Read Reviews" GROUP is 220 wide against our 165, because live's
+  - heading→"Book Appointment" gap was 96 against live's 85 [probed both].
+  - live's "Read Reviews" GROUP is 220 wide against our 165, because live's
     holder is an unclassed `div` inheriting `body{font-size:64px}` and the gap
     between the label and the `+` is that 64px WORD SPACE — 31px, where our
     flex row had `mr-3` (12, measured 17). Third time this project has been
     caught by live's inherited body type; set explicitly here because our button
     is a flex row with no text node between the two children.
-  Both now match: pill gap 85, label starting at x=610 like live's.
-  And the census immediately caught a consequence of yesterday's `<strong>`
-  restoration: the tag renders at weight 400, not live's 700, because the
-  wrapper sets `[&_p]:font-light` (300) and preflight's `strong{font-weight:
-  bolder}` resolves RELATIVE to it. Fixed with an absolute `[&_strong]:font-bold`
-  — the same direct-hit rule the sizes beside it already follow.
+    Both now match: pill gap 85, label starting at x=610 like live's.
+    And the census immediately caught a consequence of yesterday's `<strong>`
+    restoration: the tag renders at weight 400, not live's 700, because the
+    wrapper sets `[&_p]:font-light` (300) and preflight's `strong{font-weight:
+bolder}` resolves RELATIVE to it. Fixed with an absolute `[&_strong]:font-bold`
+    — the same direct-hit rule the sizes beside it already follow.
 
 - [PHASE 6, item 6 — home @1440 pairs 05 and 07 reviewed]
   VERDICT 07 (footer): our three columns were 416 wide with a 16px gap
@@ -2099,3 +2146,33 @@ gradient on top rather than a wash over an image. No blanket change made.
   Not changed — it is a content decision, and it is on the report.
   home @1440 walkthrough status: 6 of 8 pairs reviewed (00, 02, 03, 04, 05, 07).
   01 and 06's siblings remain, plus every pair at 390.
+
+- [deviation | PUBLISHED CONTENT — the Prismic round trip drops what the fixture sets]
+  Discovered by comparing the REAL routes against /dev/match/_, which no gate
+  had ever done: every gate runs against /dev/match/_, and that route reads
+  src/lib/beachfront-pages.js directly, so nothing the seed loses was visible.
+  Full-page diff, real vs matched, at 1440:
+  / 29.46% Δh -316
+  /services 19.71% Δh -168
+  /our-team 13.87% Δh -168
+  /your-first-visit 7.37% Δh -169
+  /ask-the-doctor 5.19% Δh -168
+  TWO independent loss mechanisms, both silent (HTTP 200, no warning):
+  (1) The Migration API drops any field the slice model does not declare.
+  Four were undeclared: hero/subpage `image_position` `heading_style`
+  `hero_wash`, carousel/review `layout`. Every dropped value was a
+  NON-default, so the three subpage heroes fell back to a centered,
+  washed, plain-styled hero (24-43% of the first viewport) and home lost
+  the Read Reviews expander under the review slider.
+  Fixed in the models; not live until the models are PUSHED to Prismic
+  and the pages re-seeded.
+  (2) The Migration API strips `\n` from StructuredText. The closing CTA
+  heading is live's `Ready for <br>great dental <br>health?` — 3 lines,
+  h=504. Seeded, it came back unbroken: 2 lines, h=336. That is the
+  -168 on every page. Fixed by giving the copy back to CtaBand.
+  NOTE this retires the open question on the "Your Path to Oral Health" step
+  titles above: carrying live's hard breaks into the CMS text CANNOT work via
+  `\n` — mechanism (2) would eat them. A break that must survive has to live
+  in the component, or be modelled as real structure (separate blocks/fields).
+  Both mechanisms now have a mechanical check in
+  src/lib/beachfront-pages.test.ts, verified failing before verified passing.
