@@ -104,4 +104,28 @@ describe("beachfront-pages assemblies vs slice models", () => {
       }
     expect(stripped).toEqual([]);
   });
+
+  // The second half of the same asymmetry. Prismic's rich-text serializer turns
+  // a `\n` inside a block into a <br> faithfully — but the Migration API strips
+  // `\n` out of StructuredText on WRITE, so a fixture that hard-breaks a line
+  // renders correctly on /dev/match/* and unbroken on the published route. That
+  // shipped the closing CTA band 168px short on all five nav pages. Hard breaks
+  // belong in the component (see CtaBand's DEFAULT_HEADING), never in seeded
+  // content.
+  it("sets no text the Prismic round trip would silently reflow", () => {
+    const withBreaks: string[] = [];
+    const walk = (v: unknown, path: string): void => {
+      if (Array.isArray(v))
+        return v.forEach((x, i) => walk(x, `${path}[${i}]`));
+      if (v && typeof v === "object")
+        return Object.entries(v).forEach(([k, x]) => walk(x, `${path}.${k}`));
+      if (typeof v === "string" && v.includes("\n"))
+        withBreaks.push(`${path}: ${JSON.stringify(v)}`);
+    };
+    for (const [uid, slices] of Object.entries(pages))
+      slices.forEach((s, i) =>
+        walk(s, `${uid}#${i} ${s.slice_type}/${s.variation}`),
+      );
+    expect(withBreaks).toEqual([]);
+  });
 });

@@ -18,6 +18,16 @@
     // is why its h2 can span the full band (x=0, w=viewport) without the text
     // spreading out. Matching the box without the breaks would drop us to two
     // lines at >=768.
+    //
+    // The breaks live HERE, in the component, and not in the seeded Prismic
+    // content, because the Migration API strips `\n` out of StructuredText on
+    // write: the seeded pages came back as one unbroken string and rendered the
+    // band 168px short (2 lines, h=336) on all five nav routes while the detail
+    // routes — which take this default — stayed correct at 3 lines / h=504.
+    // Prismic's serializer turns `\n` into <br> faithfully; it just never gets
+    // one. So this band's copy is chrome, identical on every page, owned by one
+    // source of truth. An editor CAN still override it per page in Prismic;
+    // an override simply wraps naturally instead of hard-breaking.
     { type: "heading2", text: "Ready for \ngreat dental \nhealth?", spans: [] },
   ];
   const DEFAULT_CTA_LINK: LinkField = { link_type: "Web", url: "#appointment" };
@@ -54,6 +64,11 @@
   }: Props = $props();
 
   const hasImage = $derived(!!backgroundImage?.url);
+  // An EMPTY heading field means "this band is chrome — use the shared copy",
+  // which is what the seeded nav pages now send. Svelte's prop default only
+  // covers `undefined`, and Prismic hands back `[]` for an empty rich text, so
+  // the fallback has to be explicit or those pages render a headless band.
+  const headingField = $derived(heading?.length ? heading : DEFAULT_HEADING);
 </script>
 
 <!-- The site's recurring closing band. On the home page (backgroundImage set)
@@ -111,7 +126,7 @@
         class="display-xl h-primary [&_h2]:text-wrap"
         use:animateIn={LIVE_REVEAL}
       >
-        <PrismicRichText field={heading} />
+        <PrismicRichText field={headingField} />
       </div>
       <RichTextBody field={body} />
     </div>
@@ -175,7 +190,7 @@
         class="display-xl h-primary [&_h2]:text-wrap"
         use:animateIn={LIVE_REVEAL}
       >
-        <PrismicRichText field={heading} />
+        <PrismicRichText field={headingField} />
       </div>
       <RichTextBody field={body} />
       {@render ctaButtons()}

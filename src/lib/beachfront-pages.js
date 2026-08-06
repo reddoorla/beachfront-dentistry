@@ -162,9 +162,18 @@ const ctaHero = (img) => ({
   slice_type: "hero",
   variation: "cta",
   primary: {
-    // Live hard-breaks this into three lines (`Ready for <br/>great dental
-    // <br/>health?`) — see CtaBand.
-    heading: [head(2, "Ready for \ngreat dental \nhealth?")],
+    // EMPTY ON PURPOSE — CtaBand owns this heading.
+    //
+    // Live hard-breaks it into three lines (`Ready for <br/>great dental
+    // <br/>health?`) and renders the identical band on every page, so it is
+    // chrome, not page content. Seeding the copy here put a SECOND source of
+    // truth into Prismic, and the Migration API strips `\n` out of
+    // StructuredText on write — so the seeded string came back unbroken and
+    // the five nav routes rendered the band 2 lines / 168px short while the
+    // detail routes (which take CtaBand's default) stayed correct at 3 lines.
+    // Sending nothing makes every surface render the one correct band; an
+    // editor can still type an override into Prismic per page.
+    heading: [],
     body: [],
     cta_label: "Book Appointment",
     cta_link: webLink("#appointment"),
