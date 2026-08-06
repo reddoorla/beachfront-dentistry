@@ -84,14 +84,21 @@
 
   <!-- Live's body copy: museo-sans slate #365b6d, 12px/18 mobile → 20px/30
        desktop, 10px between blocks (shared DetailBody). -->
-  <DetailBody field={data.doc.data.body} class="mt-6 lg:mt-10" />
+  <!-- Live's role line is `h4.text-color-primary-dark.mt-8.mb-4`, and `.mb-4`
+       is `margin-bottom:1rem` (`beachfront.css:3985-3988`) = 24 / 32 / 40. We
+       had a flat `mt-6` (24) on the body, which is 8px short at 834 and 16 at
+       1440 — and every paragraph below inherited the drift. -->
+  <DetailBody field={data.doc.data.body} class="mt-6 md:mt-8 lg:mt-10" />
 
-  <!-- Live's cyan outline "Back to Team" pill (`.button` skin), left-aligned. -->
+  <!-- Live's cyan outline "Back to Team" pill. It carries `.mt-2` —
+       `margin-top:.5rem` (`beachfront.css:3901-3903`) = 12 / 16 / 20 — inside a
+       `.w-layout-hflex.flex-align-center.mb-8` holder; the 22/30 here was
+       probed, not read, and was 6px out at 834. -->
   <OutlineButton
     label="Back to Team"
     link="/our-team"
     variant="cyan"
-    class="mt-[22px] lg:mt-[30px]"
+    class="mt-3 md:mt-4 lg:mt-5"
   />
 </section>
 
