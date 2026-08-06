@@ -379,9 +379,22 @@
       </div>
     {/if}
     {#if docs.length > 0}
-      <!-- extra top room so the cards' straddling headshots + live's larger
-           heading-to-card gap clear (live: ~320px from heading top to card). -->
-      <div class="relative w-full" use:animateIn={LIVE_REVEAL}>
+      <!-- `.team-slider-holder` `beachfront.css:6654-6659` is an explicit
+           `height:16rem` viewport with `overflow:hidden`; ≤991 `:8226-8231`
+           makes it `35rem` and ≤479 `:9309-9312` `23rem`. Against the stepped
+           root that is 640 / 1120 / 552 — and only at 390 does it equal the
+           cards' own stack. At 1440 it CLIPS the last 20px (the card's
+           `margin-bottom`), and at 834 it is 64px TALLER than the cards, which
+           is empty space live reserves and we did not.
+           Height only: the ≤991 rule also sets `width:20rem` with auto side
+           margins, and applying that width alongside the height is what made
+           this region worse on the previous attempt (@390 Δh 18.2 -> 67.5) —
+           our track is not live's JS-positioned one and does not survive being
+           narrowed to a single-card window. -->
+      <div
+        class="relative h-[552px] w-full overflow-hidden xs:h-[840px] md:h-[1120px] lg:h-[640px]"
+        use:animateIn={LIVE_REVEAL}
+      >
         <Slider
           itemCount={docs.length}
           label={asText(slice.primary.heading) || "Meet our team"}
