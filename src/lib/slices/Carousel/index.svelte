@@ -135,21 +135,38 @@
     id="office-tour"
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="mb-10 w-full scroll-mt-24 lg:mb-24 lg:pb-4"
+    class="mb-9 w-full scroll-mt-24 md:mb-12 lg:mb-[60px]"
   >
-    <div class="mb-6 px-5 lg:px-20">
-      <!-- cyan by the global main h1–h3 primary rule; no inline colour needed. -->
+    <!-- `.content-width`: max-width 1400 centred, padding-x `1.5rem` against the
+         stepped root = 60 >=992 / 48 768-991, stepping to 8% <=767 and 5%
+         <=479. Measured content-left 80 / 48 / 19.5. `px-5 lg:px-20` happened
+         to land 80 at 1440 but put the heading at x=20 where live has x=48. -->
+    <div
+      class="mx-auto max-w-[1400px] px-[5%] xs:px-[8%] md:px-12 lg:px-[60px]"
+    >
+      <!-- cyan by the global main h1–h3 primary rule; no inline colour needed.
+           The 10px below the heading is live's own `h1{margin-bottom:10px}`
+           (`beachfront.css:2104-2108`) — a FIXED px, not a rem, so it does not
+           step with the root ladder — and it collapses out of the padding-less
+           `.content-width` wrapper exactly as it does here. We had `mb-6` on
+           the wrapper: 24px, +14 per viewport. -->
       <h1
-        class="font-slab text-[25px] leading-[38px] font-light lg:text-[60px] lg:leading-[72px]"
+        class="font-slab mb-[10px] text-[25px] leading-[38px] font-light lg:text-[60px] lg:leading-[72px]"
       >
         {trackLabel}
       </h1>
     </div>
     {#if trackCount > 0}
+      <!-- Live ships all 8 `.w-slider-dot`s and then hides the strip:
+           `div.display-none.w-slider-nav.w-round`, and `.display-none` is
+           `display:none` (`beachfront.css:2214-2216`) — the dots are in the DOM
+           and never operable. Ours rendered them in FLOW under the track: 24px
+           of dots + a 32px margin = 56px this section does not have. The edge
+           arrows stay, so the carousel keeps a non-swipe control. -->
       <Slider
         itemCount={trackCount}
         label={trackLabel}
-        showDots={true}
+        showDots={false}
         arrowLayout="sides"
         gap="0px"
         mobileGap="0px"
@@ -168,11 +185,26 @@
                  `:8554-8556` sets `height:auto` and the image's own height
                  governs. We had fixed pixels (293/560/900), which is why this
                  section was 718px short at 834. -->
-            <div class="w-full overflow-hidden md:h-screen">
+            <!-- `.w-slider` is `background:#ddd` (`beachfront.css:1190-1198`).
+                 Invisible at 1440 (the photo overflows the mask) and at 390
+                 (mask height == photo height), but at 834 the photo is 626 in a
+                 900 mask and live letterboxes 274px of grey below it. -->
+            <div class="w-full overflow-hidden bg-[#ddd] md:h-screen">
+              <!-- Live sets NO object-fit: the img is `max-width:100%`
+                   (`beachfront.css:232-236`) inside the block-flow mask, so it
+                   renders at container width x natural aspect (measured
+                   1440x1080 @1440) and overflows the 900px mask downward,
+                   clipped by `.w-slider-mask{overflow:hidden}` (`:1200-1209`).
+                   Measured live: 1440x1080 in a 900 mask (overflows 180 and is
+                   clipped) but 834x626 in the SAME 900 mask (letterboxed by
+                   274) and 390x293 in a 293 mask. No single object-fit does
+                   that — `cover` filled the mask at 834 where live leaves it
+                   empty. Reproduce the rule, not a fit: width 100%, height
+                   auto, top of the block box. -->
               <PrismicImage
                 field={item.image}
                 fallbackAlt=""
-                class="h-full w-full object-cover object-center"
+                class="h-auto w-full"
               />
             </div>
           {/if}
