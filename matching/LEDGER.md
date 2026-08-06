@@ -1983,3 +1983,22 @@ gradient on top rather than a wash over an image. No blanket change made.
   `.expanding-box` 0→1, `.qa-block` 0→1, `.plus-minus-block` .51,
   `.head-link` .6, `.primary-on-hover` 0→1, `.big-review-arrow-*` 0→1,
   `.visit-list-item`, `.services-links` .6, `.social-logo-big-review` .6.
+
+- [PHASE 6, item 6 — paired walkthrough] `matching/walk.mjs`. Reads the page's
+  paths and anchors straight out of `gate.sh` so the walkthrough can never cover
+  a different census than the pixel gate, scrolls each section into view,
+  settles it, and shoots ref+cand pairs into `matching/states/`.
+  home @1440 captured: 8 sections, anchors within 0–23px on both sides.
+  VERDICT — section 04 "Our dental team in Redondo" (LOOKED AT, not inferred):
+  left column matches almost exactly — same wrap points, same button position.
+  The RIGHT column is OFFSET: our three service links sit ~35px higher and ~20px
+  left of live's. Row PITCH is identical (160px both sides).
+  **This is the model the three-strikes region needed.** Attempt 3 changed the
+  link-list GAP to reproduce live's 480/384 column height; the pitch was already
+  correct, so that attempt was fitting the wrong variable and it made the region
+  worse. The defect is the column's START POSITION (and a horizontal offset),
+  not the spacing between its rows.
+  Not attempted — the region is at three strikes and the operator has not
+  released it. Recorded here so a fourth attempt starts from evidence.
+  Sections 00-03 and 05-07 captured but NOT yet reviewed; item 6 stays open
+  until every pair has a written verdict.
