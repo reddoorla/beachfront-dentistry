@@ -2187,3 +2187,29 @@ ask-a-dentist">` on /ask-the-doctor — because that is the only page whose
   services carry an unused attribute live lacks. Accepted: an `id` is inert —
   invisible to the pixel gate and the style census — and scoping it would mean
   teaching the hero which sibling slices its page has. Verified: build passes.
+
+- [VERIFIED — the Prismic round trip now preserves everything, release published]
+  Master republished 2026-08-06T16:58. All five previously-stripped fields are
+  present on the published documents: home `carousel.layout="home"`,
+  your-first-visit `collection_list.order_uids` (11 uids), our-team
+  `heading_style=meet image_position=left-bottom`, services
+  `image_position=left-bottom hero_wash=false`, ask-the-doctor
+  `image_position=top`; the closing band's heading is 0 blocks on all five, so
+  CtaBand's 3-line default applies; and yfv's book_label is "Book an
+  Appointment". (`heading_style` absent on services/atd and `layout` null on
+  yfv are CORRECT — the fixture sets them only where live differs from the
+  component default.)
+
+  Full-page diff, REAL route vs its /dev/match/* twin, 1440, before -> after:
+  / 29.46% Dh -316 -> 0.29-0.58% Dh 0
+  /services 19.71% Dh -168 -> 0.04% Dh 0
+  /our-team 13.87% Dh -168 -> 0.01% Dh 0
+  /your-first-visit 7.37% Dh -169 -> 0.03% Dh -1
+  /ask-the-doctor 5.19% Dh -168 -> 0.00% Dh 0
+  Every height delta is now 0 (yfv -1px), so the structural loss is fully
+  closed. Home's residual is NOT a defect: it varies run to run
+  (0.29/0.45/0.58 over three measurements) and a 200px-band scan finds no band
+  above 0.3%, i.e. it is diffuse sub-threshold noise from slider position and
+  reveal timing differing between two independent page loads — the same class
+  the settled-scroll protocol exists to manage. The real routes are now
+  equivalent to the surface every gate was measured against.
