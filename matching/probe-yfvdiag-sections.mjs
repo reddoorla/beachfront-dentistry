@@ -29,13 +29,16 @@ const dump = (roots) => {
   const rec = (el, depth, cap) => {
     for (const c of el.children) {
       const tag = c.tagName.toLowerCase();
-      if (["script", "style", "noscript", "svg", "path"].includes(tag)) continue;
+      if (["script", "style", "noscript", "svg", "path"].includes(tag))
+        continue;
       const r = c.getBoundingClientRect();
       const cs = getComputedStyle(c);
       out.push(
         `${"  ".repeat(depth)}<${tag}${c.id ? "#" + c.id : ""}.${label(c)}> y=${Math.round(r.top + scrollY)} h=${Math.round(r.height)} x=${Math.round(r.left)} w=${Math.round(r.width)}` +
           ` | disp=${cs.display} pos=${cs.position} ovf=${cs.overflow} pad=${cs.paddingTop}/${cs.paddingRight}/${cs.paddingBottom}/${cs.paddingLeft} mar=${cs.marginTop}/${cs.marginBottom}` +
-          (tag === "img" ? ` SRC=${(c.currentSrc || c.src || "").split("/").pop().slice(0, 44)} objfit=${cs.objectFit}` : "") +
+          (tag === "img"
+            ? ` SRC=${(c.currentSrc || c.src || "").split("/").pop().slice(0, 44)} objfit=${cs.objectFit}`
+            : "") +
           (c.children.length === 0
             ? ` TXT="${(c.textContent || "").replace(/\s+/g, " ").trim().slice(0, 60)}" ${cs.fontFamily.split(",")[0]} ${cs.fontWeight} ${cs.fontSize}/${cs.lineHeight} ls${cs.letterSpacing} ${cs.color} ${cs.textAlign} tt=${cs.textTransform}`
             : ""),
@@ -72,7 +75,11 @@ try {
         { name: "HERO", sel: "section.hero.group-photo", cap: 3 },
         { name: "TOC", sel: "section.fv-toc-section", cap: 5 },
         { name: "TOUR", sel: "section.fv-virtual-tour-section", cap: 3 },
-        { name: "TOURINFO", sel: ".fv-virtual-tour-section .content-width:last-child", cap: 4 },
+        {
+          name: "TOURINFO",
+          sel: ".fv-virtual-tour-section .content-width:last-child",
+          cap: 4,
+        },
         { name: "MEET", sel: "section.fv-meet-our-team-section", cap: 3 },
         { name: "CARD1", sel: ".team-slider .team-list-item", cap: 3 },
         { name: "EXAM", sel: "section.fv-exam-section", cap: 4 },
@@ -95,7 +102,11 @@ try {
         { name: "TOC", sel: "[data-slice-type=first_visit_toc]", cap: 5 },
         { name: "TOUR", sel: "[data-slice-type=carousel]", cap: 3 },
         { name: "MEET", sel: "[data-slice-type=collection_list]", cap: 3 },
-        { name: "CARD1", sel: "[data-slice-type=collection_list] li, [data-slice-type=collection_list] article", cap: 3 },
+        {
+          name: "CARD1",
+          sel: "[data-slice-type=collection_list] li, [data-slice-type=collection_list] article",
+          cap: 3,
+        },
         { name: "EXAM", sel: "[data-slice-type=exam_timeline]", cap: 4 },
       ]),
     );

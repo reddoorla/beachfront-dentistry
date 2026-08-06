@@ -33,16 +33,16 @@ unsettled read has their y **160px too low** at 1440 and their opacity between
 
 y values are the **section/block border-box top** at 1440 (page coords, settled).
 
-| # | label | anchor (unique, comma-free) | y@1440 | owner |
-|---|---|---|---|---|
-| 1 | Header / nav bar — `section.header` | *(no unique text — anchor by `section.header`)* | 0 (h=120, **out of flow**) | **chrome §3** |
-| 2 | Hero band — `section.hero.reception` + absolute breadcrumb | `General Dentistry` | 0 (h=475.19; label @347.67) | this file §B.2 |
-| 3 | Page title — `h2` inside `section.service-page-title-subtitle-section` | *(prefer selector — see caveat)* | 495.19 (h=168) | this file §B.3 |
-| 4 | Lede two-column block — `.display-flex` > empty `.col-1-of-3` + `.col-2-of-3` | `Few people place a visit` | 673.19 (h=555) | this file §B.4 |
-| 5 | Body rich text — `.content-width.mt-6 > ._w-80pc.w-richtext` | `What to expect` | 1288.19 (h=900) | this file §B.5 |
-| 6 | Back-link pill row — `.content-width.flex-align-center.flex-justify-center.my-8` | `Back to All Services` | 2268.19 (h=66) | this file §B.6 |
-| 7 | Closing CTA band | `Ready for great` | 2414.19 | **chrome §4** |
-| 8 | Footer — `.footer-info-section` | `Want to learn more` | 3614.19 (h=714.41) | **chrome §5** |
+| #   | label                                                                            | anchor (unique, comma-free)                     | y@1440                      | owner          |
+| --- | -------------------------------------------------------------------------------- | ----------------------------------------------- | --------------------------- | -------------- |
+| 1   | Header / nav bar — `section.header`                                              | _(no unique text — anchor by `section.header`)_ | 0 (h=120, **out of flow**)  | **chrome §3**  |
+| 2   | Hero band — `section.hero.reception` + absolute breadcrumb                       | `General Dentistry`                             | 0 (h=475.19; label @347.67) | this file §B.2 |
+| 3   | Page title — `h2` inside `section.service-page-title-subtitle-section`           | _(prefer selector — see caveat)_                | 495.19 (h=168)              | this file §B.3 |
+| 4   | Lede two-column block — `.display-flex` > empty `.col-1-of-3` + `.col-2-of-3`    | `Few people place a visit`                      | 673.19 (h=555)              | this file §B.4 |
+| 5   | Body rich text — `.content-width.mt-6 > ._w-80pc.w-richtext`                     | `What to expect`                                | 1288.19 (h=900)             | this file §B.5 |
+| 6   | Back-link pill row — `.content-width.flex-align-center.flex-justify-center.my-8` | `Back to All Services`                          | 2268.19 (h=66)              | this file §B.6 |
+| 7   | Closing CTA band                                                                 | `Ready for great`                               | 2414.19                     | **chrome §4**  |
+| 8   | Footer — `.footer-info-section`                                                  | `Want to learn more`                            | 3614.19 (h=714.41)          | **chrome §5**  |
 
 **CENSUS SECTION COUNT: 8** (5 unique to this page: 2, 3, 4, 5, 6 — where 3+4
 share one `<section>` element and 5+6 share another; 3 are chrome).
@@ -50,7 +50,7 @@ share one `<section>` element and 5+6 share another; 3 are chrome).
 Only **five** `<section>` elements exist in the document
 (`detail-svc.html:113`): `.header`, `.hero.reception`,
 `.service-page-title-subtitle-section`, `.service-page-body-section`, `.footer`.
-Census rows 3/4 and 5/6 are *sub-blocks*, not sections — see the dilution table.
+Census rows 3/4 and 5/6 are _sub-blocks_, not sections — see the dilution table.
 
 **Title anchor caveat.** `Dental Exams` is the `h2` text but it is **not safe as
 a text anchor**: the same string appears in `<title>Beachfront Dentistry | Dental
@@ -66,25 +66,25 @@ correct hero anchor. Note the source string carries a **trailing space**:
 
 Section-element y/h at the gate matrix `[probed]`:
 
-| section | 1440 | 834 | 390 |
-|---|---|---|---|
-| `.header` (absolute, `beachfront.css:5836-5842`) | y 0 h 120 | y 0 h 96 | y 0 h 72 |
-| `.hero.reception` | y 0 h **475.19** | y 0 h **500.39** | y 0 h **273** |
-| `.service-page-title-subtitle-section` | y 495.19 h **733** | y 520.39 h **510** | y 293 h **700** |
-| `.service-page-body-section` | y 1288.19 h **1046** | y 1078.39 h **1066** | y 1029 h **1034.38** |
-| `.footer` (CTA + footer) | y 2414.19 h 1914.41 | y 2208.39 h 1811.02 | y 2111.38 h 1562.59 |
-| `.footer-info-section` | y 3614.19 h 714.41 | y 3037 h 982.41 | y 2549.38 h 1124.59 |
-| document height | 4329 | 4019 | 3674 |
+| section                                          | 1440                 | 834                  | 390                  |
+| ------------------------------------------------ | -------------------- | -------------------- | -------------------- |
+| `.header` (absolute, `beachfront.css:5836-5842`) | y 0 h 120            | y 0 h 96             | y 0 h 72             |
+| `.hero.reception`                                | y 0 h **475.19**     | y 0 h **500.39**     | y 0 h **273**        |
+| `.service-page-title-subtitle-section`           | y 495.19 h **733**   | y 520.39 h **510**   | y 293 h **700**      |
+| `.service-page-body-section`                     | y 1288.19 h **1046** | y 1078.39 h **1066** | y 1029 h **1034.38** |
+| `.footer` (CTA + footer)                         | y 2414.19 h 1914.41  | y 2208.39 h 1811.02  | y 2111.38 h 1562.59  |
+| `.footer-info-section`                           | y 3614.19 h 714.41   | y 3037 h 982.41      | y 2549.38 h 1124.59  |
+| document height                                  | 4329                 | 4019                 | 3674                 |
 
 Full nine-width section table (the trap bands are **992** and **768**):
 
-| width | 992 | 991 | 768 | 767 | 480 | 479 |
-|---|---|---|---|---|---|---|
-| root font | **32px** | 32px | **24px** | 24px | 24px | 24px |
-| `.hero.reception` h | **327.36** | **594.59** | 460.8 | 536.89 | 336 | 335.3 |
-| title section y/h | 347.36 / **1126** | 614.59 / 450 | 480.8 / 540 | 556.89 / 420 | 356 / 710 | 355.3 / 540 |
-| body section y/h | 1521.36 / **1330** | 1112.59 / 946 | 1056.8 / 1122 | 1012.89 / 1049 | 1102 / 1481 | 931.3 / 890.38 |
-| document height | **4679** | 3918 | 3840 | 3963 | 4312 | 3486 |
+| width               | 992                | 991           | 768           | 767            | 480         | 479            |
+| ------------------- | ------------------ | ------------- | ------------- | -------------- | ----------- | -------------- |
+| root font           | **32px**           | 32px          | **24px**      | 24px           | 24px        | 24px           |
+| `.hero.reception` h | **327.36**         | **594.59**    | 460.8         | 536.89         | 336         | 335.3          |
+| title section y/h   | 347.36 / **1126**  | 614.59 / 450  | 480.8 / 540   | 556.89 / 420   | 356 / 710   | 355.3 / 540    |
+| body section y/h    | 1521.36 / **1330** | 1112.59 / 946 | 1056.8 / 1122 | 1012.89 / 1049 | 1102 / 1481 | 931.3 / 890.38 |
+| document height     | **4679**           | 3918          | 3840          | 3963           | 4312        | 3486           |
 
 At **992** the page is 4679px tall; at **991** it is 3918px — a **761px** swing
 across one pixel of viewport. Nothing keyed at 768 can produce that.
@@ -95,13 +95,13 @@ The gate cuts this page at four anchors: `What to expect` /
 `Back to All Services` / `Ready for great` / `Want to learn more`. That yields
 five regions against eight census sections:
 
-| gate region | census sections it contains | span@1440 | dilution risk |
-|---|---|---|---|
-| R0 top → `What to expect` | **1 header + 2 hero + 3 title + 4 lede** (four sections) | 0 → 1288 (1288px, **30% of the page**) | **CRITICAL.** The hero breadcrumb (80px) is **6%** of R0; the `h2` title (168px) is **13%**; the empty `.col-1-of-3` spacer is 0%. All three sit under the 0.10 threshold *even if 100% wrong*. Only the lede block (555px = 43%) can trip it alone. |
-| R1 `What to expect` → `Back to All Services` | **5 body rich text** | 1288 → 2268 (980px) | LOW — one block owns the region. But its height is **text-reflow-driven**: a wrong container width changes line counts and shifts everything below (see E1). |
-| R2 `Back to All Services` → `Ready for great` | **6 back-link pill row** | 2268 → 2414 (146px) | LOW — smallest region on the page, so the pill's 66px box is 45% of it. Good sensitivity. Note it also swallows the pill's collapsed trailing `2rem`. |
-| R3 `Ready for great` → `Want to learn more` | 7 CTA band | 2414 → 3634 | chrome §4 |
-| R4 `Want to learn more` → end | 8 footer | 3634 → 4329 | chrome §5 |
+| gate region                                   | census sections it contains                              | span@1440                              | dilution risk                                                                                                                                                                                                                                        |
+| --------------------------------------------- | -------------------------------------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R0 top → `What to expect`                     | **1 header + 2 hero + 3 title + 4 lede** (four sections) | 0 → 1288 (1288px, **30% of the page**) | **CRITICAL.** The hero breadcrumb (80px) is **6%** of R0; the `h2` title (168px) is **13%**; the empty `.col-1-of-3` spacer is 0%. All three sit under the 0.10 threshold _even if 100% wrong_. Only the lede block (555px = 43%) can trip it alone. |
+| R1 `What to expect` → `Back to All Services`  | **5 body rich text**                                     | 1288 → 2268 (980px)                    | LOW — one block owns the region. But its height is **text-reflow-driven**: a wrong container width changes line counts and shifts everything below (see E1).                                                                                         |
+| R2 `Back to All Services` → `Ready for great` | **6 back-link pill row**                                 | 2268 → 2414 (146px)                    | LOW — smallest region on the page, so the pill's 66px box is 45% of it. Good sensitivity. Note it also swallows the pill's collapsed trailing `2rem`.                                                                                                |
+| R3 `Ready for great` → `Want to learn more`   | 7 CTA band                                               | 2414 → 3634                            | chrome §4                                                                                                                                                                                                                                            |
+| R4 `Want to learn more` → end                 | 8 footer                                                 | 3634 → 4329                            | chrome §5                                                                                                                                                                                                                                            |
 
 **Two anchors that would split R0 and de-dilute it** — both unique and
 comma-free, both verified against the settled DOM:
@@ -112,7 +112,7 @@ sections into three regions of 348 / 345 / 595px.
 **All four inter-block gaps on this page are COLLAPSED MARGINS, not padding**
 (§B.7). Every `<section>` on this page has `margin: 0; padding: 0` computed
 `[probed, all 9 widths]`. Expressing any of these gaps as section `padding` moves
-the space from "between gate regions" into the region below it *and* stops it
+the space from "between gate regions" into the region below it _and_ stops it
 collapsing, doubling several of them.
 
 ---
@@ -125,11 +125,11 @@ collapsing, doubling several of them.
 inline `<style>` twice: `detail-svc.html:1-19` (head) and `detail-svc.html:61-75`
 (a `.w-embed` at the top of `<body>`, byte-identical for the font rules).
 
-| rule | source |
-|---|---|
-| `html { font-size: 40px }` | `detail-svc.html:3-5` (repeat `:62`) |
-| `@media (max-width: 992px) { html { font-size: 32px } }` | `detail-svc.html:8-10` (repeat `:64-66`) |
-| `@media (max-width: 768px) { html { font-size: 24px } }` | `detail-svc.html:12-14` (repeat `:68-70`) |
+| rule                                                     | source                                                       |
+| -------------------------------------------------------- | ------------------------------------------------------------ |
+| `html { font-size: 40px }`                               | `detail-svc.html:3-5` (repeat `:62`)                         |
+| `@media (max-width: 992px) { html { font-size: 32px } }` | `detail-svc.html:8-10` (repeat `:64-66`)                     |
+| `@media (max-width: 768px) { html { font-size: 24px } }` | `detail-svc.html:12-14` (repeat `:68-70`)                    |
 | `@media (max-width: 480px) { html { font-size: 24px } }` | `detail-svc.html:16-18` (repeat `:72-74`) — no-op, same 24px |
 
 Webflow class breakpoints: `beachfront.css:7852` (≤991), `:8372` (≤767),
@@ -140,16 +140,16 @@ Webflow class breakpoints: `beachfront.css:7852` (≤991), `:8372` (≤767),
 
 **Every rem on this page, resolved** (this is the whole spec in one table):
 
-| declared | source | ≥993 (root 40) | 992–769 (root 32) | ≤768 (root 24) |
-|---|---|---|---|---|
-| `.mx-1` `.25rem` (breadcrumb `/`) | `beachfront.css:3854-3857` | **10px** | **8px** | **6px** |
-| `.mt-6` `1.5rem` (body wrapper top) | `beachfront.css:3917-3919` | **60px** | **48px** | **36px** |
-| `.my-8` `2rem` (pill row top+bottom) | `beachfront.css:3839-3842` | **80px** | **64px** | **48px** |
-| `.content-width` pad-x `1.5rem` | `beachfront.css:5864-5865` | **60px** | **48px** | **36px** (then 8% ≤767 `:8627`, 5% ≤479 `:9164`) |
-| `.bot-wave svg` height `3rem` | `detail-svc.html:24-29` | **120px** | **96px** | **72px** |
-| `.header` height `3rem` | `beachfront.css:5839` | **120px** | **96px** | **72px** |
-| `.display-flex` font-size `.6rem` (≤991 only) | `beachfront.css:7890-7892` | *(not applied)* | **19.2px** | **14.4px** |
-| IX2 `a-7` travel `4rem` | `[probed-only]`, §D | **160px** | **128px** | **96px** |
+| declared                                      | source                     | ≥993 (root 40)  | 992–769 (root 32) | ≤768 (root 24)                                   |
+| --------------------------------------------- | -------------------------- | --------------- | ----------------- | ------------------------------------------------ |
+| `.mx-1` `.25rem` (breadcrumb `/`)             | `beachfront.css:3854-3857` | **10px**        | **8px**           | **6px**                                          |
+| `.mt-6` `1.5rem` (body wrapper top)           | `beachfront.css:3917-3919` | **60px**        | **48px**          | **36px**                                         |
+| `.my-8` `2rem` (pill row top+bottom)          | `beachfront.css:3839-3842` | **80px**        | **64px**          | **48px**                                         |
+| `.content-width` pad-x `1.5rem`               | `beachfront.css:5864-5865` | **60px**        | **48px**          | **36px** (then 8% ≤767 `:8627`, 5% ≤479 `:9164`) |
+| `.bot-wave svg` height `3rem`                 | `detail-svc.html:24-29`    | **120px**       | **96px**          | **72px**                                         |
+| `.header` height `3rem`                       | `beachfront.css:5839`      | **120px**       | **96px**          | **72px**                                         |
+| `.display-flex` font-size `.6rem` (≤991 only) | `beachfront.css:7890-7892` | _(not applied)_ | **19.2px**        | **14.4px**                                       |
+| IX2 `a-7` travel `4rem`                       | `[probed-only]`, §D        | **160px**       | **128px**         | **96px**                                         |
 
 All confirmed `[probed]` at all 9 widths.
 
@@ -183,7 +183,7 @@ boilerplate with no matching element here.
 and the string is absent from `detail-svc.html`. This is a **real structural
 difference from the nav pages**, not a capture artifact (chrome §0 records the
 opposite for the index pages — treat that note as index-page-scoped). Consequence:
-the two `.show-form` buttons that *do* exist (nav panel "Book an Appointment",
+the two `.show-form` buttons that _do_ exist (nav panel "Book an Appointment",
 CTA "Book Appointment") run `showForm` at `detail-svc.html:126-129` against an
 empty jQuery set — **clicking them is a visible no-op on this page**. Do not
 render a form modal here.
@@ -240,17 +240,17 @@ background-position:100%; background-size:cover`.
 Height overrides — a **pure-vw ladder** (root-font-independent) with only THREE
 rules, and **critically `.hero.reception` has NO ≤479 rule**:
 
-| rule | source | height |
-|---|---|---|
-| base | `beachfront.css:5297` | `33vw` |
-| ≤991 | `beachfront.css:7980-7982` (`.hero, .hero.redondo`) | `60vw` |
-| ≤767 | `beachfront.css:8438-8440` (`.hero`) | `70vw` |
+| rule | source                                                                                                                                                 | height       |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------ |
+| base | `beachfront.css:5297`                                                                                                                                  | `33vw`       |
+| ≤991 | `beachfront.css:7980-7982` (`.hero, .hero.redondo`)                                                                                                    | `60vw`       |
+| ≤767 | `beachfront.css:8438-8440` (`.hero`)                                                                                                                   | `70vw`       |
 | ≤479 | **none matches `.hero.reception`** — `beachfront.css:9072/9078/9082/9088/9093` name only `.redondo`/`.contact`/`.group-photo`/`.home`/`.ask-a-dentist` | still `70vw` |
 
-| viewport | 1440 | 992 | 991 | 834 | 768 | 767 | 480 | 479 | 390 |
-|---|---|---|---|---|---|---|---|---|---|
-| declared | 33vw | 33vw | 60vw | 60vw | 60vw | 70vw | 70vw | **70vw** | **70vw** |
-| **height `[probed]`** | **475.19** | **327.36** | **594.59** | **500.39** | **460.8** | **536.89** | **336** | **335.3** | **273** |
+| viewport              | 1440       | 992        | 991        | 834        | 768       | 767        | 480     | 479       | 390      |
+| --------------------- | ---------- | ---------- | ---------- | ---------- | --------- | ---------- | ------- | --------- | -------- |
+| declared              | 33vw       | 33vw       | 60vw       | 60vw       | 60vw      | 70vw       | 70vw    | **70vw**  | **70vw** |
+| **height `[probed]`** | **475.19** | **327.36** | **594.59** | **500.39** | **460.8** | **536.89** | **336** | **335.3** | **273**  |
 
 The 992→991 step is **+267.23px on one pixel of viewport**. Every other hero on
 the site goes to `95vw` at ≤479; this one does not. A template that shares one
@@ -264,10 +264,10 @@ where live renders **273px** — a 97.5px error that shifts the entire page.
 
 Two images are declared for this band and **only the `<img>` is seen**:
 
-| layer | URL | source | visible? |
-|---|---|---|---|
-| CSS `background-image` on `.hero.reception` | `https://cdn.prod.website-files.com/64af3f93339537d6b661b556/64b1ced3281a341a1cc50074_DSC_7625.jpg` | `beachfront.css:5311` | **NO** — fully covered |
-| `img.hero-dynamic-image` | `https://cdn.prod.website-files.com/64b1c843b071dc32170ea053/64d1402a4309c0bf7d84ce63_running-into-our-golden-years.jpg` | `detail-svc.html:113` | **YES** |
+| layer                                       | URL                                                                                                                      | source                | visible?               |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------------- | ---------------------- |
+| CSS `background-image` on `.hero.reception` | `https://cdn.prod.website-files.com/64af3f93339537d6b661b556/64b1ced3281a341a1cc50074_DSC_7625.jpg`                      | `beachfront.css:5311` | **NO** — fully covered |
+| `img.hero-dynamic-image`                    | `https://cdn.prod.website-files.com/64b1c843b071dc32170ea053/64d1402a4309c0bf7d84ce63_running-into-our-golden-years.jpg` | `detail-svc.html:113` | **YES**                |
 
 `.hero-dynamic-image` `beachfront.css:6428-6433`: `object-fit:cover; width:100%;
 height:100%; position:absolute` — it fills the section exactly
@@ -287,10 +287,10 @@ page (`64af3f93339537d6b661b556`). `srcset` resolution `[probed]`: 1440 →
 Both are plain absolutely-positioned `<div>`s with **percentage heights of the
 hero**, no z-index, painting in DOM order above the `<img>`:
 
-| element | source | declarations | 1440 | 834 | 390 |
-|---|---|---|---|---|---|
-| `.hero-top-gradient` | `beachfront.css:6477-6482` | `background-image: linear-gradient(#129ecccc, #0000); width:100%; height:25%; position:absolute` (implicit `top:0`) | h **118.8** | h **125.09** | h **68.25** |
-| `.hero-bot-gradient` | `beachfront.css:6484-6490` | `background-image: linear-gradient(#0000, #129ecccc); width:100%; height:50%; position:absolute; bottom:0` | y 237.59 h **237.59** | y 250.2 h **250.19** | y 136.5 h **136.5** |
+| element              | source                     | declarations                                                                                                        | 1440                  | 834                  | 390                 |
+| -------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------- |
+| `.hero-top-gradient` | `beachfront.css:6477-6482` | `background-image: linear-gradient(#129ecccc, #0000); width:100%; height:25%; position:absolute` (implicit `top:0`) | h **118.8**           | h **125.09**         | h **68.25**         |
+| `.hero-bot-gradient` | `beachfront.css:6484-6490` | `background-image: linear-gradient(#0000, #129ecccc); width:100%; height:50%; position:absolute; bottom:0`          | y 237.59 h **237.59** | y 250.2 h **250.19** | y 136.5 h **136.5** |
 
 `#129ecccc` computes to `rgba(18, 158, 204, 0.8)` `[probed]` — **0.8 alpha, not
 0.8 lightness**. No `.dark` / `.home` / `.home-blue` modifier
@@ -301,6 +301,7 @@ hero**, no z-index, painting in DOM order above the `<img>`:
 Base `beachfront.css:6008-6016`: `z-index:8; width:100%; line-height:0;
 position:absolute; bottom:0; left:0; overflow:hidden`.
 Page-local overrides in the head `<style>`:
+
 - `.bot-wave { transform: rotate(180deg) }` — `detail-svc.html:20-22`
 - `.bot-wave svg { position:relative; display:block; width: calc(133% + 1.3px); height: 3rem }` — `detail-svc.html:24-29`
 - `.bot-wave .shape-fill { fill:#FFFFFF }` — `detail-svc.html:32-34`
@@ -313,13 +314,13 @@ footer divider, chrome §4.6). Computed wrapper transform is
 `$(".bot-wave").append(' <svg data-name="Layer 1" … viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M321.39,56.44c58-…" class="shape-fill"></path></svg> ')`.
 Webflow ships an **empty** `<div class="bot-wave">` at `detail-svc.html:113`.
 `[probed]` exactly **one** svg child at every width — do not render one in markup
-*and* port the injector.
+_and_ port the injector.
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| wrapper rect `[probed]` | `{0, 355.19, 1440, 120}` | `{0, 404.39, 834, 96}` | `{0, 201, 390, 72}` |
-| svg height (`3rem`) | **120** | **96** | **72** |
-| svg width (`calc(133% + 1.3px)`) | **1916.5** | **1110.52** | **520** |
+|                                           | 1440                            | 834                              | 390                    |
+| ----------------------------------------- | ------------------------------- | -------------------------------- | ---------------------- |
+| wrapper rect `[probed]`                   | `{0, 355.19, 1440, 120}`        | `{0, 404.39, 834, 96}`           | `{0, 201, 390, 72}`    |
+| svg height (`3rem`)                       | **120**                         | **96**                           | **72**                 |
+| svg width (`calc(133% + 1.3px)`)          | **1916.5**                      | **1110.52**                      | **520**                |
 | svg rect after parent rotation `[probed]` | `{−476.5, 355.19, 1916.5, 120}` | `{−276.52, 404.39, 1110.52, 96}` | `{−130, 201, 520, 72}` |
 
 Nine-width svg width `[probed]`: 1916.5 / 1320.66 / 1319.33 / 1110.52 / 1022.73 /
@@ -342,12 +343,12 @@ hero's `.content-width` (`position: relative`, `beachfront.css:5866`), so its
 left edge is that container's **padding-left**, and `bottom: 10%` resolves
 against the **hero's height**.
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| rect `[probed]` | `{80, 347.67, 532.42, 80}` | `{48, 394.36, 285.03, 56}` | `{19.5, 189.7, 268.22, 56}` |
-| `left` (= `.content-width` pad-l) | 60px | 48px | 19.5px |
-| `bottom: 10%` of hero h | **47.52** | **50.03** | **27.30** |
-| container height | **80** | **56** | **56** |
+|                                   | 1440                       | 834                        | 390                         |
+| --------------------------------- | -------------------------- | -------------------------- | --------------------------- |
+| rect `[probed]`                   | `{80, 347.67, 532.42, 80}` | `{48, 394.36, 285.03, 56}` | `{19.5, 189.7, 268.22, 56}` |
+| `left` (= `.content-width` pad-l) | 60px                       | 48px                       | 19.5px                      |
+| `bottom: 10%` of hero h           | **47.52**                  | **50.03**                  | **27.30**                   |
+| container height                  | **80**                     | **56**                     | **56**                      |
 
 Nine-width `bottom` `[probed]`: 47.52 / 32.73 / 59.45 / 50.03 / 46.08 / 53.69 /
 33.59 / 33.52 / 27.30 — it tracks the hero height ladder, so it inherits the
@@ -356,22 +357,22 @@ Nine-width `bottom` `[probed]`: 47.52 / 32.73 / 59.45 / 50.03 / 46.08 / 53.69 /
 ##### `h3.service-page-label` type — a THREE-tier ladder that steps at 992 and 480
 
 `.service-page-label` `beachfront.css:6504-6506`: `color: #fff` — that is the
-*entire* rule. Everything else comes from the `h3` ladder:
+_entire_ rule. Everything else comes from the `h3` ladder:
 base `beachfront.css:2124-2132` (museo-slab / 300 / **40px** / **50px** /
 `margin: 20px 0 10px`), ≤991 `beachfront.css:7863-7866` (**21px / 26px**),
 plus the page-specific ≤479 override `beachfront.css:9267-9269`
-(**`font-size: 20px`** — line-height is *not* re-declared, so it stays 26px).
+(**`font-size: 20px`** — line-height is _not_ re-declared, so it stays 26px).
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| font-family | museo-slab, sans-serif | ← | ← |
-| font-weight | 300 | ← | ← |
-| **font-size / line-height** | **40 / 50** | **21 / 26** | **20 / 26** |
-| colour | `#fff` | ← | ← |
-| letter-spacing / transform | normal / none | ← | ← |
-| margin (each `h3`) | `20px 0 10px` | ← | ← |
-| `.mx-1` on the `/` (`.25rem`) | **10px** | **8px** | **6px** |
-| container height (26/50 + 30) | **80** | **56** | **56** |
+|                               | 1440                   | 834         | 390         |
+| ----------------------------- | ---------------------- | ----------- | ----------- |
+| font-family                   | museo-slab, sans-serif | ←           | ←           |
+| font-weight                   | 300                    | ←           | ←           |
+| **font-size / line-height**   | **40 / 50**            | **21 / 26** | **20 / 26** |
+| colour                        | `#fff`                 | ←           | ←           |
+| letter-spacing / transform    | normal / none          | ←           | ←           |
+| margin (each `h3`)            | `20px 0 10px`          | ←           | ←           |
+| `.mx-1` on the `/` (`.25rem`) | **10px**               | **8px**     | **6px**     |
+| container height (26/50 + 30) | **80**                 | **56**      | **56**      |
 
 Nine-width font-size `[probed]`: **40 / 40 / 21 / 21 / 21 / 21 / 21 / 20 / 20**.
 **At 992 it is still 40px** — the root has stepped to 32 but Webflow's ≤991 rule
@@ -401,15 +402,15 @@ museo-slab; font-size:140px; font-weight:100; line-height:168px`),
 ≤991 `beachfront.css:7858-7861` (**72 / 80**),
 ≤479 `beachfront.css:9012-9016` (**`overflow-wrap: anywhere`; 56 / 70**).
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| font-family / weight | museo-slab, sans-serif / **100** | ← | ← |
-| **font-size / line-height** | **140 / 168** | **72 / 80** | **56 / 70** |
-| colour | `#129ecc` (`--primary`) | ← | ← |
-| letter-spacing / transform / align | normal / none / start | ← | ← |
-| margin | `20px 0 10px` | ← | ← |
-| `overflow-wrap` | normal | normal | **anywhere** |
-| rect `[probed]` | `{80, 495.19, 1280, 168}` | `{48, 520.39, 738, 80}` | `{19.5, 293, 351, 140}` |
+|                                    | 1440                             | 834                     | 390                     |
+| ---------------------------------- | -------------------------------- | ----------------------- | ----------------------- |
+| font-family / weight               | museo-slab, sans-serif / **100** | ←                       | ←                       |
+| **font-size / line-height**        | **140 / 168**                    | **72 / 80**             | **56 / 70**             |
+| colour                             | `#129ecc` (`--primary`)          | ←                       | ←                       |
+| letter-spacing / transform / align | normal / none / start            | ←                       | ←                       |
+| margin                             | `20px 0 10px`                    | ←                       | ←                       |
+| `overflow-wrap`                    | normal                           | normal                  | **anywhere**            |
+| rect `[probed]`                    | `{80, 495.19, 1280, 168}`        | `{48, 520.39, 738, 80}` | `{19.5, 293, 351, 140}` |
 
 Nine-width font-size `[probed]`: **140 / 140 / 72 / 72 / 72 / 72 / 72 / 56 / 56**.
 At **992 it is still 140px / 168px** in a 32px-root viewport. At 390 the title
@@ -459,12 +460,12 @@ rule**, no responsive override (grep: 1 hit).
 responsive override (grep: 1 hit).
 `.su-w-full-mobile` `beachfront.css:8426-8428` (**≤767 only**): `width: 100%`.
 
-| | 1440 | 992 | 991 | 834 | **768** | 767 | 390 |
-|---|---|---|---|---|---|---|---|
-| content column | 1280 | 896 | 895 | 738 | **696** | 644.28 | 351 |
-| **col-1 width `[probed]`** | **422.39** | 295.67 | 295.34 | **243.53** | **229.67** | **644.28** | **351** |
-| **col-2 width `[probed]`** | **844.8** | 591.36 | 590.69 | **487.08** | **459.36** | **644.28** | **351** |
-| layout | 2-up | 2-up | 2-up | 2-up | **2-up** | **1-up (wrapped)** | 1-up |
+|                            | 1440       | 992    | 991    | 834        | **768**    | 767                | 390     |
+| -------------------------- | ---------- | ------ | ------ | ---------- | ---------- | ------------------ | ------- |
+| content column             | 1280       | 896    | 895    | 738        | **696**    | 644.28             | 351     |
+| **col-1 width `[probed]`** | **422.39** | 295.67 | 295.34 | **243.53** | **229.67** | **644.28**         | **351** |
+| **col-2 width `[probed]`** | **844.8**  | 591.36 | 590.69 | **487.08** | **459.36** | **644.28**         | **351** |
+| layout                     | 2-up       | 2-up   | 2-up   | 2-up       | **2-up**   | **1-up (wrapped)** | 1-up    |
 
 **The columns stay side-by-side at 768 and only stack at 767.** A build that
 stacks at `md` (768) collapses the indent one pixel early and, more importantly,
@@ -484,21 +485,21 @@ property.
 **`h5` has no responsive rule of its own** anywhere in the sheet — every step
 comes from `.text-body-large`.
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| font-family / weight | museo-slab, sans-serif / 300 | ← | ← |
-| **font-size / line-height (`1.5em`)** | **30 / 45** | **20 / 30** | **20 / 30** |
-| colour | `#129ecc` (`--primary`) | ← | ← |
-| letter-spacing / transform / align | normal / none / start | ← | ← |
-| **margin-top / margin-bottom** | **20 / 40** | **20 / 40** | **20 / 20** |
-| rect `[probed]` | `{502.39, 693.19, 844.8, 495}` | `{291.53, 630.39, 487.08, 360}` | `{19.5, 463, 351, 510}` |
+|                                       | 1440                           | 834                             | 390                     |
+| ------------------------------------- | ------------------------------ | ------------------------------- | ----------------------- |
+| font-family / weight                  | museo-slab, sans-serif / 300   | ←                               | ←                       |
+| **font-size / line-height (`1.5em`)** | **30 / 45**                    | **20 / 30**                     | **20 / 30**             |
+| colour                                | `#129ecc` (`--primary`)        | ←                               | ←                       |
+| letter-spacing / transform / align    | normal / none / start          | ←                               | ←                       |
+| **margin-top / margin-bottom**        | **20 / 40**                    | **20 / 40**                     | **20 / 20**             |
+| rect `[probed]`                       | `{502.39, 693.19, 844.8, 495}` | `{291.53, 630.39, 487.08, 360}` | `{19.5, 463, 351, 510}` |
 
 Nine-width font-size `[probed]`: **30 / 30 / 20 / 20 / 20 / 20 / 20 / 20 / 20**;
 margin-bottom **40 × 7 then 20 / 20** (≤479 only).
 So this is a **30→20 ladder gated at 991** crossed with a **40→20 margin ladder
 gated at 479** — two different switch points on one element.
 
-Its `margin-top: 20px` is *inside* the flex item (flex items do not collapse), so
+Its `margin-top: 20px` is _inside_ the flex item (flex items do not collapse), so
 it is real 20px of offset from the column top at every width `[probed]`.
 
 ---
@@ -534,7 +535,7 @@ override** (grep: `.mt-6` has 2 hits, the second being
 `.mt-6.su-flex-v-mobile` `beachfront.css:3921-3923`, which does not match).
 
 `margin-top` `[probed, 9 widths]`: **60 / 48 / 48 / 48 / 36 / 36 / 36 / 36 / 36**.
-Three tiers stepping on the **root** ladder at 992 and 768 — *not* on Webflow's
+Three tiers stepping on the **root** ladder at 992 and 768 — _not_ on Webflow's
 991/767.
 
 ##### The rich-text column width — a THREE-VALUE width function
@@ -544,9 +545,9 @@ Three tiers stepping on the **root** ladder at 992 and 768 — *not* on Webflow'
 that does not match).
 `.su-w-full-mobile` `beachfront.css:8426-8428` (**≤767**): `width: 100%`.
 
-| viewport | 1440 | 992 | 991 | 834 | **768** | 767 | 480 | 479 | 390 |
-|---|---|---|---|---|---|---|---|---|---|
-| declared | 80% | 80% | 80% | 80% | **80%** | 100% | 100% | 100% | 100% |
+| viewport             | 1440     | 992       | 991     | 834        | **768**   | 767        | 480        | 479        | 390     |
+| -------------------- | -------- | --------- | ------- | ---------- | --------- | ---------- | ---------- | ---------- | ------- |
+| declared             | 80%      | 80%       | 80%     | 80%        | **80%**   | 100%       | 100%       | 100%       | 100%    |
 | **width `[probed]`** | **1024** | **716.8** | **716** | **590.39** | **556.8** | **644.28** | **403.22** | **431.13** | **351** |
 
 Note the width **increases** from 556.8 at 768 to 644.28 at 767 — the only place
@@ -563,14 +564,14 @@ font-size:20px; font-weight:300; line-height:1.5em` (+ `margin-top: 0` from
 Family is inherited `museo-sans` from `body` (`beachfront.css:2098`); **no
 `museo-slab` in the body copy**.
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| family / weight | museo-sans, sans-serif / 300 | ← | ← |
-| **font-size / line-height (`1.5em`)** | **20 / 30** | **16 / 24** | **12 / 18** |
-| colour | `#365b6d` (`--primary-dark`) | ← | ← |
-| letter-spacing / transform / align | normal / none / start | ← | ← |
-| paragraph margin | `0 0 10px 0` | ← | ← |
-| `strong` weight / size | **700** / same | ← | ← |
+|                                       | 1440                         | 834         | 390         |
+| ------------------------------------- | ---------------------------- | ----------- | ----------- |
+| family / weight                       | museo-sans, sans-serif / 300 | ←           | ←           |
+| **font-size / line-height (`1.5em`)** | **20 / 30**                  | **16 / 24** | **12 / 18** |
+| colour                                | `#365b6d` (`--primary-dark`) | ←           | ←           |
+| letter-spacing / transform / align    | normal / none / start        | ←           | ←           |
+| paragraph margin                      | `0 0 10px 0`                 | ←           | ←           |
+| `strong` weight / size                | **700** / same               | ←           | ←           |
 
 Nine-width `p` font-size `[probed]`: **20 / 20 / 16 / 16 / 16 / 16 / 16 / 12 / 12**.
 At **992 body copy is still 20px** inside a 716.8px column — that is why the page
@@ -587,20 +588,20 @@ Children 3 and 6 are `<p>` containing a single **U+200D ZERO WIDTH JOINER**
 (verified byte-level in `detail-svc.html:113`). They render as full-height empty
 line boxes:
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
+|                                                       | 1440     | 834      | 390      |
+| ----------------------------------------------------- | -------- | -------- | -------- |
 | each empty `<p>` (line-height + `margin-bottom:10px`) | **40px** | **34px** | **28px** |
-| both together | **80px** | **68px** | **56px** |
+| both together                                         | **80px** | **68px** | **56px** |
 
 A rich-text pipeline that drops empty paragraphs loses **80 / 68 / 56px** of
 column height and pulls the pill, the CTA band and the footer up by that much.
 
 ##### Measured heights (the reflow curve — use it to sanity-check width errors)
 
-| viewport | 1440 | 992 | 991 | 834 | 768 | 767 | 480 | 479 | 390 |
-|---|---|---|---|---|---|---|---|---|---|
-| column width | 1024 | 716.8 | 716 | 590.39 | 556.8 | 644.28 | 403.22 | 431.13 | 351 |
-| p font-size | 20 | 20 | 16 | 16 | 16 | 16 | 16 | 12 | 12 |
+| viewport                       | 1440    | 992      | 991     | 834     | 768      | 767     | 480      | 479     | 390     |
+| ------------------------------ | ------- | -------- | ------- | ------- | -------- | ------- | -------- | ------- | ------- |
+| column width                   | 1024    | 716.8    | 716     | 590.39  | 556.8    | 644.28  | 403.22   | 431.13  | 351     |
+| p font-size                    | 20      | 20       | 16      | 16      | 16       | 16      | 16       | 12      | 12      |
 | **richtext height `[probed]`** | **900** | **1200** | **828** | **948** | **1020** | **900** | **1332** | **744** | **888** |
 
 At a fixed 16px, height is ~inversely linear in width: 716→828, 644.28→900,
@@ -646,13 +647,13 @@ The pill is `.button.text-color-primary-dark` — **fully spec'd in chrome §6**
 `:8049-8052` ≤991 padding back to `1.3em`, `:8632-8634` ≤767 `font-size:15px`,
 `:8636-8638` ≤767 **`margin-bottom: 60px`**, `:9173-9175` ≤479 `font-size:14px`).
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| pill rect `[probed]` | `{578.44, 2268.19, 283.11, 66}` | `{303.55, 2090.39, 226.89, 54}` | `{115.28, 1965, 159.42, 38.38}` |
-| font-size / padding | 25 / `32px 25px` | 20 / `26px 20px` | 14 / `18.2px 14px` |
-| border / radius | `1px solid #365b6d` / `8px` | ← | ← |
-| **pill `margin-bottom`** | **0** | **0** | **60px** (≤767, `beachfront.css:8636`) |
-| **row height** | **66** | **54** | **98.38** |
+|                          | 1440                            | 834                             | 390                                    |
+| ------------------------ | ------------------------------- | ------------------------------- | -------------------------------------- |
+| pill rect `[probed]`     | `{578.44, 2268.19, 283.11, 66}` | `{303.55, 2090.39, 226.89, 54}` | `{115.28, 1965, 159.42, 38.38}`        |
+| font-size / padding      | 25 / `32px 25px`                | 20 / `26px 20px`                | 14 / `18.2px 14px`                     |
+| border / radius          | `1px solid #365b6d` / `8px`     | ←                               | ←                                      |
+| **pill `margin-bottom`** | **0**                           | **0**                           | **60px** (≤767, `beachfront.css:8636`) |
+| **row height**           | **66**                          | **54**                          | **98.38**                              |
 
 Nine-width row height `[probed]`: 66 / 66 / 54 / 54 / 54 / 101 / 101 / 98.38 /
 98.38. **The 60px only exists ≤767, and because the pill is a flex item its
@@ -680,26 +681,27 @@ not.
 Neither `.service-page-title-subtitle-section` nor `.service-page-body-section`
 has a single CSS rule (§B.0). Every gap on this page is a **collapsed margin**:
 
-| gap @1440 | px | where it comes from | source |
-|---|---|---|---|
-| hero bottom → title section top | **20** | `h2 { margin-top: 20px }` collapsed out through `.content-width` and the section | `beachfront.css:2106` |
+| gap @1440                               | px     | where it comes from                                                                          | source                                        |
+| --------------------------------------- | ------ | -------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| hero bottom → title section top         | **20** | `h2 { margin-top: 20px }` collapsed out through `.content-width` and the section             | `beachfront.css:2106`                         |
 | title section bottom → body section top | **60** | `max(h5's margin-bottom 40, .mt-6's 1.5rem = 60)` — adjoining margins collapse to the larger | `beachfront.css:7761` + `beachfront.css:3918` |
-| rich text bottom → pill row top | **80** | `.my-8`'s `margin-top: 2rem` vs the last `<p>`'s 10px — collapses to 80 | `beachfront.css:3840` |
-| pill row bottom → footer top | **80** | `.my-8`'s `margin-bottom: 2rem` collapsed out of the section | `beachfront.css:3841` |
+| rich text bottom → pill row top         | **80** | `.my-8`'s `margin-top: 2rem` vs the last `<p>`'s 10px — collapses to 80                      | `beachfront.css:3840`                         |
+| pill row bottom → footer top            | **80** | `.my-8`'s `margin-bottom: 2rem` collapsed out of the section                                 | `beachfront.css:3841`                         |
 
 Resolved at the gate matrix, all `[probed]`:
 
-| gap | 1440 | 992 | 834 | **768** | 390 |
-|---|---|---|---|---|---|
-| hero → title | 20 | 20 | 20 | 20 | 20 |
-| title → body | **60** | **48** | **48** | **36** | **36** |
-| body → pill | **80** | **64** | **64** | **48** | **48** |
-| pill → footer | **80** | **64** | **64** | **48** | **48** (+60 *inside* the row) |
+| gap           | 1440   | 992    | 834    | **768** | 390                           |
+| ------------- | ------ | ------ | ------ | ------- | ----------------------------- |
+| hero → title  | 20     | 20     | 20     | 20      | 20                            |
+| title → body  | **60** | **48** | **48** | **36**  | **36**                        |
+| body → pill   | **80** | **64** | **64** | **48**  | **48**                        |
+| pill → footer | **80** | **64** | **64** | **48**  | **48** (+60 _inside_ the row) |
 
 Consequences of getting the box wrong:
+
 - Express **title → body** as `padding-top` on `.service-page-body-section` and
   the 40px `margin-bottom` of the lede stops collapsing → the gap becomes
-  **100 / 88 / 76** instead of 60 / 48 / 36, *and* 60px moves from R0 into R1.
+  **100 / 88 / 76** instead of 60 / 48 / 36, _and_ 60px moves from R0 into R1.
 - Express **pill → footer** as `padding-bottom` and it stops collapsing out of
   the section: R2 grows by 80/64/48px and the CTA band's y is unchanged only by
   accident.
@@ -720,9 +722,9 @@ de-duplicating visual children of a single control).
 
 **Unique to this page (1)**
 
-| # | element | behaviour | source |
-|---|---|---|---|
-| 1 | `a.button.text-color-primary-dark.w-button[data-w-id=fdaf2531-…]` "Back to All Services" → `/services` | navigate; hover → `background-color: rgba(18,158,204,0.29)`, **opacity pinned at 1** by the IX2 inline style (§B.6) | `detail-svc.html:113`; `beachfront.css:6042-6045` (`:hover`), `:6039` (transition `.2s` opacity + `.2s cubic-bezier(.215,.61,.355,1)` bg) |
+| #   | element                                                                                                | behaviour                                                                                                           | source                                                                                                                                    |
+| --- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `a.button.text-color-primary-dark.w-button[data-w-id=fdaf2531-…]` "Back to All Services" → `/services` | navigate; hover → `background-color: rgba(18,158,204,0.29)`, **opacity pinned at 1** by the IX2 inline style (§B.6) | `detail-svc.html:113`; `beachfront.css:6042-6045` (`:hover`), `:6039` (transition `.2s` opacity + `.2s cubic-bezier(.215,.61,.355,1)` bg) |
 
 **Shared chrome present in this page's DOM (24)** — behaviour spec'd in
 
@@ -740,23 +742,24 @@ de-duplicating visual children of a single control).
 
 `_chrome.md`; listed so the Phase-5 count is fixed.
 
-| # | element | ref |
-|---|---|---|
-| 2 | `a.link-block-5` header logo → `/` | chrome §3.1 |
-| 3 | `a.link-block-4` + `img.header-hamburger[data-w-id=d74a87ea-…]` — open panel (IX2 `e-9` → `a-4`) | chrome §3.4 |
-| 4 | `img.header-hamburger[data-w-id=8dfa6638-…]` inside `.dropdown-modal` — close panel (IX2 `e-7` → `a-3`) | chrome §3.4 |
-| 5–11 | 7 × `a.no-text-dec > h3.modal-link` (Home Page · First Visit · Meet Our Team · **Services** `w--current` · Ask the Doctor · Contact · (310) 378-9241) | chrome §3.5 |
-| 12 | panel `a.button.show-form.nav[data-w-id=6eca16bd-…]` "Book an Appointment" (IX2 `e-307` → `a-5` + jQuery `detail-svc.html:135`) — **no-op on this page, no `.form-modal` exists** (§B.0) | chrome §3.6 |
-| 13 | panel `a.button.nav` "Make a Payment" → `app.modento.io/beachfront-dentistry` | chrome §3.1 |
-| 14 | CTA `a.button.show-form[data-w-id=1273e294-…4f60]` "Book Appointment" (IX2 `e-17` → `a-5`) — **no-op, same reason** | chrome §4.3 |
-| 15 | `div.block-link.social-link-block[data-w-id=9daf7a34-…]` "Read Reviews" toggle (IX2 `e-211`→`a-8`, `e-212`→`a-9`, plus jQuery `$('.social-link-block').click(toggle)` at `detail-svc.html:149`, `toggle` defined in `matching/spec/incidental-utils.js`) | chrome §4.4 |
-| 16–18 | 3 × `a._w-8.clickable.su-w-6-portrait` — Google Maps reviews · Facebook · Yelp | chrome §4.4 |
-| 19–22 | 4 × footer `a.inline-link` (Your First Visit · Our Team · **Services** `w--current` · Ask the Doctor) | chrome §5.3 |
-| 23 | footer `a.button[data-w-id=b1ce8885-…]` "Make a Payment" (IX2 `e-303` → `a-5`) | chrome §5.3 |
-| 24 | footer `a.inline-link[href="tel:(310)-378-9241"]` | chrome §5.5 |
-| 25 | `.footer-map.w-widget.w-widget-map` Google Maps widget (pan / zoom / fullscreen / Street View — third-party, counted once) | chrome §5.7 |
+| #     | element                                                                                                                                                                                                                                                  | ref         |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| 2     | `a.link-block-5` header logo → `/`                                                                                                                                                                                                                       | chrome §3.1 |
+| 3     | `a.link-block-4` + `img.header-hamburger[data-w-id=d74a87ea-…]` — open panel (IX2 `e-9` → `a-4`)                                                                                                                                                         | chrome §3.4 |
+| 4     | `img.header-hamburger[data-w-id=8dfa6638-…]` inside `.dropdown-modal` — close panel (IX2 `e-7` → `a-3`)                                                                                                                                                  | chrome §3.4 |
+| 5–11  | 7 × `a.no-text-dec > h3.modal-link` (Home Page · First Visit · Meet Our Team · **Services** `w--current` · Ask the Doctor · Contact · (310) 378-9241)                                                                                                    | chrome §3.5 |
+| 12    | panel `a.button.show-form.nav[data-w-id=6eca16bd-…]` "Book an Appointment" (IX2 `e-307` → `a-5` + jQuery `detail-svc.html:135`) — **no-op on this page, no `.form-modal` exists** (§B.0)                                                                 | chrome §3.6 |
+| 13    | panel `a.button.nav` "Make a Payment" → `app.modento.io/beachfront-dentistry`                                                                                                                                                                            | chrome §3.1 |
+| 14    | CTA `a.button.show-form[data-w-id=1273e294-…4f60]` "Book Appointment" (IX2 `e-17` → `a-5`) — **no-op, same reason**                                                                                                                                      | chrome §4.3 |
+| 15    | `div.block-link.social-link-block[data-w-id=9daf7a34-…]` "Read Reviews" toggle (IX2 `e-211`→`a-8`, `e-212`→`a-9`, plus jQuery `$('.social-link-block').click(toggle)` at `detail-svc.html:149`, `toggle` defined in `matching/spec/incidental-utils.js`) | chrome §4.4 |
+| 16–18 | 3 × `a._w-8.clickable.su-w-6-portrait` — Google Maps reviews · Facebook · Yelp                                                                                                                                                                           | chrome §4.4 |
+| 19–22 | 4 × footer `a.inline-link` (Your First Visit · Our Team · **Services** `w--current` · Ask the Doctor)                                                                                                                                                    | chrome §5.3 |
+| 23    | footer `a.button[data-w-id=b1ce8885-…]` "Make a Payment" (IX2 `e-303` → `a-5`)                                                                                                                                                                           | chrome §5.3 |
+| 24    | footer `a.inline-link[href="tel:(310)-378-9241"]`                                                                                                                                                                                                        | chrome §5.5 |
+| 25    | `.footer-map.w-widget.w-widget-map` Google Maps widget (pan / zoom / fullscreen / Street View — third-party, counted once)                                                                                                                               | chrome §5.7 |
 
 **Explicitly NOT counted** (not elements, or not actuatable):
+
 - The **portrait `alert()`** at `detail-svc.html:138-140`, re-armed on
   `window:resize` at `:142-146` — fires when
   `innerWidth < 792 && innerHeight < innerWidth`. A native dialog, not a DOM
@@ -794,10 +797,10 @@ page).
 **Elements on this page carrying `data-w-id`: 12** `[probed]` — **2 are
 page-unique**:
 
-| `data-w-id` | element | event | type | action list |
-|---|---|---|---|---|
-| `c413430e-997e-a422-b45f-0c6440cb98e9` | `div.content-width.mt-6` (the whole rich-text block) | `e-147` | `SCROLL_INTO_VIEW` | `a-7` |
-| `fdaf2531-298e-9f20-187e-3c39f84fa21e` | `a.button` "Back to All Services" | `e-197` | `SCROLL_INTO_VIEW` | `a-7` |
+| `data-w-id`                            | element                                              | event   | type               | action list |
+| -------------------------------------- | ---------------------------------------------------- | ------- | ------------------ | ----------- |
+| `c413430e-997e-a422-b45f-0c6440cb98e9` | `div.content-width.mt-6` (the whole rich-text block) | `e-147` | `SCROLL_INTO_VIEW` | `a-7`       |
+| `fdaf2531-298e-9f20-187e-3c39f84fa21e` | `a.button` "Back to All Services"                    | `e-197` | `SCROLL_INTO_VIEW` | `a-7`       |
 
 The other 10 are chrome: `d74a87ea` (`e-9`→`a-4`, open nav), `8dfa6638`
 (`e-7`→`a-3`, close nav), `6eca16bd` (`e-307`→`a-5`), `1273e294-…4f5b/4f5f/4f60/
@@ -828,9 +831,9 @@ replays or reverses** on scroll-out.
 > **The travel distance is itself a three-tier rem value.** `yUnit: "rem"` with
 > `yValue: 4` resolves against the live root font at animation time:
 
-| | 1440 | 992 | 991 | 834 | 768 | 390 |
-|---|---|---|---|---|---|---|
-| root | 40px | 32px | 32px | 32px | 24px | 24px |
+|                     | 1440      | 992       | 991       | 834       | 768      | 390      |
+| ------------------- | --------- | --------- | --------- | --------- | -------- | -------- |
+| root                | 40px      | 32px      | 32px      | 32px      | 24px     | 24px     |
 | **travel (`4rem`)** | **160px** | **128px** | **128px** | **128px** | **96px** | **96px** |
 
 Duration **2000ms**, easing **outExpo** = `cubic-bezier(0.19, 1, 0.22, 1)`, at
@@ -839,10 +842,12 @@ applies it instantly as the pre-paint inline style.
 
 Authored initial inline style (present in the shipped HTML, `detail-svc.html:113`,
 on **both** elements):
+
 ```
 -webkit-transform:translate3d(0, 4rem, 0) scale3d(1,1,1) rotateX(0) rotateY(0) rotateZ(0) skew(0,0);
 … transform:translate3d(0, 4rem, 0) …; opacity:0
 ```
+
 Settled state `[probed, 1440/834/390]`:
 `transform: matrix(1, 0, 0, 1, 0, 0)`, `opacity: 1`, and the inline style is
 rewritten to `translate3d(0px, 0rem, 0px) …; opacity: 1; transform-style:
@@ -857,6 +862,7 @@ and the lede do NOT reveal** — a rebuild that animates the whole detail templa
 uniformly is wrong for the top half of the page.
 
 **CSS transitions in play (page-unique):**
+
 - `.button { transition: opacity .2s, background-color .2s cubic-bezier(.215,.61,.355,1) }` `beachfront.css:6039`
 - `a { transition: opacity .2s }` `beachfront.css:2174-2179`
 
@@ -904,10 +910,10 @@ Our build (`+page.svelte:64` and `:88`): `mt-14 lg:mt-[100px]` (= 56 / 100) and
 `mt-[86px] pb-[108px] lg:mt-[130px] lg:pb-[80px]`.
 Resolved error, per width:
 
-| | 1440 | 992 | 834 | 768 | 390 |
-|---|---|---|---|---|---|
-| body top: live / ours | 60 / **100** | 48 / **100** | 48 / **56** | 36 / **56** | 36 / **56** |
-| pill top: live / ours | 80 / **130** | 64 / **130** | 64 / **86** | 48 / **86** | 48 / **86** |
+|                          | 1440                           | 992          | 834          | 768          | 390             |
+| ------------------------ | ------------------------------ | ------------ | ------------ | ------------ | --------------- |
+| body top: live / ours    | 60 / **100**                   | 48 / **100** | 48 / **56**  | 36 / **56**  | 36 / **56**     |
+| pill top: live / ours    | 80 / **130**                   | 64 / **130** | 64 / **86**  | 48 / **86**  | 48 / **86**     |
 | pill bottom: live / ours | 80 (margin) / **80 (padding)** | 64 / **108** | 64 / **108** | 48 / **108** | 48+60 / **108** |
 
 Every cell is wrong except one, and the `pb-[108px]` is the fingerprint of a
@@ -947,7 +953,7 @@ size comes from `h3` base `beachfront.css:2124-2132` (**40 / 50**), ≤991
 items their `20px/10px` margins (`beachfront.css:2126-2127`) do not collapse, so
 `.service-label-container` is **80 / 56 / 56** tall. A two-tier ladder keyed at
 768 renders a 40px breadcrumb in an 80px box across all of 768–991, where live
-renders 21px in a 56px box. The separator's `.mx-1` is a *rem* (`.25rem`,
+renders 21px in a 56px box. The separator's `.mx-1` is a _rem_ (`.25rem`,
 `beachfront.css:3854-3857`) → **10 / 8 / 6** — a fourth switch point.
 
 **E6 — the lede columns stack at 767, not at 768, and the indent is an EMPTY
@@ -1007,7 +1013,7 @@ over `beachfront.css:6008-6016` (`z-index:8; bottom:0; overflow:hidden`). Height
 **120 / 96 / 72**, width **1916.5 / 1110.52 / 520**, svg x **−476.5 / −276.52 /
 −130** `[probed]`. Rotating the svg instead of the wrapper mirrors the crest to
 the wrong side; the svg is **injected** at `detail-svc.html:123`, so shipping it
-in markup *and* porting the injector renders two waves.
+in markup _and_ porting the injector renders two waves.
 
 **E13 — `.content-width`'s pad-x takes four values between 768 and 1440, and our
 section uses Tailwind's.** Live `[probed]`: 60 (1440) / 48 (992) / 48 (991) /
@@ -1016,7 +1022,7 @@ section uses Tailwind's.** Live `[probed]`: 60 (1440) / 48 (992) / 48 (991) /
 `px-5 md:px-12 lg:px-20` (`+page.svelte:64`, `:88`) gives 20 / 48 / 80 and
 matches live only at 834 and (coincidentally) at 1440. At 768 it is 48 vs 36; at
 767 it is 48 vs 61.36; at 390 it is 20 vs 19.5. Since the rich-text column is a
-*percentage of this box* (E1), every pad-x error is also a column-width error.
+_percentage of this box_ (E1), every pad-x error is also a column-width error.
 
 ---
 
@@ -1051,5 +1057,5 @@ into a fix, and never cited as though they were a rule (repo CLAUDE.md
 rule 1).
 
 13. `svc.md:13` — shrink-to-fit text reflow) are tagged `[probed-only]` / `[probed]` and are the
-152. `svc.md:152` — | IX2 `a-7` travel `4rem` | `[probed-only]`, §D | **160px** | **128px** | **96px** |
-774. `svc.md:774` — plus the page's own jQuery. `[probed-only]` — IX2 data ships inside the Webflow
+14. `svc.md:152` — | IX2 `a-7` travel `4rem` | `[probed-only]`, §D | **160px** | **128px** | **96px** |
+15. `svc.md:774` — plus the page's own jQuery. `[probed-only]` — IX2 data ships inside the Webflow

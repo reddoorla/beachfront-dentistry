@@ -29,8 +29,10 @@ const LIVE_SEL = {
 
 const CAND_SEL = {
   hero: 'section[data-slice-type="hero"]',
-  heroTopGrad: 'section[data-slice-type="hero"] > div[aria-hidden="true"]:nth-of-type(1)',
-  heroBotGrad: 'section[data-slice-type="hero"] > div[aria-hidden="true"]:nth-of-type(2)',
+  heroTopGrad:
+    'section[data-slice-type="hero"] > div[aria-hidden="true"]:nth-of-type(1)',
+  heroBotGrad:
+    'section[data-slice-type="hero"] > div[aria-hidden="true"]:nth-of-type(2)',
   heading: 'section[data-slice-type="hero"] h2',
   heroWave: 'section[data-slice-type="hero"] > div:last-child',
   heroWaveSvg: 'section[data-slice-type="hero"] svg',
@@ -97,7 +99,10 @@ const describe = (sels) => {
         left: cs.left,
         display: cs.display,
         fill: cs.fill,
-        txt: (el.innerText || el.textContent || "").replace(/\s+/g, " ").trim().slice(0, 60),
+        txt: (el.innerText || el.textContent || "")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 60),
       };
     });
   }

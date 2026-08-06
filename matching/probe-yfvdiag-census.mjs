@@ -59,7 +59,9 @@ const census = () => {
 
 const headings = () => {
   const out = [];
-  for (const el of document.querySelectorAll("h1,h2,h3,h4,h5,h6,a.button,a[class*=button],button")) {
+  for (const el of document.querySelectorAll(
+    "h1,h2,h3,h4,h5,h6,a.button,a[class*=button],button",
+  )) {
     const r = el.getBoundingClientRect();
     if (r.height === 0) continue;
     const t = (el.textContent || "").replace(/\s+/g, " ").trim();

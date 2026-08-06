@@ -67,7 +67,10 @@ try {
               h: n(r.height),
               x: n(r.x),
               w: n(r.width),
-              txt: (c.textContent || "").replace(/\s+/g, " ").trim().slice(0, 55),
+              txt: (c.textContent || "")
+                .replace(/\s+/g, " ")
+                .trim()
+                .slice(0, 55),
             });
             if (depth < 1) walk(c, depth + 1);
           }

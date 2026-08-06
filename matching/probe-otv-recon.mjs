@@ -21,7 +21,13 @@ const recon = () => {
       const t = c.tagName.toLowerCase();
       if (["script", "style", "noscript"].includes(t)) continue;
       const r = c.getBoundingClientRect();
-      if (t === "section" || t === "main" || t === "footer" || t === "header" || depth < 1) {
+      if (
+        t === "section" ||
+        t === "main" ||
+        t === "footer" ||
+        t === "header" ||
+        depth < 1
+      ) {
         out.push({
           depth,
           tag: t,
@@ -41,8 +47,14 @@ const recon = () => {
 const browser = await chromium.launch();
 try {
   const res = {};
-  for (const [name, url] of [["live", LIVE], ["cand", CAND]]) {
-    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
+  for (const [name, url] of [
+    ["live", LIVE],
+    ["cand", CAND],
+  ]) {
+    const ctx = await browser.newContext({
+      viewport: { width: 1440, height: 900 },
+      deviceScaleFactor: 1,
+    });
     const page = await ctx.newPage();
     await page.goto(url, { waitUntil: "load", timeout: 90000 });
     await page.waitForTimeout(1500);

@@ -41,7 +41,10 @@ for (const p of PAGES) {
   }
   const prev = PREV ? load(PREV, p) : null;
   const pm = new Map(
-    (prev?.regions ?? []).map((g) => [g.viewport + "|" + g.label, g.mismatchFraction]),
+    (prev?.regions ?? []).map((g) => [
+      g.viewport + "|" + g.label,
+      g.mismatchFraction,
+    ]),
   );
   const fails = r.regions.filter((g) => !g.pass);
   tot += r.regions.length;
@@ -60,7 +63,9 @@ for (const p of PAGES) {
       (r.meta.truncated ? "  **TRUNCATED**" : "") +
       (r.meta.mask?.length ? `  masks=${JSON.stringify(r.meta.mask)}` : ""),
   );
-  for (const g of fails.sort((a, b) => b.mismatchFraction - a.mismatchFraction)) {
+  for (const g of fails.sort(
+    (a, b) => b.mismatchFraction - a.mismatchFraction,
+  )) {
     const o = pm.get(g.viewport + "|" + g.label);
     let d = "";
     if (o !== undefined) {

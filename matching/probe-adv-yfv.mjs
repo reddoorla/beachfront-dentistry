@@ -25,7 +25,8 @@ const SEL = {
     "tour.slide1img": ".fv-virtual-tour-section .w-slide img",
     "tour.hours": ".fv-virtual-tour-section .footer-contact-block",
     "tour.hoursHdr": ".fv-virtual-tour-section .footer-contact-header",
-    "tour.hoursRow": ".fv-virtual-tour-section .footer-contact-block .text-body",
+    "tour.hoursRow":
+      ".fv-virtual-tour-section .footer-contact-block .text-body",
     "tour.hflex": ".fv-virtual-tour-section .w-layout-hflex",
     "meet.section": ".fv-meet-our-team-section",
     "meet.h2": ".fv-meet-our-team-section h2",
@@ -57,7 +58,8 @@ const SEL = {
     "cta.h2": ".fiji-section h2",
   },
   cand: {
-    "hero.section": "[data-slice-type='hero'] section, section[data-slice-type='hero']",
+    "hero.section":
+      "[data-slice-type='hero'] section, section[data-slice-type='hero']",
     "hero.h1": "main h1",
     "toc.section": ".fv-toc-section",
     "toc.intro": ".fv-toc-section p",
@@ -83,7 +85,12 @@ function styleOf(el) {
   const r = el.getBoundingClientRect();
   return {
     tag: el.tagName,
-    cls: (el.className && el.className.baseVal !== undefined ? el.className.baseVal : el.className || "").toString().slice(0, 180),
+    cls: (el.className && el.className.baseVal !== undefined
+      ? el.className.baseVal
+      : el.className || ""
+    )
+      .toString()
+      .slice(0, 180),
     x: Math.round(r.x),
     y: Math.round(r.y + window.scrollY),
     w: Math.round(r.width * 10) / 10,

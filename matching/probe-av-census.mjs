@@ -42,10 +42,15 @@ const grab = () => {
       pos: s.position,
     };
   };
-  const out = { root: getComputedStyle(document.documentElement).fontSize, h: document.documentElement.scrollHeight };
+  const out = {
+    root: getComputedStyle(document.documentElement).fontSize,
+    h: document.documentElement.scrollHeight,
+  };
   // sections
   out.sections = [];
-  const roots = document.querySelectorAll("body > *, main > *, main > * > section, body div.page-wrapper > *");
+  const roots = document.querySelectorAll(
+    "body > *, main > *, main > * > section, body div.page-wrapper > *",
+  );
   const seen = new Set();
   document.querySelectorAll("section, footer, header").forEach((el) => {
     if (seen.has(el)) return;
@@ -55,7 +60,10 @@ const grab = () => {
     const s = getComputedStyle(el);
     out.sections.push({
       tag: el.tagName.toLowerCase(),
-      cls: el.className && el.className.toString ? el.className.toString().slice(0, 90) : "",
+      cls:
+        el.className && el.className.toString
+          ? el.className.toString().slice(0, 90)
+          : "",
       ...r,
       pad: `${s.paddingTop}/${s.paddingRight}/${s.paddingBottom}/${s.paddingLeft}`,
       mar: `${s.marginTop}/${s.marginRight}/${s.marginBottom}/${s.marginLeft}`,
@@ -72,7 +80,13 @@ const grab = () => {
     if (r.y < -1000) return;
     // only leaf-ish
     if (el.querySelector("h1,h2,h3,h4,h5,h6,p,li")) return;
-    out.text.push({ tag: el.tagName.toLowerCase(), cls: (el.className || "").toString().slice(0, 60), t: t.slice(0, 80), ...r, ...cs(el) });
+    out.text.push({
+      tag: el.tagName.toLowerCase(),
+      cls: (el.className || "").toString().slice(0, 60),
+      t: t.slice(0, 80),
+      ...r,
+      ...cs(el),
+    });
   });
   out.text.sort((a, b) => a.y - b.y || a.x - b.x);
   // images
@@ -80,8 +94,16 @@ const grab = () => {
   document.querySelectorAll("img, svg, video, iframe").forEach((el) => {
     const r = abs(el);
     if (r.w === 0 && r.h === 0) return;
-    const src = (el.getAttribute("src") || el.getAttribute("data-src") || "").split("/").pop().slice(0, 60);
-    out.imgs.push({ tag: el.tagName.toLowerCase(), cls: (el.className.baseVal ?? el.className ?? "").toString().slice(0, 50), src, ...r });
+    const src = (el.getAttribute("src") || el.getAttribute("data-src") || "")
+      .split("/")
+      .pop()
+      .slice(0, 60);
+    out.imgs.push({
+      tag: el.tagName.toLowerCase(),
+      cls: (el.className.baseVal ?? el.className ?? "").toString().slice(0, 50),
+      src,
+      ...r,
+    });
   });
   out.imgs.sort((a, b) => a.y - b.y || a.x - b.x);
   return out;
@@ -94,7 +116,9 @@ try {
     ["live", LIVE],
     ["cand", CAND],
   ]) {
-    const ctx = await browser.newContext({ viewport: { width: W, height: 900 } });
+    const ctx = await browser.newContext({
+      viewport: { width: W, height: 900 },
+    });
     const page = await ctx.newPage();
     await page.goto(url, { waitUntil: "networkidle", timeout: 90000 });
     await page.waitForTimeout(600);
@@ -102,11 +126,27 @@ try {
     res[name] = await page.evaluate(grab);
     await ctx.close();
   }
-  fs.writeFileSync(`matching/av-census-${W}.json`, JSON.stringify(res, null, 1));
-  console.log("wrote", `matching/av-census-${W}.json`, "live h", res.live.h, "cand h", res.cand.h, "roots", res.live.root, res.cand.root);
+  fs.writeFileSync(
+    `matching/av-census-${W}.json`,
+    JSON.stringify(res, null, 1),
+  );
+  console.log(
+    "wrote",
+    `matching/av-census-${W}.json`,
+    "live h",
+    res.live.h,
+    "cand h",
+    res.cand.h,
+    "roots",
+    res.live.root,
+    res.cand.root,
+  );
   for (const n of ["live", "cand"]) {
     console.log(`\n== ${n} SECTIONS ==`);
-    for (const s of res[n].sections) console.log(`${s.y}\t${s.h}\t${s.x},${s.w}\t${s.tag}.${s.cls}\tpad=${s.pad}\tmar=${s.mar}`);
+    for (const s of res[n].sections)
+      console.log(
+        `${s.y}\t${s.h}\t${s.x},${s.w}\t${s.tag}.${s.cls}\tpad=${s.pad}\tmar=${s.mar}`,
+      );
   }
 } finally {
   await browser.close();

@@ -27,7 +27,8 @@ const census = () => {
   const walk = (el, depth) => {
     for (const c of el.children) {
       const tag = c.tagName.toLowerCase();
-      if (["script", "style", "noscript", "link", "meta"].includes(tag)) continue;
+      if (["script", "style", "noscript", "link", "meta"].includes(tag))
+        continue;
       const r = c.getBoundingClientRect();
       const sy = window.scrollY;
       const cs = getComputedStyle(c);
@@ -72,7 +73,9 @@ try {
         deviceScaleFactor: 1,
       });
       const page = await ctx.newPage();
-      await page.goto(url, { waitUntil: "networkidle", timeout: 60000 }).catch(() => {});
+      await page
+        .goto(url, { waitUntil: "networkidle", timeout: 60000 })
+        .catch(() => {});
       await page.waitForTimeout(1500);
       await settle(page);
       result[name][vp] = await page.evaluate(census);

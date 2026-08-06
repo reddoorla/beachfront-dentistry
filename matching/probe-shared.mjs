@@ -31,9 +31,9 @@ const read = async (p) =>
       out.wave1 = `h=${px(r.height)} y=${px(r.top + scrollY)}`;
     }
     // top/bottom gradient heights
-    const grads = [...document.querySelectorAll("div[aria-hidden='true']")].filter(
-      (e) => /gradient/.test(getComputedStyle(e).backgroundImage),
-    );
+    const grads = [
+      ...document.querySelectorAll("div[aria-hidden='true']"),
+    ].filter((e) => /gradient/.test(getComputedStyle(e).backgroundImage));
     if (grads.length)
       out.grads = grads
         .slice(0, 2)
@@ -74,7 +74,8 @@ try {
       }
       console.log(`\n--- ${tag} @${vw}`);
       for (const [side, o] of row)
-        for (const k of Object.keys(o)) console.log(`   ${side} ${k.padEnd(6)} ${o[k]}`);
+        for (const k of Object.keys(o))
+          console.log(`   ${side} ${k.padEnd(6)} ${o[k]}`);
     }
   }
 } finally {

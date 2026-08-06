@@ -43,7 +43,12 @@ for (const dir of readdirSync(ROOT).filter((d) => d.startsWith("out-"))) {
     continue; // not a completed run dir
   }
   if (!report.meta?.ref || !Array.isArray(report.regions)) continue;
-  runs.push({ dir, at: report.meta.generatedAt, meta: report.meta, regions: report.regions });
+  runs.push({
+    dir,
+    at: report.meta.generatedAt,
+    meta: report.meta,
+    regions: report.regions,
+  });
 }
 runs.sort((a, b) => a.at.localeCompare(b.at));
 
@@ -65,7 +70,10 @@ for (const run of runs) {
       dh: r.heightDeltaFraction,
       pass: r.pass,
       // a run with masks/neutralised media is not comparable to a clean one
-      dirty: (run.meta.mask?.length ?? 0) > 0 || run.meta.neutralizeMedia || run.meta.maskPhotos,
+      dirty:
+        (run.meta.mask?.length ?? 0) > 0 ||
+        run.meta.neutralizeMedia ||
+        run.meta.maskPhotos,
     });
   }
 }
@@ -101,7 +109,8 @@ stuck.sort((a, b) => b.last.mm - a.last.mm);
 if (stuck.length === 0) {
   console.log(
     `strikes: clear — no failing region has stalled for ${MAX_STRIKES}+ gate runs` +
-      (only ? ` on ${only}` : "") + ".",
+      (only ? ` on ${only}` : "") +
+      ".",
   );
   process.exit(0);
 }
@@ -109,7 +118,8 @@ if (stuck.length === 0) {
 const why = (e) => {
   const reasons = [];
   if (e.mm > 0.1) reasons.push(`pixels ${(e.mm * 100).toFixed(1)}%`);
-  if (Math.abs(e.dh ?? 0) > 0.05) reasons.push(`height ${((e.dh ?? 0) * 100).toFixed(1)}%`);
+  if (Math.abs(e.dh ?? 0) > 0.05)
+    reasons.push(`height ${((e.dh ?? 0) * 100).toFixed(1)}%`);
   return reasons.join(" + ") || "marginal";
 };
 
@@ -119,13 +129,19 @@ console.log(
 );
 for (const { key, strikes, h, sinceIdx, last } of stuck.slice(0, 20)) {
   const [page, vw, label] = key.split("|");
-  console.log(`${page} @${vw}  "${label}"  — ${why(last)}, flat across ${strikes} runs`);
+  console.log(
+    `${page} @${vw}  "${label}"  — ${why(last)}, flat across ${strikes} runs`,
+  );
   const window = h.slice(Math.max(0, sinceIdx));
   const shown = window.length > 4 ? [window[0], ...window.slice(-3)] : window;
   for (const [i, e] of shown.entries()) {
-    const gap = window.length > 4 && i === 1 ? `    ... ${window.length - 4} more ...\n` : "";
+    const gap =
+      window.length > 4 && i === 1
+        ? `    ... ${window.length - 4} more ...\n`
+        : "";
     console.log(
-      gap + `    ${(e.mm * 100).toFixed(1).padStart(5)}%  ${e.at.slice(0, 16).replace("T", " ")}  ${e.dir}`,
+      gap +
+        `    ${(e.mm * 100).toFixed(1).padStart(5)}%  ${e.at.slice(0, 16).replace("T", " ")}  ${e.dir}`,
     );
   }
   console.log();

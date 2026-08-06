@@ -61,7 +61,11 @@ try {
           y: n(h.getBoundingClientRect().y + sy),
           txt: (h.textContent || "").replace(/\s+/g, " ").trim().slice(0, 50),
         }));
-      return { rows, heads, scrollHeight: document.documentElement.scrollHeight };
+      return {
+        rows,
+        heads,
+        scrollHeight: document.documentElement.scrollHeight,
+      };
     });
     await ctx.close();
     console.error("done", vp);

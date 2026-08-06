@@ -64,7 +64,9 @@ try {
       out.push("read-reviews-band imgs:\n    " + rr.join("\n    "));
       // team head pitch
       const heads = [
-        ...document.querySelectorAll("img[class*=headshot],img[class*=aspect-square]"),
+        ...document.querySelectorAll(
+          "img[class*=headshot],img[class*=aspect-square]",
+        ),
       ].map((i) => i.getBoundingClientRect());
       out.push(
         `heads: n=${heads.length} first=${heads[0] ? Math.round(heads[0].left) + "," + Math.round(heads[0].width) + "x" + Math.round(heads[0].height) : "-"} pitch=${heads[1] ? Math.round(heads[1].left - heads[0].left) : "-"}`,

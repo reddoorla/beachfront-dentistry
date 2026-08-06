@@ -39,7 +39,9 @@ try {
         const cs = getComputedStyle(e);
         const r = e.getBoundingClientRect();
         return (
-          /9999|50%/.test(cs.borderRadius) && r.width > 60 && r.top + scrollY < 900
+          /9999|50%/.test(cs.borderRadius) &&
+          r.width > 60 &&
+          r.top + scrollY < 900
         );
       });
       push("headshot", round);
@@ -56,7 +58,8 @@ try {
       const all = [...document.querySelectorAll("*")];
       const name = all.find((e) =>
         [...e.childNodes].some(
-          (n) => n.nodeType === 3 && /^Dr\.? Robert Quan/.test(n.nodeValue.trim()),
+          (n) =>
+            n.nodeType === 3 && /^Dr\.? Robert Quan/.test(n.nodeValue.trim()),
         ),
       );
       push("name", name);

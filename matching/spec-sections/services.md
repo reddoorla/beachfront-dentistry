@@ -30,31 +30,31 @@ sign of their y-offset wrong.
 y values are the **section border-box top** at 1440 (page coords, settled).
 Where the anchor text sits lower than the box top, the anchor y is given too.
 
-| # | label | anchor (unique, comma-free) | y@1440 | owner |
-|---|---|---|---|---|
-| 1 | Header / nav bar | *(no unique text — anchor by `section.header`)* | 0 (h=120) | **chrome §3** |
-| 2 | Hero band `section.hero.redondo` | *(no unique text — see note)* | 0 (h=475.19) | this file §B.2 |
-| 3 | Lede paragraph `section.we-offer-section` | `We offer a wide array of services in cosmetic` | 495.19 (h=270) | this file §B.3 |
-| 4 | Service card 1 — Cosmetic Dentistry | `Cosmetic Dentistry` | 925.19 (h3 @1005.19) | this file §B.4 |
-| 5 | Service card 2 — Restore Your Smile | `Restore Your Smile` | 925.19 (h3 @1005.19) | this file §B.4 |
-| 6 | Service card 3 — General Dentistry | `General Dentistry` | 1725.19 (h3 @1805.19) | this file §B.4 |
-| 7 | Service card 4 — Specialty Services | `Specialty Services` | 1725.19 (h3 @1805.19) | this file §B.4 |
-| 8 | Closing CTA band | `Ready for` | 2525.19 | **chrome §4** |
-| 9 | Footer | `Want to learn more` | 3745.19 | **chrome §5** |
+| #   | label                                     | anchor (unique, comma-free)                     | y@1440                | owner          |
+| --- | ----------------------------------------- | ----------------------------------------------- | --------------------- | -------------- |
+| 1   | Header / nav bar                          | _(no unique text — anchor by `section.header`)_ | 0 (h=120)             | **chrome §3**  |
+| 2   | Hero band `section.hero.redondo`          | _(no unique text — see note)_                   | 0 (h=475.19)          | this file §B.2 |
+| 3   | Lede paragraph `section.we-offer-section` | `We offer a wide array of services in cosmetic` | 495.19 (h=270)        | this file §B.3 |
+| 4   | Service card 1 — Cosmetic Dentistry       | `Cosmetic Dentistry`                            | 925.19 (h3 @1005.19)  | this file §B.4 |
+| 5   | Service card 2 — Restore Your Smile       | `Restore Your Smile`                            | 925.19 (h3 @1005.19)  | this file §B.4 |
+| 6   | Service card 3 — General Dentistry        | `General Dentistry`                             | 1725.19 (h3 @1805.19) | this file §B.4 |
+| 7   | Service card 4 — Specialty Services       | `Specialty Services`                            | 1725.19 (h3 @1805.19) | this file §B.4 |
+| 8   | Closing CTA band                          | `Ready for`                                     | 2525.19               | **chrome §4**  |
+| 9   | Footer                                    | `Want to learn more`                            | 3745.19               | **chrome §5**  |
 
 **CENSUS SECTION COUNT: 9** (5 unique to this page: 2, 3, and cards 4–7 which
 share one `section` element; 4 are chrome).
 
 Section-element y/h at the gate matrix `[probed]`:
 
-| section | 1440 | 834 | 390 |
-|---|---|---|---|
-| `.header` | y 0 h 120 | y 0 h 96 | y 0 h 72 |
-| `.hero.redondo` | y 0 h **475.19** | y 0 h **500.39** | y 0 h **370.5** |
-| `.we-offer-section` | y 495.19 h 270 | y 520.39 h 120 | y 390.5 h 210 |
+| section                    | 1440                | 834                 | 390                |
+| -------------------------- | ------------------- | ------------------- | ------------------ |
+| `.header`                  | y 0 h 120           | y 0 h 96            | y 0 h 72           |
+| `.hero.redondo`            | y 0 h **475.19**    | y 0 h **500.39**    | y 0 h **370.5**    |
+| `.we-offer-section`        | y 495.19 h 270      | y 520.39 h 120      | y 390.5 h 210      |
 | `.service-blocks-sections` | y 845.19 h **1600** | y 704.39 h **2944** | y 648.5 h **2016** |
-| `.footer` (CTA + footer) | y 2525.19 h 1914.41 | y 3712.39 h 1811.02 | y 2712.5 h 1562.59 |
-| document height | 4440 | 5523 | 4275 |
+| `.footer` (CTA + footer)   | y 2525.19 h 1914.41 | y 3712.39 h 1811.02 | y 2712.5 h 1562.59 |
+| document height            | 4440                | 5523                | 4275               |
 
 **Hero anchor caveat.** The hero's only text is the single word `Services`
 (`h2.subpage-hero-heading`, `services-top.html:1`). That string is **not unique
@@ -68,13 +68,13 @@ The gate currently cuts this page at four anchors:
 `Cosmetic Dentistry` / `General Dentistry` / `Ready for great dental health` /
 `Want to learn more`. That yields five regions against nine census sections:
 
-| gate region | census sections it contains | span@1440 | dilution risk |
-|---|---|---|---|
-| R0 top → `Cosmetic Dentistry` | **1 header + 2 hero + 3 lede** (three sections) | 0 → 1005 (≈1005px) | **HIGH.** A 100%-broken lede (270px tall) is only 27% of R0; a broken header (120px) is 12%. Both sit under a 0.10 threshold on their own. |
-| R1 `Cosmetic Dentistry` → `General Dentistry` | **4 card 1 + 5 card 2** (two sections) | 1005 → 1805 (800px) | MEDIUM. At 1440 the two cards are side-by-side in one 800px grid row, so a fully broken card is ≤50% of R1. At 834/390 they stack and each owns its own 736/504px band. |
-| R2 `General Dentistry` → `Ready for` | **6 card 3 + 7 card 4** (two sections) | 1805 → 2525 (720px) | MEDIUM, same shape as R1. Also swallows the grid's trailing collapsed 80px margin. |
-| R3 `Ready for` → `Want to learn more` | 8 CTA band | 2525 → 3745 | chrome §4 |
-| R4 `Want to learn more` → end | 9 footer | 3745 → 4440 | chrome §5 |
+| gate region                                   | census sections it contains                     | span@1440           | dilution risk                                                                                                                                                           |
+| --------------------------------------------- | ----------------------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R0 top → `Cosmetic Dentistry`                 | **1 header + 2 hero + 3 lede** (three sections) | 0 → 1005 (≈1005px)  | **HIGH.** A 100%-broken lede (270px tall) is only 27% of R0; a broken header (120px) is 12%. Both sit under a 0.10 threshold on their own.                              |
+| R1 `Cosmetic Dentistry` → `General Dentistry` | **4 card 1 + 5 card 2** (two sections)          | 1005 → 1805 (800px) | MEDIUM. At 1440 the two cards are side-by-side in one 800px grid row, so a fully broken card is ≤50% of R1. At 834/390 they stack and each owns its own 736/504px band. |
+| R2 `General Dentistry` → `Ready for`          | **6 card 3 + 7 card 4** (two sections)          | 1805 → 2525 (720px) | MEDIUM, same shape as R1. Also swallows the grid's trailing collapsed 80px margin.                                                                                      |
+| R3 `Ready for` → `Want to learn more`         | 8 CTA band                                      | 2525 → 3745         | chrome §4                                                                                                                                                               |
+| R4 `Want to learn more` → end                 | 9 footer                                        | 3745 → 4440         | chrome §5                                                                                                                                                               |
 
 Two anchors that would split R0 and de-dilute it — both unique and comma-free —
 are available if the gate is ever re-cut: `We offer a wide array of services in
@@ -103,11 +103,11 @@ note that the gate cut depends on.
 inline `<style>` twice: `services-live.html:3-18` (head) and
 `services-live.html:84-97` (a `.w-embed` at the top of `<body>`, byte-identical).
 
-| rule | source |
-|---|---|
-| `html { font-size: 40px }` | `services-live.html:3-5` (repeat `:85`) |
-| `@media (max-width: 992px) { html { font-size: 32px } }` | `services-live.html:8-10` (repeat `:87-89`) |
-| `@media (max-width: 768px) { html { font-size: 24px } }` | `services-live.html:12-14` (repeat `:91-93`) |
+| rule                                                     | source                                               |
+| -------------------------------------------------------- | ---------------------------------------------------- |
+| `html { font-size: 40px }`                               | `services-live.html:3-5` (repeat `:85`)              |
+| `@media (max-width: 992px) { html { font-size: 32px } }` | `services-live.html:8-10` (repeat `:87-89`)          |
+| `@media (max-width: 768px) { html { font-size: 24px } }` | `services-live.html:12-14` (repeat `:91-93`)         |
 | `@media (max-width: 480px) { html { font-size: 24px } }` | `services-live.html:16-18` (repeat `:95-97`) — no-op |
 
 Webflow class breakpoints: `beachfront.css:7852` (≤991), `:8372` (≤767),
@@ -159,16 +159,16 @@ position: relative`.
 Height overrides — a **pure-vw ladder**, root-font-independent, so exactly three
 Webflow tiers but with a 267px discontinuity at the 991/992 seam:
 
-| rule | source | height |
-|---|---|---|
-| base | `beachfront.css:5297` | `33vw` |
-| ≤991 | `beachfront.css:7980-7982` (`.hero, .hero.redondo`) | `60vw` |
+| rule | source                                                                | height |
+| ---- | --------------------------------------------------------------------- | ------ |
+| base | `beachfront.css:5297`                                                 | `33vw` |
+| ≤991 | `beachfront.css:7980-7982` (`.hero, .hero.redondo`)                   | `60vw` |
 | ≤767 | `beachfront.css:8438-8440` (`.hero`) + `:8442-8445` (`.hero.redondo`) | `70vw` |
-| ≤479 | `beachfront.css:9072-9076` (`.hero.redondo`) | `95vw` |
+| ≤479 | `beachfront.css:9072-9076` (`.hero.redondo`)                          | `95vw` |
 
-| viewport | 1440 | 992 | 991 | 834 | 768 | 767 | 480 | 479 | 390 |
-|---|---|---|---|---|---|---|---|---|---|
-| declared | 33vw | 33vw | 60vw | 60vw | 60vw | 70vw | 70vw | 95vw | 95vw |
+| viewport              | 1440       | 992        | 991        | 834        | 768       | 767        | 480     | 479        | 390       |
+| --------------------- | ---------- | ---------- | ---------- | ---------- | --------- | ---------- | ------- | ---------- | --------- |
+| declared              | 33vw       | 33vw       | 60vw       | 60vw       | 60vw      | 70vw       | 70vw    | 95vw       | 95vw      |
 | **height `[probed]`** | **475.19** | **327.36** | **594.59** | **500.39** | **460.8** | **536.89** | **336** | **455.05** | **370.5** |
 
 `background-size` ladder: `100%` base (`beachfront.css:5305`) → `cover` only at
@@ -176,7 +176,7 @@ Webflow tiers but with a 267px discontinuity at the 991/992 seam:
 `background-position` is `0 100%` at every tier. `object-fit: cover` at ≤479
 (`:9073`) is a no-op on a non-replaced element.
 
-*Note:* `vw` includes the scrollbar in a real browser but not in headless
+_Note:_ `vw` includes the scrollbar in a real browser but not in headless
 chromium. Expect ±(scrollbar × 0.33/0.60/0.95) between the probe and a desktop
 browser at 1440.
 
@@ -202,24 +202,24 @@ base `beachfront.css:2114-2122` (140px / 168px / museo-slab / weight 100 via
 `margin-top: 8%` and `margin-bottom: 5%` resolve against the containing block's
 **WIDTH** (the hero), while `bottom: 2%` resolves against its **HEIGHT**.
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| font-size / line-height | **140px / 168px** | **72px / 80px** | **56px / 70px** |
-| font-family / weight | museo-slab, sans-serif / **100** | ← | ← |
-| colour | `#fff` | ← | ← |
-| letter-spacing / transform | normal / none | ← | ← |
-| text-align | **center** | **left** | **left** |
-| width / left | `100%` / `0` = 1440 / 0 | `80%` / `10%` = 667.19 / 83.39 | `80%` / `10%` = 312 / 39 |
-| margin-top `8%` of hero width | **115.19px** | **66.72px** | **31.19px** |
-| margin-bottom `5%` of hero width | **72px** | **41.69px** | **19.5px** |
-| `bottom: 2%` of hero height | **9.5px** | **10px** | **7.41px** |
-| resolved rect `[probed]` | `{0, 225.69, 1440, 168}` | `{83.39, 368.7, 667.19, 80}` | `{39, 273.59, 312, 70}` |
+|                                  | 1440                             | 834                            | 390                      |
+| -------------------------------- | -------------------------------- | ------------------------------ | ------------------------ |
+| font-size / line-height          | **140px / 168px**                | **72px / 80px**                | **56px / 70px**          |
+| font-family / weight             | museo-slab, sans-serif / **100** | ←                              | ←                        |
+| colour                           | `#fff`                           | ←                              | ←                        |
+| letter-spacing / transform       | normal / none                    | ←                              | ←                        |
+| text-align                       | **center**                       | **left**                       | **left**                 |
+| width / left                     | `100%` / `0` = 1440 / 0          | `80%` / `10%` = 667.19 / 83.39 | `80%` / `10%` = 312 / 39 |
+| margin-top `8%` of hero width    | **115.19px**                     | **66.72px**                    | **31.19px**              |
+| margin-bottom `5%` of hero width | **72px**                         | **41.69px**                    | **19.5px**               |
+| `bottom: 2%` of hero height      | **9.5px**                        | **10px**                       | **7.41px**               |
+| resolved rect `[probed]`         | `{0, 225.69, 1440, 168}`         | `{83.39, 368.7, 667.19, 80}`   | `{39, 273.59, 312, 70}`  |
 
 At **992** it is still `{0, 103.22, 992, 168}` at 140px/168px — desktop type in a
 32px-root viewport. A two-tier ladder keyed at 768 renders 140px across the whole
 768–991 band. `[probed]`
 
-y is *derived*, not authored: `y = heroHeight − bottom − marginBottom − height`.
+y is _derived_, not authored: `y = heroHeight − bottom − marginBottom − height`.
 Reproduce the box model; do not hardcode `top`.
 
 ##### `.bot-wave` — the white wave divider at the hero's bottom edge
@@ -227,6 +227,7 @@ Reproduce the box model; do not hardcode `top`.
 Base `beachfront.css:6008-6016`: `z-index:8; width:100%; line-height:0;
 position:absolute; bottom:0; left:0; overflow:hidden`.
 Page-local overrides in the head `<style>`:
+
 - `.bot-wave { transform: rotate(180deg) }` — `services-live.html:20-22`
 - `.bot-wave svg { position:relative; display:block; width: calc(133% + 1.3px); height: 3rem }` — `services-live.html:24-29`
 - `.bot-wave .shape-fill { fill:#FFFFFF }` — `services-live.html:32-34`
@@ -237,16 +238,16 @@ wrapper, then the wrapper's 180° rotation maps it to negative x.
 
 **The SVG is JS-injected.** `services-live.html:145`:
 `$(".bot-wave").append(' <svg data-name="Layer 1" … viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M321.39,56.44c58-…" class="shape-fill"></path></svg> ')`.
-Webflow ships an *empty* `<div class="bot-wave">`; the captured HTML shows it
+Webflow ships an _empty_ `<div class="bot-wave">`; the captured HTML shows it
 filled because the capture is post-JS. `[probed]` exactly **one** `svg` child at
-every width — do not render one in markup *and* inject one.
+every width — do not render one in markup _and_ inject one.
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| svg height (`3rem`) | **120px** | **96px** | **72px** |
-| svg width (`calc(133% + 1.3px)`) | **1916.5px** | **1110.52px** | **520px** |
-| wrapper rect `[probed]` | `{0, 355.19, 1440, 120}` | `{0, 404.39, 834, 96}` | `{0, 298.5, 390, 72}` |
-| svg rect after parent rotation `[probed]` | `{−476.5, 355.19, 1916.5, 120}` | `{−276.52, …, 1110.52, 96}` | `{−130, …, 520, 72}` |
+|                                           | 1440                            | 834                         | 390                   |
+| ----------------------------------------- | ------------------------------- | --------------------------- | --------------------- |
+| svg height (`3rem`)                       | **120px**                       | **96px**                    | **72px**              |
+| svg width (`calc(133% + 1.3px)`)          | **1916.5px**                    | **1110.52px**               | **520px**             |
+| wrapper rect `[probed]`                   | `{0, 355.19, 1440, 120}`        | `{0, 404.39, 834, 96}`      | `{0, 298.5, 390, 72}` |
+| svg rect after parent rotation `[probed]` | `{−476.5, 355.19, 1916.5, 120}` | `{−276.52, …, 1110.52, 96}` | `{−130, …, 520, 72}`  |
 
 `3rem` is a **root-font** value → 120 / 96 / 72; at 992 it is already 96px.
 
@@ -287,7 +288,7 @@ never close.
 - `section.we-offer-section` — **no rule exists.** Bare block, no padding/margin/bg.
 - `.content-width` `beachfront.css:5858-5867` (max-width 1400, padding-x `1.5rem`;
   ≤767 `:8627-8630` → 8%; ≤479 `:9164-9167` → 5%) — chrome §2.
-- The `<p>` is the *only* in-flow child of the only in-flow child of the section,
+- The `<p>` is the _only_ in-flow child of the only in-flow child of the section,
   and neither ancestor has border or padding-top/bottom → **the p's vertical
   margins collapse straight out through both boxes**. The section's own border-box
   is exactly the paragraph's content box.
@@ -323,21 +324,21 @@ font-size:20px }`.
 > honours `mt-8` puts 80px there at 1440 and shifts the entire page below the
 > hero down by 60px.
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| font-family | museo-slab, sans-serif (`.slab`) | ← | ← |
-| font-weight | 300 (`p` base) | ← | ← |
-| font-size / line-height (`1.5em`) | **30px / 45px** | **20px / 30px** | **20px / 30px** |
-| letter-spacing / transform | normal / none | ← | ← |
-| colour | `#129ecc` (`--primary`) | ← | ← |
-| text-align | center | center | center |
-| **margin-top** | **20px** (not 80) | **20px** (not 64) | **20px** (not 48) |
-| **margin-bottom** | **40px** | **40px** | **20px** ← `:9573` |
-| width | **620px** fixed | 620px | 620px |
-| max-width | `none` | **100%** (`:8367`) | **100%** |
-| resolved box width `[probed]` | 620 | 620 | **351** (capped) |
-| rect `[probed]` | `{410, 495.19, 620, 270}` | `{107, 520.39, 620, 120}` | `{19.5, 390.5, 351, 210}` |
-| line count `[probed]` | 6 | 4 | 7 |
+|                                   | 1440                             | 834                       | 390                       |
+| --------------------------------- | -------------------------------- | ------------------------- | ------------------------- |
+| font-family                       | museo-slab, sans-serif (`.slab`) | ←                         | ←                         |
+| font-weight                       | 300 (`p` base)                   | ←                         | ←                         |
+| font-size / line-height (`1.5em`) | **30px / 45px**                  | **20px / 30px**           | **20px / 30px**           |
+| letter-spacing / transform        | normal / none                    | ←                         | ←                         |
+| colour                            | `#129ecc` (`--primary`)          | ←                         | ←                         |
+| text-align                        | center                           | center                    | center                    |
+| **margin-top**                    | **20px** (not 80)                | **20px** (not 64)         | **20px** (not 48)         |
+| **margin-bottom**                 | **40px**                         | **40px**                  | **20px** ← `:9573`        |
+| width                             | **620px** fixed                  | 620px                     | 620px                     |
+| max-width                         | `none`                           | **100%** (`:8367`)        | **100%**                  |
+| resolved box width `[probed]`     | 620                              | 620                       | **351** (capped)          |
+| rect `[probed]`                   | `{410, 495.19, 620, 270}`        | `{107, 520.39, 620, 120}` | `{19.5, 390.5, 351, 210}` |
+| line count `[probed]`             | 6                                | 4                         | 7                         |
 
 At **992**: 30px/45px, `max-width:none`, section h 270 — desktop type again.
 At **768**: 20px/30px, mb 40px, `.content-width` padding-x **36px** not 48
@@ -394,6 +395,7 @@ grid-template-columns: 16rem; grid-auto-flow: row` → **single column**.
 
 Per-card `grid-area` is authored by node-id, and this page has its **own**
 ≤991 block:
+
 - base `beachfront.css:9606-9609` — `#w-node-_3cf081fa-…-081e91ef`,
   `#w-node-_6eaa37a4-…`, `#w-node-_1e89cd34-…`, `#w-node-_5cbf129a-…` →
   `grid-area: span 1 / span 1 / span 1 / span 1`
@@ -401,14 +403,14 @@ Per-card `grid-area` is authored by node-id, and this page has its **own**
   the same `span 1` value. Functionally a no-op, but it is the only page-specific
   media block in the stylesheet; keep the ids if the markup is regenerated.
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| `margin-top` / `-bottom` (`2rem`) | **80 / 80** | **64 / 64** | **48 / 48** |
-| `grid-template-columns` declared | `16rem 1fr` | `16rem` | `16rem` |
-| resolved tracks `[probed]` | `640px 640px` | `512px` | **`384px`** |
-| resolved rows `[probed]` | `800px 800px` | `736 736 736 736` | `504 504 504 504` |
-| container (content col) | 1280 | 738 | **351** |
-| grid rect `[probed]` | `{80, 845.19, 1280, 1600}` | `{48, 704.39, 738, 2944}` | `{19.5, 648.5, 351, 2016}` |
+|                                   | 1440                       | 834                       | 390                        |
+| --------------------------------- | -------------------------- | ------------------------- | -------------------------- |
+| `margin-top` / `-bottom` (`2rem`) | **80 / 80**                | **64 / 64**               | **48 / 48**                |
+| `grid-template-columns` declared  | `16rem 1fr`                | `16rem`                   | `16rem`                    |
+| resolved tracks `[probed]`        | `640px 640px`              | `512px`                   | **`384px`**                |
+| resolved rows `[probed]`          | `800px 800px`              | `736 736 736 736`         | `504 504 504 504`          |
+| container (content col)           | 1280                       | 738                       | **351**                    |
+| grid rect `[probed]`              | `{80, 845.19, 1280, 1600}` | `{48, 704.39, 738, 2944}` | `{19.5, 648.5, 351, 2016}` |
 
 `[probed-only]` free-space resolution: the `1fr` track has an **auto minimum**
 equal to its item's min-content (card width + its 2 × `.5rem` margins), which at
@@ -428,6 +430,7 @@ the card at x = 19.5 + 7.5 = 27, an 28px x-error.
 `beachfront.css:6162-6169`: `background-color: var(--primary-light);
 border-radius:25px; width:15rem; height:16rem; margin:2rem .5rem;
 position:relative`.
+
 - ≤991 `beachfront.css:8098-8100` → `height: 19rem`
 - ≤767 `beachfront.css:8659-8661` → `height: 17rem`
 - ≤479 `beachfront.css:9210-9213` → `width: 13rem; height: 17rem`
@@ -436,17 +439,17 @@ Both dimensions are `rem`, and the class ladder is offset 1px from the root
 ladder, so **height takes FIVE distinct pixel values across 390–1440 and width
 takes FOUR**:
 
-| viewport | root | declared h | **height** | declared w | **width** | margin (`2rem .5rem`) |
-|---|---|---|---|---|---|---|
-| 1440 | 40 | `16rem` | **640** | `15rem` | **600** | 80 / 20 |
-| **992** | **32** | `16rem` | **512** | `15rem` | **480** | 64 / 16 |
-| 991 | 32 | `19rem` | **608** | `15rem` | 480 | 64 / 16 |
-| 834 | 32 | `19rem` | **608** | `15rem` | **480** | 64 / 16 |
-| **768** | **24** | `19rem` | **456** | `15rem` | **360** | 48 / 12 |
-| 767 | 24 | `17rem` | **408** | `15rem` | 360 | 48 / 12 |
-| 480 | 24 | `17rem` | 408 | `15rem` | 360 | 48 / 12 |
-| 479 | 24 | `17rem` | 408 | `13rem` | **312** | 48 / 12 |
-| 390 | 24 | `17rem` | **408** | `13rem` | **312** | 48 / 12 |
+| viewport | root   | declared h | **height** | declared w | **width** | margin (`2rem .5rem`) |
+| -------- | ------ | ---------- | ---------- | ---------- | --------- | --------------------- |
+| 1440     | 40     | `16rem`    | **640**    | `15rem`    | **600**   | 80 / 20               |
+| **992**  | **32** | `16rem`    | **512**    | `15rem`    | **480**   | 64 / 16               |
+| 991      | 32     | `19rem`    | **608**    | `15rem`    | 480       | 64 / 16               |
+| 834      | 32     | `19rem`    | **608**    | `15rem`    | **480**   | 64 / 16               |
+| **768**  | **24** | `19rem`    | **456**    | `15rem`    | **360**   | 48 / 12               |
+| 767      | 24     | `17rem`    | **408**    | `15rem`    | 360       | 48 / 12               |
+| 480      | 24     | `17rem`    | 408        | `15rem`    | 360       | 48 / 12               |
+| 479      | 24     | `17rem`    | 408        | `13rem`    | **312**   | 48 / 12               |
+| 390      | 24     | `17rem`    | **408**    | `13rem`    | **312**   | 48 / 12               |
 
 All `[probed]` and all reproduced exactly by `root × rem`. Gate matrix:
 **640 / 608 / 408** tall, **600 / 480 / 312** wide.
@@ -457,10 +460,10 @@ rgb(231,245,250)`, **`overflow: visible`**, `position: relative`.
 
 Card rects `[probed]`:
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| card 1 | `{100, 925.19, 600, 640}` | `{177, 768.39, 480, 608}` | `{55.5, 696.5, 312, 408}` |
-| card 2 | `{740, 925.19, 600, 640}` | `{177, 1504.39, 480, 608}` | `{55.5, 1200.5, 312, 408}` |
+|        | 1440                       | 834                        | 390                        |
+| ------ | -------------------------- | -------------------------- | -------------------------- |
+| card 1 | `{100, 925.19, 600, 640}`  | `{177, 768.39, 480, 608}`  | `{55.5, 696.5, 312, 408}`  |
+| card 2 | `{740, 925.19, 600, 640}`  | `{177, 1504.39, 480, 608}` | `{55.5, 1200.5, 312, 408}` |
 | card 3 | `{100, 1725.19, 600, 640}` | `{177, 2240.39, 480, 608}` | `{55.5, 1704.5, 312, 408}` |
 | card 4 | `{740, 1725.19, 600, 640}` | `{177, 2976.39, 480, 608}` | `{55.5, 2208.5, 312, 408}` |
 
@@ -487,14 +490,14 @@ Card rects `[probed]`:
 > `.service-block` is `overflow: visible` it paints there. The rounded bottom you
 > see belongs to `.h-40pc.bg-color-primary` (`:3661`), **not** to the card.
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| card box | y 925.19 h 640 (bottom **1565.19**) | y 768.39 h 608 (bottom 1376.39) | y 696.5 h 408 (bottom 1104.5) |
-| `.h-60pc` | y **1005.19** h 384 | y **832.39** h 364.8 | y **744.5** h 244.8 |
-| displacement (= `.mt-8`) | **+80** | **+64** | **+48** |
-| `.h-40pc` | y 1389.19 h 256 (bottom **1645.19**) | y 1197.19 h 243.19 (bottom 1440.38) | y 989.3 h 163.19 (bottom 1152.49) |
-| **overhang past card** | **80px** | **64px** | **48px** |
-| **visual card height** | **720px** | **672px** | **456px** |
+|                          | 1440                                 | 834                                 | 390                               |
+| ------------------------ | ------------------------------------ | ----------------------------------- | --------------------------------- |
+| card box                 | y 925.19 h 640 (bottom **1565.19**)  | y 768.39 h 608 (bottom 1376.39)     | y 696.5 h 408 (bottom 1104.5)     |
+| `.h-60pc`                | y **1005.19** h 384                  | y **832.39** h 364.8                | y **744.5** h 244.8               |
+| displacement (= `.mt-8`) | **+80**                              | **+64**                             | **+48**                           |
+| `.h-40pc`                | y 1389.19 h 256 (bottom **1645.19**) | y 1197.19 h 243.19 (bottom 1440.38) | y 989.3 h 163.19 (bottom 1152.49) |
+| **overhang past card**   | **80px**                             | **64px**                            | **48px**                          |
+| **visual card height**   | **720px**                            | **672px**                           | **456px**                         |
 
 All `[probed]`, and confirmed visually: an element screenshot clipped to the
 600 × 640 card box shows the blue panel running flush to the clip edge with no
@@ -513,10 +516,10 @@ Wrapper `<div class="mt-8 mx-3">`:
 outranks it on this element, unlike the lede in B.3**);
 `.mx-3` `beachfront.css:3864-3867` → `margin-left/right: .75rem`.
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| `.mt-8` (`2rem`) | **80** | **64** | **48** |
-| `.mx-3` (`.75rem`) | **30** | **24** | **18** |
+|                         | 1440                       | 834                         | 390                       |
+| ----------------------- | -------------------------- | --------------------------- | ------------------------- |
+| `.mt-8` (`2rem`)        | **80**                     | **64**                      | **48**                    |
+| `.mx-3` (`.75rem`)      | **30**                     | **24**                      | **18**                    |
 | wrapper rect `[probed]` | `{130, 1005.19, 540, 240}` | `{201, 832.39, 432, 170.5}` | `{73.5, 744.5, 276, 167}` |
 
 `h3` base `beachfront.css:2124-2132`: `color: var(--primary); margin-top:20px;
@@ -526,18 +529,18 @@ font-weight:300; line-height:50px`. ≤991 `beachfront.css:7863-7866` →
 `.mb-4` `beachfront.css:3985-3988`: **`margin-top: 0; margin-bottom: 1rem`** —
 note it kills h3's 20px top margin as well.
 
-| `h3.mb-4` | 1440 | 834 | 390 |
-|---|---|---|---|
-| font-family / weight | museo-slab, sans-serif / 300 | ← | ← |
-| font-size / line-height | **40px / 50px** | **21px / 26px** | **21px / 26px** |
-| letter-spacing / transform | normal / none | ← | ← |
-| colour | `#129ecc` (`--primary`) | ← | ← |
-| margin-top | **0** | **0** | **0** |
-| margin-bottom (`1rem`) | **40px** | **32px** | **24px** |
+| `h3.mb-4`                  | 1440                         | 834             | 390             |
+| -------------------------- | ---------------------------- | --------------- | --------------- |
+| font-family / weight       | museo-slab, sans-serif / 300 | ←               | ←               |
+| font-size / line-height    | **40px / 50px**              | **21px / 26px** | **21px / 26px** |
+| letter-spacing / transform | normal / none                | ←               | ←               |
+| colour                     | `#129ecc` (`--primary`)      | ←               | ←               |
+| margin-top                 | **0**                        | **0**           | **0**           |
+| margin-bottom (`1rem`)     | **40px**                     | **32px**        | **24px**        |
 
 At **992**: 40px/50px with `margin-bottom: 32px`. At **768**: 21px/26px with
 `margin-bottom: 24px`. `[probed]` — three values for the margin (40/32/24) but
-only two for the type (40/21), and the two ladders switch at *different*
+only two for the type (40/21), and the two ladders switch at _different_
 viewports.
 
 `p.para-20px.pr-4`:
@@ -551,15 +554,15 @@ The `p` element rules at `:7877-7879` (16px ≤991), `:8378-8380` (16px ≤767) 
 ≤479, where `.para-20px` has no rule of its own and the ≤767 **13px** carries
 through. `[probed]` 13px at 390, not 12px.
 
-| `p.para-20px.pr-4` | 1440 | 834 | 390 |
-|---|---|---|---|
-| font-family / weight | museo-sans, sans-serif (body) / 300 | ← | ← |
-| font-size / line-height (`1.5em`) | **20px / 30px** | **15px / 22.5px** | **13px / 19.5px** |
-| letter-spacing / transform | normal / none | ← | ← |
-| colour | `#365b6d` (`--primary-dark`) | ← | ← |
-| margin-bottom | 10px | 10px | 10px |
-| padding-right (`1rem`) | **40px** | **32px** | **24px** |
-| rect `[probed]` (card 1) | `{130, 1095.19, 540, 150}` | `{201, 890.39, 432, 112.5}` | `{73.5, 794.5, 276, 117}` |
+| `p.para-20px.pr-4`                | 1440                                | 834                         | 390                       |
+| --------------------------------- | ----------------------------------- | --------------------------- | ------------------------- |
+| font-family / weight              | museo-sans, sans-serif (body) / 300 | ←                           | ←                         |
+| font-size / line-height (`1.5em`) | **20px / 30px**                     | **15px / 22.5px**           | **13px / 19.5px**         |
+| letter-spacing / transform        | normal / none                       | ←                           | ←                         |
+| colour                            | `#365b6d` (`--primary-dark`)        | ←                           | ←                         |
+| margin-bottom                     | 10px                                | 10px                        | 10px                      |
+| padding-right (`1rem`)            | **40px**                            | **32px**                    | **24px**                  |
+| rect `[probed]` (card 1)          | `{130, 1095.19, 540, 150}`          | `{201, 890.39, 432, 112.5}` | `{73.5, 794.5, 276, 117}` |
 
 At **992**: 20px/30px, pr 32. At **768**: 15px/22.5px, pr 24. Three type tiers
 (20/15/13) crossed with three padding tiers (40/32/24) switching at different
@@ -570,12 +573,12 @@ viewports.
 Column wrappers inside `.h-40pc` (per card, from
 `services-blocks.pretty.html`):
 
-| card | column classes | source |
-|---|---|---|
-| 1 Cosmetic Dentistry | `h-full _w-half pl-2 pt-2` (4 links) + `h-full _w-half` (**empty spacer**) | `services-blocks.pretty.html:12` + `services-blocks.pretty.html:30` |
+| card                 | column classes                                                              | source                                                              |
+| -------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| 1 Cosmetic Dentistry | `h-full _w-half pl-2 pt-2` (4 links) + `h-full _w-half` (**empty spacer**)  | `services-blocks.pretty.html:12` + `services-blocks.pretty.html:30` |
 | 2 Restore Your Smile | `h-full _w-half pl-2 pt-2` (5 links) + `h-full _w-half pl-2 pt-2` (4 links) | `services-blocks.pretty.html:43` + `services-blocks.pretty.html:65` |
-| 3 General Dentistry | `h-full pt-2 pl-2` (6 links) — **one column, no `_w-half`** | `services-blocks.pretty.html:94` |
-| 4 Specialty Services | `h-full _w-half pl-2 pt-2 su-w-full-tablet dark-gradient-up` (5 links) | `services-blocks.pretty.html:131` |
+| 3 General Dentistry  | `h-full pt-2 pl-2` (6 links) — **one column, no `_w-half`**                 | `services-blocks.pretty.html:94`                                    |
+| 4 Specialty Services | `h-full _w-half pl-2 pt-2 su-w-full-tablet dark-gradient-up` (5 links)      | `services-blocks.pretty.html:131`                                   |
 
 `.h-full` `beachfront.css:3149-3151` (`height:100%`).
 `._w-half` `beachfront.css:2867-2871` (`object-fit:fill; width:50%; position:relative`).
@@ -586,13 +589,13 @@ Column wrappers inside `.h-40pc` (per card, from
 selector containing it is the 4-class compound at `beachfront.css:3666`, which
 does not match this element. It is inert; do not add a gradient there.
 
-| column width `[probed]` | 1440 | 834 | 390 |
-|---|---|---|---|
-| card 1 col A / col B | 290 / 290 | 232 / 232 | 150 / 150 |
-| card 2 col A / col B | 290 / 290 | 232 / 232 | 150 / 150 |
+| column width `[probed]`            | 1440                       | 834                        | 390                        |
+| ---------------------------------- | -------------------------- | -------------------------- | -------------------------- |
+| card 1 col A / col B               | 290 / 290                  | 232 / 232                  | 150 / 150                  |
+| card 2 col A / col B               | 290 / 290                  | 232 / 232                  | 150 / 150                  |
 | **card 3 (single, shrink-to-fit)** | **262.64** `[probed-only]` | **188.72** `[probed-only]` | **150.77** `[probed-only]` |
-| **card 4 (`su-w-full-tablet`)** | **290** (50%) | **464** (100%) | **300** (100%) |
-| `.pl-2` / `.pt-2` (`.5rem`) | 20 / 20 | 16 / 16 | 12 / 12 |
+| **card 4 (`su-w-full-tablet`)**    | **290** (50%)              | **464** (100%)             | **300** (100%)             |
+| `.pl-2` / `.pt-2` (`.5rem`)        | 20 / 20                    | 16 / 16                    | 12 / 12                    |
 
 Card 3's width is content-driven (a `.h-full` flex item with `width:auto`,
 sized by its widest nowrap link, `ORAL CANCER SCREENING`) — it is genuinely
@@ -615,6 +618,7 @@ only below 992: **19.2px at 834, 14.4px at 390, nothing at 1440**) and ≤767
 `.services-links` `beachfront.css:6222-6230`: `color:#fff; margin-top:0;
 margin-bottom:0; margin-right:10px; font-size:14px; line-height:2.75em;
 text-decoration:none`.
+
 - ≤991 `beachfront.css:8106-8108` → `font-size: 9px`
 - ≤767 `beachfront.css:8667-8669` → `font-size: 9px`
 - ≤479 `beachfront.css:9219-9222` → `margin-right: 4px; font-size: 7px`
@@ -623,16 +627,16 @@ Inherits from `h6` `beachfront.css:2154-2164`: `letter-spacing:1.28px;
 text-transform:uppercase; font-family: museo-slab, sans-serif; font-weight:700`
 (its `color`, `font-size`, `line-height`, `margin` are all overridden).
 
-| `h6.services-links` | 1440 | 834 | 390 |
-|---|---|---|---|
-| font-family / weight | museo-slab, sans-serif / **700** | ← | ← |
-| font-size | **14px** | **9px** | **7px** |
-| line-height (`2.75em`) | **38.5px** | **24.75px** | **19.25px** |
-| letter-spacing | **1.28px** | 1.28px | 1.28px |
-| text-transform | **uppercase** | ← | ← |
-| colour | `#fff` | ← | ← |
-| margin | `0 10px 0 0` | `0 10px 0 0` | **`0 4px 0 0`** |
-| rect `[probed]` (first link) | `{130, 1409.19, 206.19, 38.5}` | `{201, 1213.19, 141.23, 24.75}` | `{73.5, 1001.3, 115.25, 19.25}` |
+| `h6.services-links`          | 1440                             | 834                             | 390                             |
+| ---------------------------- | -------------------------------- | ------------------------------- | ------------------------------- |
+| font-family / weight         | museo-slab, sans-serif / **700** | ←                               | ←                               |
+| font-size                    | **14px**                         | **9px**                         | **7px**                         |
+| line-height (`2.75em`)       | **38.5px**                       | **24.75px**                     | **19.25px**                     |
+| letter-spacing               | **1.28px**                       | 1.28px                          | 1.28px                          |
+| text-transform               | **uppercase**                    | ←                               | ←                               |
+| colour                       | `#fff`                           | ←                               | ←                               |
+| margin                       | `0 10px 0 0`                     | `0 10px 0 0`                    | **`0 4px 0 0`**                 |
+| rect `[probed]` (first link) | `{130, 1409.19, 206.19, 38.5}`   | `{201, 1213.19, 141.23, 24.75}` | `{73.5, 1001.3, 115.25, 19.25}` |
 
 **This is a px ladder, not a rem ladder** — it steps at the Webflow breakpoints
 (991 and 479) only, so 992 still renders 14px. Do not key it to the root ladder.
@@ -645,16 +649,16 @@ counts per card: 4 / 9 / 6 / 5 = **24 links total** `[probed]`.
 
 ##### B.4.6 Assets
 
-| asset | src |
-|---|---|
-| arrow (24 ×, one per link) | `https://cdn.prod.website-files.com/64af3f93339537d6b661b556/64b070f15651708aded7ab3e_Arrow.svg` |
+| asset                         | src                                                                                                         |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| arrow (24 ×, one per link)    | `https://cdn.prod.website-files.com/64af3f93339537d6b661b556/64b070f15651708aded7ab3e_Arrow.svg`            |
 | tooth icon, cards **1 and 3** | `https://cdn.prod.website-files.com/64af3f93339537d6b661b556/64b05fba95fa3003b8c411e7_icon%3Dtooth%203.svg` |
 | tooth icon, cards **2 and 4** | `https://cdn.prod.website-files.com/64af3f93339537d6b661b556/64b05fba486da5a75e84f0d0_icon%3Dtooth%202.svg` |
 
 All three exist as files — **never redraw them.** Local copies:
 `matching/spec/live-arrow.svg` (intrinsic **10 × 11**),
 `matching/spec/live-tooth3.svg` (intrinsic **90 × 90**, square),
-`matching/spec/live-tooth2.svg` (intrinsic **91 × 90**, *not* square).
+`matching/spec/live-tooth2.svg` (intrinsic **91 × 90**, _not_ square).
 All carry `loading="lazy" alt=""`.
 
 The arrow has **no CSS rule at all** — it renders at its intrinsic 10 × 11 at
@@ -664,14 +668,14 @@ every viewport. `[probed]` `{…, 10, 11}` at 1440, 834 and 390 alike.
 position:absolute; top:-1.25rem; right:1.5rem`. No media overrides — a pure
 root-font ladder:
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| width (`2.5rem`) | **100px** | **80px** | **60px** |
-| height (tooth 3, 1:1) | 100px | 80px | 60px |
-| height (tooth 2, 91:90) | **98.89px** `[probed]` | **79.11px** | **59.33px** |
-| top (`−1.25rem`) | **−50px** | **−40px** | **−30px** |
-| right (`1.5rem`) | **60px** | **48px** | **36px** |
-| rect card 1 `[probed]` | `{540, 875.19, 100, 100}` | `{529, 728.39, 80, 80}` | `{271.5, 666.5, 60, 60}` |
+|                         | 1440                      | 834                     | 390                      |
+| ----------------------- | ------------------------- | ----------------------- | ------------------------ |
+| width (`2.5rem`)        | **100px**                 | **80px**                | **60px**                 |
+| height (tooth 3, 1:1)   | 100px                     | 80px                    | 60px                     |
+| height (tooth 2, 91:90) | **98.89px** `[probed]`    | **79.11px**             | **59.33px**              |
+| top (`−1.25rem`)        | **−50px**                 | **−40px**               | **−30px**                |
+| right (`1.5rem`)        | **60px**                  | **48px**                | **36px**                 |
+| rect card 1 `[probed]`  | `{540, 875.19, 100, 100}` | `{529, 728.39, 80, 80}` | `{271.5, 666.5, 60, 60}` |
 
 The icon overhangs the card's top edge by 50/40/30px and is the only thing
 painting above it. `z-index:5` sits under `.bot-wave`'s `z-index:8` and the
@@ -692,23 +696,23 @@ settling, `[probed]` `transform: matrix(1,0,0,1,0,0)`, `opacity: 1`.
 Neither `.we-offer-section` nor `.service-blocks-sections` has a single CSS rule.
 Every gap on this page is a **collapsed margin between section boxes**:
 
-| gap @1440 | px | where it comes from | source |
-|---|---|---|---|
-| hero bottom → lede section top | **20** | `.text-body-large { margin-top: 20px }` collapsed out through `.content-width` and the section | `beachfront.css:7760` |
+| gap @1440                                | px     | where it comes from                                                                                                  | source                                        |
+| ---------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| hero bottom → lede section top           | **20** | `.text-body-large { margin-top: 20px }` collapsed out through `.content-width` and the section                       | `beachfront.css:7760`                         |
 | lede section bottom → blocks section top | **80** | max(lede's `margin-bottom:40px`, grid's `.my-8` `margin-top:2rem`=80) — **adjoining margins collapse to the larger** | `beachfront.css:7761` + `beachfront.css:3840` |
-| blocks section bottom → footer top | **80** | grid's `.my-8` `margin-bottom: 2rem` collapsed out | `beachfront.css:3841` |
-| card top → `.h-60pc` top | **80** | `.mt-8` trapped inside the grid item (B.4.3) | `beachfront.css:3926` |
+| blocks section bottom → footer top       | **80** | grid's `.my-8` `margin-bottom: 2rem` collapsed out                                                                   | `beachfront.css:3841`                         |
+| card top → `.h-60pc` top                 | **80** | `.mt-8` trapped inside the grid item (B.4.3)                                                                         | `beachfront.css:3926`                         |
 
 Resolved at the gate matrix (all `[probed]`):
 
-| gap | 1440 | 834 | 390 |
-|---|---|---|---|
-| hero → lede | 20 | 20 | 20 |
-| lede → blocks | **80** | **64** | **48** |
+| gap             | 1440   | 834    | 390    |
+| --------------- | ------ | ------ | ------ |
+| hero → lede     | 20     | 20     | 20     |
+| lede → blocks   | **80** | **64** | **48** |
 | blocks → footer | **80** | **64** | **48** |
 
 A rebuild that expresses these as section `padding` instead of collapsing child
-margins will (a) shift which gate region owns the space and (b) *double* the
+margins will (a) shift which gate region owns the space and (b) _double_ the
 lede→blocks gap to 120/104/68 because 40 + 80 no longer collapses.
 
 ---
@@ -723,8 +727,8 @@ Google-Maps widget's internal controls (counted once as the widget).
 
 **Unique to this page (24)**
 
-| # | element | behaviour | source |
-|---|---|---|---|
+| #    | element                                                                                                                    | behaviour                                                        | source                                                                                                                                     |
+| ---- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | 1–24 | 24 × `a.block-link.display-flex.w-inline-block` (one per service link: 4 in card 1, 9 in card 2, 6 in card 3, 5 in card 4) | navigate to `/services/<slug>`; hover → `opacity: .6` over `.2s` | `beachfront.css:6199-6203` (transition), `:6205-6207` (`:hover{opacity:.6}`); wins over `a:hover{opacity:.61}` `:2181-2183` on specificity |
 
 The 24 hrefs, in DOM order (`services-blocks.pretty.html`): `/services/`
@@ -751,30 +755,31 @@ The 24 hrefs, in DOM order (`services-blocks.pretty.html`): `/services/`
 
 `_chrome.md`; listed here only so the Phase-5 count is fixed.
 
-| # | element | ref |
-|---|---|---|
-| 25 | `a.link-block-5` header logo → `/` | chrome §3.1 |
-| 26 | `a.link-block-4` + `img.header-hamburger[data-w-id=d74a87ea-…]` — open panel (IX2 `e-9` → `a-4`) | chrome §3.4 |
-| 27 | `img.header-hamburger[data-w-id=8dfa6638-…]` inside `.dropdown-modal` — close panel (IX2 `e-7` → `a-3`) | chrome §3.4 |
-| 28–34 | 7 × `a.no-text-dec > h3.modal-link` (Home Page · First Visit · Meet Our Team · **Services** `aria-current="page" w--current` · Ask the Doctor · Contact · (310) 378-9241) | chrome §3.5 |
-| 35 | panel `a.button.show-form.nav` "Book an Appointment" (IX2 `e-307` → `a-5` + jQuery `services-live.html:148-158`) | chrome §3.6 |
-| 36 | panel `a.button.nav` "Make a Payment" → `app.modento.io/beachfront-dentistry` | chrome §3.1 |
-| 37 | CTA `a.button.show-form[data-w-id=1273e294-…4f60]` "Book Appointment" (IX2 `e-17` → `a-5`) | chrome §4.3 |
-| 38 | `div.block-link.social-link-block[data-w-id=9daf7a34-…]` "Read Reviews" toggle (IX2 `e-211`→`a-8`, `e-212`→`a-9`, **plus** jQuery `$('.social-link-block').click(toggle)` at `services-live.html:172`, `toggle` defined in `matching/spec/incidental-utils.js:14-23`) | chrome §4.4 |
-| 39–41 | 3 × `a._w-8.clickable.su-w-6-portrait` — Google Maps review page · Facebook · Yelp | chrome §4.4 |
-| 42–45 | 4 × footer `a.inline-link` (Your First Visit · Our Team · **Services** `w--current` · Ask the Doctor) | chrome §5.3 |
-| 46 | footer `a.button[data-w-id=b1ce8885-…]` "Make a Payment" (IX2 → `a-5`) | chrome §5.3 |
-| 47 | footer `a.inline-link[href="tel:(310)-378-9241"]` | chrome §5.5 |
-| 48 | `.footer-map.w-widget.w-widget-map` Google Maps widget (pan / zoom / fullscreen / Street View — third-party, counted once) | chrome §5.7 |
-| 49 | form-modal `a.inline-link` logo → `/` | chrome §3.6 |
-| 50 | form-modal `a.inline-link` + `img.header-hamburger[data-w-id=b914d569-…]` close (IX2 `e-21` → `a-6` + jQuery `hideForm`) | chrome §3.6 |
-| 51 | form-modal `input[type=text]._w-40pc.text-field.w-input` | chrome §3.6 |
-| 52 | form-modal `input[type=email]._w-40pc.text-field.w-input` | chrome §3.6 |
-| 53 | form-modal `input[type=tel]._w-40pc.text-field.w-input` | chrome §3.6 |
-| 54 | form-modal `textarea._w-60pc.text-field.body.w-input` | chrome §3.6 |
-| 55 | form-modal `input[type=submit].button.text-color-primary.w-button` | chrome §3.6 |
+| #     | element                                                                                                                                                                                                                                                               | ref         |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| 25    | `a.link-block-5` header logo → `/`                                                                                                                                                                                                                                    | chrome §3.1 |
+| 26    | `a.link-block-4` + `img.header-hamburger[data-w-id=d74a87ea-…]` — open panel (IX2 `e-9` → `a-4`)                                                                                                                                                                      | chrome §3.4 |
+| 27    | `img.header-hamburger[data-w-id=8dfa6638-…]` inside `.dropdown-modal` — close panel (IX2 `e-7` → `a-3`)                                                                                                                                                               | chrome §3.4 |
+| 28–34 | 7 × `a.no-text-dec > h3.modal-link` (Home Page · First Visit · Meet Our Team · **Services** `aria-current="page" w--current` · Ask the Doctor · Contact · (310) 378-9241)                                                                                             | chrome §3.5 |
+| 35    | panel `a.button.show-form.nav` "Book an Appointment" (IX2 `e-307` → `a-5` + jQuery `services-live.html:148-158`)                                                                                                                                                      | chrome §3.6 |
+| 36    | panel `a.button.nav` "Make a Payment" → `app.modento.io/beachfront-dentistry`                                                                                                                                                                                         | chrome §3.1 |
+| 37    | CTA `a.button.show-form[data-w-id=1273e294-…4f60]` "Book Appointment" (IX2 `e-17` → `a-5`)                                                                                                                                                                            | chrome §4.3 |
+| 38    | `div.block-link.social-link-block[data-w-id=9daf7a34-…]` "Read Reviews" toggle (IX2 `e-211`→`a-8`, `e-212`→`a-9`, **plus** jQuery `$('.social-link-block').click(toggle)` at `services-live.html:172`, `toggle` defined in `matching/spec/incidental-utils.js:14-23`) | chrome §4.4 |
+| 39–41 | 3 × `a._w-8.clickable.su-w-6-portrait` — Google Maps review page · Facebook · Yelp                                                                                                                                                                                    | chrome §4.4 |
+| 42–45 | 4 × footer `a.inline-link` (Your First Visit · Our Team · **Services** `w--current` · Ask the Doctor)                                                                                                                                                                 | chrome §5.3 |
+| 46    | footer `a.button[data-w-id=b1ce8885-…]` "Make a Payment" (IX2 → `a-5`)                                                                                                                                                                                                | chrome §5.3 |
+| 47    | footer `a.inline-link[href="tel:(310)-378-9241"]`                                                                                                                                                                                                                     | chrome §5.5 |
+| 48    | `.footer-map.w-widget.w-widget-map` Google Maps widget (pan / zoom / fullscreen / Street View — third-party, counted once)                                                                                                                                            | chrome §5.7 |
+| 49    | form-modal `a.inline-link` logo → `/`                                                                                                                                                                                                                                 | chrome §3.6 |
+| 50    | form-modal `a.inline-link` + `img.header-hamburger[data-w-id=b914d569-…]` close (IX2 `e-21` → `a-6` + jQuery `hideForm`)                                                                                                                                              | chrome §3.6 |
+| 51    | form-modal `input[type=text]._w-40pc.text-field.w-input`                                                                                                                                                                                                              | chrome §3.6 |
+| 52    | form-modal `input[type=email]._w-40pc.text-field.w-input`                                                                                                                                                                                                             | chrome §3.6 |
+| 53    | form-modal `input[type=tel]._w-40pc.text-field.w-input`                                                                                                                                                                                                               | chrome §3.6 |
+| 54    | form-modal `textarea._w-60pc.text-field.body.w-input`                                                                                                                                                                                                                 | chrome §3.6 |
+| 55    | form-modal `input[type=submit].button.text-color-primary.w-button`                                                                                                                                                                                                    | chrome §3.6 |
 
 **Explicitly NOT counted** (not elements, or not actuatable):
+
 - The **portrait `alert()`** at `services-live.html:160-169` — fires on load and
   on `window:resize` when `innerWidth < 792 && innerHeight < innerWidth`. It is a
   native dialog, not a DOM control. It **will block a headless probe** unless the
@@ -803,12 +808,12 @@ loaded at `services-live.html:140`), not in any file under `matching/spec/`.
 
 **Elements on this page carrying `data-w-id` (15 total)** — 4 are page-unique:
 
-| `data-w-id` | element | event | action list |
-|---|---|---|---|
-| `3cf081fa-b9d3-71fb-98f9-c347f1331064` | `.service-block` card 1 | `SCROLL_INTO_VIEW` `e-91` (auto-stop `e-92`) | `a-7` |
-| `6eaa37a4-210a-fd62-1e13-74b35a0bdb4c` | `.service-block` card 2 | `SCROLL_INTO_VIEW` `e-93` (auto-stop `e-94`) | `a-7` |
-| `1e89cd34-34af-262f-159d-fb2903dc344d` | `.service-block` card 3 | `SCROLL_INTO_VIEW` `e-151` (auto-stop `e-152`) | `a-7` |
-| `5cbf129a-b6eb-f6e0-1992-324564fc9877` | `.service-block` card 4 | `SCROLL_INTO_VIEW` `e-97` (auto-stop `e-98`) | `a-7` |
+| `data-w-id`                            | element                 | event                                          | action list |
+| -------------------------------------- | ----------------------- | ---------------------------------------------- | ----------- |
+| `3cf081fa-b9d3-71fb-98f9-c347f1331064` | `.service-block` card 1 | `SCROLL_INTO_VIEW` `e-91` (auto-stop `e-92`)   | `a-7`       |
+| `6eaa37a4-210a-fd62-1e13-74b35a0bdb4c` | `.service-block` card 2 | `SCROLL_INTO_VIEW` `e-93` (auto-stop `e-94`)   | `a-7`       |
+| `1e89cd34-34af-262f-159d-fb2903dc344d` | `.service-block` card 3 | `SCROLL_INTO_VIEW` `e-151` (auto-stop `e-152`) | `a-7`       |
+| `5cbf129a-b6eb-f6e0-1992-324564fc9877` | `.service-block` card 4 | `SCROLL_INTO_VIEW` `e-97` (auto-stop `e-98`)   | `a-7`       |
 
 The remaining 11 are chrome (`b914d569`, `d74a87ea`, `6eca16bd`, `8dfa6638`,
 `1273e294-…4f5b/4f5f/4f60/4f62/4f6a`, `9daf7a34`, `b1ce8885`) — chrome §3.4,
@@ -838,9 +843,9 @@ on scroll-out.
 > **The travel distance is itself a three-tier rem value.** `yUnit: "rem"` with
 > `yValue: 4` resolves against the live root font at animation time:
 
-| | 1440 | 992 | 834 | 768 | 390 |
-|---|---|---|---|---|---|
-| root | 40px | 32px | 32px | 24px | 24px |
+|                     | 1440      | 992       | 834       | 768      | 390      |
+| ------------------- | --------- | --------- | --------- | -------- | -------- |
+| root                | 40px      | 32px      | 32px      | 24px     | 24px     |
 | **travel (`4rem`)** | **160px** | **128px** | **128px** | **96px** | **96px** |
 
 Duration is a flat **2000ms** with easing **outExpo**
@@ -852,6 +857,7 @@ tooth icons and the arrow icons. None carry `data-w-id`; none appear in any IX2
 event. They must be fully opaque and untransformed on first paint.
 
 **CSS transitions in play (page-unique):**
+
 - `.block-link.display-flex { transition: opacity .2s }` `beachfront.css:6199-6203`
 - `a { transition: opacity .2s }` `beachfront.css:2174-2179`
 
@@ -917,7 +923,7 @@ grep hits in `beachfront.css`, absent from `services-live.html:3-58` and
 `:84-134`). The 80/64/48px between them is `max(40px, 2rem)` where the 40 is
 `.text-body-large`'s `margin-bottom` (`beachfront.css:7761`) and the 2rem is `.my-8`'s
 `margin-top` (`beachfront.css:3840`). Express either as section padding and the gap becomes
-120/104/68 — a 40px error at 1440 — *and* the space moves from "between gate
+120/104/68 — a 40px error at 1440 — _and_ the space moves from "between gate
 regions" into region R1.
 
 **E6 — `.subpage-hero-heading`'s four ladders switch at four different places.**
@@ -965,7 +971,7 @@ counterpart, so it carries through and outranks `p{font-size:12px}`
 
 **E12 — the hero wave SVG is injected, not authored.**
 `services-live.html:145`. Live has exactly **one** `svg` inside `.bot-wave`
-`[probed]`. A rebuild that ships the SVG in markup *and* ports the injector
+`[probed]`. A rebuild that ships the SVG in markup _and_ ports the injector
 renders two overlapping waves; one that ships neither renders none. Its
 `rotate(180deg)` is on the **parent** (`services-live.html:20-22`), its height is
 `3rem` = **120 / 96 / 72px** (`:24-29`), and its width is `calc(133% + 1.3px)`
@@ -1001,12 +1007,13 @@ Cross-file: `matching/spec-sections/_chrome.md` §1, §2, §3.1, §3.4, §3.5, �
 §4.3, §4.4, §4.6, §4.7, §5.3, §5.5, §5.7 (shared chrome — not restated here).
 
 `[probed-only]` values in this file — the complete list:
+
 1. Grid free-space / `1fr` auto-minimum resolution (§B.4.1)
 2. Card 3's shrink-to-fit column width (§B.4.5)
 3. IX2 `a-7` "up and in" definition and all `e-*` event ids (§D)
 4. The four cards' Webflow-injected initial inline styles (§B.4.7)
 5. Tooth-2's 98.89 / 79.11 / 59.33px rendered heights (91:90 aspect, §B.4.6)
-6. Margin-collapse *results* (the authored margins are all cited; §B.X)
+6. Margin-collapse _results_ (the authored margins are all cited; §B.X)
 7. `.bot-wave`'s single injected `<svg>` child count (§B.2)
 
 ---
@@ -1019,9 +1026,9 @@ into a fix, and never cited as though they were a rule (repo CLAUDE.md
 rule 1).
 
 14. `services.md:14` — `[probed-only]` and are the only numbers here without a line.
-413. `services.md:413` — `[probed-only]` free-space resolution: the `1fr` track has an **auto minimum**
-593. `services.md:593` — | **card 3 (single, shrink-to-fit)** | **262.64** `[probed-only]` | **188.72** `[probed-only]` | **150.77** `[probed-only]` |
-599. `services.md:599` — `[probed-only]` and must not be hardcoded. Card 4's width flipping from 50% to
-786. `services.md:786` — plus the page's own jQuery. `[probed-only]` — IX2 data ships inside the Webflow
-936. `services.md:936` — (`[probed-only]` 262.64 / 188.72 / 150.77); card 4 flips 50% → 100% at **991**
-990. `services.md:990` — `[probed-only]` values in this file — the complete list:
+15. `services.md:413` — `[probed-only]` free-space resolution: the `1fr` track has an **auto minimum**
+16. `services.md:593` — | **card 3 (single, shrink-to-fit)** | **262.64** `[probed-only]` | **188.72** `[probed-only]` | **150.77** `[probed-only]` |
+17. `services.md:599` — `[probed-only]` and must not be hardcoded. Card 4's width flipping from 50% to
+18. `services.md:786` — plus the page's own jQuery. `[probed-only]` — IX2 data ships inside the Webflow
+19. `services.md:936` — (`[probed-only]` 262.64 / 188.72 / 150.77); card 4 flips 50% → 100% at **991**
+20. `services.md:990` — `[probed-only]` values in this file — the complete list:

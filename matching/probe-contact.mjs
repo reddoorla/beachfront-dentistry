@@ -1,8 +1,8 @@
-import { chromium } from 'file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs';
+import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
 
 const URLS = [
-  'https://www.beachfrontdentistry.com/contact-us',
-  'https://www.beachfrontdentistry.com/contact',
+  "https://www.beachfrontdentistry.com/contact-us",
+  "https://www.beachfrontdentistry.com/contact",
 ];
 
 async function settle(page) {
@@ -55,10 +55,10 @@ async function probe(page, width) {
         textAlign: cs.textAlign,
       };
     };
-    const norm = (s) => (s || '').replace(/\s+/g, ' ').trim();
+    const norm = (s) => (s || "").replace(/\s+/g, " ").trim();
 
     // Headings
-    const headings = [...document.querySelectorAll('h1,h2,h3,h4')]
+    const headings = [...document.querySelectorAll("h1,h2,h3,h4")]
       .filter((h) => h.offsetParent !== null || h.getClientRects().length)
       .map((h) => {
         const r = h.getBoundingClientRect();
@@ -73,7 +73,7 @@ async function probe(page, width) {
       .filter((h) => h.text);
 
     // Top-level sections
-    const main = document.querySelector('main') || document.body;
+    const main = document.querySelector("main") || document.body;
     const sections = [...main.children]
       .filter((el) => el.getClientRects().length)
       .map((el) => {
@@ -86,7 +86,7 @@ async function probe(page, width) {
           top: Math.round(r.top + window.scrollY),
           height: Math.round(r.height),
           bg: cs.backgroundColor,
-          bgImage: cs.backgroundImage === 'none' ? '' : cs.backgroundImage,
+          bgImage: cs.backgroundImage === "none" ? "" : cs.backgroundImage,
           textSnippet: norm(el.innerText).slice(0, 120),
         };
       });
@@ -97,43 +97,54 @@ async function probe(page, width) {
     if (hero) {
       const r = hero.getBoundingClientRect();
       const cs = getComputedStyle(hero);
-      const h = hero.querySelector('h1,h2');
+      const h = hero.querySelector("h1,h2");
       heroInfo = {
         cls: hero.className,
         height: Math.round(r.height),
         top: Math.round(r.top + window.scrollY),
         bg: cs.backgroundColor,
-        bgImage: cs.backgroundImage === 'none' ? '' : cs.backgroundImage,
+        bgImage: cs.backgroundImage === "none" ? "" : cs.backgroundImage,
         heading: h ? norm(h.innerText) : null,
         headingTuple: h ? T(h) : null,
       };
     }
 
     // Forms
-    const forms = [...document.querySelectorAll('form')].map((f) => {
-      const fields = [...f.querySelectorAll('input,textarea,select')].map((i) => ({
-        type: i.type || i.tagName.toLowerCase(),
-        name: i.name,
-        placeholder: i.placeholder,
-        label: norm(
-          (i.labels && i.labels[0] && i.labels[0].innerText) ||
-            (i.getAttribute('aria-label')) ||
-            ''
-        ),
-      }));
-      return { action: f.action, cls: f.className, fields, visible: f.getClientRects().length > 0 };
+    const forms = [...document.querySelectorAll("form")].map((f) => {
+      const fields = [...f.querySelectorAll("input,textarea,select")].map(
+        (i) => ({
+          type: i.type || i.tagName.toLowerCase(),
+          name: i.name,
+          placeholder: i.placeholder,
+          label: norm(
+            (i.labels && i.labels[0] && i.labels[0].innerText) ||
+              i.getAttribute("aria-label") ||
+              "",
+          ),
+        }),
+      );
+      return {
+        action: f.action,
+        cls: f.className,
+        fields,
+        visible: f.getClientRects().length > 0,
+      };
     });
 
     // Appointment / modal buttons
-    const btns = [...document.querySelectorAll('a,button')]
-      .map((b) => ({ text: norm(b.innerText), href: b.getAttribute('href') || '', cls: b.className }))
+    const btns = [...document.querySelectorAll("a,button")]
+      .map((b) => ({
+        text: norm(b.innerText),
+        href: b.getAttribute("href") || "",
+        cls: b.className,
+      }))
       .filter((b) => /appointment|book|request|schedule|contact/i.test(b.text));
 
     // Iframes (maps)
-    const iframes = [...document.querySelectorAll('iframe')].map((f) => {
+    const iframes = [...document.querySelectorAll("iframe")].map((f) => {
       const r = f.getBoundingClientRect();
       return {
-        src: (f.src || '').slice(0, 120),
+        src: (f.src || "").slice(0, 120),
         w: Math.round(r.width),
         h: Math.round(r.height),
         top: Math.round(r.top + window.scrollY),
@@ -141,12 +152,12 @@ async function probe(page, width) {
     });
 
     // tel / mailto links
-    const contactLinks = [...document.querySelectorAll('a[href^="tel:"],a[href^="mailto:"]')].map(
-      (a) => ({ href: a.getAttribute('href'), text: norm(a.innerText) })
-    );
+    const contactLinks = [
+      ...document.querySelectorAll('a[href^="tel:"],a[href^="mailto:"]'),
+    ].map((a) => ({ href: a.getAttribute("href"), text: norm(a.innerText) }));
 
     // Full visible text of body (for address/hours extraction) — capped
-    const bodyText = norm((main.innerText || '')).slice(0, 4000);
+    const bodyText = norm(main.innerText || "").slice(0, 4000);
 
     return {
       vw,
@@ -171,7 +182,9 @@ async function probe(page, width) {
     const page = await browser.newPage();
     let loaded = null;
     for (const u of URLS) {
-      const resp = await page.goto(u, { waitUntil: 'networkidle', timeout: 45000 }).catch(() => null);
+      const resp = await page
+        .goto(u, { waitUntil: "networkidle", timeout: 45000 })
+        .catch(() => null);
       if (resp && resp.status() < 400) {
         loaded = u;
         break;

@@ -43,9 +43,14 @@ try {
       ["live", "https://www.beachfrontdentistry.com/contact-us"],
       ["cand", "http://localhost:5173/contact-us"],
     ]) {
-      const ctx = await browser.newContext({ viewport: { width: vp, height: 900 }, deviceScaleFactor: 1 });
+      const ctx = await browser.newContext({
+        viewport: { width: vp, height: 900 },
+        deviceScaleFactor: 1,
+      });
       const page = await ctx.newPage();
-      await page.goto(url, { waitUntil: "networkidle", timeout: 60000 }).catch(() => {});
+      await page
+        .goto(url, { waitUntil: "networkidle", timeout: 60000 })
+        .catch(() => {});
       await page.waitForTimeout(1200);
       await page.evaluate(async () => {
         for (let y = 0; y < document.body.scrollHeight; y += 200) {
@@ -62,7 +67,13 @@ try {
     }
     console.log("#### vp", vp);
     for (const k of Object.keys(res.live)) {
-      console.log("  " + k.padEnd(9), "L", String(res.live[k]).padEnd(62), "C", res.cand[k]);
+      console.log(
+        "  " + k.padEnd(9),
+        "L",
+        String(res.live[k]).padEnd(62),
+        "C",
+        res.cand[k],
+      );
     }
   }
 } finally {

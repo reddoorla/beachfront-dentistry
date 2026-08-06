@@ -2,7 +2,8 @@ import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-pa
 
 const LIVE = "https://www.beachfrontdentistry.com/contact-us";
 const CAND = "http://localhost:5173/contact-us";
-const DIR = "/Users/tuckerlemos/Documents/GitHub/beachfront-dentistry/matching/";
+const DIR =
+  "/Users/tuckerlemos/Documents/GitHub/beachfront-dentistry/matching/";
 const browser = await chromium.launch();
 try {
   for (const vp of [1440, 390]) {
@@ -31,7 +32,9 @@ try {
       const heroH = await page.evaluate(
         () =>
           document
-            .querySelector('section.hero.contact, section[data-slice-type="hero"]')
+            .querySelector(
+              'section.hero.contact, section[data-slice-type="hero"]',
+            )
             .getBoundingClientRect().height,
       );
       await page.screenshot({
@@ -59,7 +62,10 @@ try {
       });
       const tip = await page.evaluate(() => {
         const hits = [];
-        const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        const w = document.createTreeWalker(
+          document.body,
+          NodeFilter.SHOW_TEXT,
+        );
         let n;
         while ((n = w.nextNode())) {
           if (/find us here/i.test(n.nodeValue)) {

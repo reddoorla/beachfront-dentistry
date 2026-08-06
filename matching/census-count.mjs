@@ -35,7 +35,11 @@ function rows(section) {
     const label = lines[i].replace(/^\s*y=\s*\d+\s*/, "").trim();
     const refs = [];
     const cands = [];
-    for (let j = i + 1; j < lines.length && /^ {4}(ref|cand):/.test(lines[j]); j++) {
+    for (
+      let j = i + 1;
+      j < lines.length && /^ {4}(ref|cand):/.test(lines[j]);
+      j++
+    ) {
       const v = lines[j].replace(/^\s*(ref|cand):\s*/, "").trim();
       (lines[j].trim().startsWith("ref:") ? refs : cands).push(v);
     }
@@ -49,4 +53,6 @@ function rows(section) {
 const mism = rows(head);
 const amb = rows(tail);
 const declared = mism.filter((r) => DECLARED.some((d) => d.match(r)));
-console.log(`${mism.length - declared.length} ${amb.length} ${declared.length}`);
+console.log(
+  `${mism.length - declared.length} ${amb.length} ${declared.length}`,
+);

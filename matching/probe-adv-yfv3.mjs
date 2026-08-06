@@ -35,7 +35,10 @@ async function run(browser, url, width) {
         const r = el.getBoundingClientRect();
         return {
           tag: el.tagName,
-          cls: (typeof el.className === "string" ? el.className : "").slice(0, 90),
+          cls: (typeof el.className === "string" ? el.className : "").slice(
+            0,
+            90,
+          ),
           x: Math.round(r.x),
           y: Math.round(r.y + window.scrollY),
           w: Math.round(r.width * 10) / 10,
@@ -95,7 +98,10 @@ const browser = await chromium.launch();
 const res = {};
 try {
   for (const w of [1440, 834, 390]) {
-    res[w] = { live: await run(browser, LIVE, w), cand: await run(browser, CAND, w) };
+    res[w] = {
+      live: await run(browser, LIVE, w),
+      cand: await run(browser, CAND, w),
+    };
     console.error("done", w);
   }
 } finally {

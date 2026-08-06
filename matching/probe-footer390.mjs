@@ -69,7 +69,9 @@ try {
     await p.close();
   }
   for (const side of ["ref", "cand"]) {
-    console.log(`\n===== ${side} @${VW}  band y=${out[side].bandY} h=${out[side].bandH}`);
+    console.log(
+      `\n===== ${side} @${VW}  band y=${out[side].bandY} h=${out[side].bandH}`,
+    );
     for (const r of out[side].rows)
       console.log(
         `  y=${String(r.y).padStart(5)} h=${String(r.h).padStart(4)} w=${String(r.w).padStart(4)} ${r.fs}/${r.lh} m=${r.mt}/${r.mb} p=${r.pt}/${r.pb} <${r.tag}.${r.cls}> "${r.txt}"`,

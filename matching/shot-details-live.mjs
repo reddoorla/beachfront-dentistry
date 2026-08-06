@@ -1,8 +1,20 @@
 import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
 const shots = [
-  ["https://www.beachfrontdentistry.com/team-members/dr-robert-quan", "matching/dt-team-live.png", 1200],
-  ["https://www.beachfrontdentistry.com/services/dental-exams", "matching/dt-svc-live.png", 1500],
-  ["https://www.beachfrontdentistry.com/questions/regular-dental-cleanings-support-your-whole-body-health", "matching/dt-qa-live.png", 1400],
+  [
+    "https://www.beachfrontdentistry.com/team-members/dr-robert-quan",
+    "matching/dt-team-live.png",
+    1200,
+  ],
+  [
+    "https://www.beachfrontdentistry.com/services/dental-exams",
+    "matching/dt-svc-live.png",
+    1500,
+  ],
+  [
+    "https://www.beachfrontdentistry.com/questions/regular-dental-cleanings-support-your-whole-body-health",
+    "matching/dt-qa-live.png",
+    1400,
+  ],
 ];
 const b = await chromium.launch();
 try {
@@ -10,10 +22,17 @@ try {
     const p = await b.newPage({ viewport: { width: 1440, height: h } });
     await p.goto(url, { waitUntil: "networkidle", timeout: 60000 });
     await p.evaluate(async () => {
-      for (let y = 0; y <= 1300; y += 200) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 60)); }
-      window.scrollTo(0, 0); await new Promise((r) => setTimeout(r, 250));
+      for (let y = 0; y <= 1300; y += 200) {
+        window.scrollTo(0, y);
+        await new Promise((r) => setTimeout(r, 60));
+      }
+      window.scrollTo(0, 0);
+      await new Promise((r) => setTimeout(r, 250));
     });
-    await p.screenshot({ path: out, clip: { x: 0, y: 0, width: 1440, height: h } });
+    await p.screenshot({
+      path: out,
+      clip: { x: 0, y: 0, width: 1440, height: h },
+    });
     await p.close();
     console.log("shot", out);
   }

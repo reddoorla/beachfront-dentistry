@@ -15,7 +15,9 @@ const CAND = "http://localhost:5173";
 
 const [refPath, candPath, anchor, vwArg, depthArg] = process.argv.slice(2);
 if (!refPath || !candPath || !anchor) {
-  console.error('usage: probe-kids.mjs <refpath> <candpath> "<anchor>" [vws] [depth]');
+  console.error(
+    'usage: probe-kids.mjs <refpath> <candpath> "<anchor>" [vws] [depth]',
+  );
   process.exit(2);
 }
 const VWS = (vwArg ?? "1440,834,390").split(",").map(Number);
@@ -39,14 +41,16 @@ try {
       await p.waitForTimeout(600);
       await p
         .waitForFunction(
-          () => document.getAnimations().every((a) => a.playState !== "running"),
+          () =>
+            document.getAnimations().every((a) => a.playState !== "running"),
           { timeout: 8000 },
         )
         .catch(() => {});
 
       const rows = await p.evaluate(
         ([anchor, depth]) => {
-          const norm = (s) => (s || "").replace(/\s+/g, " ").trim().toLowerCase();
+          const norm = (s) =>
+            (s || "").replace(/\s+/g, " ").trim().toLowerCase();
           const root = [
             ...document.querySelectorAll(
               "h1,h2,h3,h4,h5,h6,p,a,li,span,div,section,button",
@@ -66,8 +70,10 @@ try {
                 .slice(0, 3)
                 .join(".");
               out.push({
-                line:
-                  `${indent}${c.tagName.toLowerCase()}${cls ? "." + cls : ""}`.slice(0, 54),
+                line: `${indent}${c.tagName.toLowerCase()}${cls ? "." + cls : ""}`.slice(
+                  0,
+                  54,
+                ),
                 y: Math.round(r.top + scrollY),
                 h: Math.round(r.height),
                 w: Math.round(r.width),

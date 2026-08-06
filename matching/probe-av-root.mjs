@@ -17,7 +17,9 @@ async function settle(page) {
   });
 }
 
-const widths = [390, 479, 480, 650, 767, 768, 769, 834, 900, 991, 992, 993, 1200, 1440];
+const widths = [
+  390, 479, 480, 650, 767, 768, 769, 834, 900, 991, 992, 993, 1200, 1440,
+];
 
 const browser = await chromium.launch();
 try {
@@ -27,7 +29,9 @@ try {
     ["cand", CAND],
   ]) {
     out[name] = {};
-    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const ctx = await browser.newContext({
+      viewport: { width: 1440, height: 900 },
+    });
     const page = await ctx.newPage();
     await page.goto(url, { waitUntil: "networkidle", timeout: 90000 });
     for (const w of widths) {
@@ -44,12 +48,14 @@ try {
     }
     await ctx.close();
   }
-  console.log("width | live root | cand root | live h | cand h | dh | clientW L/C");
+  console.log(
+    "width | live root | cand root | live h | cand h | dh | clientW L/C",
+  );
   for (const w of widths) {
     const l = out.live[w],
       c = out.cand[w];
     console.log(
-      `${w} | ${l.root} | ${c.root} | ${l.de} | ${c.de} | ${c.de - l.de} (${(((c.de - l.de) / l.de) * 100).toFixed(1)}%) | ${l.clientW}/${c.clientW}`
+      `${w} | ${l.root} | ${c.root} | ${l.de} | ${c.de} | ${c.de - l.de} (${(((c.de - l.de) / l.de) * 100).toFixed(1)}%) | ${l.clientW}/${c.clientW}`,
     );
   }
 } finally {

@@ -22,7 +22,9 @@ const probe = (specs) => {
       `y=${Math.round(r.top + scrollY)} h=${Math.round(r.height)} x=${Math.round(r.left)} w=${Math.round(r.width)}` +
       ` | ${cs.fontFamily.split(",")[0]} ${cs.fontWeight} ${cs.fontSize}/${cs.lineHeight} ls=${cs.letterSpacing} col=${cs.color} ta=${cs.textAlign} tt=${cs.textTransform}` +
       ` bg=${cs.backgroundColor} rad=${cs.borderRadius} pad=${cs.padding} mar=${cs.margin} disp=${cs.display} pos=${cs.position}` +
-      (el.tagName === "IMG" ? ` NAT=${el.naturalWidth}x${el.naturalHeight} fit=${cs.objectFit}` : "") +
+      (el.tagName === "IMG"
+        ? ` NAT=${el.naturalWidth}x${el.naturalHeight} fit=${cs.objectFit}`
+        : "") +
       ` TXT="${(el.textContent || "").replace(/\s+/g, " ").trim().slice(0, 90)}"`
     );
   };

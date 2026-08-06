@@ -22,9 +22,13 @@ try {
       return {
         hasFooter: !!footer,
         hasMapIframe: !!mapIframe,
-        mapSrc: mapIframe ? (mapIframe.getAttribute("src") || "").slice(0, 60) : null,
+        mapSrc: mapIframe
+          ? (mapIframe.getAttribute("src") || "").slice(0, 60)
+          : null,
         ctaLabel,
-        footerText: footer ? footer.textContent.replace(/\s+/g, " ").trim().slice(0, 180) : null,
+        footerText: footer
+          ? footer.textContent.replace(/\s+/g, " ").trim().slice(0, 180)
+          : null,
       };
     });
     console.log(tag, JSON.stringify(info, null, 2));

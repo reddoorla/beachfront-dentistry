@@ -39,7 +39,10 @@ try {
                 ),
               )
               .slice(0, 6)
-              .map((e) => `${e.tagName} "${e.textContent.trim().slice(0, 30)}" — ${tuple(e)}`)
+              .map(
+                (e) =>
+                  `${e.tagName} "${e.textContent.trim().slice(0, 30)}" — ${tuple(e)}`,
+              )
           : [];
         const wave = hero?.querySelector("svg, [class*='wave']") ? true : false;
         const bgImg = hcs?.backgroundImage;

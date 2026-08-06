@@ -35,8 +35,11 @@ try {
     });
     await p.waitForTimeout(2500);
     console.log(side, JSON.stringify(info));
-    const el = await p.$("iframe[src*='map'], iframe[src*='google'], .gm-style, iframe");
-    if (el) await el.screenshot({ path: `matching/states/map-inview-${side}.png` });
+    const el = await p.$(
+      "iframe[src*='map'], iframe[src*='google'], .gm-style, iframe",
+    );
+    if (el)
+      await el.screenshot({ path: `matching/states/map-inview-${side}.png` });
     await p.close();
   }
 } finally {

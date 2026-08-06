@@ -14,7 +14,17 @@ const DIR = new URL(".", import.meta.url).pathname;
 const SECTIONS = join(DIR, "spec-sections");
 
 // Order = live's nav order, then the three detail templates.
-const PAGES = ["home", "yfv", "our-team", "services", "atd", "contact", "team", "svc", "qa"];
+const PAGES = [
+  "home",
+  "yfv",
+  "our-team",
+  "services",
+  "atd",
+  "contact",
+  "team",
+  "svc",
+  "qa",
+];
 
 const parts = [];
 const missing = [];
@@ -34,7 +44,9 @@ for (const page of PAGES) {
   // own key would build fine here and then refuse at the gate, which is the
   // most confusing possible failure. Catch it now.
   if (!new RegExp(`^##+ +${page}( |$|\\b)`, "im").test(body)) {
-    console.error(`WARNING: ${page}.md does not open with a '## ${page}' heading — gate.sh will still refuse this page.`);
+    console.error(
+      `WARNING: ${page}.md does not open with a '## ${page}' heading — gate.sh will still refuse this page.`,
+    );
   }
   parts.push(body);
 }
@@ -62,5 +74,7 @@ are keyed to the gate matrix 1440 / 834 / 390.
 writeFileSync(join(DIR, "SPEC.md"), header + parts.join("\n\n---\n\n") + "\n");
 
 const built = PAGES.length - missing.filter((m) => m !== "_chrome").length;
-console.log(`SPEC.md built — ${built}/${PAGES.length} pages${missing.length ? `, MISSING: ${missing.join(", ")}` : ""}`);
+console.log(
+  `SPEC.md built — ${built}/${PAGES.length} pages${missing.length ? `, MISSING: ${missing.join(", ")}` : ""}`,
+);
 process.exit(missing.length ? 1 : 0);

@@ -7,10 +7,17 @@ const run = async () => {
   const browser = await chromium.launch();
   const out = {};
   try {
-    for (const [name, url] of [["live", LIVE], ["cand", CAND]]) {
-      const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    for (const [name, url] of [
+      ["live", LIVE],
+      ["cand", CAND],
+    ]) {
+      const ctx = await browser.newContext({
+        viewport: { width: 1440, height: 900 },
+      });
       const page = await ctx.newPage();
-      await page.goto(url, { waitUntil: "networkidle", timeout: 90000 }).catch(() => {});
+      await page
+        .goto(url, { waitUntil: "networkidle", timeout: 90000 })
+        .catch(() => {});
       await page.waitForTimeout(1200);
       await page.evaluate(async () => {
         for (let y = 0; y < document.documentElement.scrollHeight; y += 200) {
@@ -24,7 +31,9 @@ const run = async () => {
       const link = page.locator(".service-block a").first();
       const before = await link.evaluate((el) => {
         const cs = getComputedStyle(el);
-        const inner = el.firstElementChild ? getComputedStyle(el.firstElementChild) : null;
+        const inner = el.firstElementChild
+          ? getComputedStyle(el.firstElementChild)
+          : null;
         return {
           opacity: cs.opacity,
           textDecorationLine: cs.textDecorationLine,
@@ -36,7 +45,9 @@ const run = async () => {
       await page.waitForTimeout(700);
       const after = await link.evaluate((el) => {
         const cs = getComputedStyle(el);
-        const inner = el.firstElementChild ? getComputedStyle(el.firstElementChild) : null;
+        const inner = el.firstElementChild
+          ? getComputedStyle(el.firstElementChild)
+          : null;
         return {
           opacity: cs.opacity,
           textDecorationLine: cs.textDecorationLine,

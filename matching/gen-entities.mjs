@@ -25,7 +25,10 @@ const articles = L.questions.map((c) => ({
   home_order: homeRank.get(c.uid) ?? null,
 }));
 const missing = articles.filter((a) => !a.summary);
-if (missing.length) throw new Error(`no summary captured for: ${missing.map((m) => m.uid).join(", ")}`);
+if (missing.length)
+  throw new Error(
+    `no summary captured for: ${missing.map((m) => m.uid).join(", ")}`,
+  );
 
 // ---- collection_item ---------------------------------------------------
 const items = L.servicePanels.flatMap((panel) =>

@@ -52,7 +52,11 @@ try {
     await new Promise((r) => setTimeout(r, 400));
   });
   out.questions = await p.evaluate(() =>
-    [...document.querySelectorAll("a[href*='/ask-the-doctor/'], .qa-item, [class*='question']")]
+    [
+      ...document.querySelectorAll(
+        "a[href*='/ask-the-doctor/'], .qa-item, [class*='question']",
+      ),
+    ]
       .map((el) => ({
         tag: el.tagName.toLowerCase(),
         cls: el.className,
@@ -78,11 +82,18 @@ try {
   );
 
   // ---- services: category panels + their link order ---------------------
-  await p.goto(`${LIVE}/services`, { waitUntil: "networkidle", timeout: 60000 });
+  await p.goto(`${LIVE}/services`, {
+    waitUntil: "networkidle",
+    timeout: 60000,
+  });
   out.services = await p.evaluate(() =>
     [...document.querySelectorAll("[class*='service-block']")].map((el) => ({
       cls: el.className,
-      heading: el.querySelector("h1,h2,h3,h4")?.textContent.replace(/\s+/g, " ").trim() ?? null,
+      heading:
+        el
+          .querySelector("h1,h2,h3,h4")
+          ?.textContent.replace(/\s+/g, " ")
+          .trim() ?? null,
       links: [...el.querySelectorAll("a")].map((a) => ({
         href: a.getAttribute("href"),
         text: a.textContent.replace(/\s+/g, " ").trim(),
@@ -101,8 +112,12 @@ writeFileSync(
   "utf8",
 );
 console.log(
-  "people:", out.people?.length,
-  "questions:", out.questions?.length,
-  "home:", out.homeQuestions?.length,
-  "serviceBlocks:", out.services?.length,
+  "people:",
+  out.people?.length,
+  "questions:",
+  out.questions?.length,
+  "home:",
+  out.homeQuestions?.length,
+  "serviceBlocks:",
+  out.services?.length,
 );

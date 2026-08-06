@@ -2,7 +2,8 @@ import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-pa
 
 const LIVE = "https://www.beachfrontdentistry.com/contact-us";
 const CAND = "http://localhost:5173/contact-us";
-const DIR = "/Users/tuckerlemos/Documents/GitHub/beachfront-dentistry/matching/";
+const DIR =
+  "/Users/tuckerlemos/Documents/GitHub/beachfront-dentistry/matching/";
 const browser = await chromium.launch();
 try {
   for (const vp of [1440, 390]) {
@@ -15,11 +16,10 @@ try {
         deviceScaleFactor: 1,
       });
       const page = await ctx.newPage();
-      await page.addStyleTag === undefined;
+      (await page.addStyleTag) === undefined;
       await page.goto(url, { waitUntil: "networkidle", timeout: 90000 });
       await page.addStyleTag({
-        content:
-          "html,body,*{scroll-behavior:auto !important}",
+        content: "html,body,*{scroll-behavior:auto !important}",
       });
       await page.waitForTimeout(1200);
       await page.evaluate(async () => {
@@ -42,7 +42,12 @@ try {
         // hero background element geometry + natural size
         const img = hero.querySelector("img");
         const cs = getComputedStyle(hero);
-        let bg = { via: "css", image: cs.backgroundImage.slice(0, 120), size: cs.backgroundSize, pos: cs.backgroundPosition };
+        let bg = {
+          via: "css",
+          image: cs.backgroundImage.slice(0, 120),
+          size: cs.backgroundSize,
+          pos: cs.backgroundPosition,
+        };
         if (img) {
           const r = img.getBoundingClientRect();
           bg = {
@@ -50,12 +55,21 @@ try {
             src: img.currentSrc.slice(-90),
             natW: img.naturalWidth,
             natH: img.naturalHeight,
-            rect: [Math.round(r.x), Math.round(r.y + window.scrollY), Math.round(r.width), Math.round(r.height)],
+            rect: [
+              Math.round(r.x),
+              Math.round(r.y + window.scrollY),
+              Math.round(r.width),
+              Math.round(r.height),
+            ],
             objectFit: getComputedStyle(img).objectFit,
             objectPos: getComputedStyle(img).objectPosition,
           };
         }
-        return { scrollY: window.scrollY, heroH: hero.getBoundingClientRect().height, bg };
+        return {
+          scrollY: window.scrollY,
+          heroH: hero.getBoundingClientRect().height,
+          bg,
+        };
       });
       console.log(side, vp, JSON.stringify(info));
       await page.screenshot({

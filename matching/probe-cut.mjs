@@ -60,7 +60,10 @@ try {
         const norm = (s) => (s || "").replace(/\s+/g, " ").trim().toLowerCase();
         const desc = (e) =>
           e
-            ? `${e.tagName.toLowerCase()}.${(typeof e.className === "string" ? e.className : "")
+            ? `${e.tagName.toLowerCase()}.${(typeof e.className === "string"
+                ? e.className
+                : ""
+              )
                 .trim()
                 .split(/\s+/)
                 .slice(0, 3)

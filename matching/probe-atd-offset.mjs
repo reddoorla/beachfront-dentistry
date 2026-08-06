@@ -32,7 +32,8 @@ const settle = async (p) => {
     window.scrollTo(0, 0);
     for (let i = 0; i < 60; i++) {
       await new Promise((r) => setTimeout(r, 100));
-      if (document.getAnimations().every((a) => a.playState !== "running")) break;
+      if (document.getAnimations().every((a) => a.playState !== "running"))
+        break;
     }
     await new Promise((r) => setTimeout(r, 400));
   });
@@ -45,7 +46,9 @@ const READ = ({ sel, anchor }) => {
   const regionEl = [...document.querySelectorAll("body *")].find((e) =>
     norm(e.textContent).startsWith(anchor),
   );
-  const top = regionEl ? regionEl.getBoundingClientRect().top + window.scrollY : 0;
+  const top = regionEl
+    ? regionEl.getBoundingClientRect().top + window.scrollY
+    : 0;
 
   const cells = [...document.querySelectorAll(sel)].map((cell, i) => {
     const cr = cell.getBoundingClientRect();
@@ -86,10 +89,16 @@ try {
 console.log(`ask-the-doctor "Beyond the Smile" @${VW}`);
 console.log(`region top: live=${res.live.top} ours=${res.ours.top}`);
 console.log(`cells: live=${res.live.n} ours=${res.ours.n}\n`);
-console.log("  i   cellY(l/o)      Δ    cellH(l/o)     cardY(l/o)      Δ    cardHxW(l/o)");
+console.log(
+  "  i   cellY(l/o)      Δ    cellH(l/o)     cardY(l/o)      Δ    cardHxW(l/o)",
+);
 for (let i = 0; i < Math.min(8, Math.max(res.live.n, res.ours.n)); i++) {
-  const l = res.live.cells[i], o = res.ours.cells[i];
-  if (!l || !o) { console.log(`  ${i}  missing on one side`); continue; }
+  const l = res.live.cells[i],
+    o = res.ours.cells[i];
+  if (!l || !o) {
+    console.log(`  ${i}  missing on one side`);
+    continue;
+  }
   const p = (a, bb) => `${String(a).padStart(5)}/${String(bb).padEnd(5)}`;
   console.log(
     `  ${String(i).padStart(2)}  ${p(l.cellY, o.cellY)} ${String(o.cellY - l.cellY).padStart(6)}   ` +
@@ -97,9 +106,18 @@ for (let i = 0; i < Math.min(8, Math.max(res.live.n, res.ours.n)); i++) {
       `${`${l.cardH}x${l.cardW}`.padStart(9)}/${`${o.cardH}x${o.cardW}`}`,
   );
 }
-const pitch = (r) => (r.cells.length > 2 ? r.cells[2].cellY - r.cells[0].cellY : null);
-console.log(`\nrow pitch (cell 0 -> 2): live=${pitch(res.live)} ours=${pitch(res.ours)}`);
-console.log(`grid start offset from region top: live=${res.live.cells[0]?.cellY} ours=${res.ours.cells[0]?.cellY}`);
+const pitch = (r) =>
+  r.cells.length > 2 ? r.cells[2].cellY - r.cells[0].cellY : null;
+console.log(
+  `\nrow pitch (cell 0 -> 2): live=${pitch(res.live)} ours=${pitch(res.ours)}`,
+);
+console.log(
+  `grid start offset from region top: live=${res.live.cells[0]?.cellY} ours=${res.ours.cells[0]?.cellY}`,
+);
 const last = (r) => r.cells[r.cells.length - 1];
-console.log(`last cell y: live=${last(res.live)?.cellY} ours=${last(res.ours)?.cellY}`);
-console.log(`\ncard bg (0): live=${res.live.cells[0]?.bg}\n              ours=${res.ours.cells[0]?.bg}`);
+console.log(
+  `last cell y: live=${last(res.live)?.cellY} ours=${last(res.ours)?.cellY}`,
+);
+console.log(
+  `\ncard bg (0): live=${res.live.cells[0]?.bg}\n              ours=${res.ours.cells[0]?.bg}`,
+);

@@ -18,7 +18,11 @@ async function settle(page) {
 }
 
 const census = () => {
-  const out = { pageH: document.documentElement.scrollHeight, bodyClientW: document.body.clientWidth, sections: [] };
+  const out = {
+    pageH: document.documentElement.scrollHeight,
+    bodyClientW: document.body.clientWidth,
+    sections: [],
+  };
   const root = document.querySelector("main") || document.body;
   // top-level sections: direct children of body/main that are section-like
   const walk = (el, depth) => {
@@ -29,7 +33,10 @@ const census = () => {
       out.sections.push({
         depth,
         tag: c.tagName.toLowerCase(),
-        cls: (c.className && typeof c.className === "string" ? c.className : "").slice(0, 110),
+        cls: (c.className && typeof c.className === "string"
+          ? c.className
+          : ""
+        ).slice(0, 110),
         id: c.id || "",
         y: Math.round(sy),
         h: Math.round(r.height),
@@ -47,26 +54,41 @@ const census = () => {
 const browser = await chromium.launch();
 try {
   const res = {};
-  for (const [name, url] of [["live", LIVE], ["cand", CAND]]) {
+  for (const [name, url] of [
+    ["live", LIVE],
+    ["cand", CAND],
+  ]) {
     res[name] = {};
     for (const vw of VPS) {
-      const ctx = await browser.newContext({ viewport: { width: vw, height: 900 }, deviceScaleFactor: 1 });
+      const ctx = await browser.newContext({
+        viewport: { width: vw, height: 900 },
+        deviceScaleFactor: 1,
+      });
       const page = await ctx.newPage();
-      await page.goto(url, { waitUntil: "networkidle", timeout: 90000 }).catch(() => {});
+      await page
+        .goto(url, { waitUntil: "networkidle", timeout: 90000 })
+        .catch(() => {});
       await page.waitForTimeout(600);
       await settle(page);
       res[name][vw] = await page.evaluate(census);
       await ctx.close();
     }
   }
-  fs.writeFileSync("matching/ot-diag-census.json", JSON.stringify(res, null, 1));
+  fs.writeFileSync(
+    "matching/ot-diag-census.json",
+    JSON.stringify(res, null, 1),
+  );
   for (const vw of VPS) {
-    console.log(`\n===== ${vw} =====  live pageH=${res.live[vw].pageH} bodyW=${res.live[vw].bodyClientW}   cand pageH=${res.cand[vw].pageH} bodyW=${res.cand[vw].bodyClientW}`);
+    console.log(
+      `\n===== ${vw} =====  live pageH=${res.live[vw].pageH} bodyW=${res.live[vw].bodyClientW}   cand pageH=${res.cand[vw].pageH} bodyW=${res.cand[vw].bodyClientW}`,
+    );
     for (const side of ["live", "cand"]) {
       console.log(`--- ${side}`);
       for (const s of res[side][vw].sections) {
         if (s.depth > 0) continue;
-        console.log(`  y=${String(s.y).padStart(5)} h=${String(s.h).padStart(5)} x=${String(s.x).padStart(4)} w=${String(s.w).padStart(4)} ${s.tag}.${s.cls} | ${s.text}`);
+        console.log(
+          `  y=${String(s.y).padStart(5)} h=${String(s.h).padStart(5)} x=${String(s.x).padStart(4)} w=${String(s.w).padStart(4)} ${s.tag}.${s.cls} | ${s.text}`,
+        );
       }
     }
   }

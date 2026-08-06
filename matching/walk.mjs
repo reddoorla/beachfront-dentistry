@@ -38,7 +38,9 @@ const SECTIONS = sectionsRaw.split(",").map((s) => s.trim());
 mkdirSync("matching/states", { recursive: true });
 
 async function shoot(browser, url, side) {
-  const ctx = await browser.newContext({ viewport: { width: VW, height: 900 } });
+  const ctx = await browser.newContext({
+    viewport: { width: VW, height: 900 },
+  });
   const p = await ctx.newPage();
   await p.goto(url, { waitUntil: "networkidle", timeout: 60000 });
   // settled-scroll: reveals that have not fired render with their travel still
@@ -56,7 +58,9 @@ async function shoot(browser, url, side) {
     const y = await p.evaluate((a) => {
       const norm = (s) => (s || "").replace(/\s+/g, " ").trim().toLowerCase();
       const el = [
-        ...document.querySelectorAll("h1,h2,h3,h4,h5,h6,p,a,li,span,div,section,button"),
+        ...document.querySelectorAll(
+          "h1,h2,h3,h4,h5,h6,p,a,li,span,div,section,button",
+        ),
       ].find((e) => norm(e.textContent).startsWith(norm(a)));
       if (!el) return null;
       const r = el.getBoundingClientRect();
@@ -86,13 +90,18 @@ const b = await chromium.launch();
 try {
   const live = await shoot(b, REF + refPath, "live");
   const ours = await shoot(b, CAND + candPath, "ours");
-  console.log(`\nPAIRED WALKTHROUGH — ${page} @${VW}  (${SECTIONS.length} sections)\n`);
+  console.log(
+    `\nPAIRED WALKTHROUGH — ${page} @${VW}  (${SECTIONS.length} sections)\n`,
+  );
   for (const [i, anchor] of SECTIONS.entries()) {
-    const L = live[i], O = ours[i];
+    const L = live[i],
+      O = ours[i];
     console.log(
       `${String(i).padStart(2)}  ${anchor.slice(0, 42).padEnd(44)} live y=${String(L.y).padStart(6)}  ours y=${String(O.y).padStart(6)}`,
     );
-    console.log(`      ${L.file ?? "NOT FOUND"}\n      ${O.file ?? "NOT FOUND"}`);
+    console.log(
+      `      ${L.file ?? "NOT FOUND"}\n      ${O.file ?? "NOT FOUND"}`,
+    );
   }
   console.log(
     `\nPairs written. Item 6 is NOT done until each pair has been LOOKED AT and\n` +

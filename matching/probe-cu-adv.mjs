@@ -23,8 +23,10 @@ const LIVE_SEL = {
   block2: "section.info-section .footer-contact-block:nth-of-type(2)",
   hdr1: "section.info-section .footer-contact-block:nth-of-type(1) .footer-contact-header",
   hdr2: "section.info-section .footer-contact-block:nth-of-type(2) .footer-contact-header",
-  info1: "section.info-section .footer-contact-block:nth-of-type(1) .footer-contact-info",
-  info2: "section.info-section .footer-contact-block:nth-of-type(2) .footer-contact-info",
+  info1:
+    "section.info-section .footer-contact-block:nth-of-type(1) .footer-contact-info",
+  info2:
+    "section.info-section .footer-contact-block:nth-of-type(2) .footer-contact-info",
   mapWrap: "section.info-section ._w-40pc",
   mapRow: "section.info-section .w-layout-hflex:not(.su-flex-v-mobile)",
   map: "section.info-section .footer-map",
@@ -32,7 +34,8 @@ const LIVE_SEL = {
 
 const CAND_SEL = {
   hero: 'section[data-slice-type="hero"]',
-  heroTopGrad: 'section[data-slice-type="hero"] > div[aria-hidden="true"].top-0',
+  heroTopGrad:
+    'section[data-slice-type="hero"] > div[aria-hidden="true"].top-0',
   heroBotGrad:
     'section[data-slice-type="hero"] > div[aria-hidden="true"].bottom-0',
   heroContentWidth: null,

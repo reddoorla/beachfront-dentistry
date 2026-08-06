@@ -6,16 +6,13 @@ const ORIGIN = "https://www.beachfrontdentistry.com";
 
 async function firstLink(p, listPath, re) {
   await p.goto(ORIGIN + listPath, { waitUntil: "networkidle", timeout: 60000 });
-  return p.evaluate(
-    (reSrc) => {
-      const rx = new RegExp(reSrc, "i");
-      const hrefs = [...document.querySelectorAll("a[href]")]
-        .map((a) => a.getAttribute("href"))
-        .filter((h) => h && rx.test(h));
-      return [...new Set(hrefs)][0] || null;
-    },
-    re.source,
-  );
+  return p.evaluate((reSrc) => {
+    const rx = new RegExp(reSrc, "i");
+    const hrefs = [...document.querySelectorAll("a[href]")]
+      .map((a) => a.getAttribute("href"))
+      .filter((h) => h && rx.test(h));
+    return [...new Set(hrefs)][0] || null;
+  }, re.source);
 }
 
 async function detailSpec(p, url) {
@@ -78,7 +75,9 @@ async function detailSpec(p, url) {
       heroBg,
       heroRect,
       h1: h1 ? h1.textContent.trim() : null,
-      h1Size: cs1 ? `${cs1.fontSize}/${cs1.lineHeight} ${cs1.fontWeight} ${cs1.color}` : null,
+      h1Size: cs1
+        ? `${cs1.fontSize}/${cs1.lineHeight} ${cs1.fontWeight} ${cs1.color}`
+        : null,
       sections,
     };
   });
@@ -97,7 +96,13 @@ try {
     if (!link) {
       console.log("  (no link found; dumping candidate hrefs)");
       const all = await p.evaluate(() =>
-        [...new Set([...document.querySelectorAll("a[href]")].map((a) => a.getAttribute("href")))]
+        [
+          ...new Set(
+            [...document.querySelectorAll("a[href]")].map((a) =>
+              a.getAttribute("href"),
+            ),
+          ),
+        ]
           .filter((h) => h && h.startsWith("/") && h.split("/").length > 2)
           .slice(0, 25),
       );

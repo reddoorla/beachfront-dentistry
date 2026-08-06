@@ -3,12 +3,16 @@ import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-pa
 const URL = process.argv[2] || "http://localhost:5190/";
 const VW = Number(process.argv[3] || 834);
 const TAG = process.argv[4] || "cand";
-const OUT = "/Users/tuckerlemos/Documents/GitHub/beachfront-dentistry/matching/cards";
+const OUT =
+  "/Users/tuckerlemos/Documents/GitHub/beachfront-dentistry/matching/cards";
 const BAND = 1180;
 
 const b = await chromium.launch();
 try {
-  const p = await b.newPage({ viewport: { width: VW, height: BAND }, deviceScaleFactor: 2 });
+  const p = await b.newPage({
+    viewport: { width: VW, height: BAND },
+    deviceScaleFactor: 2,
+  });
   await p.goto(URL, { waitUntil: "networkidle", timeout: 60000 });
   // settle scroll to fire reveals + lazy load
   const h0 = await p.evaluate(() => document.body.scrollHeight);

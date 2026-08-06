@@ -1,6 +1,9 @@
 // Where does live place the hero text within the hero box, across the band?
 import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
-const TARGETS = { cand: "http://localhost:5190/", live: "https://www.beachfrontdentistry.com/" };
+const TARGETS = {
+  cand: "http://localhost:5190/",
+  live: "https://www.beachfrontdentistry.com/",
+};
 const VWS = [390, 480, 650];
 const b = await chromium.launch();
 try {
@@ -18,20 +21,31 @@ try {
           if (!h1) return null;
           // hero section = nearest ancestor section
           let sec = h1.closest("section") || h1.parentElement;
-          const sb = sec.getBoundingClientRect(), hb = h1.getBoundingClientRect();
-          const pill = [...document.querySelectorAll("a,button")].find((e) => /make (an )?appointment/i.test(e.textContent));
+          const sb = sec.getBoundingClientRect(),
+            hb = h1.getBoundingClientRect();
+          const pill = [...document.querySelectorAll("a,button")].find((e) =>
+            /make (an )?appointment/i.test(e.textContent),
+          );
           const pb = pill ? pill.getBoundingClientRect() : null;
           return {
             heroH: Math.round(sb.height),
             h1TopInHero: Math.round(hb.top - sb.top),
             h1BottomToHeroBottom: Math.round(sb.bottom - hb.bottom),
-            pillBottomToHeroBottom: pb ? Math.round(sb.bottom - pb.bottom) : null,
+            pillBottomToHeroBottom: pb
+              ? Math.round(sb.bottom - pb.bottom)
+              : null,
           };
         });
-        console.log(`  ${k}: heroH=${m?.heroH} h1Top=${m?.h1TopInHero} h1→bot=${m?.h1BottomToHeroBottom} pill→bot=${m?.pillBottomToHeroBottom}`);
+        console.log(
+          `  ${k}: heroH=${m?.heroH} h1Top=${m?.h1TopInHero} h1→bot=${m?.h1BottomToHeroBottom} pill→bot=${m?.pillBottomToHeroBottom}`,
+        );
       } catch (e) {
         console.log(`  ${k}: ERR ${e.message.split("\n")[0]}`);
-      } finally { await p.close(); }
+      } finally {
+        await p.close();
+      }
     }
   }
-} finally { await b.close(); }
+} finally {
+  await b.close();
+}

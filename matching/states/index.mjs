@@ -26,7 +26,11 @@ const OURS_NAV_LINK = '[role="dialog"] a[href="/your-first-visit"]';
 
 /** The off-canvas panel has to be open before anything inside it is reachable. */
 const OPEN_PANEL = [
-  { sel: ".link-block-4", candSel: 'button[aria-label="Open menu"]', action: "click" },
+  {
+    sel: ".link-block-4",
+    candSel: 'button[aria-label="Open menu"]',
+    action: "click",
+  },
 ];
 
 export const CHROME_STATES = [
@@ -84,7 +88,8 @@ export const CHROME_STATES = [
   {
     name: "footer Make a Payment hover",
     sel: '.footer a.button[href^="https://app.modento.io"]',
-    candSel: 'footer a[href^="https://app.modento.io"], .footer a[href^="https://app.modento.io"]',
+    candSel:
+      'footer a[href^="https://app.modento.io"], .footer a[href^="https://app.modento.io"]',
     action: "hover",
     props: ["opacity"],
   },

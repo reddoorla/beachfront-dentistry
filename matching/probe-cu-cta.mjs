@@ -1,6 +1,7 @@
 import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
 import fs from "node:fs";
-const OUT = "/Users/tuckerlemos/Documents/GitHub/beachfront-dentistry/matching/";
+const OUT =
+  "/Users/tuckerlemos/Documents/GitHub/beachfront-dentistry/matching/";
 
 async function settle(page) {
   await page.evaluate(async () => {
@@ -55,13 +56,18 @@ const dump = (side) => {
     push("fijiLabel", q(".cta-beach-label"));
     push("fijiImg", q(".fiji-section img"));
     push("footerInfo", q(".footer-info-section"));
-    push("phone", q("section.info-section .footer-contact-block .footer-contact-info"));
+    push(
+      "phone",
+      q("section.info-section .footer-contact-block .footer-contact-info"),
+    );
   } else {
     push("heroImg", q('section[data-slice-type="hero"] img'));
     const secs = all("main > *");
     secs.forEach((s, i) => push("mainChild" + i, s));
     push("ctaH2", q("main > section:last-of-type h2"));
-    all('main > section:last-of-type a').forEach((a, i) => push("ctaBtn" + i, a));
+    all("main > section:last-of-type a").forEach((a, i) =>
+      push("ctaBtn" + i, a),
+    );
     push("ctaImg", q("main > section:last-of-type img"));
     push("phone", q('section[data-section="info"] a[href^="tel"]'));
     push("hoursP", all('section[data-section="info"] p')[2]);
@@ -79,14 +85,22 @@ try {
   ]) {
     res[side] = {};
     for (const vp of [1440, 390]) {
-      const ctx = await browser.newContext({ viewport: { width: vp, height: 900 }, deviceScaleFactor: 1 });
+      const ctx = await browser.newContext({
+        viewport: { width: vp, height: 900 },
+        deviceScaleFactor: 1,
+      });
       const page = await ctx.newPage();
-      await page.goto(url, { waitUntil: "networkidle", timeout: 60000 }).catch(() => {});
+      await page
+        .goto(url, { waitUntil: "networkidle", timeout: 60000 })
+        .catch(() => {});
       await page.waitForTimeout(1500);
       await settle(page);
       res[side][vp] = await page.evaluate(dump, side);
       if (vp === 1440) {
-        await page.screenshot({ path: OUT + `cu-${side}-hero.png`, clip: { x: 0, y: 0, width: vp, height: 560 } });
+        await page.screenshot({
+          path: OUT + `cu-${side}-hero.png`,
+          clip: { x: 0, y: 0, width: vp, height: 560 },
+        });
       }
       await ctx.close();
     }
@@ -101,7 +115,9 @@ for (const side of ["live", "cand"]) {
     for (const r of res[side][vp].rows) {
       console.log(
         "  " + r.label,
-        r.missing ? "MISSING" : `[${r.tag}.${r.cls}] x${r.x} y${r.y} w${r.w} h${r.h} ${r.fs}/${r.lh} fw${r.fw} ${r.ff} ls${r.ls} ${r.color} ta:${r.ta} of:${r.of}/${r.op} nat:${r.nat} mar:${r.mar} pad:${r.pad} src:${r.src} '${r.txt}'`,
+        r.missing
+          ? "MISSING"
+          : `[${r.tag}.${r.cls}] x${r.x} y${r.y} w${r.w} h${r.h} ${r.fs}/${r.lh} fw${r.fw} ${r.ff} ls${r.ls} ${r.color} ta:${r.ta} of:${r.of}/${r.op} nat:${r.nat} mar:${r.mar} pad:${r.pad} src:${r.src} '${r.txt}'`,
       );
     }
   }

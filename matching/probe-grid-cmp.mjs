@@ -23,9 +23,18 @@ try {
       const c = [...document.querySelectorAll(".qa-block")];
       const box = (el) => {
         const b = el.getBoundingClientRect();
-        return { x: Math.round(b.x), y: Math.round(b.y + window.scrollY), w: Math.round(b.width), h: Math.round(b.height) };
+        return {
+          x: Math.round(b.x),
+          y: Math.round(b.y + window.scrollY),
+          w: Math.round(b.width),
+          h: Math.round(b.height),
+        };
       };
-      return { count: c.length, first4: c.slice(0, 4).map(box), last: c.length ? box(c[c.length - 1]) : null };
+      return {
+        count: c.length,
+        first4: c.slice(0, 4).map(box),
+        last: c.length ? box(c[c.length - 1]) : null,
+      };
     });
     await p.close();
     // CAND
@@ -39,9 +48,18 @@ try {
       const c = [...document.querySelectorAll(".qa-item")];
       const box = (el) => {
         const b = el.getBoundingClientRect();
-        return { x: Math.round(b.x), y: Math.round(b.y + window.scrollY), w: Math.round(b.width), h: Math.round(b.height) };
+        return {
+          x: Math.round(b.x),
+          y: Math.round(b.y + window.scrollY),
+          w: Math.round(b.width),
+          h: Math.round(b.height),
+        };
       };
-      return { count: c.length, first4: c.slice(0, 4).map(box), last: c.length ? box(c[c.length - 1]) : null };
+      return {
+        count: c.length,
+        first4: c.slice(0, 4).map(box),
+        last: c.length ? box(c[c.length - 1]) : null,
+      };
     });
     await p.close();
     console.log(JSON.stringify(out, null, 1));

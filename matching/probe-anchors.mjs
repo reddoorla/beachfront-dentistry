@@ -11,27 +11,59 @@ const PAGES = {
   home: [
     "/",
     "/dev/match/home",
-    ["Finally have a dentist", "MEET YOUR TEAM", "Serving the South Bay", "Your Path to Oral Health", "Our dental team in Redondo", "Beyond the Smile", "Ready for great dental health", "Want to learn more"],
+    [
+      "Finally have a dentist",
+      "MEET YOUR TEAM",
+      "Serving the South Bay",
+      "Your Path to Oral Health",
+      "Our dental team in Redondo",
+      "Beyond the Smile",
+      "Ready for great dental health",
+      "Want to learn more",
+    ],
   ],
   yfv: [
     "/your-first-visit",
     "/dev/match/your-first-visit",
-    ["We want you to feel comfortable", "Office Tour", "Dr. Robert Quan", "To be a long term health partner", "Serving the South Bay for over 40 years", "Ready for great dental health", "Want to learn more"],
+    [
+      "We want you to feel comfortable",
+      "Office Tour",
+      "Dr. Robert Quan",
+      "To be a long term health partner",
+      "Serving the South Bay for over 40 years",
+      "Ready for great dental health",
+      "Want to learn more",
+    ],
   ],
   services: [
     "/services",
     "/dev/match/services",
-    ["Cosmetic Dentistry", "General Dentistry", "Ready for great dental health", "Want to learn more"],
+    [
+      "Cosmetic Dentistry",
+      "General Dentistry",
+      "Ready for great dental health",
+      "Want to learn more",
+    ],
   ],
   "our-team": [
     "/our-team",
     "/dev/match/our-team",
-    ["Our", "Dr. Robert Quan", "Ready for great dental health", "Want to learn more"],
+    [
+      "Our",
+      "Dr. Robert Quan",
+      "Ready for great dental health",
+      "Want to learn more",
+    ],
   ],
   atd: [
     "/ask-the-doctor",
     "/dev/match/ask-the-doctor",
-    ["Beyond the Smile", "Back to Top", "Ready for great dental health", "Want to learn more"],
+    [
+      "Beyond the Smile",
+      "Back to Top",
+      "Ready for great dental health",
+      "Want to learn more",
+    ],
   ],
 };
 
@@ -48,7 +80,8 @@ const settle = async (p) => {
     // un-fired offset and silently poisons every measurement downstream.
     for (let i = 0; i < 60; i++) {
       await new Promise((r) => setTimeout(r, 100));
-      if (document.getAnimations().every((a) => a.playState !== "running")) break;
+      if (document.getAnimations().every((a) => a.playState !== "running"))
+        break;
     }
     await new Promise((r) => setTimeout(r, 400));
   });
@@ -86,9 +119,7 @@ try {
 }
 
 console.log(`${page} @${VW}`);
-console.log(
-  "region".padEnd(34) + "liveTop  ourTop  Δtop   liveH  ourH   ΔH",
-);
+console.log("region".padEnd(34) + "liveTop  ourTop  Δtop   liveH  ourH   ΔH");
 const rows = [["top", 0], ...anchors.map((a) => [a, null])];
 for (let i = 0; i < rows.length; i++) {
   const label = rows[i][0];
@@ -102,7 +133,16 @@ for (let i = 0; i < rows.length; i++) {
   const f = (n) => (n == null ? "  —  " : String(n).padStart(6));
   console.log(
     label.slice(0, 33).padEnd(34) +
-      f(lTop) + " " + f(oTop) + " " + f(oTop != null && lTop != null ? oTop - lTop : null) + "  " +
-      f(lH) + " " + f(oH) + " " + f(oH != null && lH != null ? oH - lH : null),
+      f(lTop) +
+      " " +
+      f(oTop) +
+      " " +
+      f(oTop != null && lTop != null ? oTop - lTop : null) +
+      "  " +
+      f(lH) +
+      " " +
+      f(oH) +
+      " " +
+      f(oH != null && lH != null ? oH - lH : null),
   );
 }

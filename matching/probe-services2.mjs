@@ -28,7 +28,9 @@ try {
       (el) => el.querySelector('a[href*="/services/"]'),
     );
     // dedupe to top-most cyan panel per category
-    const tops = panels.filter((el) => !el.parentElement?.closest(".bg-color-primary"));
+    const tops = panels.filter(
+      (el) => !el.parentElement?.closest(".bg-color-primary"),
+    );
     const cats = tops.slice(0, 6).map((panel) => {
       const cs = getComputedStyle(panel);
       const items = [...panel.querySelectorAll('a[href*="/services/"]')];
@@ -36,7 +38,9 @@ try {
       const catHead =
         panel.querySelector("h1,h2,h3,h4,h5")?.textContent?.trim() || null;
       // grid container holding the _w-half items
-      const itemWrap = items[0]?.closest("[class*='w-layout'], [class*='grid'], [class*='flex']");
+      const itemWrap = items[0]?.closest(
+        "[class*='w-layout'], [class*='grid'], [class*='flex']",
+      );
       const iw = itemWrap ? getComputedStyle(itemWrap) : null;
       return {
         panelCls: panel.className,

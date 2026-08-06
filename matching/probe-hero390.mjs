@@ -16,11 +16,14 @@ try {
       const out = [];
       // every visible element in the top 700px that is an img/svg/canvas or a
       // rounded box — the hero's chrome
-      for (const el of document.querySelectorAll("img,svg,a,button,div,section")) {
+      for (const el of document.querySelectorAll(
+        "img,svg,a,button,div,section",
+      )) {
         const r = el.getBoundingClientRect();
         if (r.top + scrollY > 700 || r.width < 12 || r.height < 12) continue;
         const cs = getComputedStyle(el);
-        const rounded = /9999|50%/.test(cs.borderRadius) || cs.borderRadius.startsWith("9");
+        const rounded =
+          /9999|50%/.test(cs.borderRadius) || cs.borderRadius.startsWith("9");
         const isMedia = /^(IMG|SVG|CANVAS)$/.test(el.tagName);
         if (!rounded && !isMedia) continue;
         if (r.width > 380 && r.height > 250) continue; // the hero photo itself

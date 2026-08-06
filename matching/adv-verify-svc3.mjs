@@ -24,7 +24,12 @@ const meta = () => {
   const R = (el) => {
     if (!el) return null;
     const r = el.getBoundingClientRect();
-    return { x: px(r.x), y: px(r.y + window.scrollY), w: px(r.width), h: px(r.height) };
+    return {
+      x: px(r.x),
+      y: px(r.y + window.scrollY),
+      w: px(r.width),
+      h: px(r.height),
+    };
   };
   const q = (s) => document.querySelector(s);
   const qa = (s) => [...document.querySelectorAll(s)];
@@ -33,19 +38,33 @@ const meta = () => {
   const intro =
     q(".we-offer-section p") ||
     [...qa("p")].find((p) => /We offer a wide array/i.test(p.textContent));
-  out.intro = { rect: R(intro), lines: intro ? Math.round(intro.getBoundingClientRect().height / parseFloat(getComputedStyle(intro).lineHeight)) : null };
+  out.intro = {
+    rect: R(intro),
+    lines: intro
+      ? Math.round(
+          intro.getBoundingClientRect().height /
+            parseFloat(getComputedStyle(intro).lineHeight),
+        )
+      : null,
+  };
   const sec =
     q(".service-blocks-sections .content-width") ||
     (q(".service-block") ? q(".service-block").closest("section") : null);
   out.sec = {
     rect: R(sec),
-    pad: sec ? [getComputedStyle(sec).paddingLeft, getComputedStyle(sec).paddingRight] : null,
+    pad: sec
+      ? [getComputedStyle(sec).paddingLeft, getComputedStyle(sec).paddingRight]
+      : null,
   };
   // footer children breakdown
   const fInfo =
     q(".footer-info-section") ||
     (() => {
-      const l = [...qa("*")].find((e) => e.children.length === 0 && /^Want to learn more/i.test(e.textContent.trim()));
+      const l = [...qa("*")].find(
+        (e) =>
+          e.children.length === 0 &&
+          /^Want to learn more/i.test(e.textContent.trim()),
+      );
       let n = l;
       while (n && n.tagName !== "FOOTER") n = n.parentElement;
       return n;
@@ -57,17 +76,25 @@ const meta = () => {
     for (const ch of el.children) {
       const r = R(ch);
       if (r && r.h > 4)
-        rows.push({ d, tag: ch.tagName.toLowerCase(), cls: (ch.className || "").toString().slice(0, 55), txt: (ch.textContent || "").trim().replace(/\s+/g, " ").slice(0, 26), ...r });
+        rows.push({
+          d,
+          tag: ch.tagName.toLowerCase(),
+          cls: (ch.className || "").toString().slice(0, 55),
+          txt: (ch.textContent || "").trim().replace(/\s+/g, " ").slice(0, 26),
+          ...r,
+        });
       rec(ch, d + 1);
     }
   };
   if (fInfo) rec(fInfo, 0);
   out.fTree = rows;
   // panel rect of card 0 (page coords)
-  const panel = q(".service-block .h-40pc") || (() => {
-    const c = q(".service-block");
-    return c ? c.children[c.children.length - 1] : null;
-  })();
+  const panel =
+    q(".service-block .h-40pc") ||
+    (() => {
+      const c = q(".service-block");
+      return c ? c.children[c.children.length - 1] : null;
+    })();
   out.panel = R(panel);
   return out;
 };
@@ -77,17 +104,30 @@ const run = async () => {
   const result = {};
   try {
     for (const w of [1440, 600]) {
-      const ctx = await browser.newContext({ viewport: { width: w, height: 900 }, deviceScaleFactor: 1 });
+      const ctx = await browser.newContext({
+        viewport: { width: w, height: 900 },
+        deviceScaleFactor: 1,
+      });
       const page = await ctx.newPage();
-      for (const [name, url] of [["live", LIVE], ["cand", CAND]]) {
-        await page.goto(url, { waitUntil: "networkidle", timeout: 90000 }).catch(() => {});
+      for (const [name, url] of [
+        ["live", LIVE],
+        ["cand", CAND],
+      ]) {
+        await page
+          .goto(url, { waitUntil: "networkidle", timeout: 90000 })
+          .catch(() => {});
         await page.waitForTimeout(900);
         await settle(page);
         const m = await page.evaluate(meta);
         result[`${name}@${w}`] = m;
         if (w === 1440 && m.panel) {
           const buf = await page.screenshot({
-            clip: { x: m.panel.x, y: m.panel.y, width: m.panel.w, height: m.panel.h },
+            clip: {
+              x: m.panel.x,
+              y: m.panel.y,
+              width: m.panel.w,
+              height: m.panel.h,
+            },
             fullPage: true,
           });
           const png = PNG.sync.read(buf);
@@ -112,7 +152,10 @@ const run = async () => {
   } finally {
     await browser.close();
   }
-  fs.writeFileSync("/Users/tuckerlemos/Documents/GitHub/beachfront-dentistry/matching/adv-verify-svc3.json", JSON.stringify(result, null, 1));
+  fs.writeFileSync(
+    "/Users/tuckerlemos/Documents/GitHub/beachfront-dentistry/matching/adv-verify-svc3.json",
+    JSON.stringify(result, null, 1),
+  );
   console.log(JSON.stringify(result, null, 1));
 };
 run();

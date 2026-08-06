@@ -20,15 +20,21 @@ try {
     await p.waitForTimeout(1000);
     const out = await p.evaluate(() => {
       const fontsOK = {
-        "sans300": document.fonts.check("300 12px museo-sans"),
-        "sans700": document.fonts.check("700 12px museo-sans"),
-        "slab100": document.fonts.check("100 25px museo-slab"),
-        "slab300": document.fonts.check("300 25px museo-slab"),
+        sans300: document.fonts.check("300 12px museo-sans"),
+        sans700: document.fonts.check("700 12px museo-sans"),
+        slab100: document.fonts.check("100 25px museo-slab"),
+        slab300: document.fonts.check("300 25px museo-slab"),
       };
       const rows = [];
-      for (const el of document.querySelectorAll("p,strong,h1,h2,h3,h4,h5,h6")) {
+      for (const el of document.querySelectorAll(
+        "p,strong,h1,h2,h3,h4,h5,h6",
+      )) {
         const t = el.textContent.trim();
-        if (!/^(What to expect|Why are dental exams|During your dental exam|Dental exams are the best)/.test(t))
+        if (
+          !/^(What to expect|Why are dental exams|During your dental exam|Dental exams are the best)/.test(
+            t,
+          )
+        )
           continue;
         const r = el.getBoundingClientRect();
         if (r.height === 0) continue;

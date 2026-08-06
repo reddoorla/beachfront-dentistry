@@ -26,9 +26,12 @@ export const DECLARED = [
     // Deliberate, permanent, and the ONLY difference is the colour field.
     match: (r) => {
       const f = (t) => t.split("|").map((s) => s.trim());
-      const R = f(r.ref), C = f(r.cand);
+      const R = f(r.ref),
+        C = f(r.cand);
       if (R.length !== C.length) return false;
-      const differing = R.map((v, i) => (v === C[i] ? null : i)).filter((i) => i !== null);
+      const differing = R.map((v, i) => (v === C[i] ? null : i)).filter(
+        (i) => i !== null,
+      );
       return (
         differing.length === 1 &&
         differing[0] === R.length - 1 &&

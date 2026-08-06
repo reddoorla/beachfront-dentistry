@@ -26,11 +26,11 @@ sign of the y-offset wrong, and one such read on this page reported
 
 The same inline `<style>` as every other page, present **twice**:
 
-| rule | source |
-|---|---|
-| `html { font-size: 40px }` | `your-first-visit.html:11-13` (repeated `:70`) |
-| `@media (max-width: 992px) { html { font-size: 32px } }` | `your-first-visit.html:16-18` (repeated `:72-74`) |
-| `@media (max-width: 768px) { html { font-size: 24px } }` | `your-first-visit.html:20-22` (repeated `:76-78`) |
+| rule                                                     | source                                                    |
+| -------------------------------------------------------- | --------------------------------------------------------- |
+| `html { font-size: 40px }`                               | `your-first-visit.html:11-13` (repeated `:70`)            |
+| `@media (max-width: 992px) { html { font-size: 32px } }` | `your-first-visit.html:16-18` (repeated `:72-74`)         |
+| `@media (max-width: 768px) { html { font-size: 24px } }` | `your-first-visit.html:20-22` (repeated `:76-78`)         |
 | `@media (max-width: 480px) { html { font-size: 24px } }` | `your-first-visit.html:24-26` (repeated `:80-82`) — no-op |
 
 Webflow class rules break at 991 (`beachfront.css:7852`), 767 (`:8372`),
@@ -39,45 +39,45 @@ resolves to THREE pixel values.** Calibrate md at **834, never 768**.
 
 Resolution table used throughout this file:
 
-| rem | 1440 (root 40) | 834 (root 32) | 390 (root 24) |
-|---|---|---|---|
-| `.2rem` | 8 | 6.4 | 4.8 |
-| `.25rem` | 10 | 8 | 6 |
-| `.4rem` | 16 | 12.8 | 9.6 |
-| `.5rem` | 20 | 16 | 12 |
-| `.6rem` | 24 | 19.2 | 14.4 |
-| `.75rem` | 30 | 24 | 18 |
-| `1rem` | 40 | 32 | 24 |
-| `1.5rem` | 60 | 48 | 36 |
-| `2rem` | 80 | 64 | 48 |
-| `2.5rem` | 100 | 80 | 60 |
-| `3rem` | 120 | 96 | 72 |
-| `3.5rem` | 140 | 112 | 84 |
-| `4rem` | 160 | 128 | 96 |
-| `5rem` | 200 | 160 | 120 |
-| `8rem` | 320 | 256 | 192 |
-| `8.5rem` | 340 | 272 | 204 |
-| `10rem` | 400 | 320 | 240 |
-| `12rem` | 480 | 384 | 288 |
-| `15rem` | 600 | 480 | 360 |
-| `16rem` | 640 | 512 | 384 |
-| `18rem` | 720 | 576 | 432 |
-| `20rem` | 800 | 640 | 480 |
-| `23rem` | 920 | 736 | 552 |
-| `24rem` | 960 | 768 | 576 |
-| `35rem` | 1400 | 1120 | 840 |
+| rem      | 1440 (root 40) | 834 (root 32) | 390 (root 24) |
+| -------- | -------------- | ------------- | ------------- |
+| `.2rem`  | 8              | 6.4           | 4.8           |
+| `.25rem` | 10             | 8             | 6             |
+| `.4rem`  | 16             | 12.8          | 9.6           |
+| `.5rem`  | 20             | 16            | 12            |
+| `.6rem`  | 24             | 19.2          | 14.4          |
+| `.75rem` | 30             | 24            | 18            |
+| `1rem`   | 40             | 32            | 24            |
+| `1.5rem` | 60             | 48            | 36            |
+| `2rem`   | 80             | 64            | 48            |
+| `2.5rem` | 100            | 80            | 60            |
+| `3rem`   | 120            | 96            | 72            |
+| `3.5rem` | 140            | 112           | 84            |
+| `4rem`   | 160            | 128           | 96            |
+| `5rem`   | 200            | 160           | 120           |
+| `8rem`   | 320            | 256           | 192           |
+| `8.5rem` | 340            | 272           | 204           |
+| `10rem`  | 400            | 320           | 240           |
+| `12rem`  | 480            | 384           | 288           |
+| `15rem`  | 600            | 480           | 360           |
+| `16rem`  | 640            | 512           | 384           |
+| `18rem`  | 720            | 576           | 432           |
+| `20rem`  | 800            | 640           | 480           |
+| `23rem`  | 920            | 736           | 552           |
+| `24rem`  | 960            | 768           | 576           |
+| `35rem`  | 1400           | 1120          | 840           |
 
 **Proof of the offset on this page** (`[probed-only]`, five widths):
 
-| viewport | root | `.content-width` pad-x | `.hero.group-photo` h | `#tour h1` | "Meet Our Team" h2 | `.circle-time-number` |
-|---|---|---|---|---|---|---|
-| 1440 | 40 | 60 | 540 | 60px | **120px** | **45px** |
-| **992** | **32** | **48** | **540** (60vh) | **60px** ← still desktop | **120px** | **45px** |
-| **991** | 32 | 48 | 693.7 (70vw) | **28px** ← Webflow fires | **120px** | 45px |
-| 834 | 32 | 48 | 583.8 | 28px | **120px** | **45px** |
-| **768** | **24** ← root fires | **36** ← not 48 | 537.6 | 28px | 120px | **45px** |
-| **767** | 24 | 61.36 (8%) | 536.9 | 28px | 120px | **30px** ← ≤767 fires |
-| 390 | 24 | 19.5 | 370.5 | 28px | 56px | 30px |
+| viewport | root                | `.content-width` pad-x | `.hero.group-photo` h | `#tour h1`               | "Meet Our Team" h2 | `.circle-time-number` |
+| -------- | ------------------- | ---------------------- | --------------------- | ------------------------ | ------------------ | --------------------- |
+| 1440     | 40                  | 60                     | 540                   | 60px                     | **120px**          | **45px**              |
+| **992**  | **32**              | **48**                 | **540** (60vh)        | **60px** ← still desktop | **120px**          | **45px**              |
+| **991**  | 32                  | 48                     | 693.7 (70vw)          | **28px** ← Webflow fires | **120px**          | 45px                  |
+| 834      | 32                  | 48                     | 583.8                 | 28px                     | **120px**          | **45px**              |
+| **768**  | **24** ← root fires | **36** ← not 48        | 537.6                 | 28px                     | 120px              | **45px**              |
+| **767**  | 24                  | 61.36 (8%)             | 536.9                 | 28px                     | 120px              | **30px** ← ≤767 fires |
+| 390      | 24                  | 19.5                   | 370.5                 | 28px                     | 56px               | 30px                  |
 
 Read the 992 and 768 rows together. Three of the six columns above take a value
 at 834 that a two-tier ladder keyed at 768 cannot produce.
@@ -99,39 +99,39 @@ Colour tokens (`beachfront.css:2047-2053`): `--primary #129ecc`,
 the gate cuts this page at **7** anchors, so several census sections share a
 gate region — flagged inline.
 
-| # | label | anchor (unique, comma-free) | y@1440 | y@834 | y@390 |
-|---|---|---|---|---|---|
-| 1 | Nav / header (chrome) | `Home Page` | 0 | 0 | 0 |
-| 2 | Hero — group photo + wave | `We are excited to meet` | 0 | 0 | 0 |
-| 3 | TOC lede paragraph | `We want you to feel comfortable` | 600 | 631.8 | 406.5 |
-| 4 | TOC visit list (3 rows) | `Take a Virtual Tour` | 600 | 781.8 | 566.5 |
-| 5 | TOC button pair | `Registration Form` | 947 | 1052.8 | 782.3 |
-| 6 | Office Tour heading | `Office Tour` | 1156.5 | 1154.8 | 916.7 |
-| 7 | Office tour slider (8 slides) | `previous slide` | 1238.5 | 1202.8 | 964.7 |
-| 8 | Hours + contact pair | `OFFICE HOURS` | 2198.5 | 2362.8 | 1320.5 |
-| 9 | Meet Our Team heading | `Meet Our Team` | 2428.5 | 2546.8 | 1612.5 |
-| 10 | Team slider (11 cards) | `Dr. Robert Quan` | 2588.5 | 2842.8 | 1764.5 |
-| 11 | First Exam intro + photo | `To be a long term health partner` | 3348.5 | 4058.8 | 2388.5 |
-| 12 | Registration Forms sticky box | `Registration Forms` | 3927.05 | 4587.6 | 2868.9 |
-| 13 | Exam steps 01–06 | `Check-in` | 3927.05 | 5163.6 | 3300.9 |
-| 14 | Review heading | `Serving the South Bay for over 40 years` | 5597.05 | 7147.6 | 4710.9 |
-| 15 | Review slider + decorations | `This is my favorite dentistry team to date` | 5749.05 | 7313.6 | 4834.9 |
-| 16 | Closing CTA band (chrome) | `Ready for great dental health` | 6269.05 | 7729.6 | 5180.9 |
-| 17 | Fiji band + footer (chrome) | `Want to learn more` | 6813 / 7489 | 8001.6 / 8574.2 | 5384.9 / 5630.9 |
+| #   | label                         | anchor (unique, comma-free)                  | y@1440      | y@834           | y@390           |
+| --- | ----------------------------- | -------------------------------------------- | ----------- | --------------- | --------------- |
+| 1   | Nav / header (chrome)         | `Home Page`                                  | 0           | 0               | 0               |
+| 2   | Hero — group photo + wave     | `We are excited to meet`                     | 0           | 0               | 0               |
+| 3   | TOC lede paragraph            | `We want you to feel comfortable`            | 600         | 631.8           | 406.5           |
+| 4   | TOC visit list (3 rows)       | `Take a Virtual Tour`                        | 600         | 781.8           | 566.5           |
+| 5   | TOC button pair               | `Registration Form`                          | 947         | 1052.8          | 782.3           |
+| 6   | Office Tour heading           | `Office Tour`                                | 1156.5      | 1154.8          | 916.7           |
+| 7   | Office tour slider (8 slides) | `previous slide`                             | 1238.5      | 1202.8          | 964.7           |
+| 8   | Hours + contact pair          | `OFFICE HOURS`                               | 2198.5      | 2362.8          | 1320.5          |
+| 9   | Meet Our Team heading         | `Meet Our Team`                              | 2428.5      | 2546.8          | 1612.5          |
+| 10  | Team slider (11 cards)        | `Dr. Robert Quan`                            | 2588.5      | 2842.8          | 1764.5          |
+| 11  | First Exam intro + photo      | `To be a long term health partner`           | 3348.5      | 4058.8          | 2388.5          |
+| 12  | Registration Forms sticky box | `Registration Forms`                         | 3927.05     | 4587.6          | 2868.9          |
+| 13  | Exam steps 01–06              | `Check-in`                                   | 3927.05     | 5163.6          | 3300.9          |
+| 14  | Review heading                | `Serving the South Bay for over 40 years`    | 5597.05     | 7147.6          | 4710.9          |
+| 15  | Review slider + decorations   | `This is my favorite dentistry team to date` | 5749.05     | 7313.6          | 4834.9          |
+| 16  | Closing CTA band (chrome)     | `Ready for great dental health`              | 6269.05     | 7729.6          | 5180.9          |
+| 17  | Fiji band + footer (chrome)   | `Want to learn more`                         | 6813 / 7489 | 8001.6 / 8574.2 | 5384.9 / 5630.9 |
 
 Document height `[probed-only]`: 8183 / 9541 / 6743 (and 7933 @992, 8019 @768).
 
 ### Gate-region → census mapping (where defects hide)
 
-| gate anchor | census sections it swallows | risk |
-|---|---|---|
-| `We want you to feel comfortable` | **3, 4, 5** — 496.5px tall @1440, includes the whole 3-row visit list **and** both buttons | a broken 50px list row is 10% of the region; a broken button height is 13% — both can sit under 0.10 |
-| `Office Tour` | **6, 7, 8** — 1212px tall @1440; the 900px-tall (100vh) slider is 74% of it | the 72px `#tour h1` is **6%** of the region. A completely wrong heading size will not move the score. **Check §6 in isolation.** |
-| `Dr. Robert Quan` | **9, 10** — 800px @1440 | h2 (140px) is 17.5% |
-| `To be a long term health partner` | **11, 12, 13** — 2168px @1440, the largest region on the page. Holds the intro row (538px), the sticky reg box (480px) **and** all six exam steps (1590px) | the reg box is 22%; an individual `.exam-step` (230px) is **10.6%** — right at the threshold. **Six separate blocks are being averaged here.** |
-| `Serving the South Bay for over 40 years` | **14, 15** — 632px @1440 | the h1 is 11% |
-| `Ready for great dental health` | **16** (chrome) | — |
-| `Want to learn more` | **17** (chrome) | — |
+| gate anchor                               | census sections it swallows                                                                                                                                | risk                                                                                                                                           |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `We want you to feel comfortable`         | **3, 4, 5** — 496.5px tall @1440, includes the whole 3-row visit list **and** both buttons                                                                 | a broken 50px list row is 10% of the region; a broken button height is 13% — both can sit under 0.10                                           |
+| `Office Tour`                             | **6, 7, 8** — 1212px tall @1440; the 900px-tall (100vh) slider is 74% of it                                                                                | the 72px `#tour h1` is **6%** of the region. A completely wrong heading size will not move the score. **Check §6 in isolation.**               |
+| `Dr. Robert Quan`                         | **9, 10** — 800px @1440                                                                                                                                    | h2 (140px) is 17.5%                                                                                                                            |
+| `To be a long term health partner`        | **11, 12, 13** — 2168px @1440, the largest region on the page. Holds the intro row (538px), the sticky reg box (480px) **and** all six exam steps (1590px) | the reg box is 22%; an individual `.exam-step` (230px) is **10.6%** — right at the threshold. **Six separate blocks are being averaged here.** |
+| `Serving the South Bay for over 40 years` | **14, 15** — 632px @1440                                                                                                                                   | the h1 is 11%                                                                                                                                  |
+| `Ready for great dental health`           | **16** (chrome)                                                                                                                                            | —                                                                                                                                              |
+| `Want to learn more`                      | **17** (chrome)                                                                                                                                            | —                                                                                                                                              |
 
 Census sections **2** (hero, 540px) has no gate anchor of its own — the hero
 `<h1>` text "We are excited to meet and care for you." is the only string in it.
@@ -143,17 +143,17 @@ Add it as an anchor if the gate is ever re-cut.
 
 Section-level box facts first, because the gate cuts on the section box:
 
-| `<section>` | source | margin | padding |
-|---|---|---|---|
-| `.hero.group-photo` | `beachfront.css:5295-5300`, `:5322-5328` | 0 | 0 |
-| `.fv-toc-section` | **no rule exists in `beachfront.css`** — bare `<section>`; all its space lives in `.content-width.mt-6` (`:3917-3919`) and `.my-6` (`:3834-3837`) on children | 0 | 0 |
-| `#tour.fv-virtual-tour-section.mb-6` | only `.fv-virtual-tour-section.mb-8.pb-8` `beachfront.css:6634-6636` exists and does **not** match; the space is `.mb-6` `:3994-3996` | mb **60 / 48 / 36** | 0 |
-| `#meet.fv-meet-our-team-section` | `beachfront.css:6638-6640` `margin-bottom: 3rem` | mb **120 / 96 / 72** | 0 |
-| `#exam.fv-exam-section` | `beachfront.css:6642-6645` `color: var(--primary-dark); margin-bottom: 2rem` | mb **80 / 64 / 48** | 0 |
-| `.fv-review-section` | **no rule exists** — bare `<section>` | 0 | 0 |
+| `<section>`                          | source                                                                                                                                                        | margin               | padding |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | ------- |
+| `.hero.group-photo`                  | `beachfront.css:5295-5300`, `:5322-5328`                                                                                                                      | 0                    | 0       |
+| `.fv-toc-section`                    | **no rule exists in `beachfront.css`** — bare `<section>`; all its space lives in `.content-width.mt-6` (`:3917-3919`) and `.my-6` (`:3834-3837`) on children | 0                    | 0       |
+| `#tour.fv-virtual-tour-section.mb-6` | only `.fv-virtual-tour-section.mb-8.pb-8` `beachfront.css:6634-6636` exists and does **not** match; the space is `.mb-6` `:3994-3996`                         | mb **60 / 48 / 36**  | 0       |
+| `#meet.fv-meet-our-team-section`     | `beachfront.css:6638-6640` `margin-bottom: 3rem`                                                                                                              | mb **120 / 96 / 72** | 0       |
+| `#exam.fv-exam-section`              | `beachfront.css:6642-6645` `color: var(--primary-dark); margin-bottom: 2rem`                                                                                  | mb **80 / 64 / 48**  | 0       |
+| `.fv-review-section`                 | **no rule exists** — bare `<section>`                                                                                                                         | 0                    | 0       |
 
 **All four inter-section gaps live in `margin-bottom` on the section above, not
-in padding.** The gate region therefore *owns* the trailing gap. Reproducing any
+in padding.** The gate region therefore _owns_ the trailing gap. Reproducing any
 of these as a `padding-bottom` or as a `margin-top` on the next section moves the
 gap across the cut line and breaks two regions instead of zero.
 
@@ -177,7 +177,7 @@ max-height:none`.
 
 Resolved heights: **540** @1440×900 (60vh, under the 864 cap) ·
 **583.8** @834 (70vw) · **370.5** @390 (95vw). At 992 it is still 540 and at
-768 it is 537.6 — the ≥993 branch is **viewport-*height* dependent**
+768 it is 537.6 — the ≥993 branch is **viewport-_height_ dependent**
 (`60vh`), the others are width-dependent. `[probed]` confirms 540 at both
 1440×900 and 992×900.
 
@@ -186,18 +186,19 @@ Resolved heights: **540** @1440×900 (60vh, under the 864 cap) ·
 — `beachfront.css:5323` / `:7985`.
 
 **Overlays (absolute, no transform):**
+
 - `.hero-top-gradient` `beachfront.css:6477-6482`: `linear-gradient(#129ecccc, #0000);
-  width:100%; height:25%; position:absolute` → measured 1440×135 / 834×145.9 /
+width:100%; height:25%; position:absolute` → measured 1440×135 / 834×145.9 /
   390×92.6 at y=0.
 - `.hero-bot-gradient` `beachfront.css:6484-6490`: `linear-gradient(#0000, #129ecccc);
-  width:100%; height:50%; position:absolute; bottom:0` → 270 / 291.9 / 185.3 tall,
+width:100%; height:50%; position:absolute; bottom:0` → 270 / 291.9 / 185.3 tall,
   top at y = 270 / 291.9 / 185.3. (`.dark`/`.home`/`.home-blue` variants at
   `:6492`, `:6496`, `:6500` are **not** used here.)
 - `.bot-wave` `beachfront.css:6008-6015`: `z-index:8; width:100%; line-height:0;
-  position:absolute; bottom:0; left:0; overflow:hidden`, **plus the page's own
+position:absolute; bottom:0; left:0; overflow:hidden`, **plus the page's own
   inline style** `your-first-visit.html:28-30` `transform: rotate(180deg)`.
   `.bot-wave svg` `your-first-visit.html:32-37`: `position:relative; display:block;
-  width: calc(133% + 1.3px); height: 3rem` → **120 / 96 / 72px**.
+width: calc(133% + 1.3px); height: 3rem` → **120 / 96 / 72px**.
   `.bot-wave .shape-fill` `your-first-visit.html:40-42`: `fill:#FFFFFF`.
   Measured wave top y = 420 / 487.8 / 298.5.
   **The 180° rotation is on the PARENT `.bot-wave`, not on the `<svg>`** — same
@@ -207,7 +208,7 @@ Resolved heights: **540** @1440×900 (60vh, under the 864 cap) ·
   The `.bot-wave.flip` variant (`beachfront.css:6018-6022`) is **not** used here.
 - **JS duplicates the wave.** `your-first-visit.html` inline script (pretty
   line 1321-1324) runs `$(".bot-wave").append('<svg …>')` — the server HTML
-  *already* contains one `<svg>`, so after load `.bot-wave` holds **two** SVGs;
+  _already_ contains one `<svg>`, so after load `.bot-wave` holds **two** SVGs;
   the second is clipped by `overflow:hidden` and is invisible. Do not reproduce
   the duplicate; do reproduce the single visible wave.
 
@@ -215,17 +216,17 @@ Resolved heights: **540** @1440×900 (60vh, under the 864 cap) ·
 Text: `We are excited to meet <br>and care for you.` (hard `<br>`,
 `your-first-visit.html` pretty line 280).
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| family | museo-slab, sans-serif `beachfront.css:2108` | ” | ” |
-| weight | 300 `beachfront.css:2110` | ” | ” |
-| size / line-height | **60 / 72** `beachfront.css:2109-2111` | **28 / 38** `beachfront.css:7853-7856` | **25 / 38** `beachfront.css:9293-9295` |
-| colour | `#fff` `beachfront.css:6594` | ” | ” |
-| align | left `beachfront.css:6595` | ” | ” |
-| letter-spacing / transform | normal / none | ” | ” |
-| width | 60% `beachfront.css:6602` | 60% `beachfront.css:8206` | 100% `beachfront.css:8770` |
-| position | absolute, `bottom: 2rem` = **80** `beachfront.css:6604` | absolute, `bottom: 1rem` = **32** `beachfront.css:8208` | `bottom: 1rem` = **24** `beachfront.css:8208` |
-| margin | `20px 0 0` (`:2106` top + `:6603` bottom 0) | ” | ” |
+|                            | 1440                                                    | 834                                                     | 390                                           |
+| -------------------------- | ------------------------------------------------------- | ------------------------------------------------------- | --------------------------------------------- |
+| family                     | museo-slab, sans-serif `beachfront.css:2108`            | ”                                                       | ”                                             |
+| weight                     | 300 `beachfront.css:2110`                               | ”                                                       | ”                                             |
+| size / line-height         | **60 / 72** `beachfront.css:2109-2111`                  | **28 / 38** `beachfront.css:7853-7856`                  | **25 / 38** `beachfront.css:9293-9295`        |
+| colour                     | `#fff` `beachfront.css:6594`                            | ”                                                       | ”                                             |
+| align                      | left `beachfront.css:6595`                              | ”                                                       | ”                                             |
+| letter-spacing / transform | normal / none                                           | ”                                                       | ”                                             |
+| width                      | 60% `beachfront.css:6602`                               | 60% `beachfront.css:8206`                               | 100% `beachfront.css:8770`                    |
+| position                   | absolute, `bottom: 2rem` = **80** `beachfront.css:6604` | absolute, `bottom: 1rem` = **32** `beachfront.css:8208` | `bottom: 1rem` = **24** `beachfront.css:8208` |
+| margin                     | `20px 0 0` (`:2106` top + `:6603` bottom 0)             | ”                                                       | ”                                             |
 
 Measured rects `[probed]`: 1440 `{x:80, y:316, w:840, h:144}` ·
 834 `{x:48, y:475.8, w:500.4, h:76}` · 390 `{x:19.5, y:270.5, w:390, h:76}`.
@@ -245,9 +246,9 @@ Wrapper chain: `section.fv-toc-section > .content-width.mt-6 >
 - `.mt-6` `beachfront.css:3917-3919` → `margin-top: 1.5rem` = **60 / 48 / 36**.
   (`.mt-6.su-flex-v-mobile` `:3921-3923` does not match here.)
 - `.my-6` `beachfront.css:3834-3837` → `margin-top/bottom: 1.5rem` = **60 / 48 / 36**.
-  Both margins are on the *inner* flex row, not on the section.
+  Both margins are on the _inner_ flex row, not on the section.
 - `.w-layout-hflex` `beachfront.css:2056-2060`: `flex-direction:row;
-  align-items:flex-start; display:flex`.
+align-items:flex-start; display:flex`.
 - `.flex-justify-between` `beachfront.css:3008-3011`: `justify-content:space-between; display:flex`.
 - `.su-flex-v-tablet` `beachfront.css:5623-5625` (`display:flex`), ≤991
   `:8004-8006` and ≤767 `:8530-8532` → `flex-direction: column`.
@@ -257,15 +258,15 @@ Wrapper chain: `section.fv-toc-section > .content-width.mt-6 >
 Text: "We want you to feel comfortable before your first visit. Here some ways
 to give you a clear idea of what to expect:"
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| family | museo-slab (`.slab` `beachfront.css:6328-6330`) | ” | ” |
-| weight | 300 (`p` `beachfront.css:2170`) | ” | ” |
-| size / line-height | **30 / 45** (`1.5em`) `beachfront.css:7762-7764` | **20 / 30** `beachfront.css:8363-8365` | **20 / 30** `beachfront.css:9573-9576` |
-| colour | `var(--primary-dark)` `#365b6d` `beachfront.css:2167` | ” | ” |
-| margin | `20px 0 40px` `beachfront.css:7761-7762` | same | `20px 0 20px` `beachfront.css:9574` |
-| width | 50% `beachfront.css:2869` | 100% `beachfront.css:8216` | 100% `beachfront.css:8770` |
-| max-width | **490px** `beachfront.css:7775-7777` (`.text-body-large._w-half.max-w-490px`) | 490px | 490px |
+|                    | 1440                                                                          | 834                                    | 390                                    |
+| ------------------ | ----------------------------------------------------------------------------- | -------------------------------------- | -------------------------------------- |
+| family             | museo-slab (`.slab` `beachfront.css:6328-6330`)                               | ”                                      | ”                                      |
+| weight             | 300 (`p` `beachfront.css:2170`)                                               | ”                                      | ”                                      |
+| size / line-height | **30 / 45** (`1.5em`) `beachfront.css:7762-7764`                              | **20 / 30** `beachfront.css:8363-8365` | **20 / 30** `beachfront.css:9573-9576` |
+| colour             | `var(--primary-dark)` `#365b6d` `beachfront.css:2167`                         | ”                                      | ”                                      |
+| margin             | `20px 0 40px` `beachfront.css:7761-7762`                                      | same                                   | `20px 0 20px` `beachfront.css:9574`    |
+| width              | 50% `beachfront.css:2869`                                                     | 100% `beachfront.css:8216`             | 100% `beachfront.css:8770`             |
+| max-width          | **490px** `beachfront.css:7775-7777` (`.text-body-large._w-half.max-w-490px`) | 490px                                  | 490px                                  |
 
 Measured `[probed]`: 490×180 @1440 (x=80) · 490×90 @834 (x=48) ·
 351×120 @390 (x=19.5, capped by the container, not by the 490 max).
@@ -291,11 +292,11 @@ Measured: 640 wide pad-x 40 @1440 · 738 wide pad-x 0 @834 · 351 wide pad-x 0 @
 Three `a.visit-list-item.w-inline-block`, each
 `h6.visit-list-number` + `h3.px-2.my-0` + `img.download-icons`:
 
-| # | number | title | href |
-|---|---|---|---|
-| 01 | `01` | Take a Virtual Tour | `#tour` |
-| 02 | `02` | Meet Our Team | `#meet` |
-| 03 | `03` | First Exam Details | `#exam` |
+| #   | number | title               | href    |
+| --- | ------ | ------------------- | ------- |
+| 01  | `01`   | Take a Virtual Tour | `#tour` |
+| 02  | `02`   | Meet Our Team       | `#meet` |
+| 03  | `03`   | First Exam Details  | `#exam` |
 
 **`.visit-list-item`** `beachfront.css:6607-6618`: `cursor:pointer;
 background-color:#0000; border:1px #000` (no style ⇒ no border painted);
@@ -317,11 +318,11 @@ line-height 30px. `h6` ≤991 `beachfront.css:7872-7875` sets
 `font-size:12px; line-height:15px` — **the font-size loses on specificity
 (0,1,0 beats 0,0,1) but the line-height wins**, so:
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| size / line-height | **24 / 30** | **24 / 15** | **20 / 15** |
-| letter-spacing | 1.92px | 1.92px | 1.92px |
-| colour / transform | `#365b6d` / uppercase | ” | ” |
+|                    | 1440                  | 834         | 390         |
+| ------------------ | --------------------- | ----------- | ----------- |
+| size / line-height | **24 / 30**           | **24 / 15** | **20 / 15** |
+| letter-spacing     | 1.92px                | 1.92px      | 1.92px      |
+| colour / transform | `#365b6d` / uppercase | ”           | ”           |
 
 Measured heights 30 / 15 / 15 confirm it. **This is a genuine 24/24/20 ×
 30/15/15 split — neither axis breaks at the same width.**
@@ -348,6 +349,7 @@ Plain `<div>` (no class) holding two `.w-button` anchors. Full button spec is
 `text-color-primary`) reproduce exactly on this page.
 
 Page-specific modifiers only:
+
 - Button 1 `a.button.text-color-primary-dark.mr-4.show-form` "Book an Apointment"
   (live's typo — keep it). `.mr-4` `beachfront.css:3949-3951`-family utility
   → `margin-right: 1rem` = **40 / 32 / 24** `[probed 40/32/24]`.
@@ -369,12 +371,12 @@ Measured: 302.25×66 + 268.23×67 @1440 · 242.2×54 + 214.98×54 @834 ·
 `section#tour.fv-virtual-tour-section.mb-6 > .content-width > h1` (bare `h1`,
 no class, carries `data-w-id="c9a05a4b-b940-4d5f-6439-b5fc3ca217de"`).
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| family / weight | museo-slab / 300 `beachfront.css:2108-2110` | ” | ” |
-| size / line-height | **60 / 72** `beachfront.css:2109-2111` | **28 / 38** `beachfront.css:7853-7856` | **28 / 38** `beachfront.css:8373-8376` |
-| colour | `var(--primary)` `#129ecc` `beachfront.css:2105` | ” | ” |
-| margin | `20px 0 10px` `beachfront.css:2106-2107` | ” | ” |
+|                    | 1440                                             | 834                                    | 390                                    |
+| ------------------ | ------------------------------------------------ | -------------------------------------- | -------------------------------------- |
+| family / weight    | museo-slab / 300 `beachfront.css:2108-2110`      | ”                                      | ”                                      |
+| size / line-height | **60 / 72** `beachfront.css:2109-2111`           | **28 / 38** `beachfront.css:7853-7856` | **28 / 38** `beachfront.css:8373-8376` |
+| colour             | `var(--primary)` `#129ecc` `beachfront.css:2105` | ”                                      | ”                                      |
+| margin             | `20px 0 10px` `beachfront.css:2106-2107`         | ”                                      | ”                                      |
 
 The tier boundary is **991, not 767** — at 992 this heading is still 60px.
 
@@ -411,8 +413,8 @@ vs `.su-h-screen-to-tablet` `beachfront.css:5656-5658` → `height: 100vh`.
 **`:5656` is later in the sheet, so 100vh wins at ≥768.**
 ≤767 `beachfront.css:8554-8556` → `height: auto`.
 
-| | 1440×900 | 834×1112 | 390×844 |
-|---|---|---|---|
+|           | 1440×900        | 834×1112         | 390×844                          |
+| --------- | --------------- | ---------------- | -------------------------------- |
 | outer div | **900** (100vh) | **1112** (100vh) | **319.8** (auto) `[probed-only]` |
 
 The ≥768 height is **viewport-height dependent**, not width dependent. The
@@ -478,7 +480,7 @@ natural aspect and **overflows the 900px mask**, clipped by
   The combo rule `.footer-contact-block.mb-4.mr-8.mt-8` `beachfront.css:6324-6326`
   does **not** match (no `.mt-8` here).
 - `.footer-contact-header` `beachfront.css:6337-6343`: `color:var(--primary-dark);
-  museo-slab; font-size:20px; font-weight:500; line-height:2em`;
+museo-slab; font-size:20px; font-weight:500; line-height:2em`;
   ≤991 `beachfront.css:8130-8132` → 16px; ≤479 `:9240-9242` → 16px.
   Resolved **20/40 · 16/32 · 16/32**. Text `OFFICE&nbsp;HOURS` / `CONTACT` —
   the non-breaking space is in the source.
@@ -510,13 +512,13 @@ this page.**
 (0,2,0) and lands in the base cascade. The **only** breakpoint on this heading
 is **479**:
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| size / line-height | **120 / 140** | **120 / 140** | **56 / 70** |
-| margin-bottom | `.5rem` = 20 | `.5rem` = **16** | `.5rem` = **12** |
-| weight | 100 (`.font-weight-thin` `beachfront.css:6122-6124`) | ” | ” |
-| family / colour | museo-slab / `var(--primary)` | ” | ” |
-| align | center `beachfront.css:4460-4462` (`text-decoration:none` too) | ” | ” |
+|                    | 1440                                                           | 834              | 390              |
+| ------------------ | -------------------------------------------------------------- | ---------------- | ---------------- |
+| size / line-height | **120 / 140**                                                  | **120 / 140**    | **56 / 70**      |
+| margin-bottom      | `.5rem` = 20                                                   | `.5rem` = **16** | `.5rem` = **12** |
+| weight             | 100 (`.font-weight-thin` `beachfront.css:6122-6124`)           | ”                | ”                |
+| family / colour    | museo-slab / `var(--primary)`                                  | ”                | ”                |
+| align              | center `beachfront.css:4460-4462` (`text-decoration:none` too) | ”                | ”                |
 
 Measured `[probed]`: 1280×140 @1440 · 738×**280** @834 (it wraps to two lines at
 120px in a 738px column) · 351×140 @390. **A build that steps this to 56px at
@@ -561,11 +563,11 @@ position:relative; overflow:hidden`.
 ≤767 `beachfront.css:8777-8779`: `width:16rem`.
 ≤479 `beachfront.css:9309-9312`: `width:12rem; height:23rem`.
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| width | 100% = **1280** | `20rem` = **640** | `12rem` = **288** |
-| height | `16rem` = **640** | `35rem` = **1120** | `23rem` = **552** |
-| margin-x | 0 | auto (measured 49) | auto (measured 31.5) |
+|          | 1440              | 834                | 390                  |
+| -------- | ----------------- | ------------------ | -------------------- |
+| width    | 100% = **1280**   | `20rem` = **640**  | `12rem` = **288**    |
+| height   | `16rem` = **640** | `35rem` = **1120** | `23rem` = **552**    |
+| margin-x | 0                 | auto (measured 49) | auto (measured 31.5) |
 
 **`.team-slider`** `beachfront.css:6647-6652`: `transition: transform 2s
 cubic-bezier(.19, 1, .22, 1); position:absolute; top:0; left:0`.
@@ -578,26 +580,26 @@ The CSS `width` is then **replaced by JS** (see below).
 **`.team-list-item.m-2.display-inline`** — the ladder already litigated once on
 this project (CLAUDE.md, "the `.team-list-item` ladder"):
 
-| rule | source | decls |
-|---|---|---|
-| base | `beachfront.css:6530-6536` | `background: var(--primary-light); border-radius:20px; width:8rem; height:12rem; padding-left:0` |
-| `.m-2` | `beachfront.css:3762-3764` | `margin:.5rem` |
-| `.m-2` combo | `beachfront.css:6538-6540` | `margin-top: 4rem` |
-| `.m-2.display-inline` | `beachfront.css:6542-6545` | `width: 8.5rem; padding-right:0` |
-| ≤991 `.m-2` | `beachfront.css:8183-8187` | `width:16rem; height:24rem; margin: 8rem 1rem 1rem` |
-| ≤991 `.m-2.display-inline` | `beachfront.css:8189-8191` | `width: 16rem` |
-| ≤479 `.m-2` | `beachfront.css:9271-9276` | `width:100%; height:16rem; margin-top:4rem; padding-top:2.5rem` |
-| ≤479 `.m-2.display-inline` | `beachfront.css:9278-9282` | `white-space:nowrap; width:10rem; height:18rem` |
+| rule                       | source                     | decls                                                                                            |
+| -------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------ |
+| base                       | `beachfront.css:6530-6536` | `background: var(--primary-light); border-radius:20px; width:8rem; height:12rem; padding-left:0` |
+| `.m-2`                     | `beachfront.css:3762-3764` | `margin:.5rem`                                                                                   |
+| `.m-2` combo               | `beachfront.css:6538-6540` | `margin-top: 4rem`                                                                               |
+| `.m-2.display-inline`      | `beachfront.css:6542-6545` | `width: 8.5rem; padding-right:0`                                                                 |
+| ≤991 `.m-2`                | `beachfront.css:8183-8187` | `width:16rem; height:24rem; margin: 8rem 1rem 1rem`                                              |
+| ≤991 `.m-2.display-inline` | `beachfront.css:8189-8191` | `width: 16rem`                                                                                   |
+| ≤479 `.m-2`                | `beachfront.css:9271-9276` | `width:100%; height:16rem; margin-top:4rem; padding-top:2.5rem`                                  |
+| ≤479 `.m-2.display-inline` | `beachfront.css:9278-9282` | `white-space:nowrap; width:10rem; height:18rem`                                                  |
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| width | `8.5rem` = **340** | `16rem` = **512** | `10rem` = **240** |
-| height | `12rem` = **480** | `24rem` = **768** | `18rem` = **432** |
-| margin-top | `4rem` = **160** | `8rem` = **256** | `4rem` = **96** |
-| margin-bottom | `.5rem` = **20** | `1rem` = **32** | `1rem` = **24** |
-| margin-left/right | **JS-set 43.3333** | **JS-set 64** | **JS-set 24** |
-| padding-top | 0 | 0 | `2.5rem` = **60** |
-| radius / bg | 20px / `#e7f5fa` | ” | ” |
+|                   | 1440               | 834               | 390               |
+| ----------------- | ------------------ | ----------------- | ----------------- |
+| width             | `8.5rem` = **340** | `16rem` = **512** | `10rem` = **240** |
+| height            | `12rem` = **480**  | `24rem` = **768** | `18rem` = **432** |
+| margin-top        | `4rem` = **160**   | `8rem` = **256**  | `4rem` = **96**   |
+| margin-bottom     | `.5rem` = **20**   | `1rem` = **32**   | `1rem` = **24**   |
+| margin-left/right | **JS-set 43.3333** | **JS-set 64**     | **JS-set 24**     |
+| padding-top       | 0                  | 0                 | `2.5rem` = **60** |
+| radius / bg       | 20px / `#e7f5fa`   | ”                 | ”                 |
 
 **JS: `team-slider.js`** (loaded from
 `https://raw.githack.com/tucksravin/incidental-js/main/webflow/specific/beachfront/team-slider.js`,
@@ -623,13 +625,13 @@ $(".left").css({opacity:0, pointer-events:none}) on init
 
 Resolved `[probed]`:
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| `portSize` | 1280 | 640 | 288 |
-| `inc` (stride per click) | **426.667** | **640** | **288** |
-| `slideHorMargin` | **43.3333** | **64** | **24** |
+|                             | 1440          | 834        | 390        |
+| --------------------------- | ------------- | ---------- | ---------- |
+| `portSize`                  | 1280          | 640        | 288        |
+| `inc` (stride per click)    | **426.667**   | **640**    | **288**    |
+| `slideHorMargin`            | **43.3333**   | **64**     | **24**     |
 | `.team-slider` inline width | **4693.33px** | **7040px** | **3168px** |
-| `.team-slider` margin-left | 0 | **-32px** | 0 |
+| `.team-slider` margin-left  | 0             | **-32px**  | 0          |
 
 Note the JS **breaks at 992/768, the root-font ladder's boundaries, not
 Webflow's 991/767** — a third, independent breakpoint set. At exactly 991 the
@@ -643,11 +645,11 @@ Verified `[probed]`: click right once → `translateX(-426.667px)`; twice →
 hover `:6675-6677` (`opacity:.6`), `.left` `:6679-6684`, `.right` `:6686-6691`;
 ≤991 `:8233-8243`; ≤767 `:8781-8789`; ≤479 `:9314-9322`.
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| height | `1rem` = **40** | `1.5rem` = **48** | `1.5rem` = **36** |
-| top | `3.5rem` = **140** | `15rem` = **480** | `8rem` = **192** |
-| left / right | **-1.5rem = ∓60** | **0** | **∓5%** |
+|              | 1440               | 834               | 390               |
+| ------------ | ------------------ | ----------------- | ----------------- |
+| height       | `1rem` = **40**    | `1.5rem` = **48** | `1.5rem` = **36** |
+| top          | `3.5rem` = **140** | `15rem` = **480** | `8rem` = **192**  |
+| left / right | **-1.5rem = ∓60**  | **0**             | **∓5%**           |
 
 `.slider-arrows-anchor` `beachfront.css:6661-6664`: `height:0; position:relative`
 — the arrows are absolutely positioned against a zero-height box that sits
@@ -665,17 +667,17 @@ Arrow assets:
 
 **Card internals:**
 
-| element | source | 1440 | 834 | 390 |
-|---|---|---|---|---|
-| `img.team-grid-headshot` | `beachfront.css:6551-6562`; ≤991 `:8193-8197`; ≤479 `:9284-9287` | `5rem`=**200**², mt **-100** | `10rem`=**320**², mt **-160** | `5rem`=**120**², mt **-120** (mt from the ≤991 `-5rem`) |
-| ” other decls | `object-fit:cover; object-position:50% 0%; border-radius:100rem; margin-left/right:auto; transition:opacity .2s; display:block` | | | |
-| `h5.text-align-center` | `beachfront.css:2144-2152` (no override) | **30 / 40**, museo-slab 300, `var(--primary)`, margin `10px 0` | same | same |
-| `h6.text-align-center.h7` (role) | `.h7` `beachfront.css:7734-7740` | **16 / 25**, **museo-sans** 300, `var(--primary-dark)`, ls 1.28px, uppercase | same | same |
-| `p.m-2.team-teaser.text-body.mb-1` | `.m-2.team-teaser` `beachfront.css:3770-3773` (`height:7.5ch; overflow:hidden`); `.m-2.team-teaser.text-body.mb-1` `:3775-3777` (`font-size:16px`); ≤991 `:7968-7970` (`white-space:normal`); `.mb-1` `:3973-3975` (`margin-bottom:.25rem`) | **16 / 24**, box 300×75, m `20/20/10/20` | 16/24, 480×75, m `16/16/8/16` | 16/24, 216×75, m `12/12/6/12` |
-| `img.team-grid-beach` | `beachfront.css:6564-6573` | `width:100%; height:30%`, radius `0 0 20px 20px`, absolute bottom 0 → **340×144** | 512×230.4 | 240×129.6 |
-| `h6.team-beach-name` | `beachfront.css:7370-7376` (`color:#fff; font-weight:300; absolute; bottom:.25rem; left:.5rem`) + `h6` base/≤991 | **24 / 30**, bottom 10, left 20 | **12 / 15**, bottom 8, left 16 | **12 / 15**, bottom 6, left 12 |
-| `div.team-teasewr-read-more…display-flex` | `beachfront.css:7429-7441` (16px / 1.5em, ls 1.03px, uppercase, `var(--primary-dark)`, margin-x `.5rem`, `text-align:right`, `display:block`) **but `.display-flex` ≤991 `beachfront.css:7890-7892` sets `font-size:.6rem`** | **16 / 24** | **19.2 / 28.8** ← *larger than desktop* | **14.4 / 21.6** |
-| `img.read-more-arrow.filter-to-primary-dark` | no `.read-more-arrow` rule; filter from `your-first-visit.html:85-87` | 10×11 | 10×11 | 10×11 |
+| element                                      | source                                                                                                                                                                                                                                      | 1440                                                                              | 834                                     | 390                                                     |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------- | ------------------------------------------------------- |
+| `img.team-grid-headshot`                     | `beachfront.css:6551-6562`; ≤991 `:8193-8197`; ≤479 `:9284-9287`                                                                                                                                                                            | `5rem`=**200**², mt **-100**                                                      | `10rem`=**320**², mt **-160**           | `5rem`=**120**², mt **-120** (mt from the ≤991 `-5rem`) |
+| ” other decls                                | `object-fit:cover; object-position:50% 0%; border-radius:100rem; margin-left/right:auto; transition:opacity .2s; display:block`                                                                                                             |                                                                                   |                                         |                                                         |
+| `h5.text-align-center`                       | `beachfront.css:2144-2152` (no override)                                                                                                                                                                                                    | **30 / 40**, museo-slab 300, `var(--primary)`, margin `10px 0`                    | same                                    | same                                                    |
+| `h6.text-align-center.h7` (role)             | `.h7` `beachfront.css:7734-7740`                                                                                                                                                                                                            | **16 / 25**, **museo-sans** 300, `var(--primary-dark)`, ls 1.28px, uppercase      | same                                    | same                                                    |
+| `p.m-2.team-teaser.text-body.mb-1`           | `.m-2.team-teaser` `beachfront.css:3770-3773` (`height:7.5ch; overflow:hidden`); `.m-2.team-teaser.text-body.mb-1` `:3775-3777` (`font-size:16px`); ≤991 `:7968-7970` (`white-space:normal`); `.mb-1` `:3973-3975` (`margin-bottom:.25rem`) | **16 / 24**, box 300×75, m `20/20/10/20`                                          | 16/24, 480×75, m `16/16/8/16`           | 16/24, 216×75, m `12/12/6/12`                           |
+| `img.team-grid-beach`                        | `beachfront.css:6564-6573`                                                                                                                                                                                                                  | `width:100%; height:30%`, radius `0 0 20px 20px`, absolute bottom 0 → **340×144** | 512×230.4                               | 240×129.6                                               |
+| `h6.team-beach-name`                         | `beachfront.css:7370-7376` (`color:#fff; font-weight:300; absolute; bottom:.25rem; left:.5rem`) + `h6` base/≤991                                                                                                                            | **24 / 30**, bottom 10, left 20                                                   | **12 / 15**, bottom 8, left 16          | **12 / 15**, bottom 6, left 12                          |
+| `div.team-teasewr-read-more…display-flex`    | `beachfront.css:7429-7441` (16px / 1.5em, ls 1.03px, uppercase, `var(--primary-dark)`, margin-x `.5rem`, `text-align:right`, `display:block`) **but `.display-flex` ≤991 `beachfront.css:7890-7892` sets `font-size:.6rem`**                | **16 / 24**                                                                       | **19.2 / 28.8** ← _larger than desktop_ | **14.4 / 21.6**                                         |
+| `img.read-more-arrow.filter-to-primary-dark` | no `.read-more-arrow` rule; filter from `your-first-visit.html:85-87`                                                                                                                                                                       | 10×11                                                                             | 10×11                                   | 10×11                                                   |
 
 `a.inline-link` `beachfront.css:7382-7389` (`cursor:pointer; background:#0000;
 border:1px #000; text-decoration:none; transition:opacity .2s; display:inline`),
@@ -688,19 +690,19 @@ hover `:7391-7393` (`opacity:.6`).
 **Roster + assets (11 cards, CMS order).** Headshots under
 `https://cdn.prod.website-files.com/64b1c843b071dc32170ea053/`:
 
-| # | name | role | slug | headshot | beach label / image |
-|---|---|---|---|---|---|
-| 1 | Dr. Michael Hopkins | Dentist | `/team-members/dr-michael-hopkins` | `64bb0fca292b8b83528cc2ff_BD_Dr-Hopkins-Headshot_crop.jpg` | Cabo — `64bb1017e17c11a72e17236f_beach-img_gaddafi-rusli-2ueUnL4CkV8-unsplash.jpg` |
-| 2 | Dr. Robert Quan | Dentist | `/team-members/dr-robert-quan` | `64bb0fbee7ccd4a6c98eb3bc_BD_Dr-Quan-Headshot_crop.jpg` | Bali — `64bb0f96fd2a4cab9f42ccaa_beach-img_elizeu-dias-RN6ts8IZ4_0-unsplash.jpg` |
-| 3 | Alicia | Dental Hygenist *(live's spelling)* | `/team-members/alicia` | `64bc459e10fba50752b252b6_Alicia_7530_crop.jpg` | Santa Barbara — `64bc4afd03823445f34950b3_beach-img_cristofer-maximilian-uQDRDqpYJHI-unsplash.jpg` |
-| 4 | Christina | Dental Hygienist | `/team-members/christina` | `64bc4d1ccc874d4a3f88fb11_BH_christina_DH.jpg` | Myrtle Beach — `64bc4bcdb9c30f671929f6d2_beach-img_aleksandra-boguslawska-MS7KD9Ti7FQ-unsplash.jpg` |
-| 5 | Enrique | Dental Assistant | `/team-members/enrique` | `64bb0ecf51f2b29911ad5374_enrique.jpg` | Cabo — `64bb0e4c778125db87203f95_beach-img_lalo-hernandez-Amo081zdJsI-unsplash.jpg` |
-| 6 | Lanette | Dental Hygienist | `/team-members/lanette` | `64bc51dd4bea106fb5db4e6a_lanette_beachfront.jpg` | Cabo — `64bb1017e17c11a72e17236f_…` |
-| 7 | Linda | Administrator | `/team-members/linda` | `64bc4b3dfa9c2b4c2d919bb3_Linda_edit_7595.jpg` | Myrtle Beach — `64bc4bcdb9c30f671929f6d2_…` |
-| 8 | Michelle | Administrator | `/team-members/michelle` | `64bc4c68082c3534bd2fc72a_michelle_beachfront.jpg` | Cabo — `64bb1017e17c11a72e17236f_…` |
-| 9 | Raquel | Hygiene Coordinator | `/team-members/raquel` | `64bc4ed80b3b039b77fbb8ca_raquel-beachfront.jpg` | Bali — `64bb0f96fd2a4cab9f42ccaa_…` |
-| 10 | Sabrina | Dental Hygienist | `/team-members/sabrina` | `64bc4daf6430fa15b0c2480a_BH_sabrina.jpg` | Santa Barbara — `64bc4afd03823445f34950b3_…` |
-| 11 | Stacey | Dental Hygenist *(live's spelling)* | `/team-members/stacey` | `64bb0dfdfd2a4cab9f4157f7_DSC_7537_sq_headshot_crop.jpg` | Cabo — `64bb0e4c778125db87203f95_…` |
+| #   | name                | role                                | slug                               | headshot                                                   | beach label / image                                                                                 |
+| --- | ------------------- | ----------------------------------- | ---------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| 1   | Dr. Michael Hopkins | Dentist                             | `/team-members/dr-michael-hopkins` | `64bb0fca292b8b83528cc2ff_BD_Dr-Hopkins-Headshot_crop.jpg` | Cabo — `64bb1017e17c11a72e17236f_beach-img_gaddafi-rusli-2ueUnL4CkV8-unsplash.jpg`                  |
+| 2   | Dr. Robert Quan     | Dentist                             | `/team-members/dr-robert-quan`     | `64bb0fbee7ccd4a6c98eb3bc_BD_Dr-Quan-Headshot_crop.jpg`    | Bali — `64bb0f96fd2a4cab9f42ccaa_beach-img_elizeu-dias-RN6ts8IZ4_0-unsplash.jpg`                    |
+| 3   | Alicia              | Dental Hygenist _(live's spelling)_ | `/team-members/alicia`             | `64bc459e10fba50752b252b6_Alicia_7530_crop.jpg`            | Santa Barbara — `64bc4afd03823445f34950b3_beach-img_cristofer-maximilian-uQDRDqpYJHI-unsplash.jpg`  |
+| 4   | Christina           | Dental Hygienist                    | `/team-members/christina`          | `64bc4d1ccc874d4a3f88fb11_BH_christina_DH.jpg`             | Myrtle Beach — `64bc4bcdb9c30f671929f6d2_beach-img_aleksandra-boguslawska-MS7KD9Ti7FQ-unsplash.jpg` |
+| 5   | Enrique             | Dental Assistant                    | `/team-members/enrique`            | `64bb0ecf51f2b29911ad5374_enrique.jpg`                     | Cabo — `64bb0e4c778125db87203f95_beach-img_lalo-hernandez-Amo081zdJsI-unsplash.jpg`                 |
+| 6   | Lanette             | Dental Hygienist                    | `/team-members/lanette`            | `64bc51dd4bea106fb5db4e6a_lanette_beachfront.jpg`          | Cabo — `64bb1017e17c11a72e17236f_…`                                                                 |
+| 7   | Linda               | Administrator                       | `/team-members/linda`              | `64bc4b3dfa9c2b4c2d919bb3_Linda_edit_7595.jpg`             | Myrtle Beach — `64bc4bcdb9c30f671929f6d2_…`                                                         |
+| 8   | Michelle            | Administrator                       | `/team-members/michelle`           | `64bc4c68082c3534bd2fc72a_michelle_beachfront.jpg`         | Cabo — `64bb1017e17c11a72e17236f_…`                                                                 |
+| 9   | Raquel              | Hygiene Coordinator                 | `/team-members/raquel`             | `64bc4ed80b3b039b77fbb8ca_raquel-beachfront.jpg`           | Bali — `64bb0f96fd2a4cab9f42ccaa_…`                                                                 |
+| 10  | Sabrina             | Dental Hygienist                    | `/team-members/sabrina`            | `64bc4daf6430fa15b0c2480a_BH_sabrina.jpg`                  | Santa Barbara — `64bc4afd03823445f34950b3_…`                                                        |
+| 11  | Stacey              | Dental Hygenist _(live's spelling)_ | `/team-members/stacey`             | `64bb0dfdfd2a4cab9f4157f7_DSC_7537_sq_headshot_crop.jpg`   | Cabo — `64bb0e4c778125db87203f95_…`                                                                 |
 
 Read-more arrow (all 11):
 `https://cdn.prod.website-files.com/64af3f93339537d6b661b556/64b070f15651708aded7ab3e_Arrow.svg`.
@@ -757,14 +759,14 @@ position:sticky; top:1rem`.
 position:static`. ≤767 `beachfront.css:8791-8795`: `width:100%; max-width:20rem;
 height:16rem`. ≤479 `beachfront.css:9324-9326`: `height:16rem`.
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| width | `12rem` = **480** | `20rem` = **640** | 100% = **351** (max `20rem`=480) |
-| height | `12rem` = **480** | `16rem` = **512** | `16rem` = **384** |
-| padding | `1rem` = **40** | **32** | **24** |
-| margin-bottom | `3rem` = **120** | `2rem` = **64** | `2rem` = **48** |
-| position / top | **sticky / 40** | static | static |
-| radius / bg | 25px / `#e7f5fa` | ” | ” |
+|                | 1440              | 834               | 390                              |
+| -------------- | ----------------- | ----------------- | -------------------------------- |
+| width          | `12rem` = **480** | `20rem` = **640** | 100% = **351** (max `20rem`=480) |
+| height         | `12rem` = **480** | `16rem` = **512** | `16rem` = **384**                |
+| padding        | `1rem` = **40**   | **32**            | **24**                           |
+| margin-bottom  | `3rem` = **120**  | `2rem` = **64**   | `2rem` = **48**                  |
+| position / top | **sticky / 40**   | static            | static                           |
+| radius / bg    | 25px / `#e7f5fa`  | ”                 | ”                                |
 
 **`position: sticky` only at ≥992.** It sticks against the `#exam .content-width`
 column while the six steps scroll past. A build that omits the sticky (or applies
@@ -805,10 +807,10 @@ circle column (measured h 30). Do not add `nowrap` here;
 margin `10px 0`, line-height 30px; `h6` ≤991 `:7872-7875` sets 12/15 — the
 **font-size loses on specificity, the line-height wins**:
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
+|                    | 1440        | 834         | 390         |
+| ------------------ | ----------- | ----------- | ----------- |
 | size / line-height | **24 / 30** | **24 / 15** | **12 / 15** |
-| weight | 500 | 500 | 500 |
+| weight             | 500         | 500         | 500         |
 
 Measured heights 30 / 15 / 30 `[probed]` (the 390 box is 30 because the
 uppercase text wraps to two 15px lines inside the 48px circle column).
@@ -844,10 +846,10 @@ Resolved **480 / 640 / 351 (max 480)**.
 padding-bottom:1rem; padding-left:1rem; padding-right:1rem`.
 ≤479 `beachfront.css:9343-9347`: `padding-top:0; padding-left:.5rem; padding-right:.5rem`.
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| padding | `40 0 0` | `32 0 0` | `0 12 24 12` |
-| height | auto (**230** measured) | **`10rem` = 320** | auto (**180** measured) |
+|         | 1440                    | 834               | 390                     |
+| ------- | ----------------------- | ----------------- | ----------------------- |
+| padding | `40 0 0`                | `32 0 0`          | `0 12 24 12`            |
+| height  | auto (**230** measured) | **`10rem` = 320** | auto (**180** measured) |
 
 **A fixed `10rem` height exists only in the 480–991 band.** Six steps × 320 =
 1920px at 834 vs 1590px at 1440 for the same content.
@@ -871,16 +873,16 @@ Step content (number / time / title):
 `h1.text-align-center.mb-8` — **the second big type trap.**
 
 `.mb-8` `beachfront.css:3998-4000` → `margin-bottom: 2rem`.
-≤991 `.mb-8` `beachfront.css:7972-7974` → **`font-size: 1rem`** — a *margin*
+≤991 `.mb-8` `beachfront.css:7972-7974` → **`font-size: 1rem`** — a _margin_
 utility that carries a font-size, at (0,1,0), beating `h1` (0,0,1) inside the
 same media block:
 
-| | 1440 | 834 | 390 |
-|---|---|---|---|
-| size | **60** (`beachfront.css:2109`) | **32** (`1rem` @root 32) | **24** (`1rem` @root 24) |
-| line-height | **72** (`:2111`) | **38** (`h1` ≤991 `:7855`) | **38** (`h1` ≤767 `:8375`) |
-| margin-bottom | `2rem` = **80** | **64** | **48** |
-| family / weight / colour | museo-slab / 300 / `var(--primary)` | ” | ” |
+|                          | 1440                                | 834                        | 390                        |
+| ------------------------ | ----------------------------------- | -------------------------- | -------------------------- |
+| size                     | **60** (`beachfront.css:2109`)      | **32** (`1rem` @root 32)   | **24** (`1rem` @root 24)   |
+| line-height              | **72** (`:2111`)                    | **38** (`h1` ≤991 `:7855`) | **38** (`h1` ≤767 `:8375`) |
+| margin-bottom            | `2rem` = **80**                     | **64**                     | **48**                     |
+| family / weight / colour | museo-slab / 300 / `var(--primary)` | ”                          | ”                          |
 
 **Three genuinely different sizes — 60 / 32 / 24 — none of them the 28px that a
 plain `h1` would give.** Measured 72 / 38 / 76 (two lines at 390) `[probed]`.
@@ -911,7 +913,7 @@ div.review-slider-holder
 ≤991 `beachfront.css:8338-8340` → `margin-top: 4rem`;
 ≤767 `beachfront.css:8940-8942` → `margin-top: 0`;
 ≤479 `beachfront.css:9508-9510` → `padding-bottom: .5rem`.
-Resolved margin-top **0 / 128 / 0** — *only the middle tier is non-zero*.
+Resolved margin-top **0 / 128 / 0** — _only the middle tier is non-zero_.
 A two-tier ladder keyed at 768 produces 0 at 834 and loses 128px.
 
 **`.position-relative._w-half`** — `beachfront.css:4291-4293` + `:2867-2871`
@@ -993,6 +995,7 @@ left:auto; right:8rem`), `.filter-to-primary-dark` variant `:6796-6800`
 `:8839-8841` `.what-they-say-big-review.filter-to-primary-dark { display:none }`;
 ≤479 `:9364-9367`.
 **Two facts a rect will not tell you:**
+
 1. the `rotate(5deg)` at `:6799` **never renders** — IX2 writes a full
    `transform: translate3d(…) scale3d(…) rotateZ(0deg) …` inline style on this
    element, which replaces it. Computed transform is a pure translate `[probed]`.
@@ -1040,13 +1043,13 @@ Logos: `…/64b85e991827e8bce95c4536_Yelp_logo.png`,
 
 Review roster (order, source, link):
 
-| # | name | place | logo shown | href |
-|---|---|---|---|---|
-| 1 | Paul K. | Redondo Beach, CA | Yelp | `yelp.com/biz/beachfront-dentistry-redondo-beach?hrid=BFXba7Bhp7KMgaFkJdBc7w…` |
-| 2 | Tonya S. | Hermosa Beach, CA | Yelp | `…hrid=pDz_x-aGJx-qe__EadRGNw…` |
-| 3 | Melissa R. | *(empty — `.w-dyn-bind-empty`, `display:none !important`)* | Yelp | `…hrid=BXZVdhsXqpvW_ylTj1Kfiw…` |
-| 4 | Jay. N | Redondo Beach | Google | `https://maps.app.goo.gl/u3xjEEDSV9KmAnMq9` |
-| 5 | Leigh L. | Redondo Beach | Google | `https://maps.app.goo.gl/mqZFMifn4U4MF92C8` |
+| #   | name       | place                                                      | logo shown | href                                                                           |
+| --- | ---------- | ---------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------ |
+| 1   | Paul K.    | Redondo Beach, CA                                          | Yelp       | `yelp.com/biz/beachfront-dentistry-redondo-beach?hrid=BFXba7Bhp7KMgaFkJdBc7w…` |
+| 2   | Tonya S.   | Hermosa Beach, CA                                          | Yelp       | `…hrid=pDz_x-aGJx-qe__EadRGNw…`                                                |
+| 3   | Melissa R. | _(empty — `.w-dyn-bind-empty`, `display:none !important`)_ | Yelp       | `…hrid=BXZVdhsXqpvW_ylTj1Kfiw…`                                                |
+| 4   | Jay. N     | Redondo Beach                                              | Google     | `https://maps.app.goo.gl/u3xjEEDSV9KmAnMq9`                                    |
+| 5   | Leigh L.   | Redondo Beach                                              | Google     | `https://maps.app.goo.gl/mqZFMifn4U4MF92C8`                                    |
 
 Reviewer photos under `https://cdn.prod.website-files.com/64b1c843b071dc32170ea053/`:
 `6578f51f8205f87eec5805b9_paul_redondo.jpeg`,
@@ -1066,7 +1069,7 @@ Reviewer photos under `https://cdn.prod.website-files.com/64b1c843b071dc32170ea0
 - The footer wave divider CSS `.custom-shape-divider-bottom-1689290473` is
   re-declared in this page's own head: `your-first-visit.html:47-55`
   (`position:absolute; left:0; width:100%; overflow:hidden; line-height:0;
-  **transform: rotate(180deg)**; margin-top:-4rem`) and `:57-66`
+**transform: rotate(180deg)**; margin-top:-4rem`) and `:57-66`
   (svg `width: calc(169% + 1.3px); height: 4rem`), fill `#e7f5fa`.
   `-4rem` = **-160 / -128 / -96**; `4rem` height = **160 / 128 / 96**.
 - Measured y `[probed]`: `.cta-section` 6269 / 7729.6 / 5180.9 ·
@@ -1095,29 +1098,30 @@ close + 4 fields + submit, CTA "Book Appointment", the "Read Reviews"
 footer "Make a Payment", Google-Map controls). Counted below are only the
 controls that belong to §2–15.
 
-| # | element | section | behaviour | source |
-|---|---|---|---|---|
-| 1 | `a.visit-list-item[href="#tour"]` | §4 | in-page anchor; Webflow JS smooth-scroll (`scroll-behavior` is `auto` — `[probed]` eased 0→1157px over ~1.12s); hover `opacity:.67` | `beachfront.css:6607-6622` |
-| 2 | `a.visit-list-item[href="#meet"]` | §4 | ” | ” |
-| 3 | `a.visit-list-item[href="#exam"]` | §4 | ” | ” |
-| 4 | `a.button.…mr-4.show-form` "Book an Apointment" | §5 | jQuery `showForm` → `$(".form-modal").css("opacity","1")` + IX2 `a-5` `TRANSFORM_MOVE` `.form-modal` y=150vh / 500ms | `your-first-visit.html` pretty 1327-1336; `_chrome.md §3.6` |
-| 5 | `a.button.text-color-primary` "Registration Form" | §5 | **`href="#"` with no handler — dead link.** It carries `data-w-id=44c9c628-…` but that GUID has only a `SCROLL_INTO_VIEW`→`a-7` reveal, no click | `[probed IX2 store]` |
-| 6 | `.w-slider-arrow-left` (+`.w-icon-slider-left`) | §7 | Webflow slider prev; `data-duration="500"`, `data-easing="ease"`, `data-animation="slide"`, `data-infinite="true"` | markup; `beachfront.css:1285-1311` |
-| 7 | `.w-slider-arrow-right` (+`.w-icon-slider-right`) | §7 | Webflow slider next | `beachfront.css:1285-1316` |
-| 8 | `.w-slider-mask` drag / swipe | §7 | `data-disable-swipe="false"` ⇒ pointer + touch drag advances the slide | markup |
-| 9 | `img.team-slider-arrow.filter-to-primary.left` | §10 | `window.teamSlider.prev`; starts `opacity:0; pointer-events:none`; hover `opacity:.6` | `team-slider.js:53-69`; `beachfront.css:6675-6684` |
-| 10 | `img.team-slider-arrow.filter-to-primary.right` | §10 | `window.teamSlider.next`; hides at `i == length-1` | `team-slider.js:37-66` |
-| 11–21 | 11 × `a.inline-link` wrapping `img.team-grid-headshot` | §10 | → `/team-members/<slug>`; hover `opacity:.6` | `beachfront.css:7382-7393` |
-| 22–32 | 11 × `a.inline-link` wrapping `h5` | §10 | → same slug; hover `opacity:.6` | ” |
-| 33–43 | 11 × `a.flex-align-center._w-half.bg-color-transparent` ("read more" + arrow) | §10 | → same slug | `beachfront.css:2958-2960` |
-| 44 | `a.button.…mt-2` "Download Forms" | §12 | **`href="#"`, no `.show-form`, no handler — dead link** | markup |
-| 45 | `a.button.text-color-primary.mt-2.show-form` "Book Appointment" | §12 | jQuery `showForm` + IX2 `a-5` (trigger GUID `6e166e67-…`) | `[probed IX2 store]` |
-| 46 | `img.big-review-arrow-right` | §15 | `window.slider.next`; hover `opacity:.6` **and** `transform: scale(1.01)` | `big-review.js:31-55`; `beachfront.css:7602-7612` |
-| 47 | `img.big-review-arrow-left` | §15 | `window.slider.prev` (clones + prepends, sets negative `margin-left`) | `big-review.js:42-56`; `beachfront.css:7622-7632` |
-| 48–52 | 5 × `a.social-logo-big-review` | §15 | external Yelp / Google Maps links; hover `opacity:.6` | `beachfront.css:6819-6832` |
+| #     | element                                                                       | section | behaviour                                                                                                                                        | source                                                      |
+| ----- | ----------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- |
+| 1     | `a.visit-list-item[href="#tour"]`                                             | §4      | in-page anchor; Webflow JS smooth-scroll (`scroll-behavior` is `auto` — `[probed]` eased 0→1157px over ~1.12s); hover `opacity:.67`              | `beachfront.css:6607-6622`                                  |
+| 2     | `a.visit-list-item[href="#meet"]`                                             | §4      | ”                                                                                                                                                | ”                                                           |
+| 3     | `a.visit-list-item[href="#exam"]`                                             | §4      | ”                                                                                                                                                | ”                                                           |
+| 4     | `a.button.…mr-4.show-form` "Book an Apointment"                               | §5      | jQuery `showForm` → `$(".form-modal").css("opacity","1")` + IX2 `a-5` `TRANSFORM_MOVE` `.form-modal` y=150vh / 500ms                             | `your-first-visit.html` pretty 1327-1336; `_chrome.md §3.6` |
+| 5     | `a.button.text-color-primary` "Registration Form"                             | §5      | **`href="#"` with no handler — dead link.** It carries `data-w-id=44c9c628-…` but that GUID has only a `SCROLL_INTO_VIEW`→`a-7` reveal, no click | `[probed IX2 store]`                                        |
+| 6     | `.w-slider-arrow-left` (+`.w-icon-slider-left`)                               | §7      | Webflow slider prev; `data-duration="500"`, `data-easing="ease"`, `data-animation="slide"`, `data-infinite="true"`                               | markup; `beachfront.css:1285-1311`                          |
+| 7     | `.w-slider-arrow-right` (+`.w-icon-slider-right`)                             | §7      | Webflow slider next                                                                                                                              | `beachfront.css:1285-1316`                                  |
+| 8     | `.w-slider-mask` drag / swipe                                                 | §7      | `data-disable-swipe="false"` ⇒ pointer + touch drag advances the slide                                                                           | markup                                                      |
+| 9     | `img.team-slider-arrow.filter-to-primary.left`                                | §10     | `window.teamSlider.prev`; starts `opacity:0; pointer-events:none`; hover `opacity:.6`                                                            | `team-slider.js:53-69`; `beachfront.css:6675-6684`          |
+| 10    | `img.team-slider-arrow.filter-to-primary.right`                               | §10     | `window.teamSlider.next`; hides at `i == length-1`                                                                                               | `team-slider.js:37-66`                                      |
+| 11–21 | 11 × `a.inline-link` wrapping `img.team-grid-headshot`                        | §10     | → `/team-members/<slug>`; hover `opacity:.6`                                                                                                     | `beachfront.css:7382-7393`                                  |
+| 22–32 | 11 × `a.inline-link` wrapping `h5`                                            | §10     | → same slug; hover `opacity:.6`                                                                                                                  | ”                                                           |
+| 33–43 | 11 × `a.flex-align-center._w-half.bg-color-transparent` ("read more" + arrow) | §10     | → same slug                                                                                                                                      | `beachfront.css:2958-2960`                                  |
+| 44    | `a.button.…mt-2` "Download Forms"                                             | §12     | **`href="#"`, no `.show-form`, no handler — dead link**                                                                                          | markup                                                      |
+| 45    | `a.button.text-color-primary.mt-2.show-form` "Book Appointment"               | §12     | jQuery `showForm` + IX2 `a-5` (trigger GUID `6e166e67-…`)                                                                                        | `[probed IX2 store]`                                        |
+| 46    | `img.big-review-arrow-right`                                                  | §15     | `window.slider.next`; hover `opacity:.6` **and** `transform: scale(1.01)`                                                                        | `big-review.js:31-55`; `beachfront.css:7602-7612`           |
+| 47    | `img.big-review-arrow-left`                                                   | §15     | `window.slider.prev` (clones + prepends, sets negative `margin-left`)                                                                            | `big-review.js:42-56`; `beachfront.css:7622-7632`           |
+| 48–52 | 5 × `a.social-logo-big-review`                                                | §15     | external Yelp / Google Maps links; hover `opacity:.6`                                                                                            | `beachfront.css:6819-6832`                                  |
 
-**Documented non-controls** (present but never operable — deliberately *not*
+**Documented non-controls** (present but never operable — deliberately _not_
 counted, so the number stays reproducible):
+
 - 8 × `.w-slider-dot` inside `.display-none.w-slider-nav.w-round` —
   `beachfront.css:2214-2216` removes the strip from layout.
 - 22 × `img.w-condition-invisible` (2 unused logos per review card ×
@@ -1146,10 +1150,10 @@ counted, so the number stays reproducible):
 `useFirstGroupAsInitialState`.** Read from
 `Webflow.require("ix2").store.getState().ixData` `[probed-only]`:
 
-| group | actions | duration | easing |
-|---|---|---|---|
-| g0 (initial state, applied at load) | `TRANSFORM_MOVE yValue: 4` (unit rem) + `STYLE_OPACITY 0` | 500 | *(unset → linear)* |
-| g1 (reveal) | `TRANSFORM_MOVE yValue: 0` + `STYLE_OPACITY 1` | **2000** | **`outExpo`** |
+| group                               | actions                                                   | duration | easing             |
+| ----------------------------------- | --------------------------------------------------------- | -------- | ------------------ |
+| g0 (initial state, applied at load) | `TRANSFORM_MOVE yValue: 4` (unit rem) + `STYLE_OPACITY 0` | 500      | _(unset → linear)_ |
+| g1 (reveal)                         | `TRANSFORM_MOVE yValue: 0` + `STYLE_OPACITY 1`            | **2000** | **`outExpo`**      |
 
 Travel = `4rem` → **160 / 128 / 96px** upward. No stagger/delay (`delay: 0` on
 every item). Not an IntersectionObserver in our code — IX2 uses its own
@@ -1158,34 +1162,34 @@ scroll-position engine, but a single-threshold IO with
 
 **Trigger offsets** (`scrollOffsetValue` / `scrollOffsetUnit`):
 
-| `data-w-id` | element | offset |
-|---|---|---|
-| `71103da4-…` | `a.visit-list-item` #tour | 0 % |
-| `c0003259-…` | `a.visit-list-item` #meet | 0 % |
-| `7a2ee67f-…` | `a.visit-list-item` #exam | 0 % |
-| `0950c185-…` | TOC "Book an Apointment" | 0 % |
-| `44c9c628-…` | TOC "Registration Form" | 0 % |
-| `c9a05a4b-…` | `#tour h1` "Office Tour" | 0 % |
-| `3d588b2b-…` | `.w-layout-hflex.mt-6` (hours + contact, reveals **as one block**) | 0 % |
-| `b21ffecc-…` | `h2` "Meet Our Team" | 0 % |
-| `37e52dc5-…` | `.slider-arrows-anchor` (both team arrows travel with it) | 0 % |
-| `0f5db9c9-…` | `.team-slider` (**all 11 cards reveal as one element**) | 0 % |
-| `b018c59b-…` | `#exam` intro row (h3 + p + photo, **one block**) | 0 % |
-| `413fec92-…` | `.exam-step` 01 | 0 % |
-| `22d841d1-…` | `.exam-step` 02 | **20 %** |
-| `eb295353-…` | `.exam-step` 03 | **20 %** |
-| `5de05615-…` | `.exam-step` 04 | **20 %** |
-| `fcacb919-…` | `.exam-step` 05 | **20 %** |
-| `2b7ee8a8-…` | `.exam-step` 06 | **20 %** |
-| `5424ce3d-…1714` | `h1` "Serving the South Bay…" | 0 % |
-| `5424ce3d-…1718` | `.big-review-arrow-right` | 0 % |
-| `5424ce3d-…1719` | `.big-review-arrow-left` | 0 % |
-| `0a9b7ec5-…fb6` | `.what-they-say-big-review` | 0 % |
-| `0a9b7ec5-…fb7` | `.what-they-say-arrow-big-review` | 0 % |
-| `5424ce3d-…171e` | `.big-review` × 5 — **registered but permanently defeated**, see below | 0 % |
+| `data-w-id`      | element                                                                | offset   |
+| ---------------- | ---------------------------------------------------------------------- | -------- |
+| `71103da4-…`     | `a.visit-list-item` #tour                                              | 0 %      |
+| `c0003259-…`     | `a.visit-list-item` #meet                                              | 0 %      |
+| `7a2ee67f-…`     | `a.visit-list-item` #exam                                              | 0 %      |
+| `0950c185-…`     | TOC "Book an Apointment"                                               | 0 %      |
+| `44c9c628-…`     | TOC "Registration Form"                                                | 0 %      |
+| `c9a05a4b-…`     | `#tour h1` "Office Tour"                                               | 0 %      |
+| `3d588b2b-…`     | `.w-layout-hflex.mt-6` (hours + contact, reveals **as one block**)     | 0 %      |
+| `b21ffecc-…`     | `h2` "Meet Our Team"                                                   | 0 %      |
+| `37e52dc5-…`     | `.slider-arrows-anchor` (both team arrows travel with it)              | 0 %      |
+| `0f5db9c9-…`     | `.team-slider` (**all 11 cards reveal as one element**)                | 0 %      |
+| `b018c59b-…`     | `#exam` intro row (h3 + p + photo, **one block**)                      | 0 %      |
+| `413fec92-…`     | `.exam-step` 01                                                        | 0 %      |
+| `22d841d1-…`     | `.exam-step` 02                                                        | **20 %** |
+| `eb295353-…`     | `.exam-step` 03                                                        | **20 %** |
+| `5de05615-…`     | `.exam-step` 04                                                        | **20 %** |
+| `fcacb919-…`     | `.exam-step` 05                                                        | **20 %** |
+| `2b7ee8a8-…`     | `.exam-step` 06                                                        | **20 %** |
+| `5424ce3d-…1714` | `h1` "Serving the South Bay…"                                          | 0 %      |
+| `5424ce3d-…1718` | `.big-review-arrow-right`                                              | 0 %      |
+| `5424ce3d-…1719` | `.big-review-arrow-left`                                               | 0 %      |
+| `0a9b7ec5-…fb6`  | `.what-they-say-big-review`                                            | 0 %      |
+| `0a9b7ec5-…fb7`  | `.what-they-say-arrow-big-review`                                      | 0 %      |
+| `5424ce3d-…171e` | `.big-review` × 5 — **registered but permanently defeated**, see below | 0 %      |
 
 **Steps 02–06 fire 20% later than step 01.** Step 01 shares the reg box's row
-top, so the six steps do *not* reveal on one line.
+top, so the six steps do _not_ reveal on one line.
 
 **`.big-review` never animates.** `big-review.js:59-60` runs unconditionally at
 load and writes `opacity:1` + `transform: translate3d(0,0,0)` as inline styles,
@@ -1205,14 +1209,14 @@ card links (no `data-w-id`, no inline style) genuinely dim to `.6`. Do not
 
 **Click-driven, non-reveal animations:**
 
-| trigger | action list | effect | duration / easing |
-|---|---|---|---|
-| `.show-form` (#4, #45) | `a-5` | `TRANSFORM_MOVE` `.form-modal` **y = 150 vh** | 500ms, linear |
-| modal close (chrome) | `a-6` | `.form-modal` y = **−150 vh** | 500ms, linear |
-| team arrows (#9, #10) | *(none — jQuery)* | `.team-slider` `transform: translateX(-inc·i)` | **CSS** `transition: transform 2s cubic-bezier(.19,1,.22,1)` `beachfront.css:6648` |
-| review arrows (#46, #47) | *(none — jQuery)* | `.big-review-slider` `translateX(-inc·i rem)` | **CSS** `transition: transform 2s cubic-bezier(.19,1,.22,1)` `beachfront.css:7569` |
-| tour slider arrows (#6, #7) | *(Webflow slider)* | slide | `data-duration="500"`, `data-easing="ease"` |
-| in-page anchors (#1–3) | *(webflow.js links module)* | eased window scroll | ~1.12s `[probed-only]`; `scroll-behavior` is `auto` |
+| trigger                     | action list                 | effect                                         | duration / easing                                                                  |
+| --------------------------- | --------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `.show-form` (#4, #45)      | `a-5`                       | `TRANSFORM_MOVE` `.form-modal` **y = 150 vh**  | 500ms, linear                                                                      |
+| modal close (chrome)        | `a-6`                       | `.form-modal` y = **−150 vh**                  | 500ms, linear                                                                      |
+| team arrows (#9, #10)       | _(none — jQuery)_           | `.team-slider` `transform: translateX(-inc·i)` | **CSS** `transition: transform 2s cubic-bezier(.19,1,.22,1)` `beachfront.css:6648` |
+| review arrows (#46, #47)    | _(none — jQuery)_           | `.big-review-slider` `translateX(-inc·i rem)`  | **CSS** `transition: transform 2s cubic-bezier(.19,1,.22,1)` `beachfront.css:7569` |
+| tour slider arrows (#6, #7) | _(Webflow slider)_          | slide                                          | `data-duration="500"`, `data-easing="ease"`                                        |
+| in-page anchors (#1–3)      | _(webflow.js links module)_ | eased window scroll                            | ~1.12s `[probed-only]`; `scroll-behavior` is `auto`                                |
 
 **Ordering hazard `[probed-only]`:** IX2 and the slider JS both write the
 `transform` **inline style** of `.team-slider`. Clicking an arrow before the
@@ -1244,7 +1248,7 @@ non-obvious cascade winner, i.e. exactly what our build has been getting wrong.
 2. **`h1.mb-8` "Serving the South Bay…" — 60 / 32 / 24.**
    `.mb-8` `beachfront.css:7972-7974` sets `font-size: 1rem` inside the ≤991
    block; at (0,1,0) it beats `h1` `:7853` (28px) at (0,0,1). So the size is
-   `1rem` — i.e. it tracks the *root font ladder*, giving 32 at 834 and 24 at
+   `1rem` — i.e. it tracks the _root font ladder_, giving 32 at 834 and 24 at
    390, with line-height 38 from the `h1` rule. Three values, none of them 28.
 
 3. **`.circle-time-number` — 45 / 45 / 30, keyed at 767.**
@@ -1254,7 +1258,7 @@ non-obvious cascade winner, i.e. exactly what our build has been getting wrong.
 
 4. **`.review-slider-holder` margin-top — 0 / 128 / 0.**
    ≤991 `beachfront.css:8338-8340` (`4rem`) then ≤767 `:8940-8942` (`0`).
-   Only the *middle* tier is non-zero. A two-tier ladder cannot express this and
+   Only the _middle_ tier is non-zero. A two-tier ladder cannot express this and
    will lose 128px at 834, shifting §15 and everything below it.
 
 5. **`.team-teasewr-read-more` — 16 / 19.2 / 14.4, and the 834 value is
@@ -1270,7 +1274,7 @@ non-obvious cascade winner, i.e. exactly what our build has been getting wrong.
    834 inside the `To be a long term health partner` region.
 
 7. **`h6` font-size vs line-height split on `.visit-list-number` and the
-   "15 min" labels.** `h6` ≤991 `beachfront.css:7872-7875` sets *both*
+   "15 min" labels.** `h6` ≤991 `beachfront.css:7872-7875` sets _both_
    `font-size:12px` and `line-height:15px`, but the more specific class rules
    (`beachfront.css:6628-6632`, `:4487-4489`) override **only the font-size**.
    Result at 834: **24px text on a 15px line**. Implementing these as a single
@@ -1378,10 +1382,10 @@ into a fix, and never cited as though they were a rule (repo CLAUDE.md
 rule 1).
 
 7. `yfv.md:7` — `[probed-only]` and are the only citation-free values here.
-70. `yfv.md:70` — **Proof of the offset on this page** (`[probed-only]`, five widths):
-122. `yfv.md:122` — Document height `[probed-only]`: 8183 / 9541 / 6743 (and 7933 @992, 8019 @768).
-416. `yfv.md:416` — | outer div | **900** (100vh) | **1112** (100vh) | **319.8** (auto) `[probed-only]` |
-422. `yfv.md:422` — `display:block`, with the inherited 76.8px line-height) — `[probed-only]`,
-1147. `yfv.md:1147` — `Webflow.require("ix2").store.getState().ixData` `[probed-only]`:
-1215. `yfv.md:1215` — | in-page anchors (#1–3) | *(webflow.js links module)* | eased window scroll | ~1.12s `[probed-only]`; `scroll-behavior` is `auto` |
-1217. `yfv.md:1217` — **Ordering hazard `[probed-only]`:** IX2 and the slider JS both write the
+8. `yfv.md:70` — **Proof of the offset on this page** (`[probed-only]`, five widths):
+9. `yfv.md:122` — Document height `[probed-only]`: 8183 / 9541 / 6743 (and 7933 @992, 8019 @768).
+10. `yfv.md:416` — | outer div | **900** (100vh) | **1112** (100vh) | **319.8** (auto) `[probed-only]` |
+11. `yfv.md:422` — `display:block`, with the inherited 76.8px line-height) — `[probed-only]`,
+12. `yfv.md:1147` — `Webflow.require("ix2").store.getState().ixData` `[probed-only]`:
+13. `yfv.md:1215` — | in-page anchors (#1–3) | _(webflow.js links module)_ | eased window scroll | ~1.12s `[probed-only]`; `scroll-behavior` is `auto` |
+14. `yfv.md:1217` — **Ordering hazard `[probed-only]`:** IX2 and the slider JS both write the

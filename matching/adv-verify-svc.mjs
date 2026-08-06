@@ -108,7 +108,11 @@ const script = () => {
 
   // hero wave
   const bw = q(".bot-wave") || (hero ? hero.querySelector("svg") : null);
-  const bwsvg = bw ? (bw.tagName === "svg" ? bw : bw.querySelector("svg")) : null;
+  const bwsvg = bw
+    ? bw.tagName === "svg"
+      ? bw
+      : bw.querySelector("svg")
+    : null;
   out.heroWave = { wrapRect: R(bw), svgRect: R(bwsvg) };
 
   // ---- WE OFFER intro
@@ -128,10 +132,21 @@ const script = () => {
   out.intro = {
     text: intro ? intro.textContent.trim().slice(0, 60) : null,
     rect: R(intro),
-    style: S(intro, [...TYPE, "marginTop", "marginBottom", "maxWidth", "textAlign"]),
+    style: S(intro, [
+      ...TYPE,
+      "marginTop",
+      "marginBottom",
+      "maxWidth",
+      "textAlign",
+    ]),
     parentRect: intro ? R(intro.parentElement) : null,
     parentStyle: intro
-      ? S(intro.parentElement, ["marginTop", "marginBottom", "maxWidth", "width"])
+      ? S(intro.parentElement, [
+          "marginTop",
+          "marginBottom",
+          "maxWidth",
+          "width",
+        ])
       : null,
   };
 
@@ -176,7 +191,8 @@ const script = () => {
   out.cards = cards.map((c) => {
     const h3 = c.querySelector("h3");
     const p = c.querySelector("p");
-    const panel = c.querySelector(".h-40pc") || c.children[c.children.length - 1];
+    const panel =
+      c.querySelector(".h-40pc") || c.children[c.children.length - 1];
     const tooth =
       c.querySelector(".service-block-teef") || c.querySelector("img");
     const cols = panel
@@ -185,7 +201,9 @@ const script = () => {
         )
       : [];
     const links = [...c.querySelectorAll("a")];
-    const linkTexts = links.map((a) => a.textContent.trim().replace(/\s+/g, " "));
+    const linkTexts = links.map((a) =>
+      a.textContent.trim().replace(/\s+/g, " "),
+    );
     // per-column anchor counts by x position
     const byX = {};
     for (const a of links) {
@@ -196,12 +214,16 @@ const script = () => {
     const label = firstLink
       ? firstLink.querySelector("span") || firstLink
       : null;
-    const arrow = firstLink
-      ? firstLink.querySelector("img,svg")
-      : null;
+    const arrow = firstLink ? firstLink.querySelector("img,svg") : null;
     return {
       rect: R(c),
-      style: S(c, ["width", "height", "margin", "borderRadius", "backgroundColor"]),
+      style: S(c, [
+        "width",
+        "height",
+        "margin",
+        "borderRadius",
+        "backgroundColor",
+      ]),
       h3: {
         text: h3 ? h3.textContent.trim() : null,
         rect: R(h3),
@@ -214,7 +236,11 @@ const script = () => {
       inner: (() => {
         const top = c.querySelector(".h-60pc") || c.children[1];
         const box = top ? top.querySelector("div") : null;
-        return { topRect: R(top), boxRect: R(box), boxStyle: S(box, ["margin"]) };
+        return {
+          topRect: R(top),
+          boxRect: R(box),
+          boxStyle: S(box, ["margin"]),
+        };
       })(),
       panel: {
         rect: R(panel),
@@ -260,7 +286,9 @@ const script = () => {
   // ---- CTA band
   const ctaH2 =
     q(".cta-section h2") ||
-    [...qa("h2")].find((h) => /Ready for great dental health/i.test(h.textContent));
+    [...qa("h2")].find((h) =>
+      /Ready for great dental health/i.test(h.textContent),
+    );
   out.ctaH2 = {
     text: ctaH2 ? ctaH2.textContent.trim() : null,
     rect: R(ctaH2),
@@ -288,7 +316,9 @@ const script = () => {
   out.footerWave = { wrapRect: R(fWaveWrap), svgRect: R(fWave) };
   const learn =
     q(".footer-learn-more") ||
-    [...qa("h5,h4,h3,h2,p")].find((e) => /Want to learn more/i.test(e.textContent));
+    [...qa("h5,h4,h3,h2,p")].find((e) =>
+      /Want to learn more/i.test(e.textContent),
+    );
   out.footerLearn = { rect: R(learn) };
   const footerSec = q("section.footer") || q("footer");
   out.footerSection = { rect: R(footerSec) };
@@ -306,13 +336,18 @@ const script = () => {
         '.w-nav-button, [aria-label*="enu"], button[aria-expanded], .menu-button',
       )
     : null;
-  out.navBurger = { rect: R(burger), cls: burger ? burger.className.toString() : null };
+  out.navBurger = {
+    rect: R(burger),
+    cls: burger ? burger.className.toString() : null,
+  };
 
   return out;
 };
 
 const measure = async (page, url) => {
-  await page.goto(url, { waitUntil: "networkidle", timeout: 90000 }).catch(() => {});
+  await page
+    .goto(url, { waitUntil: "networkidle", timeout: 90000 })
+    .catch(() => {});
   await page.waitForTimeout(1200);
   // settle: scroll in 200px steps
   await page.evaluate(async () => {

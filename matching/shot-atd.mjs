@@ -5,8 +5,14 @@
 import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
 
 const shots = [
-  ["https://www.beachfrontdentistry.com/ask-the-doctor", "matching/atd-live-1440.png"],
-  ["http://localhost:5173/dev/match/ask-the-doctor", "matching/atd-cand-1440.png"],
+  [
+    "https://www.beachfrontdentistry.com/ask-the-doctor",
+    "matching/atd-live-1440.png",
+  ],
+  [
+    "http://localhost:5173/dev/match/ask-the-doctor",
+    "matching/atd-cand-1440.png",
+  ],
 ];
 const b = await chromium.launch();
 try {
@@ -22,7 +28,10 @@ try {
       window.scrollTo(0, 0);
       await new Promise((r) => setTimeout(r, 200));
     });
-    await p.screenshot({ path: out, clip: { x: 0, y: 0, width: 1440, height: 1700 } });
+    await p.screenshot({
+      path: out,
+      clip: { x: 0, y: 0, width: 1440, height: 1700 },
+    });
     await p.close();
     console.log("shot", out);
   }

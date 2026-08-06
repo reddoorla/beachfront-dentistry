@@ -29,10 +29,16 @@ const PAGES = [
 
 // The chrome regions _chrome.md specs, in its own section order.
 const REGIONS = [
-  ["nav/header §3", ".header, .header-top, .nav-bar, .link-block-5, .link-block-4"],
+  [
+    "nav/header §3",
+    ".header, .header-top, .nav-bar, .link-block-5, .link-block-4",
+  ],
   ["off-canvas panel §3.5", ".modal-menu, .nav-modal, .modal-link"],
   ["appointment modal §3.6", ".form-modal"],
-  ["closing CTA band §4", ".cta-section, .home-cta-section, .cta-beach-section"],
+  [
+    "closing CTA band §4",
+    ".cta-section, .home-cta-section, .cta-beach-section",
+  ],
   ["footer §5", ".footer"],
 ];
 
@@ -48,8 +54,12 @@ try {
       // anything the stylesheet gives `cursor:pointer` / an open-state class.
       const isInteractive = (el) => {
         const t = el.tagName.toLowerCase();
-        if (["a", "button", "input", "select", "textarea"].includes(t)) return true;
-        if (el.hasAttribute("data-w-id") && getComputedStyle(el).cursor === "pointer")
+        if (["a", "button", "input", "select", "textarea"].includes(t))
+          return true;
+        if (
+          el.hasAttribute("data-w-id") &&
+          getComputedStyle(el).cursor === "pointer"
+        )
           return true;
         return (
           getComputedStyle(el).cursor === "pointer" &&
@@ -72,7 +82,9 @@ try {
         per[label] = n;
       }
       // everything interactive on the page, for the Phase 5 denominator
-      const all = [...document.querySelectorAll("*")].filter(isInteractive).length;
+      const all = [...document.querySelectorAll("*")].filter(
+        isInteractive,
+      ).length;
       return { per, chrome: seen.size, all };
     }, REGIONS);
     rows.push({ tag, ...out });
@@ -81,7 +93,8 @@ try {
 
   const labels = REGIONS.map(([l]) => l);
   console.log(
-    "page".padEnd(10) + labels.map((l) => l.slice(0, 13).padStart(14)).join("") +
+    "page".padEnd(10) +
+      labels.map((l) => l.slice(0, 13).padStart(14)).join("") +
       "  chrome   page-total",
   );
   for (const r of rows)

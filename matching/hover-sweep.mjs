@@ -90,10 +90,18 @@ async function measure(page, rules) {
       };
       const read = () => {
         const cs = getComputedStyle(el);
-        return Object.fromEntries(r.props.map((p) => [p, cs.getPropertyValue(p)]));
+        return Object.fromEntries(
+          r.props.map((p) => [p, cs.getPropertyValue(p)]),
+        );
       };
       const rest = read();
-      out.push({ selector: r.selector, status: "found", id, rest, props: r.props });
+      out.push({
+        selector: r.selector,
+        status: "found",
+        id,
+        rest,
+        props: r.props,
+      });
     }
     return out;
   }, rules);
@@ -112,7 +120,10 @@ try {
     // hover each found element and re-read, one at a time so states do not stack
     for (const row of live) {
       if (row.status !== "found") continue;
-      const base = row.selector.split(",")[0].replace(/:(hover|focus)(-visible)?/g, "").trim();
+      const base = row.selector
+        .split(",")[0]
+        .replace(/:(hover|focus)(-visible)?/g, "")
+        .trim();
       try {
         const h = await p.$(base);
         if (!h) continue;
@@ -127,7 +138,9 @@ try {
             });
             if (!e) return null;
             const cs = getComputedStyle(e);
-            return Object.fromEntries(props.map((k) => [k, cs.getPropertyValue(k)]));
+            return Object.fromEntries(
+              props.map((k) => [k, cs.getPropertyValue(k)]),
+            );
           },
           [base, row.props],
         );
@@ -145,7 +158,9 @@ try {
 }
 
 // summarise: which rules actually DO something on live, per page
-let active = 0, inert = 0, absent = 0;
+let active = 0,
+  inert = 0,
+  absent = 0;
 const lines = [];
 for (const { page, live } of report) {
   for (const row of live) {

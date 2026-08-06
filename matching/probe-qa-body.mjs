@@ -39,7 +39,9 @@ try {
         prevBottom = y + Math.round(r.height);
         const bold = !!el.querySelector("strong");
         const allBold =
-          bold && el.querySelector("strong").textContent.trim().length >= el.textContent.trim().length - 1;
+          bold &&
+          el.querySelector("strong").textContent.trim().length >=
+            el.textContent.trim().length - 1;
         return `y=${y} h=${Math.round(r.height)} gap=${String(gap).padStart(3)} lines=${Math.round(r.height / parseFloat(cs.lineHeight))} ${allBold ? "SUBHEAD" : bold ? "has-b  " : "       "} "${el.textContent.trim().slice(0, 34)}"`;
       });
     });

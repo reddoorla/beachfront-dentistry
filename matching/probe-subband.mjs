@@ -27,7 +27,9 @@ try {
           const b = el.getBoundingClientRect();
           return { h: Math.round(b.height), top: Math.round(b.top) };
         };
-        const head = document.querySelector(".subpage-hero-heading, .meet-heading");
+        const head = document.querySelector(
+          ".subpage-hero-heading, .meet-heading",
+        );
         if (!head) return { none: true };
         // walk up to the band section (first ancestor >= 300px tall spanning full width)
         let band = head;
@@ -39,15 +41,24 @@ try {
         const bcs = getComputedStyle(band);
         // all big heading lines in the band
         const lines = [...band.querySelectorAll("h1,h2,h3,p")]
-          .filter((e) => [...e.childNodes].some((n) => n.nodeType === 3 && n.nodeValue.trim()))
-          .map((e) => `${e.tagName}.${e.className.slice(0, 24)} "${e.textContent.trim().slice(0, 24)}" ${tuple(e)}`);
+          .filter((e) =>
+            [...e.childNodes].some(
+              (n) => n.nodeType === 3 && n.nodeValue.trim(),
+            ),
+          )
+          .map(
+            (e) =>
+              `${e.tagName}.${e.className.slice(0, 24)} "${e.textContent.trim().slice(0, 24)}" ${tuple(e)}`,
+          );
         return {
           bandCls: band.className.slice(0, 50),
           bandRect: r(band),
           bandBg: bcs.backgroundColor,
           bandBgImg: bcs.backgroundImage.slice(0, 60),
           hasBgImgEl: !!band.querySelector("img"),
-          imgSrc: band.querySelector("img")?.getAttribute("src")?.slice(0, 70) || null,
+          imgSrc:
+            band.querySelector("img")?.getAttribute("src")?.slice(0, 70) ||
+            null,
           hasWave: !!band.querySelector("svg, [class*='wave']"),
           lines,
         };

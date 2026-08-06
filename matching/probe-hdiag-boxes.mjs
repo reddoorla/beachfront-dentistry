@@ -84,7 +84,8 @@ try {
           if (!t) continue;
           if (
             alts.some(
-              (a) => t.toLowerCase().indexOf(a.toLowerCase().slice(0, 22)) === 0,
+              (a) =>
+                t.toLowerCase().indexOf(a.toLowerCase().slice(0, 22)) === 0,
             )
           ) {
             const r = el.getBoundingClientRect();

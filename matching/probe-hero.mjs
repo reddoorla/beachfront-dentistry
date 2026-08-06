@@ -11,7 +11,11 @@ async function measure(p) {
   return p.evaluate(() => {
     const byText = (needle) =>
       [...document.querySelectorAll("h1,h2,h3,p,a,span,div")].find((el) =>
-        el.textContent.replace(/\s+/g, " ").trim().toLowerCase().startsWith(needle),
+        el.textContent
+          .replace(/\s+/g, " ")
+          .trim()
+          .toLowerCase()
+          .startsWith(needle),
       );
     const finally_ = byText("finally have a dentist");
     const heading = byText("have a relaxed dental experience");
@@ -22,10 +26,17 @@ async function measure(p) {
       if (!el) return null;
       const b = el.getBoundingClientRect();
       const cs = getComputedStyle(el);
-      return { top: Math.round(b.top + scrollY), left: Math.round(b.left), h: Math.round(b.height), align: cs.textAlign };
+      return {
+        top: Math.round(b.top + scrollY),
+        left: Math.round(b.left),
+        h: Math.round(b.height),
+        align: cs.textAlign,
+      };
     };
     return {
-      topRegionH: finally_ ? Math.round(finally_.getBoundingClientRect().top + scrollY) : null,
+      topRegionH: finally_
+        ? Math.round(finally_.getBoundingClientRect().top + scrollY)
+        : null,
       heading: r(heading),
       pill: r(pill),
     };
@@ -55,7 +66,11 @@ try {
         : `ERR ${m?.err}`;
     // pill-below-text if pill.top >= heading.bottom
     const rel = (m) =>
-      m?.heading && m?.pill ? (m.pill.top >= m.heading.top + m.heading.h - 5 ? "pill-BELOW" : "pill-INLINE") : "?";
+      m?.heading && m?.pill
+        ? m.pill.top >= m.heading.top + m.heading.h - 5
+          ? "pill-BELOW"
+          : "pill-INLINE"
+        : "?";
     console.log(`vw${vw}`);
     console.log(`  cand: ${fmt(line.cand)}  [${rel(line.cand)}]`);
     console.log(`  live: ${fmt(line.live)}  [${rel(line.live)}]`);

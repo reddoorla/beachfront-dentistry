@@ -11,7 +11,12 @@ const script = () => {
   const R = (el) => {
     if (!el) return null;
     const r = el.getBoundingClientRect();
-    return { x: px(r.x), y: px(r.y + window.scrollY), w: px(r.width), h: px(r.height) };
+    return {
+      x: px(r.x),
+      y: px(r.y + window.scrollY),
+      w: px(r.width),
+      h: px(r.height),
+    };
   };
   const S = (el, props) => {
     if (!el) return null;
@@ -31,11 +36,18 @@ const script = () => {
     const a = c.querySelector("a");
     if (!a) return null;
     const kids = [...a.children];
-    const lab = kids.find((k) => /H6|SPAN/.test(k.tagName)) || a.firstElementChild;
+    const lab =
+      kids.find((k) => /H6|SPAN/.test(k.tagName)) || a.firstElementChild;
     const img = kids.find((k) => /IMG|SVG/.test(k.tagName));
     return {
       aRect: R(a),
-      aStyle: S(a, ["display", "gap", "alignItems", "justifyContent", "padding"]),
+      aStyle: S(a, [
+        "display",
+        "gap",
+        "alignItems",
+        "justifyContent",
+        "padding",
+      ]),
       labTag: lab ? lab.tagName : null,
       labText: lab ? lab.textContent.trim() : null,
       labRect: R(lab),
@@ -52,24 +64,67 @@ const script = () => {
       ]),
       imgTag: img ? img.tagName : null,
       imgRect: R(img),
-      imgStyle: S(img, ["opacity", "width", "height", "marginLeft", "marginRight"]),
-      gapPx: lab && img ? px(img.getBoundingClientRect().x - lab.getBoundingClientRect().right) : null,
+      imgStyle: S(img, [
+        "opacity",
+        "width",
+        "height",
+        "marginLeft",
+        "marginRight",
+      ]),
+      gapPx:
+        lab && img
+          ? px(
+              img.getBoundingClientRect().x - lab.getBoundingClientRect().right,
+            )
+          : null,
     };
   });
 
   // ---- card geometry short form (for the 600 tier)
-  out.cardsShort = cards.map((c) => ({ ...R(c), h3: c.querySelector("h3")?.textContent.trim() }));
+  out.cardsShort = cards.map((c) => ({
+    ...R(c),
+    h3: c.querySelector("h3")?.textContent.trim(),
+  }));
   const grid = q(".service-grid") || (cards[0] ? cards[0].parentElement : null);
-  out.grid = { rect: R(grid), style: S(grid, ["gridTemplateColumns", "gridTemplateRows", "rowGap", "marginTop", "marginBottom", "paddingTop", "paddingBottom"]) };
-  const heroH2 = q("h2.subpage-hero-heading") || q('[data-slice-variation="subpage"] h2');
-  out.heroH2 = { rect: R(heroH2), style: S(heroH2, ["fontSize", "lineHeight", "marginBottom"]) };
+  out.grid = {
+    rect: R(grid),
+    style: S(grid, [
+      "gridTemplateColumns",
+      "gridTemplateRows",
+      "rowGap",
+      "marginTop",
+      "marginBottom",
+      "paddingTop",
+      "paddingBottom",
+    ]),
+  };
+  const heroH2 =
+    q("h2.subpage-hero-heading") || q('[data-slice-variation="subpage"] h2');
+  out.heroH2 = {
+    rect: R(heroH2),
+    style: S(heroH2, ["fontSize", "lineHeight", "marginBottom"]),
+  };
 
   // ---- CTA band region: everything between the CTA h2 and the footer info
-  const ctaH2 = [...qa("h2")].find((h) => /Ready for great dental health/i.test(h.textContent));
-  out.ctaH2 = { rect: R(ctaH2), style: S(ctaH2, ["fontSize", "lineHeight", "marginTop", "marginBottom", "maxWidth"]) };
+  const ctaH2 = [...qa("h2")].find((h) =>
+    /Ready for great dental health/i.test(h.textContent),
+  );
+  out.ctaH2 = {
+    rect: R(ctaH2),
+    style: S(ctaH2, [
+      "fontSize",
+      "lineHeight",
+      "marginTop",
+      "marginBottom",
+      "maxWidth",
+    ]),
+  };
   // walk the CTA container's descendants and list anything with a rect
   const ctaRoot = ctaH2 ? ctaH2.closest("section") : null;
-  out.ctaRoot = { rect: R(ctaRoot), cls: ctaRoot ? ctaRoot.className.toString().slice(0, 80) : null };
+  out.ctaRoot = {
+    rect: R(ctaRoot),
+    cls: ctaRoot ? ctaRoot.className.toString().slice(0, 80) : null,
+  };
   const walk = (root, depth) => {
     const rows = [];
     const rec = (el, d) => {
@@ -81,7 +136,10 @@ const script = () => {
             d,
             tag: ch.tagName.toLowerCase(),
             cls: (ch.className || "").toString().slice(0, 70),
-            txt: (ch.textContent || "").trim().replace(/\s+/g, " ").slice(0, 32),
+            txt: (ch.textContent || "")
+              .trim()
+              .replace(/\s+/g, " ")
+              .slice(0, 32),
             ...r,
           });
         }
@@ -96,14 +154,23 @@ const script = () => {
   // ---- beach band: element whose background-image contains "beach"
   const beach = [...qa("div,section,img")].find((e) => {
     const bi = getComputedStyle(e).backgroundImage;
-    return (/beach|fiji|unsplash/i.test(bi) && bi !== "none") || /beach|fiji/i.test(e.getAttribute("src") || "");
+    return (
+      (/beach|fiji|unsplash/i.test(bi) && bi !== "none") ||
+      /beach|fiji/i.test(e.getAttribute("src") || "")
+    );
   });
   out.beach = beach
     ? {
         tag: beach.tagName.toLowerCase(),
         cls: (beach.className || "").toString().slice(0, 80),
         rect: R(beach),
-        style: S(beach, ["height", "minHeight", "marginBottom", "backgroundSize", "backgroundPosition"]),
+        style: S(beach, [
+          "height",
+          "minHeight",
+          "marginBottom",
+          "backgroundSize",
+          "backgroundPosition",
+        ]),
       }
     : null;
 
@@ -115,7 +182,11 @@ const script = () => {
         /^Want to learn more/i.test(e.textContent.trim()),
       );
       let n = l;
-      while (n && n.tagName !== "FOOTER" && !/footer/i.test((n.className || "").toString()))
+      while (
+        n &&
+        n.tagName !== "FOOTER" &&
+        !/footer/i.test((n.className || "").toString())
+      )
         n = n.parentElement;
       return n;
     })();
@@ -127,7 +198,10 @@ const script = () => {
   };
   out.footerTree = fInfo ? walk(fInfo, 1) : null;
   // footer wave svg = any svg above/at the footer top
-  const svgs = qa("svg").map((s) => ({ r: R(s), cls: (s.parentElement?.className || "").toString().slice(0, 50) }));
+  const svgs = qa("svg").map((s) => ({
+    r: R(s),
+    cls: (s.parentElement?.className || "").toString().slice(0, 50),
+  }));
   out.svgs = svgs.filter((s) => s.r && s.r.h > 20);
 
   // ---- nav burger: any button/div in the header
@@ -139,7 +213,9 @@ const script = () => {
 };
 
 const measure = async (page, url) => {
-  await page.goto(url, { waitUntil: "networkidle", timeout: 90000 }).catch(() => {});
+  await page
+    .goto(url, { waitUntil: "networkidle", timeout: 90000 })
+    .catch(() => {});
   await page.waitForTimeout(1000);
   await page.evaluate(async () => {
     for (let y = 0; y < document.documentElement.scrollHeight; y += 200) {
@@ -160,7 +236,10 @@ const run = async () => {
   const result = {};
   try {
     for (const w of VPS) {
-      const ctx = await browser.newContext({ viewport: { width: w, height: 900 }, deviceScaleFactor: 1 });
+      const ctx = await browser.newContext({
+        viewport: { width: w, height: 900 },
+        deviceScaleFactor: 1,
+      });
       const page = await ctx.newPage();
       result[`live@${w}`] = await measure(page, LIVE);
       result[`cand@${w}`] = await measure(page, CAND);

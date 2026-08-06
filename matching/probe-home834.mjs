@@ -43,14 +43,18 @@ const READ = () => {
 
   // --- heading "Finally have a dentist"
   const h = [...document.querySelectorAll("h1,h2,h3")].find((el) =>
-    /^Finally have a dentist/.test((el.textContent ?? "").replace(/\s+/g, " ").trim()),
+    /^Finally have a dentist/.test(
+      (el.textContent ?? "").replace(/\s+/g, " ").trim(),
+    ),
   );
   out.heading = box(h);
 
   // --- the three feature cards (Comfort / Comprehensive / Caring)
   out.cards = ["Comfort", "Comprehensive", "Caring"].map((label) => {
     const lab = [...document.querySelectorAll("h1,h2,h3,h4,h5,h6,div,span,p")]
-      .filter((el) => (el.textContent ?? "").replace(/\s+/g, " ").trim() === label)
+      .filter(
+        (el) => (el.textContent ?? "").replace(/\s+/g, " ").trim() === label,
+      )
       .pop();
     if (!lab) return { label, missing: true };
     // walk up to the card box (first ancestor wider than 200px with a radius)
@@ -58,7 +62,10 @@ const READ = () => {
     for (let i = 0; i < 8 && card.parentElement; i++) {
       card = card.parentElement;
       const cs = getComputedStyle(card);
-      if (card.getBoundingClientRect().width > 200 && parseFloat(cs.borderTopLeftRadius) > 0)
+      if (
+        card.getBoundingClientRect().width > 200 &&
+        parseFloat(cs.borderTopLeftRadius) > 0
+      )
         break;
     }
     const img = card.querySelector("img");
@@ -68,10 +75,17 @@ const READ = () => {
       labelBox: box(lab),
       card: box(card),
       cardHTML: card.outerHTML.slice(0, 300),
-      img: img ? { ...box(img), src: (img.currentSrc || img.src).slice(-60) } : null,
+      img: img
+        ? { ...box(img), src: (img.currentSrc || img.src).slice(-60) }
+        : null,
       hasButton: !!btn,
-      buttonText: btn ? (btn.textContent ?? "").replace(/\s+/g, " ").trim().slice(0, 40) : null,
-      visibleText: (card.innerText ?? "").replace(/\s+/g, " ").trim().slice(0, 160),
+      buttonText: btn
+        ? (btn.textContent ?? "").replace(/\s+/g, " ").trim().slice(0, 40)
+        : null,
+      visibleText: (card.innerText ?? "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 160),
     };
   });
 
@@ -122,10 +136,16 @@ for (let i = 0; i < 3; i++) {
   console.log(` ours card: ${f(out.ours.cards[i]?.card)}`);
   console.log(` live img : ${f(out.live.cards[i]?.img)}`);
   console.log(` ours img : ${f(out.ours.cards[i]?.img)}`);
-  console.log(` live btn=${out.live.cards[i]?.hasButton} "${out.live.cards[i]?.buttonText}" text="${out.live.cards[i]?.visibleText}"`);
-  console.log(` ours btn=${out.ours.cards[i]?.hasButton} "${out.ours.cards[i]?.buttonText}" text="${out.ours.cards[i]?.visibleText}"`);
+  console.log(
+    ` live btn=${out.live.cards[i]?.hasButton} "${out.live.cards[i]?.buttonText}" text="${out.live.cards[i]?.visibleText}"`,
+  );
+  console.log(
+    ` ours btn=${out.ours.cards[i]?.hasButton} "${out.ours.cards[i]?.buttonText}" text="${out.ours.cards[i]?.visibleText}"`,
+  );
 }
-console.log(`\navatars live n=${out.live.avatarCount} ${f(out.live.avatars[0])}`);
+console.log(
+  `\navatars live n=${out.live.avatarCount} ${f(out.live.avatars[0])}`,
+);
 console.log(`avatars ours n=${out.ours.avatarCount} ${f(out.ours.avatars[0])}`);
 console.log(`eyebrow live ${f(out.live.meetEyebrow)}`);
 console.log(`eyebrow ours ${f(out.ours.meetEyebrow)}`);

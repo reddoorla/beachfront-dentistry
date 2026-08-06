@@ -2176,3 +2176,14 @@ bolder}` resolves RELATIVE to it. Fixed with an absolute `[&_strong]:font-bold`
   in the component, or be modelled as real structure (separate blocks/fields).
   Both mechanisms now have a mechanical check in
   src/lib/beachfront-pages.test.ts, verified failing before verified passing.
+
+- [deviation | `id="hero"` on every subpage hero, not just ask-the-doctor]
+  Live carries `id="hero"` on exactly one page — `<section id="hero" class="hero
+ask-a-dentist">` on /ask-the-doctor — because that is the only page whose
+  content ends in the `Back to Top` pill (`<a href="#hero">`). We copied the
+  pill verbatim but never its target, so the link went nowhere and `pnpm build`
+  hard-failed: SvelteKit's prerenderer resolves in-page anchors and errors on a
+  missing id. Emitting it from SubpageHero unconditionally means our-team and
+  services carry an unused attribute live lacks. Accepted: an `id` is inert —
+  invisible to the pixel gate and the style census — and scoping it would mean
+  teaching the hero which sibling slices its page has. Verified: build passes.

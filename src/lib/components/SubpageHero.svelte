@@ -80,6 +80,22 @@
     botGradient?: "base" | "dark";
   } = $props();
 
+  /** Scroll target for the "Back to Top" pill that closes the question list.
+   *
+   *  Live carries `id="hero"` on exactly one page — `<section id="hero"
+   *  class="hero ask-a-dentist">` on /ask-the-doctor — because that is the only
+   *  page whose content ends in `<a href="#hero">`. We copied the pill verbatim
+   *  (QuestionList/index.svelte:242) but never the id, so the link went
+   *  nowhere AND `pnpm build` hard-failed: SvelteKit's prerenderer resolves
+   *  every in-page anchor and errors on a missing target.
+   *
+   *  Emitted here rather than only on ask-the-doctor because an `id` is inert —
+   *  invisible to the pixel gate and the style census — and scoping it would
+   *  mean teaching the hero which sibling slices its page has. The divergence
+   *  is one unused attribute on three subpage heroes; the alternative is a dead
+   *  link on the page live actually uses it. */
+  const ANCHOR_ID = "hero";
+
   const objectPos = $derived(
     imagePosition === "left-bottom"
       ? "object-left-bottom"
@@ -93,6 +109,7 @@
 </script>
 
 <section
+  id={ANCHOR_ID}
   data-slice-type="hero"
   data-slice-variation="subpage"
   class="relative isolate flex min-h-[95vw] w-full items-center justify-center overflow-hidden bg-dark text-white xs:min-h-[70vw] md:min-h-[60vw] lg:min-h-[33vw]"

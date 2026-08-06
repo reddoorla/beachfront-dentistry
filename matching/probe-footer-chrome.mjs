@@ -74,7 +74,10 @@ try {
   const bb = crop(B, c.top);
   const diff = new PNG({ width: w, height: h });
   const n = pixelmatch(a.data, bb.data, diff.data, w, h, { threshold: 0.1 });
-  fs.writeFileSync(`matching/states/chrome-diff-${VW}.png`, PNG.sync.write(diff));
+  fs.writeFileSync(
+    `matching/states/chrome-diff-${VW}.png`,
+    PNG.sync.write(diff),
+  );
   console.log(
     `footer chrome (map hidden both sides) @${VW}  ${PAGE}\n` +
       `  region ${w}x${h}  ref-top=${r.top} cand-top=${c.top}\n` +

@@ -32,7 +32,8 @@ try {
         await p.waitForTimeout(900);
         const r = await p.evaluate(
           ([ls, ts]) => {
-            const L = new RegExp(ls), T = new RegExp(ts);
+            const L = new RegExp(ls),
+              T = new RegExp(ts);
             const all = [...document.querySelectorAll("*")];
             const txt = (e) =>
               [...e.childNodes]

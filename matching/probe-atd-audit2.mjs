@@ -30,10 +30,10 @@ const G = (el) => {
     col: cs.color,
     bg: cs.backgroundColor,
     tt: cs.textTransform,
-    x: +(r.x).toFixed(1),
+    x: +r.x.toFixed(1),
     y: +(r.y + window.scrollY).toFixed(1),
-    w: +(r.width).toFixed(1),
-    h: +(r.height).toFixed(1),
+    w: +r.width.toFixed(1),
+    h: +r.height.toFixed(1),
   };
 };
 
@@ -95,8 +95,10 @@ const CAND_SEL = {
   cell1: "[data-slice-type='question_list'] .grid > div",
   card1: "[data-slice-type='question_list'] .grid > div .qa-item > div",
   label1: "[data-slice-type='question_list'] .grid > div button[aria-expanded]",
-  circle1: "[data-slice-type='question_list'] .grid > div button[aria-expanded] span",
-  plus1: "[data-slice-type='question_list'] .grid > div button[aria-expanded] img",
+  circle1:
+    "[data-slice-type='question_list'] .grid > div button[aria-expanded] span",
+  plus1:
+    "[data-slice-type='question_list'] .grid > div button[aria-expanded] img",
   title1: "[data-slice-type='question_list'] .grid > div h3",
   answer1: "[data-slice-type='question_list'] .grid > div [id^='qa-panel']",
   answerP1: "[data-slice-type='question_list'] .grid > div [id^='qa-panel'] p",
@@ -117,9 +119,13 @@ try {
       ["live", LIVE, LIVE_SEL],
       ["cand", CAND, CAND_SEL],
     ]) {
-      const ctx = await browser.newContext({ viewport: { width: vp, height: 900 } });
+      const ctx = await browser.newContext({
+        viewport: { width: vp, height: 900 },
+      });
       const page = await ctx.newPage();
-      await page.goto(url, { waitUntil: "networkidle", timeout: 90000 }).catch(() => {});
+      await page
+        .goto(url, { waitUntil: "networkidle", timeout: 90000 })
+        .catch(() => {});
       await page.waitForTimeout(900);
       await settle(page);
       const d = await page.evaluate(detail, sels);
@@ -131,11 +137,18 @@ try {
       out[`${name}@${vp}`] = { ...extra, ...d };
       await ctx.close();
     }
-    const L = out[`live@${vp}`], C = out[`cand@${vp}`];
-    console.log(`\n########## ${vp}  pageH live=${L.pageH} cand=${C.pageH}  root live=${L.rootFs} cand=${C.rootFs}`);
+    const L = out[`live@${vp}`],
+      C = out[`cand@${vp}`];
+    console.log(
+      `\n########## ${vp}  pageH live=${L.pageH} cand=${C.pageH}  root live=${L.rootFs} cand=${C.rootFs}`,
+    );
     for (const k of Object.keys(LIVE_SEL)) {
-      const a = L[k], b = C[k];
-      const f = (o) => (o ? `${o.fs}/${o.lh} w${o.fw} ${o.ff} ls${o.ls} ${o.col} bg${o.bg} r${o.br} [${o.x},${o.y} ${o.w}x${o.h}] "${o.txt}"` : "NULL");
+      const a = L[k],
+        b = C[k];
+      const f = (o) =>
+        o
+          ? `${o.fs}/${o.lh} w${o.fw} ${o.ff} ls${o.ls} ${o.col} bg${o.bg} r${o.br} [${o.x},${o.y} ${o.w}x${o.h}] "${o.txt}"`
+          : "NULL";
       console.log(` ${k.padEnd(10)} L: ${f(a)}`);
       console.log(` ${"".padEnd(10)} C: ${f(b)}`);
     }
@@ -144,4 +157,7 @@ try {
   await browser.close();
 }
 const fs = await import("node:fs");
-fs.writeFileSync("/Users/tuckerlemos/Documents/GitHub/beachfront-dentistry/matching/atd-audit2.json", JSON.stringify(out, null, 1));
+fs.writeFileSync(
+  "/Users/tuckerlemos/Documents/GitHub/beachfront-dentistry/matching/atd-audit2.json",
+  JSON.stringify(out, null, 1),
+);

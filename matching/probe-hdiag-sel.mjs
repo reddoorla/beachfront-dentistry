@@ -49,9 +49,10 @@ try {
         await p.waitForTimeout(3000);
       }
       await settle(p);
-      const sels = PAIRS.map(([l, a, c]) => [l, side === "live" ? a : c]).filter(
-        ([, s]) => s,
-      );
+      const sels = PAIRS.map(([l, a, c]) => [
+        l,
+        side === "live" ? a : c,
+      ]).filter(([, s]) => s);
       const res = await p.evaluate((sels) => {
         const out = [];
         for (const [label, sel] of sels) {

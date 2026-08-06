@@ -1,7 +1,10 @@
 // Measure the 3-C "Finally" card box height (Comfort/Comprehensive/Caring)
 // on live vs candidate across the mobile-landscape band.
 import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
-const TARGETS = { cand: "http://localhost:5190/", live: "https://www.beachfrontdentistry.com/" };
+const TARGETS = {
+  cand: "http://localhost:5190/",
+  live: "https://www.beachfrontdentistry.com/",
+};
 const VWS = [390, 480, 650, 834];
 
 async function measure(p) {
@@ -12,15 +15,26 @@ async function measure(p) {
       const span = [...document.querySelectorAll("span,div,h5,h4,p")].find(
         (el) => el.textContent.replace(/\s+/g, " ").trim() === L,
       );
-      if (!span) { out[L] = null; continue; }
-      let el = span, card = span;
+      if (!span) {
+        out[L] = null;
+        continue;
+      }
+      let el = span,
+        card = span;
       for (let i = 0; i < 6 && el; i++) {
         const b = el.getBoundingClientRect();
-        if (b.height > 120) { card = el; break; }
+        if (b.height > 120) {
+          card = el;
+          break;
+        }
         el = el.parentElement;
       }
       const b = card.getBoundingClientRect();
-      out[L] = { w: Math.round(b.width), h: Math.round(b.height), top: Math.round(b.top + scrollY) };
+      out[L] = {
+        w: Math.round(b.width),
+        h: Math.round(b.height),
+        top: Math.round(b.top + scrollY),
+      };
     }
     return out;
   });
@@ -38,10 +52,16 @@ try {
         await p.evaluate(() => new Promise((r) => setTimeout(r, 400)));
         const m = await measure(p);
         const fmt = (o) => (o ? `${o.w}x${o.h}@${o.top}` : "—");
-        console.log(`  ${k}: Comfort=${fmt(m.Comfort)} Compreh=${fmt(m.Comprehensive)} Caring=${fmt(m.Caring)}`);
+        console.log(
+          `  ${k}: Comfort=${fmt(m.Comfort)} Compreh=${fmt(m.Comprehensive)} Caring=${fmt(m.Caring)}`,
+        );
       } catch (e) {
         console.log(`  ${k}: ERR ${e.message.split("\n")[0]}`);
-      } finally { await p.close(); }
+      } finally {
+        await p.close();
+      }
     }
   }
-} finally { await b.close(); }
+} finally {
+  await b.close();
+}

@@ -52,9 +52,7 @@ try {
               width: rect(gridWrap)?.w,
             }
           : null,
-        firstCard: first
-          ? { cls: first.className, ...rect(first) }
-          : null,
+        firstCard: first ? { cls: first.className, ...rect(first) } : null,
         // parent chain of the grid, for container padding/max-width
         chain: (() => {
           let el = gridWrap?.parentElement;
