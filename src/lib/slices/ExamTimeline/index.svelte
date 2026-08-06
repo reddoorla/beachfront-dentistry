@@ -159,7 +159,7 @@
         </h3>
         {#if isFilled.richText(p.intro)}
           <div
-            class="mb-2.5 [&_p]:text-[16px] [&_p]:leading-[24px] [&_p]:font-light [&_p]:text-[#365b6d] lg:[&_p]:text-[20px] lg:[&_p]:leading-[30px]"
+            class="mb-2.5 [&_p]:text-[16px] [&_p]:leading-[24px] [&_p]:font-light [&_p]:text-[#365b6d] [&_strong]:font-bold lg:[&_p]:text-[20px] lg:[&_p]:leading-[30px]"
           >
             <PrismicRichText field={p.intro} />
           </div>

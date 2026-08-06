@@ -69,7 +69,7 @@
   <!-- Live reveals the button stack as its own element (rows at op 0 until
        scrolled to), separate from the heading's reveal. -->
   <div
-    class="mt-0 flex flex-col items-center gap-[65px] lg:mt-10 lg:gap-[30px]"
+    class="mt-0 flex flex-col items-center gap-[65px] lg:mt-[29px] lg:gap-[30px]"
     use:animateIn={LIVE_REVEAL}
   >
     {#if ctaLabel && ctaLink}

@@ -2043,3 +2043,20 @@ gradient on top rather than a wash over an image. No blanket change made.
   * the review-slider arrows sat 24px further out on each side and 64px lower.
     Now x=360 / x=1050 @ y=2116 — live's own 360/2116 and 1050/2114.
   Geometry and type held: gate w1 home 24/27, census CLEAN.
+
+- [PHASE 6, item 6 — home @1440 pair 06 reviewed] "Ready for great dental
+  health": the heading lands exactly; two spacing defects below it, both inside
+  a region the pixel gate passes.
+  * heading→"Book Appointment" gap was 96 against live's 85 [probed both].
+  * live's "Read Reviews" GROUP is 220 wide against our 165, because live's
+    holder is an unclassed `div` inheriting `body{font-size:64px}` and the gap
+    between the label and the `+` is that 64px WORD SPACE — 31px, where our
+    flex row had `mr-3` (12, measured 17). Third time this project has been
+    caught by live's inherited body type; set explicitly here because our button
+    is a flex row with no text node between the two children.
+  Both now match: pill gap 85, label starting at x=610 like live's.
+  And the census immediately caught a consequence of yesterday's `<strong>`
+  restoration: the tag renders at weight 400, not live's 700, because the
+  wrapper sets `[&_p]:font-light` (300) and preflight's `strong{font-weight:
+  bolder}` resolves RELATIVE to it. Fixed with an absolute `[&_strong]:font-bold`
+  — the same direct-hit rule the sizes beside it already follow.

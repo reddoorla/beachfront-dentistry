@@ -29,7 +29,7 @@
          desktop at 55px (14px short) — invisible to the pixel gate, caught by
          the style census. -->
     <span
-      class="font-slab mr-3 text-[14px] leading-[2.75] font-light text-[#365b6d] xs:text-[15px] md:text-[20px] lg:text-[25px]"
+      class="font-slab mr-3 text-[14px] leading-[2.75] font-light text-[#365b6d] xs:text-[15px] md:text-[20px] lg:mr-[30px] lg:text-[25px]"
       >Read Reviews</span
     >
     <!-- Live's plus/minus crossfade: the (pre-rotated) plus fades out over
