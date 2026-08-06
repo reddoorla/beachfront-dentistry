@@ -166,9 +166,11 @@
       aria-hidden="true"
     ></div>
     <div
-      class="mx-auto grid max-w-[1400px] grid-cols-1 gap-12 px-[5%] py-6 pb-24 xs:px-[8%] md:grid-cols-2 md:px-12 md:py-8 md:pb-8 lg:grid-cols-2 lg:px-[60px] lg:py-10 lg:pb-10"
+      class="mx-auto grid max-w-[1400px] grid-cols-1 gap-12 px-[5%] py-6 pb-24 xs:px-[8%] md:grid-cols-2 md:gap-0 md:px-12 md:py-8 md:pb-8 lg:grid-cols-2 lg:px-[60px] lg:py-10 lg:pb-10"
     >
-      <div>
+      <!-- `._w-half.su-w-full-mobile.py-2`: 50% at >=768 going full at <=767,
+           with padding-y `.5rem` = 12/16/20 (`beachfront.css:4110-4113`). -->
+      <div class="py-3 md:py-4 lg:py-5">
         {#if isFilled.richText(primary.heading)}
           <p
             class="font-slab text-[12px] leading-[15px] font-bold tracking-[1.28px] text-white uppercase lg:text-[24px] lg:leading-[30px]"
@@ -185,7 +187,7 @@
                (17.4-19px), which beats values merely inherited from this
                wrapper. -->
           <div
-            class="mt-5 mb-5 max-w-[80%] font-light text-white xs:mb-10 lg:max-w-xl [&_p]:text-[20px] [&_p]:leading-[30px] [&_p]:font-light lg:[&_p]:text-[30px] lg:[&_p]:leading-[45px]"
+            class="mt-5 mb-5 max-w-[80%] font-light text-white xs:mb-10 [&_p]:text-[20px] [&_p]:leading-[30px] [&_p]:font-light lg:[&_p]:text-[30px] lg:[&_p]:leading-[45px]"
             use:animateIn={REVEAL}
           >
             <RichTextBody field={primary.body} />
@@ -210,7 +212,7 @@
       <ul class="flex flex-col gap-9 md:gap-12 lg:gap-[61px]">
         {#each items as item (item)}
           {@const label = asText(item.item_heading)}
-          <li class="md:w-[30%] md:min-w-0" use:animateIn={REVEAL}>
+          <li use:animateIn={REVEAL}>
             <PrismicLink
               field={item.item_link}
               class="group flex items-center gap-4 rounded-lg transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent focus-visible:outline-hidden lg:gap-5"
@@ -305,7 +307,7 @@
       class="flex flex-col gap-10 text-center md:flex-row md:justify-between md:gap-0"
     >
       {#each items as item, i (item)}
-        <li use:animateIn={REVEAL}>
+        <li class="md:w-[30%] md:min-w-0" use:animateIn={REVEAL}>
           <!-- Live's STEP label is an h6: museo-SLAB 400, 1.28px tracking,
                slate #365b6d at BOTH breakpoints — 12px/15px mobile, 24px/30px
                desktop (the small sans eyebrow was an invention; census caught
