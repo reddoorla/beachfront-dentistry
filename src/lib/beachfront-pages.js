@@ -448,9 +448,17 @@ export function assemblies(img) {
         variation: "default",
         primary: {
           heading: [head(3, "First Exam")],
+          // Live emphasises one phrase inline — SPEC.md §11: "Contains an
+          // inline <strong>: 'We ask for 2 hours of your time.' — strong picks
+          // up font-weight:bold from the UA/Webflow reset; keep the tag." The
+          // migration dropped it, and text-diff sees it: live's paragraph is
+          // three text nodes to our one.
           intro: [
-            para(
-              "To be a long term health partner we need to really understand your current dental condition. We ask for 2 hours of your time. We are gentle but thorough to give you the best plan for the future. Here are the basic steps to that first exam:",
+            withStrong(
+              para(
+                "To be a long term health partner we need to really understand your current dental condition. We ask for 2 hours of your time. We are gentle but thorough to give you the best plan for the future. Here are the basic steps to that first exam:",
+              ),
+              "We ask for 2 hours of your time.",
             ),
           ],
           image: img(IMG.firstExam),

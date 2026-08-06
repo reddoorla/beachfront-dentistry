@@ -1940,3 +1940,25 @@ gradient on top rather than a wash over an image. No blanket change made.
   The modal state is deliberately excluded from the sweep: `/services/<uid>` and
   `/team-members/<uid>` have no `.form-modal` on live at all, so running it
   there would be measuring live's own dead buttons.
+
+- [PHASE 6, round 1 — content gate re-run] Checklist item 4 ("re-run text-diff
+  AND style-census — fixes since Phase 2/3 regress content and styles").
+  style-census: CLEAN. text-diff yfv @1440: 26 residual rows, EVERY one assigned:
+  * 14 negative-y — the off-canvas nav + form modal artifact class.
+  * 3 — `<br>`-split heading: live is `We are excited to meet <br>and care for
+    you.`, verified in the saved HTML, so live yields two text nodes to our one.
+  * 5 — Google Maps embed internals ("keyboard shortcuts", "terms", "report a
+    map error"…), inside the already-declared floor.
+  * 3 — our slider live-region announcements, the declared a11y additions.
+  * 1 — "book an apointment": live's typo against the corrected spelling Tucker
+    chose to ship. The ACK'd copy deviation, showing up in a second gate.
+  ONE REAL DEFECT FOUND AND FIXED: live's exam intro carries an inline
+  `<strong>We ask for 2 hours of your time.</strong>` — SPEC.md §11 recorded it
+  ("keep the tag") and the migration had dropped it, so live's paragraph is
+  three text nodes to our one. Restored via `withStrong` in beachfront-pages.js,
+  which propagates to the seed as well as the gate surface.
+  Geometry and type unchanged: gate p8 yfv 21/24; census CLEAN.
+  Checklist status: item 4 DONE. Items 1 (floors judged by chrome), 3 (hover
+  sweep), 5 (small-text sweep), 6 (paired walkthrough) and 7 (ledger
+  reconciliation) still open; item 2 (interaction inventory complete) is blocked
+  on the per-page Phase 5 work and on the UNRECONCILED chrome counts.
