@@ -183,10 +183,10 @@
       <!-- Live "View All Questions" = `.button.text-color-primary`: the
            light-blue (#129ecc) bordered slab pill, 67px tall at desktop —
            not a neutral rounded-full ghost. -->
-      <div class="mt-12 text-center" use:animateIn={LIVE_REVEAL}>
+      <div class="text-center" use:animateIn={LIVE_REVEAL}>
         <a
           href="/ask-the-doctor"
-          class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#129ecc] px-[15px] text-[14px] font-light text-[#129ecc] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:text-[20px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+          class="font-slab focus-visible:ring-primary-deep inline-flex items-center rounded-lg border border-[#129ecc] px-[1em] py-[1.3em] text-[14px] leading-[0] font-light text-[#129ecc] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:text-[20px] lg:text-[25px]"
         >
           View All Questions
         </a>
