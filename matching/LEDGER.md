@@ -2084,3 +2084,18 @@ gradient on top rather than a wash over an image. No blanket change made.
   not the anchor alone. Reverted; home back to 24/27.
   Also unfixed in 05: our `.qa-text` wraps ~100px narrower than live's (live's
   card-07 title breaks after "for my", ours after "routine").
+
+- [PHASE 6, item 6 — home @1440 pairs 01 and 03 reviewed]
+  VERDICT 00 (repeat, for completeness): MATCH; only the team-carousel arrows
+  sit ~10px further toward the screen edges than live's.
+  VERDICT 03 "Your Path to Oral Health": heading, subtitle, circular photo and
+  all three STEP labels land exactly. The step TITLES wrap differently — live
+  breaks "Have a / Complete Exam" and "Receive a / No-Pressure Plan"; ours
+  breaks "Have a Complete / Exam" and "Receive a No- / Pressure Plan". This is
+  the already-ledgered `<br>`-split artifact: live hard-codes the break in the
+  CMS text and our content has none. Worth noting that ours hyphen-breaks
+  "No-Pressure", which reads worse than live's; carrying live's break into the
+  content would fix it the same way the exam intro's `<strong>` was fixed.
+  Not changed — it is a content decision, and it is on the report.
+  home @1440 walkthrough status: 6 of 8 pairs reviewed (00, 02, 03, 04, 05, 07).
+  01 and 06's siblings remain, plus every pair at 390.
