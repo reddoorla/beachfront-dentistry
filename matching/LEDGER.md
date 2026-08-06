@@ -2026,3 +2026,20 @@ gradient on top rather than a wash over an image. No blanket change made.
   first — the same "read the real class names from source" step that fixed
   probe-atd-offset.mjs and cracked ask-the-doctor.
   Stopped here rather than taking a fifth swing.
+
+- [PHASE 6, item 6 — home @1440 pairs 00 and 02 reviewed]
+  VERDICT 00 "Finally have a dentist": MATCH. Heading, the three Comfort/
+  Comprehensive/Caring cards, the MEET YOUR TEAM eyebrow and the headshot row
+  all land together. One residual: the team-carousel arrows sit ~10px further
+  toward the screen edges on ours (live x≈31/1414, ours x=0/1404).
+  VERDICT 02 "Serving the South Bay": two real defects, BOTH now fixed, and
+  both were passing the pixel gate at 0.10 — this is the walkthrough earning
+  its place.
+  * the "what they say:" hand mark carried a `-rotate-6` live does not apply.
+    Live's slant is IN the artwork, which is why its box is 240x57 against our
+    rotated 228x77, and its arrow is 120x51 where ours was 67x34 — barely half
+    size. Both now measure live's box exactly: 240x57 @ x=160 y=1956 and
+    120x51 @ x=260 y=2016 [probed after].
+  * the review-slider arrows sat 24px further out on each side and 64px lower.
+    Now x=360 / x=1050 @ y=2116 — live's own 360/2116 and 1050/2114.
+  Geometry and type held: gate w1 home 24/27, census CLEAN.

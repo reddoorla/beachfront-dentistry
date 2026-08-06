@@ -315,13 +315,13 @@
                assets, NOT redrawn) pointing to the review card. -->
           <div
             aria-hidden="true"
-            class="pointer-events-none absolute -top-4 -left-32 z-10 hidden w-56 -rotate-6 lg:block xl:-left-52"
+            class="pointer-events-none absolute -top-4 -left-32 z-10 hidden w-60 lg:block xl:top-0 xl:-left-[176px]"
           >
             <img src="/annotations/what-they-say.png" alt="" class="w-full" />
             <img
               src="/annotations/what-they-say-arrow.svg"
               alt=""
-              class="mt-1 ml-10 w-16"
+              class="mt-[3px] ml-[100px] w-[120px]"
             />
           </div>
         {/if}
@@ -338,7 +338,10 @@
           gap="0px"
           mobileGap="0px"
           arrowLayout={slice.variation === "review" ? "sides" : "below"}
-          arrowClass="text-primary hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          arrowClass="text-primary hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden {slice.variation ===
+          'review'
+            ? '-mt-16 mx-6'
+            : ''}"
           transitionClass="duration-[2000ms] ease-[cubic-bezier(0.19,1,0.22,1)]"
           prevArrow={slice.variation === "review" ? reviewArrowLeft : undefined}
           nextArrow={slice.variation === "review"
