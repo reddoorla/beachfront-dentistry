@@ -65,7 +65,7 @@
       {card.number}
     </h6>
     <h3
-      class="font-slab px-3 text-[21px] leading-[26px] font-light text-[#129ecc] md:px-4 lg:px-5 lg:text-[40px] lg:leading-[50px]"
+      class="font-slab h-primary-lg px-3 text-[21px] leading-[26px] font-light md:px-4 lg:px-5 lg:text-[40px] lg:leading-[50px]"
     >
       {card.title}
     </h3>

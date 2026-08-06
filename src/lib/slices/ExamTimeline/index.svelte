@@ -76,7 +76,7 @@
       class="step-circle flex size-12 items-center justify-center rounded-full bg-[#129ecc] xs:size-18 md:size-32 lg:size-20"
     >
       <div
-        class="font-slab text-center text-[30px] leading-none font-light md:text-[45px]"
+        class="text-center text-[30px] leading-none font-light md:text-[45px]"
         style="color:#fff"
       >
         {number}
@@ -153,7 +153,7 @@
              (`beachfront.css:2124-2132`) and 21/26 <=991 (`:7863-7866`), with
              the Webflow heading margins `20px 0 10px`. -->
         <h3
-          class="font-slab mt-5 mb-2.5 text-[21px] leading-[26px] font-light lg:text-[40px] lg:leading-[50px]"
+          class="font-slab h-primary-lg mt-5 mb-2.5 text-[21px] leading-[26px] font-light lg:text-[40px] lg:leading-[50px]"
         >
           {asText(p.heading as RichTextField)}
         </h3>
