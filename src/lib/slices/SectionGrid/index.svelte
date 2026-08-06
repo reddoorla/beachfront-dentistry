@@ -215,7 +215,7 @@
           <li use:animateIn={REVEAL}>
             <PrismicLink
               field={item.item_link}
-              class="group flex items-center gap-4 rounded-lg transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent focus-visible:outline-hidden lg:gap-5"
+              class="group flex items-center gap-4 rounded-lg transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent focus-visible:outline-hidden lg:gap-10"
             >
               <!-- Live tooth icons are 60px on mobile (100px on desktop); labels
                    stay one line (mobile ~20px). -->

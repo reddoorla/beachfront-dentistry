@@ -2002,3 +2002,27 @@ gradient on top rather than a wash over an image. No blanket change made.
   released it. Recorded here so a fourth attempt starts from evidence.
   Sections 00-03 and 05-07 captured but NOT yet reviewed; item 6 stays open
   until every pair has a written verdict.
+
+- [FOUR STRIKES — home @834 "Our dental team in Redondo"] Operator released the
+  region for a fourth attempt on the strength of the walkthrough's new model.
+  Result: 10.9% -> 10.8% -> 10.9%. It did NOT close, and the attempt is only
+  half kept:
+  * KEPT (verified): the icon→label gap is 40 on live against our 20. Our label
+    now starts at x=860 at 1440, matching live's 860 exactly [probed after].
+  * REVERTED (a no-op): `h-full justify-center` on the link list. The walkthrough
+    said live's list is centred in a 480-tall column with ~30px above; ours
+    measures 640x422 with row0 at the column's very top, so there is nothing to
+    centre — our column is exactly as tall as its content and never stretches to
+    live's 480. Keeping a change that provably did nothing would be carrying an
+    unevidenced edit.
+  What the fourth attempt established: the ROW is the missing piece. Live's
+  `._w-full.display-flex` is 520 tall with both columns at 480; ours is 502 with
+  columns at 422. So neither column stretches on our side and both are ~58 short
+  — the offset the walkthrough saw is a symptom of that, not its cause.
+  Blocked on evidence I could not get: live's service rows are not
+  `<a>`-with-text, so the selector that measured ours returned NONE on live and
+  I could not dump its row/column boxes directly. The next attempt needs live's
+  actual `.head-link` / `.flex-vertical` markup read out of the saved HTML
+  first — the same "read the real class names from source" step that fixed
+  probe-atd-offset.mjs and cracked ask-the-doctor.
+  Stopped here rather than taking a fifth swing.
