@@ -414,7 +414,7 @@
                         </p>
                         {#if item.reviewer_place}
                           <p
-                            class="text-[10px] leading-[15px] font-light xs:text-[16px] xs:leading-[24px] md:text-[16px] md:leading-[25px] text-[#365b6d] uppercase lg:mt-1 lg:text-[16px] lg:leading-[25px]"
+                            class="text-[10px] leading-[15px] font-light xs:text-[16px] xs:leading-[24px] md:text-[16px] md:leading-[25px] text-[#365b6d] uppercase lg:mt-1 lg:text-[16px] lg:leading-[19px]"
                           >
                             {item.reviewer_place}
                           </p>
