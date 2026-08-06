@@ -198,9 +198,10 @@
       <!-- `.qa-question`: museo-SANS (not the base h3 slab), absolute inside
            `.qa-text`, `margin-bottom: .5rem` = 12 / 16 / 20. -->
       <h3
-        class="absolute inset-x-0 bottom-3 font-sans text-[1.25rem] leading-[30px] font-medium transition-opacity duration-300 motion-reduce:transition-none md:bottom-4 lg:bottom-5 lg:text-[1.875rem] lg:leading-[40px] {expanded
-          ? 'opacity-0'
-          : 'opacity-100'}"
+        class="absolute inset-x-0 bottom-3 font-sans text-[1.25rem] leading-[30px] font-medium transition-opacity duration-300 motion-reduce:transition-none md:bottom-4 lg:bottom-5 lg:text-[1.875rem] {variant ===
+        'teaser'
+          ? 'lg:leading-[45px]'
+          : 'lg:leading-[40px]'} {expanded ? 'opacity-0' : 'opacity-100'}"
         style="color:#fff"
       >
         {titleText}

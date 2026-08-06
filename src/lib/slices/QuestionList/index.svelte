@@ -240,7 +240,7 @@
     <div class="flex items-center justify-center">
       <a
         href="#hero"
-        class="font-slab px-[1em] py-[1.3em] leading-[0] focus-visible:ring-primary-deep inline-flex items-center rounded-lg border border-[#129ecc] text-[15px] font-light whitespace-nowrap text-[#129ecc] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:text-[25px]"
+        class="font-slab px-[1em] py-[1.3em] leading-[0] focus-visible:ring-primary-deep inline-flex items-center rounded-lg border border-[#129ecc] text-[14px] font-light whitespace-nowrap text-[#129ecc] xs:text-[15px] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:text-[25px]"
       >
         Back to Top
       </a>
