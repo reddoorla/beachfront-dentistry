@@ -2378,3 +2378,45 @@ every pixel/text gate: all five meta descriptions present (143-150 chars), and
 home's meta_title override live as "Beachfront Dentistry | Dentist in Redondo
 Beach, CA". Published article bodies re-scanned: 0 blocks still carrying
 "(internal links)", 4 clean "Related reading" headings.
+
+## QA CARD ANSWER WAS CLIPPED ON HOME (2026-08-07, operator-reported)
+
+- [defect | FIXED] `.qa-text` is `overflow: hidden` and holds the answer that
+  slides in when an "Ask the Doctor" card opens. Live gives the HOME (teaser)
+  variant of that box TWO heights:
+  .qa-text.m-2 { height: 3rem } (:7292)
+  .qa-text.m-2.active { height: 8rem; transition: height .2s } (:7303)
+  Only the collapsed 3rem was implemented, so the box stayed 72/96/120 in both
+  states while the answer sliding into it is 172-193px tall. Measured before the
+  fix, first home card, after opening:
+  1440 box 120px answer 193px CLIPPED 73px
+  834 box 96px answer 172px CLIPPED 76px
+  390 box 72px answer 183px CLIPPED 111px (61% of the answer hidden)
+  The box is `justify-end`, so it cut the ANSWER COPY from the top while leaving
+  "Read More" visible — which is why it read as truncated text, not a dead card.
+
+  The active rule is never overridden: `.qa-text.m-2.active` (three classes)
+  beats the <=767 `.qa-text { height: 10rem }` (one class), so 8rem holds at
+  every width — 320 / 256 / 192 against live's stepped root (40/32/24).
+  After the fix, ours vs live, same probe:
+  1440 ours box 320 answer 193 (fits) live box 320 answer 214 (fits)
+  834 ours box 256 answer 172 (fits) live box 256 answer 183 (fits)
+  390 ours box 192 answer 183 (fits) live box 192 answer 195 (clips 3px)
+  Box geometry now matches live exactly at all three; live clips 3px of its own
+  slightly longer copy at 390, which we do not reproduce.
+
+  ONLY the expanded height changed. The COLLAPSED box is deliberately untouched
+  because it is the element page-diff cuts on for the "Beyond the Smile" anchor.
+  Confirmed zero pixel cost — `bash matching/gate.sh qafix0807 home atd`,
+  threshold 0.1, no masks, matrix 1440/834/390: home 24/27 with every row
+  BYTE-IDENTICAL to the previous run, atd byte-identical to its baseline.
+
+  WHY NOTHING CAUGHT IT: every gate in this project — page-diff, style-census,
+  text-diff, and the new gate-published — measures the page in its DEFAULT
+  state. This defect exists only after a click. That is the matching skill's
+  Phase 5 (interaction states) blind spot, and it had no mechanical check at
+  all. tests/interaction/qa-expand.spec.ts is now that check: it asserts the
+  RENDERED GEOMETRY (answer scrollHeight <= clipping box height, and Read More
+  inside the box) at all three viewports, plus the collapsed contract (answer
+  translated out, `inert` so the hidden link stays untabbable). Verified to fail
+  on the pre-fix component at all three viewports with the exact numbers above.

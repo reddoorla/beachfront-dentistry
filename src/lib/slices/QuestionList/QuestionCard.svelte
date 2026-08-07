@@ -56,6 +56,33 @@
   let expanded = $state(false);
   const toggle = () => (expanded = !expanded);
   const panelId = $derived(`qa-panel-${doc.uid}`);
+
+  /** The `.qa-text` box, which CLIPS its contents (overflow-hidden).
+   *
+   *  The teaser variant has two heights on live, not one:
+   *      .qa-text.m-2         { height: 3rem }                  (beachfront.css:7292)
+   *      .qa-text.m-2.active  { height: 8rem; transition: height .2s }   (:7303)
+   *  Only the collapsed 3rem had been implemented, so the box stayed 72/96/120px
+   *  while the answer that slides into it is 172-193px tall — the revealed text
+   *  was clipped by 73px at 1440, 76px at 834 and 111px at 390, i.e. 61% of the
+   *  answer was invisible on a phone. The box is justify-end, so it was the
+   *  ANSWER COPY that got cut while the Read More button stayed on screen, which
+   *  is why it read as "text cut off" rather than as an empty card.
+   *
+   *  8rem against live's stepped root (40 / 32 / 24) = 320 / 256 / 192, and that
+   *  active rule is never overridden: `.qa-text.m-2.active` (three classes) wins
+   *  over the <=767 `.qa-text { height: 10rem }` (one class).
+   *
+   *  Only the EXPANDED height is new. The collapsed box is untouched on purpose —
+   *  it is the element page-diff cuts on for the "Beyond the Smile" anchor
+   *  (see the comment on the element below), so changing it would move every
+   *  region beneath it. */
+  const textBoxClass = $derived(
+    variant === "teaser"
+      ? "absolute bottom-0 ml-6 w-4/5 transition-[height] duration-200 ease-out motion-reduce:transition-none md:ml-8 lg:ml-10 " +
+          (expanded ? "h-48 md:h-64 lg:h-80" : "h-18 md:h-24 lg:h-30")
+      : "relative mx-[4%] h-60 md:h-64 lg:h-80",
+  );
 </script>
 
 <!-- Per-card reveal + floatAlong tracking target (`.qa-item`): live raises
@@ -190,11 +217,7 @@
          below was compared against the wrong content. That is the whole of the
          79-83% "colour delta" and of `top`'s 34.6/28.7/36.0% height failure —
          see matching/LEDGER.md "ANCHOR PARITY SWEEP". -->
-    <div
-      class="flex flex-col justify-end overflow-hidden {variant === 'teaser'
-        ? 'absolute bottom-0 ml-6 h-18 w-4/5 md:ml-8 md:h-24 lg:ml-10 lg:h-30'
-        : 'relative mx-[4%] h-60 md:h-64 lg:h-80'}"
-    >
+    <div class="flex flex-col justify-end overflow-hidden {textBoxClass}">
       <!-- `.qa-question`: museo-SANS (not the base h3 slab), absolute inside
            `.qa-text`, `margin-bottom: .5rem` = 12 / 16 / 20. -->
       <h3
