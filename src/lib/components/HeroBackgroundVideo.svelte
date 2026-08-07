@@ -57,13 +57,20 @@
   {/if}
 </svelte:head>
 
+<!-- preload="none", not "auto". The $effect above already calls el.play(), which
+     starts the fetch itself, so autoplay still begins right after hydration —
+     but "auto" began pulling the 4.8 MB webm (6.4 MB mp4 on Safari/iOS) as soon
+     as the markup parsed, racing the poster this component preloads at
+     fetchpriority="high" just above, i.e. competing with its own LCP image. It
+     also charged that download to prefers-reduced-motion visitors, for whom the
+     effect returns early and the video never plays at all. -->
 <video
   bind:this={video}
   {poster}
   muted
   loop
   playsinline
-  preload="auto"
+  preload="none"
   aria-hidden="true"
   tabindex="-1"
   class={passedClasses}
