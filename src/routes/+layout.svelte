@@ -5,7 +5,20 @@
   import { repositoryName } from "$lib/prismicio";
   import "../app.css";
   import Seo from "$lib/components/Seo.svelte";
-  import { composeTitle, DEFAULT_OG_IMAGE } from "$lib/seo";
+  import {
+    composeTitle,
+    DEFAULT_OG_IMAGE,
+    organizationJsonLd,
+    SITE_NAME,
+  } from "$lib/seo";
+  import {
+    ADDRESS,
+    GEO,
+    MODENTO_URL,
+    openingHoursSpecification,
+    PHONE,
+    REVIEW_DESTINATIONS,
+  } from "$lib/site";
   import TransitionOverlay from "$lib/components/TransitionOverlay.svelte";
   import AppointmentModal from "$lib/components/AppointmentModal.svelte";
   import Nav from "$lib/components/Nav.svelte";
@@ -48,6 +61,37 @@
       appointmentOpen.set(true);
     }
   };
+
+  /** Practice structured data, emitted on every page.
+   *
+   *  This is a single-location dental practice, so local SEO is most of its
+   *  organic reach — yet the site shipped no JSON-LD at all: the `Seo` component
+   *  has accepted a `jsonLd` prop and `organizationJsonLd()` has existed the
+   *  whole time, but nothing ever passed one, so the build contained zero
+   *  `application/ld+json`. Every value below is derived from the constants that
+   *  already drive the visible chrome (site.ts), so the markup a crawler reads
+   *  cannot drift from the address, phone and hours a patient reads.
+   *
+   *  `Dentist` is the most specific schema.org type that fits, and it inherits
+   *  from both MedicalBusiness and LocalBusiness. */
+  const practiceJsonLd = (origin: string) =>
+    organizationJsonLd({
+      type: "Dentist",
+      name: SITE_NAME,
+      url: origin,
+      telephone: PHONE.href.replace("tel:", ""),
+      logo: `${origin}/favicon.svg`,
+      address: {
+        streetAddress: ADDRESS.line1,
+        addressLocality: "Redondo Beach",
+        addressRegion: "CA",
+        postalCode: "90277",
+      },
+      geo: GEO,
+      openingHours: openingHoursSpecification(),
+      sameAs: REVIEW_DESTINATIONS.map((d) => d.href),
+      potentialActionUrl: MODENTO_URL,
+    });
 </script>
 
 <!-- Single head source for the whole app. Static routes feed their title
@@ -59,6 +103,7 @@
   image={page.data.meta_image || DEFAULT_OG_IMAGE || undefined}
   imageAlt={page.data.meta_image_alt}
   url={page.url}
+  jsonLd={practiceJsonLd(page.url.origin)}
 />
 {#if page.data.frozen}
   <!-- A frozen Blux page is a complete standalone document (its own nav, footer,

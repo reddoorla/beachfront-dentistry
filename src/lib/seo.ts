@@ -128,11 +128,27 @@ export interface OrganizationInput {
     postalCode: string;
     addressCountry?: string;
   };
+  /** Coordinates. For a LocalBusiness these materially help Google tie the
+   *  entity to a place on the map, so emit them whenever they are known. */
+  geo?: { latitude: number; longitude: number };
+  /** schema.org OpeningHoursSpecification entries. Derive these from the
+   *  site's single source of hours — never hand-write a second copy. */
+  openingHours?: object[];
+  /** Booking/appointment URL for a service business. */
+  potentialActionUrl?: string;
 }
 
 /** Minimal Organization structured data. Only provided fields are emitted. */
 export function organizationJsonLd(input: OrganizationInput): object {
-  const { type, address, sameAs, ...rest } = input;
+  const {
+    type,
+    address,
+    sameAs,
+    geo,
+    openingHours,
+    potentialActionUrl,
+    ...rest
+  } = input;
   return {
     "@context": "https://schema.org",
     "@type": type ?? "Organization",
@@ -146,6 +162,30 @@ export function organizationJsonLd(input: OrganizationInput): object {
             "@type": "PostalAddress",
             addressCountry: "US",
             ...address,
+          },
+        }
+      : {}),
+    ...(geo
+      ? {
+          geo: {
+            "@type": "GeoCoordinates",
+            latitude: geo.latitude,
+            longitude: geo.longitude,
+          },
+        }
+      : {}),
+    ...(openingHours && openingHours.length > 0
+      ? { openingHoursSpecification: openingHours }
+      : {}),
+    ...(potentialActionUrl
+      ? {
+          potentialAction: {
+            "@type": "ReserveAction",
+            target: {
+              "@type": "EntryPoint",
+              urlTemplate: potentialActionUrl,
+            },
+            result: { "@type": "Reservation", name: "Dental appointment" },
           },
         }
       : {}),
