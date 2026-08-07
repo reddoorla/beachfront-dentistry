@@ -22,6 +22,7 @@
 // never printed. Idempotent: re-running reuses assets and re-PUTs the docs.
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
+import { pathToFileURL } from "node:url";
 import { head, TITLES, assemblies } from "../src/lib/beachfront-pages.js";
 import { assertModelsInSync } from "./lib/slice-models.mjs";
 
@@ -233,7 +234,13 @@ async function main() {
   );
 }
 
-main().catch((e) => {
-  console.error(e.message ?? e);
-  process.exit(1);
-});
+// Run only when invoked directly. This module also EXPORTS helpers, and an
+// unguarded top-level main() meant `import { … } from "./seed-entity-content.mjs"`
+// silently fired a real migration write — a test or a one-off verification
+// script importing a pure function should never stage documents.
+if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
+  main().catch((e) => {
+    console.error(e.message ?? e);
+    process.exit(1);
+  });
+}
