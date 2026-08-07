@@ -2312,3 +2312,42 @@ class="button text-color-primary-dark mt-2 w-button">Download Forms</a>`),
     geometry.
   - exam_timeline lost no height at any viewport (that region's dh is 2.7% at
     1440, was 2.8%) — "Download Forms" sat beside "Book Appointment".
+
+## A11Y AUDIT MOVED TO REAL PAGES (2026-08-07, feat/site-improvements)
+
+- [a11y | OPERATOR DECISION OPEN] brand cyan `#129ecc` on the pale band
+  `#e7f5fa` measures **2.77:1 against a 3:1 threshold** — WCAG 2.1 AA (1.4.3)
+  for large text, missed by 0.23. Found by pointing axe at real routes for the
+  first time (tests/a11y/pages.spec.ts); the suite had only ever audited three
+  `/dev/*` fixtures, which cannot show a slice's colour against the section it
+  actually lands in.
+
+  ONE root cause, every failing node identical (axe's own fg/bg data):
+  /services 4 nodes - the service-block <h3> titles, 40px
+  /our-team 11 nodes - every team member's <h5> name, 30px
+  /your-first-visit 4 nodes - "Registration Forms" <h5> + the 25px CTA
+  Nothing else on any of the nine audited pages violates anything.
+
+  This is the SAME defect already resolved for the footer's "Want to learn
+  more?" heading, where the operator ACKed swapping live's cyan for the AA-safe
+  `--primary-deep` ("footer color is fine", 2026-08-03). That ACK was scoped to
+  one heading; this is the same swap across three pages' most prominent
+  headings, so it is a brand-colour decision and is NOT being taken unilaterally
+  on a pixel-matching rebuild. Measured candidates on the pale band:
+  #129ecc 2.78:1 live's cyan, current, FAILS
+  #0f8fb8 3.34:1 minimal darkening, closest to the brand
+  #0e7799 4.58:1 the existing --primary-deep token, already in the footer
+  Either passes; the choice is how far from live's cyan to move.
+
+  NOT suppressed while it waits. pages.spec.ts records the rule per page AND
+  asserts the exact colour pair, so a contrast failure with any other pair fails
+  the run, and any new rule on any page fails it too — verified by removing
+  /services from the known list (fails, naming all four <h3>s) and by altering
+  the expected pair (fails, naming the real one). Deleting the constant when the
+  colour is chosen tightens the suite to zero automatically.
+
+- [a11y | third-party] the YouTube player on service detail pages reports
+  aria-allowed-attr, aria-prohibited-attr and button-name violations INSIDE its
+  iframe. Google's markup, not ours, and unreachable from here — excluded by
+  iframe src alongside the footer Google map (already a declared pixel floor).
+  Everything around both embeds is still audited.
