@@ -83,39 +83,6 @@
             },
             "carousel": {
               "type": "SharedSlice"
-            },
-            "blux_section": {
-              "type": "SharedSlice"
-            },
-            "blux_text": {
-              "type": "SharedSlice"
-            },
-            "blux_block": {
-              "type": "SharedSlice"
-            },
-            "blux_grid": {
-              "type": "SharedSlice"
-            },
-            "blux_gallery": {
-              "type": "SharedSlice"
-            },
-            "blux_carousel": {
-              "type": "SharedSlice"
-            },
-            "blux_media": {
-              "type": "SharedSlice"
-            },
-            "blux_media_text": {
-              "type": "SharedSlice"
-            },
-            "blux_embed": {
-              "type": "SharedSlice"
-            },
-            "blux_table": {
-              "type": "SharedSlice"
-            },
-            "blux_collection": {
-              "type": "SharedSlice"
             }
           }
         }
