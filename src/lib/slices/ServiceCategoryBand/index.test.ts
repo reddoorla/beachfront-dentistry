@@ -131,3 +131,69 @@ describe("ServiceCategoryBand slice", () => {
     expect(queryAllByRole("link")).toHaveLength(0);
   });
 });
+
+// The panel wording and the within-panel order are AUTHORED fields
+// (collection_item.link_label / collection_item.order) — live's panel prints
+// "dental veneers" where the detail page prints "Dental Veneers", and Prismic's
+// document order matches live's panel order in none of the four categories.
+describe("ServiceCategoryBand slice — authored label + order", () => {
+  const labelledDocs = [
+    {
+      uid: "veneers",
+      data: {
+        title: rt("heading1", "Porcelain Veneers"),
+        tags: "Cosmetic Dentistry",
+        link_label: "porcelain veneers",
+        order: 3,
+      },
+    },
+    {
+      uid: "whitening",
+      data: {
+        title: rt("heading1", "Teeth Whitening"),
+        tags: "Cosmetic Dentistry",
+        link_label: "teeth whitening",
+        order: 1,
+      },
+    },
+    {
+      uid: "bonding",
+      data: {
+        title: rt("heading1", "Dental Bonding"),
+        tags: "Cosmetic Dentistry",
+        order: 2,
+      },
+    },
+    {
+      uid: "unranked",
+      data: {
+        title: rt("heading1", "Unranked Service"),
+        tags: "Cosmetic Dentistry",
+      },
+    },
+  ];
+  const labelledContext = {
+    collections: { collection_item: labelledDocs },
+  } as never;
+
+  it("prints link_label when set and the document title when it isn't", () => {
+    const { getByRole } = render(ServiceCategoryBand, {
+      props: { slice, context: labelledContext },
+    });
+    expect(getByRole("link", { name: /teeth whitening/ })).toBeTruthy();
+    // no link_label → falls back to the title, so other sites still read right
+    expect(getByRole("link", { name: /Dental Bonding/ })).toBeTruthy();
+  });
+
+  it("orders the panel by `order`, leaving docs without one at the end", () => {
+    const { getAllByRole } = render(ServiceCategoryBand, {
+      props: { slice, context: labelledContext },
+    });
+    expect(getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual([
+      "/services/whitening",
+      "/services/bonding",
+      "/services/veneers",
+      "/services/unranked",
+    ]);
+  });
+});

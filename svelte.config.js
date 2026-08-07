@@ -31,6 +31,17 @@ try {
 // VITE_GOOGLE_MAPS_KEY — the same key that gates runtime hydration. Keyless
 // native sites keep the tight baseline policy.
 const wantsMapsCsp = isFrozenSite || !!process.env.VITE_GOOGLE_MAPS_KEY;
+
+// DEV ONLY. `/dev/match/<uid>` is the matching-gate surface: it renders the
+// canonical page assemblies with live's own image URLs (webflow's CDN) so the
+// page-diff gates can run without publishing the Prismic Migration release.
+// Without this host the hero photos are CSP-blocked and every subpage's `top`
+// region diffs a BLACK band against live's photo — which read as a 49-76%
+// "defect" on our-team/services/ask-the-doctor and hid the real geometry
+// underneath it. Production never serves these URLs (the seed uploads the
+// images to Prismic), so this is gated to `vite dev` and cannot ship.
+const isDev = process.env.NODE_ENV !== "production";
+const devMatchImgHosts = isDev ? ["https://cdn.prod.website-files.com"] : [];
 const mapsHosts = [
   "https://*.googleapis.com",
   "https://*.gstatic.com",
@@ -160,6 +171,8 @@ const config = {
           // Google Maps tiles, markers, and My-Maps KML pin sprites (pins are
           // served from mt.google.com / maps.google.com, not maps.gstatic).
           ...(wantsMapsCsp ? mapsHosts : []),
+          // dev-only matching-gate host — see devMatchImgHosts above
+          ...devMatchImgHosts,
         ],
         // Prismic hosts non-image media (e.g. migrated .mp4 assets) on
         // <repo>.cdn.prismic.io — first-party content, same origin family as

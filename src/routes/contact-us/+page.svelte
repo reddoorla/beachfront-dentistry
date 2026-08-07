@@ -42,59 +42,77 @@
     edit: { x: 0, y: 0, zoom: 1, background: "transparent" },
   };
   const ctaHeading: RichTextField = [
-    { type: "heading2", text: "Ready for great dental health?", spans: [] },
+    { type: "heading2", text: "Ready for \ngreat dental \nhealth?", spans: [] },
   ];
 </script>
 
-<SubpageHero {heading} backgroundImage={officePhoto} align="left" />
+<!-- contact-us is the ONLY page carrying `.hero-bot-gradient.dark`
+     (beachfront.css:6492-6494, opaque cyan from 77% down). Every other subpage
+     uses the base 0.8-alpha stop, so that is SubpageHero's default. -->
+<SubpageHero
+  {heading}
+  backgroundImage={officePhoto}
+  align="left"
+  botGradient="dark"
+/>
 
 <section
   data-section="info"
-  class="info-section mx-auto max-w-[1400px] px-5 pt-8 pb-12 text-[#365b6d] min-[480px]:px-8 lg:px-20 lg:pt-14 lg:pb-20"
+  class="info-section mx-auto max-w-[1400px] px-[5%] pt-9 text-[#365b6d] xs:px-[8%] md:px-12 md:pt-12 lg:px-[60px] lg:pt-[60px]"
 >
   <!-- Live `.button.text-color-primary-dark`, wired to the global appointment
        modal via the #appointment anchor (same handler the CTAs use). -->
   <a
     href="#appointment"
-    class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#365b6d] px-[14px] text-[14px] font-light text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:text-[20px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+    class="font-slab focus-visible:ring-primary-deep inline-flex items-center rounded-lg border border-[#365b6d] px-[1em] py-[1.3em] text-[14px] leading-[0] font-light text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden mb-[60px] xs:text-[15px] md:mb-0 md:text-[20px] lg:text-[25px]"
   >
     Book Appointment
   </a>
 
   <!-- CONTACT + OFFICE HOURS: side-by-side on desktop, stacked on mobile. -->
-  <div class="mt-8 flex flex-col gap-8 sm:flex-row sm:gap-20 lg:mt-14">
-    <div>
+  <div class="mt-9 flex flex-col md:mt-12 md:flex-row lg:mt-[60px]">
+    <div class="mb-6 md:mr-16 md:mb-8 lg:mr-20 lg:mb-10">
       <h2
-        class="font-slab text-[20px] leading-[40px] font-medium text-[#365b6d] uppercase"
+        class="font-slab text-[16px] leading-[32px] font-medium text-[#365b6d] uppercase lg:text-[20px] lg:leading-[40px]"
       >
         Contact
       </h2>
       <a
         href={PHONE.href}
-        class="focus-visible:ring-primary-deep block text-[20px] leading-[40px] font-light underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-hidden"
+        class="focus-visible:ring-primary-deep block text-[12px] leading-[24px] font-light underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-hidden md:text-[16px] md:leading-[32px] lg:text-[20px] lg:leading-[40px]"
       >
         {PHONE.display}
       </a>
-      <address class="text-[20px] leading-[40px] font-light not-italic">
+      <address
+        class="font-light not-italic [&_p]:text-[12px] [&_p]:leading-[24px] md:[&_p]:text-[16px] md:[&_p]:leading-[32px] lg:[&_p]:text-[20px] lg:[&_p]:leading-[40px]"
+      >
         <p>{ADDRESS.line1}</p>
         <p>{ADDRESS.line2}</p>
       </address>
     </div>
 
-    <div>
+    <div class="mb-6 md:mb-8 lg:mb-10">
       <h2
-        class="font-slab text-[20px] leading-[40px] font-medium text-[#365b6d] uppercase"
+        class="font-slab text-[16px] leading-[32px] font-medium text-[#365b6d] uppercase lg:text-[20px] lg:leading-[40px]"
       >
         Office Hours
       </h2>
       {#each HOURS as [days, time] (days)}
-        <p class="text-[20px] leading-[40px] font-light">{days} / {time}</p>
+        <p
+          class="text-[12px] leading-[24px] font-light md:text-[16px] md:leading-[32px] lg:text-[20px] lg:leading-[40px]"
+        >
+          {days} / {time}
+        </p>
       {/each}
     </div>
   </div>
 
-  <!-- Live's `.footer-map` is 512×400 desktop / full-width mobile, left-aligned. -->
-  <div class="mt-8 max-w-[512px] lg:mt-14">
+  <!-- Live's map column is `div._w-40pc.su-w-full-tablet`: 40%
+       (`beachfront.css:3530-3532`) at >=992 and 100% at <=991 (`:8215-8217`).
+       `max-w-[512px]` equals 40% at 1440 and nowhere else — at 834 it left the
+       map 512 wide inside live's 738, which is 226x400px of the region wrong
+       and most of its 18.8%. -->
+  <div class="mt-9 w-full md:mt-12 lg:mt-[60px] lg:w-2/5">
     <MapEmbed />
   </div>
 </section>

@@ -33,7 +33,13 @@
   // 992 (not 1024) to match the CSS desktop breakpoint (--breakpoint-lg): live
   // renders desktop from 992, so the accordion-card structure must switch there
   // too, or the 992–1023 seam shows stacked mobile cards inside the 3-up grid.
-  const isMobile = $derived(viewport.width < 992);
+  // Live's `.expanding-text` is `opacity: 0` at rest and only flips to 1 in
+  // `@media (max-width: 767px)` — so the click-to-expand card is live's
+  // treatment for the ENTIRE 768+ range, tablet included, and the
+  // always-visible-copy card is a phone-only layout. Splitting at 992 rendered
+  // the phone card across 768–991, which is why the whole band showed body
+  // copy live hides and dropped the "+" live shows.
+  const isMobile = $derived(viewport.width < 768);
 
   let { slice }: { slice: Content.SectionGridSlice } = $props();
 
@@ -54,10 +60,9 @@
   );
 
   let columns = $derived(slice.primary.columns ?? 3);
-  // Live wraps the .expanding-box cards to a single stacked column across its
-  // whole tablet band (768–991) and only goes multi-across at desktop (≥992).
-  // So the grid switches at lg (=992 here) — not md/sm, which would break the
-  // stack in the tablet range.
+  // Live's `.home-floats-section` is `flex-direction: column` at <=991 and only
+  // a row at >=992, so the cards stack across the whole tablet band and the
+  // grid switches at lg (=992 here) — not md/sm, which would break the stack.
   const colClass: Record<number, string> = {
     2: "lg:grid-cols-2",
     3: "lg:grid-cols-3",
@@ -125,7 +130,7 @@
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
     data-section-layout="services"
-    class="relative isolate w-full pt-[72px] pb-48 text-white lg:pt-40 lg:pb-80"
+    class="relative isolate w-full pt-[72px] pb-48 text-white md:pt-24 md:pb-64 lg:pt-40 lg:pb-80"
     style="background:linear-gradient(to right, rgb(18,158,204), rgb(182,170,145))"
   >
     <!-- The top wave seam OVERLAYS the band — live's services section has no
@@ -161,9 +166,11 @@
       aria-hidden="true"
     ></div>
     <div
-      class="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 pb-24 md:grid-cols-2 md:pt-12 md:pb-12 lg:grid-cols-2 lg:pt-12 lg:pb-12"
+      class="mx-auto grid max-w-[1400px] grid-cols-1 gap-12 px-[5%] py-6 pb-24 xs:px-[8%] md:grid-cols-2 md:gap-0 md:px-12 md:py-8 md:pb-8 lg:grid-cols-2 lg:px-[60px] lg:py-10 lg:pb-10"
     >
-      <div>
+      <!-- `._w-half.su-w-full-mobile.py-2`: 50% at >=768 going full at <=767,
+           with padding-y `.5rem` = 12/16/20 (`beachfront.css:4110-4113`). -->
+      <div class="py-3 md:py-4 lg:py-5">
         {#if isFilled.richText(primary.heading)}
           <p
             class="font-slab text-[12px] leading-[15px] font-bold tracking-[1.28px] text-white uppercase lg:text-[24px] lg:leading-[30px]"
@@ -180,7 +187,7 @@
                (17.4-19px), which beats values merely inherited from this
                wrapper. -->
           <div
-            class="mt-4 max-w-[80%] font-light text-white lg:max-w-xl [&_p]:text-[20px] [&_p]:leading-[30px] [&_p]:font-light lg:[&_p]:text-[30px] lg:[&_p]:leading-[45px]"
+            class="mt-5 mb-5 max-w-[80%] font-light text-white xs:mb-10 [&_p]:text-[20px] [&_p]:leading-[30px] [&_p]:font-light lg:[&_p]:text-[30px] lg:[&_p]:leading-[45px]"
             use:animateIn={REVEAL}
           >
             <RichTextBody field={primary.body} />
@@ -190,10 +197,10 @@
           <!-- Live `.button` (white variant): 25px museo-slab in a 67px pill at
                desktop; hover = opacity .6 + a translucent cyan fill — the text
                stays white (a white-fill hover was an invention). -->
-          <div class="mt-8" use:animateIn={REVEAL}>
+          <div use:animateIn={REVEAL}>
             <PrismicLink
               field={primary.cta_link}
-              class="focus-visible:ring-offset-primary font-slab inline-flex h-[41px] items-center rounded-lg border border-white px-[15px] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+              class="focus-visible:ring-offset-primary font-slab px-[1em] py-[1.3em] leading-[0] inline-flex items-center rounded-lg border border-white text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:text-[25px]"
             >
               {primary.cta_label}
             </PrismicLink>
@@ -202,20 +209,20 @@
       </div>
       <!-- Live's mobile link pitch is 96px (60px rows + 36px gaps), not the
            cramped gap-4 — measured 2026-08-02. -->
-      <ul class="flex flex-col gap-9 lg:gap-[61px]">
+      <ul class="flex flex-col gap-9 md:gap-12 lg:gap-[61px]">
         {#each items as item (item)}
           {@const label = asText(item.item_heading)}
           <li use:animateIn={REVEAL}>
             <PrismicLink
               field={item.item_link}
-              class="group flex items-center gap-4 rounded-lg transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent focus-visible:outline-hidden lg:gap-5"
+              class="group flex items-center gap-4 rounded-lg transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent focus-visible:outline-hidden lg:gap-10"
             >
               <!-- Live tooth icons are 60px on mobile (100px on desktop); labels
                    stay one line (mobile ~20px). -->
               <img
                 src={toothIcon(label)}
                 alt=""
-                class="size-[60px] shrink-0 lg:size-[100px]"
+                class="size-[60px] shrink-0 md:size-20 lg:size-[100px]"
               />
               <!-- Live's row label is h3.text-color-white: museo-slab w300,
                    WHITE at both breakpoints — 21px/26px at mobile (measured on
@@ -244,15 +251,16 @@
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
     data-section-layout="steps"
-    class="mx-auto max-w-[1400px] px-6 pt-24 pb-48 lg:px-[60px] lg:pt-[60px] lg:pb-[140px]"
+    class="mx-auto max-w-[1400px] px-[5%] pb-[84px] xs:px-[8%] md:px-12 md:pb-28 lg:px-[60px] lg:pb-[140px]"
   >
     <!-- Live animates the heading+photo block as ONE element, then each step
          and the CTA individually as they enter. -->
-    <div
-      class="grid grid-cols-1 items-center gap-10 md:grid-cols-[1.1fr_1fr]"
-      use:animateIn={REVEAL}
-    >
-      <div>
+    <div class="lg:flex" use:animateIn={REVEAL}>
+      <!-- `._w-half.p-4.su-w-full-tablet`: 50% (`beachfront.css:2867-2871`)
+           going 100% at <=991, padding `1rem` = 24/32/40. That padding is what
+           wraps live's 120px heading to THREE lines at 834 (a 674 column, not
+           738); without it ours wrapped to two and the block was 244px short. -->
+      <div class="w-full p-6 md:p-8 lg:w-1/2 lg:p-10">
         {#if isFilled.richText(primary.heading)}
           <!-- Live steps its display heading (not a smooth clamp): ~56px on
                mobile, then a flat 120px/140 across the whole tablet+desktop
@@ -266,7 +274,7 @@
                width in the landscape band; md+ the grid column already narrows
                it so reset there. -->
           <h2
-            class="h-primary font-slab text-center text-[clamp(3.5rem,0.5rem+8vw,7.5rem)] leading-[1.25] font-thin [text-wrap:normal] xs:mx-auto xs:max-w-[85%] xs:text-[120px] xs:leading-[1.167] md:max-w-none md:text-[120px] md:leading-[1.167] lg:leading-[1.167]"
+            class="h-primary font-slab mb-2.5 text-center text-[clamp(3.5rem,0.5rem+8vw,7.5rem)] leading-[1.25] font-thin [text-wrap:normal] xs:mx-auto xs:max-w-[85%] xs:text-[120px] xs:leading-[1.167] md:mb-4 md:max-w-none md:text-[120px] md:leading-[1.167] lg:mb-5 lg:leading-[1.167]"
           >
             {asText(primary.heading)}
           </h2>
@@ -277,14 +285,16 @@
                `main :where(p)` rule is 0-specificity (:where), so an arbitrary
                text-[] utility outranks it — no inline needed. -->
           <p
-            class="mt-4 text-center text-[20px] leading-[30px] font-light text-[#365b6d] lg:mt-10 lg:text-[30px] lg:leading-[45px]"
+            class="mt-6 mb-10 text-center text-[20px] leading-[30px] font-light text-[#365b6d] md:mt-8 lg:mt-10 lg:text-[30px] lg:leading-[45px]"
           >
             {primary.subtitle}
           </p>
         {/if}
       </div>
       {#if isFilled.image(primary.side_image)}
-        <div class="mx-auto w-full max-w-[560px]">
+        <div
+          class="mx-auto w-full px-6 pt-3 pb-6 md:w-1/2 md:px-8 md:pt-4 md:pb-8 lg:w-1/2 lg:px-10 lg:pt-5 lg:pb-10"
+        >
           <PrismicImage
             field={primary.side_image}
             fallbackAlt=""
@@ -294,10 +304,10 @@
       {/if}
     </div>
     <ol
-      class="mt-12 grid grid-cols-1 gap-10 text-center lg:grid-cols-3 lg:gap-16"
+      class="flex flex-col gap-10 text-center md:flex-row md:justify-between md:gap-0"
     >
       {#each items as item, i (item)}
-        <li use:animateIn={REVEAL}>
+        <li class="md:w-[30%] md:min-w-0" use:animateIn={REVEAL}>
           <!-- Live's STEP label is an h6: museo-SLAB 400, 1.28px tracking,
                slate #365b6d at BOTH breakpoints — 12px/15px mobile, 24px/30px
                desktop (the small sans eyebrow was an invention; census caught
@@ -305,7 +315,7 @@
                weight-100 on mobile, stepping up to 40px/50px weight-300 with
                a 20px top margin on desktop. -->
           <p
-            class="font-slab text-[12px] leading-[15px] font-normal tracking-[1.28px] text-[#365b6d] uppercase lg:text-[24px] lg:leading-[30px]"
+            class="font-slab my-2.5 text-[12px] leading-[15px] font-normal tracking-[1.28px] text-[#365b6d] uppercase lg:text-[24px] lg:leading-[30px]"
           >
             Step {pad2(i + 1)}
           </p>
@@ -314,7 +324,7 @@
                even lines, live fills it — the arbitrary [text-wrap:normal] form
                silently no-ops here, the builtin utility works (as in Hero). -->
           <h3
-            class="h-primary font-slab mt-2 text-[30px] leading-[40px] font-thin text-wrap xs:text-[21px] xs:leading-[26px] xs:font-light lg:mt-5 lg:text-[40px] lg:leading-[50px] lg:font-light"
+            class="h-primary font-slab mt-2.5 mb-5 text-[30px] leading-[40px] font-thin text-wrap xs:mt-5 xs:mb-2.5 xs:text-[21px] xs:leading-[26px] xs:font-light lg:text-[40px] lg:leading-[50px] lg:font-light"
           >
             {asText(item.item_heading)}
           </h3>
@@ -329,10 +339,10 @@
     {#if hasCta}
       <!-- Live: 80px from the steps row to the CTA; the button is
            `.button.text-color-primary-dark` (67px pill, live hover). -->
-      <div class="mt-12 text-center lg:mt-20" use:animateIn={REVEAL}>
+      <div class="mt-12 text-center md:mt-16 lg:mt-20" use:animateIn={REVEAL}>
         <PrismicLink
           field={primary.cta_link}
-          class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#365b6d] px-[14px] text-[14px] font-light text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:text-[20px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+          class="font-slab focus-visible:ring-primary-deep inline-flex items-center rounded-lg border border-[#365b6d] px-[1em] py-[1.3em] text-[14px] leading-[0] font-light text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:text-[20px] lg:text-[25px]"
         >
           {primary.cta_label}
         </PrismicLink>
@@ -357,8 +367,8 @@
   <ContentBand
     sliceType={slice.slice_type}
     variation={slice.variation}
-    sectionClass="mb-9 lg:mt-10 lg:mb-[60px]"
-    contentClass="max-w-[1400px] px-[19.5px] pt-[72px] pb-0 lg:px-[60px] lg:pt-0 lg:pb-10"
+    sectionClass="mb-9 md:mb-12 lg:mt-10 lg:mb-[60px]"
+    contentClass="max-w-[1400px] px-[5%] pt-[72px] pb-0 xs:px-[8%] md:px-12 md:pt-0 md:pb-28 lg:px-[60px] lg:pt-0 lg:pb-10"
     reveal={false}
   >
     {#if isFilled.richText(slice.primary.heading)}
@@ -379,8 +389,14 @@
            split into 282/235. heading→cards gap: 36px at ≤479 (24px between
            cards), but live DOUBLES it to 72px across the 480–991 band (settled
            measurement — with 96px between cards there), so xs:mb-[72px]. -->
+      <!-- Live's h1 carries `._w-half` — width 50% of the content column, going
+           full width only at <=767 (`.su-w-full-mobile`). Measured: 351 (full)
+           @390, 369 (half of 738) @834, 640 (half of 1280) @1440. A flat
+           max-w-[640px] gave the RIGHT answer at 1440 and 390 and the wrong one
+           across 768-991, where it let the heading run 640 wide on one line
+           instead of wrapping to two at 369. -->
       <div
-        class="h-primary mb-9 max-w-[640px] [&_h2]:text-[28px] [&_h2]:leading-[38px] [&_h2]:text-wrap xs:mb-[72px] lg:mb-20 lg:[&_h2]:text-[60px] lg:[&_h2]:leading-[1.2]"
+        class="h-primary mb-9 [&_h2]:text-[28px] [&_h2]:leading-[38px] [&_h2]:text-wrap xs:mb-[72px] md:mt-8 md:mb-32 md:w-1/2 lg:mb-20 lg:[&_h2]:text-[60px] lg:[&_h2]:leading-[1.2]"
         use:animateIn={REVEAL}
       >
         <PrismicRichText field={slice.primary.heading} />
@@ -409,13 +425,17 @@
       <!-- Desktop row geometry from live (2026-08-02): cards are 397 wide in
            the 1280 content box — a 13px inset each side + 31px gaps
            (13+397+31+397+31+397+13 ≈ 1279), not a flush gap-24 row. -->
-      <!-- Mobile branch (isMobile<992) is always ONE column. Live caps the card
-           column instead of letting it go full-bleed in the landscape/tablet
-           band — measured widths ~403 (480–767) / ~512 (768–991), centred — so
-           cap + centre it here (base ≤479 stays full since 351<403 anyway). -->
+      <!-- Below 992 the row is a single column. `.expanding-box` is sized in rem
+           against live's stepped root, so the column has its own ladder:
+             <=479    100% x 240 (10rem), margin .5rem -> 24px gap, centred
+             480-767  16rem x 14rem = 384x336, margin 2rem -> 96px gap
+             768-991  16rem x 14rem = 512x448, margin 2rem -> 128px gap
+           and at 768-991 it is LEFT-aligned, not centred: live's card sits at
+           x=112 = the 48px content gutter + its own 64px margin (measured at
+           834; the whole column was centred at x=161 here). -->
       <div
         data-grid-columns={columns}
-        class="grid grid-cols-1 gap-6 xs:mx-auto xs:max-w-[403px] xs:gap-[96px] md:max-w-[512px] lg:mx-0 lg:max-w-none lg:gap-[31px] lg:px-[13px] {colClass[
+        class="grid grid-cols-1 gap-6 xs:mx-auto xs:max-w-[403px] xs:gap-[96px] md:mx-0 md:ml-16 md:max-w-[512px] md:gap-[128px] lg:mx-0 lg:ml-0 lg:max-w-none lg:gap-[31px] lg:px-[13px] {colClass[
           columns
         ] ?? 'md:grid-cols-3'}"
       >
@@ -490,8 +510,10 @@
                  body copy fades in as white 20px/30px w300 text at the TOP of
                  the box — 40px down, 50px side insets (live's 297/397 text
                  box) — while the label bar stays put. -->
+            <!-- 14rem tall across 768–991 (448 at that band's 32px root), 7rem
+                 at >=992 (280 at 40). -->
             <div
-              class="relative h-[280px] overflow-hidden rounded-[25px] bg-[#e7f5fa] shadow-sm"
+              class="relative h-[448px] overflow-hidden rounded-[25px] bg-[#e7f5fa] shadow-sm lg:h-[280px]"
               use:animateIn={REVEAL}
             >
               <PrismicImage
@@ -512,10 +534,15 @@
                   style="background:linear-gradient(rgba(0,0,0,0), rgba(16,137,177,0.78) 31%, rgba(18,158,204,0.9) 80%)"
                   aria-hidden="true"
                 ></div>
+                <!-- `.expanding-text` insets are live's own rem margins on the
+                     stepped root: 1.5rem/1.5rem/1rem at 768–991 (48/48/32, 18px
+                     copy) and 1rem 2rem 1rem .5rem at >=992 (40 top, 80 right,
+                     20 left — a 297px measure inside the 397px card, NOT the
+                     symmetric 50px inset we had). -->
                 <div
                   id={panelId}
                   inert={!open}
-                  class="absolute inset-x-0 top-0 px-[50px] pt-10 font-light text-white transition-opacity duration-[650ms] motion-reduce:transition-none [&_*]:text-white [&_p]:text-[20px] [&_p]:leading-[30px] [&_p]:font-light {open
+                  class="absolute inset-x-0 top-0 px-12 pt-12 pb-8 font-light text-white transition-opacity duration-[650ms] motion-reduce:transition-none [&_*]:text-white [&_p]:text-[18px] [&_p]:leading-[27px] [&_p]:font-light lg:pt-10 lg:pr-20 lg:pb-10 lg:pl-5 lg:[&_p]:text-[20px] lg:[&_p]:leading-[30px] {open
                     ? 'opacity-100'
                     : 'opacity-0'}"
                 >
@@ -526,10 +553,10 @@
                   aria-expanded={open}
                   aria-controls={panelId}
                   onclick={() => toggleCard(i)}
-                  class="focus-visible:ring-primary-deep absolute inset-x-0 bottom-0 flex h-20 cursor-pointer items-center justify-between gap-4 bg-[#e7f5fa] px-5 text-left focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden"
+                  class="focus-visible:ring-primary-deep absolute inset-x-0 bottom-0 flex h-16 cursor-pointer items-center justify-between gap-4 bg-[#e7f5fa] px-4 text-left focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden lg:h-20 lg:px-5"
                 >
                   <span
-                    class="font-slab text-[24px] leading-[36px] font-bold text-[#365b6d] lg:text-[30px] lg:leading-[45px]"
+                    class="font-slab text-[30px] leading-[45px] font-bold text-[#365b6d]"
                     >{label}</span
                   >
                   <!-- Live swaps + for − when open (not a rotated ×) — its
@@ -552,10 +579,10 @@
                 </button>
               {:else}
                 <div
-                  class="absolute inset-x-0 bottom-0 flex h-20 items-center bg-[#e7f5fa] px-5"
+                  class="absolute inset-x-0 bottom-0 flex h-16 items-center bg-[#e7f5fa] px-4 lg:h-20 lg:px-5"
                 >
                   <span
-                    class="font-slab text-[24px] leading-[36px] font-bold text-[#365b6d] lg:text-[30px] lg:leading-[45px]"
+                    class="font-slab text-[30px] leading-[45px] font-bold text-[#365b6d]"
                     >{label}</span
                   >
                 </div>

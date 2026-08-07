@@ -13,7 +13,22 @@
   // unchanged, passing its own slice fields straight through; every other
   // caller renders with no props and gets the live band's defaults below.
   const DEFAULT_HEADING: RichTextField = [
-    { type: "heading2", text: "Ready for great dental health?", spans: [] },
+    // Live hard-breaks this heading — `Ready for <br/>great dental <br/>health?`
+    // — so it is THREE lines at every width, independent of the box width. That
+    // is why its h2 can span the full band (x=0, w=viewport) without the text
+    // spreading out. Matching the box without the breaks would drop us to two
+    // lines at >=768.
+    //
+    // The breaks live HERE, in the component, and not in the seeded Prismic
+    // content, because the Migration API strips `\n` out of StructuredText on
+    // write: the seeded pages came back as one unbroken string and rendered the
+    // band 168px short (2 lines, h=336) on all five nav routes while the detail
+    // routes — which take this default — stayed correct at 3 lines / h=504.
+    // Prismic's serializer turns `\n` into <br> faithfully; it just never gets
+    // one. So this band's copy is chrome, identical on every page, owned by one
+    // source of truth. An editor CAN still override it per page in Prismic;
+    // an override simply wraps naturally instead of hard-breaking.
+    { type: "heading2", text: "Ready for \ngreat dental \nhealth?", spans: [] },
   ];
   const DEFAULT_CTA_LINK: LinkField = { link_type: "Web", url: "#appointment" };
 
@@ -38,7 +53,9 @@
   let {
     heading = DEFAULT_HEADING,
     body = [],
-    ctaLabel = "Book an Appointment",
+    // Live's closing-band button reads "Book Appointment" (no "an") — the
+    // detail routes render <CtaBand/> with no label and must match it.
+    ctaLabel = "Book Appointment",
     ctaLink = DEFAULT_CTA_LINK,
     backgroundImage = {},
     caption,
@@ -47,6 +64,11 @@
   }: Props = $props();
 
   const hasImage = $derived(!!backgroundImage?.url);
+  // An EMPTY heading field means "this band is chrome — use the shared copy",
+  // which is what the seeded nav pages now send. Svelte's prop default only
+  // covers `undefined`, and Prismic hands back `[]` for an empty rich text, so
+  // the fallback has to be explicit or those pages render a headless band.
+  const headingField = $derived(heading?.length ? heading : DEFAULT_HEADING);
 </script>
 
 <!-- The site's recurring closing band. On the home page (backgroundImage set)
@@ -62,7 +84,7 @@
   <!-- Live reveals the button stack as its own element (rows at op 0 until
        scrolled to), separate from the heading's reveal. -->
   <div
-    class="mt-0 flex flex-col items-center gap-[65px] lg:mt-10 lg:gap-[30px]"
+    class="mt-0 flex flex-col items-center gap-[65px] lg:mt-[29px] lg:gap-[30px]"
     use:animateIn={LIVE_REVEAL}
   >
     {#if ctaLabel && ctaLink}
@@ -71,7 +93,7 @@
            border/text colours do NOT change). -->
       <PrismicLink
         field={ctaLink}
-        class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#365b6d] px-[14px] text-[14px] font-light text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:text-[20px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+        class="closing-cta-button font-slab px-[1em] py-[1.3em] leading-[0] focus-visible:ring-primary-deep inline-flex items-center rounded-lg border border-[#365b6d] text-[14px] font-light text-[#365b6d] transition-[background-color] hover:bg-[#129ecc4a] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:text-[20px] lg:text-[25px]"
       >
         {ctaLabel}
       </PrismicLink>
@@ -85,13 +107,16 @@
 <section
   data-slice-type={sliceType}
   data-slice-variation={sliceVariation}
-  class="w-full {hasImage ? '-mb-[39px] lg:-mb-36' : ''}"
+  class="w-full {hasImage ? '-mb-[10%]' : ''}"
 >
   {#if hasImage}
-    <!-- Heading on white; live's CTA band has ~0 top padding (the gap above
-         comes from the section above; its mobile H2 sits flush at the section
-         top with 24px below to the photo). -->
-    <div class="mx-auto max-w-5xl px-6 pt-0 pb-6 text-center lg:pt-2 lg:pb-8">
+    <!-- Live's heading is `h2.text-align-center.my-4` sitting at x=0 spanning
+         the FULL band width, with `.my-4{margin:1rem 0}` against the stepped
+         root = 24/32/40px above and below. Ours was capped at max-w-5xl (so
+         the box was 976 wide at 1440 instead of 1440, changing where the text
+         wraps) and had no vertical margin at all, which pulled the whole CTA
+         24-40px up into the section above it. -->
+    <div class="w-full px-6 text-center lg:px-0">
       <!-- [&_h2]:text-wrap defeats the global `text-wrap: balance` (app.css:401)
            — live FILLS this heading ("Ready for great / dental health?", 2 lines
            @650) but balance spread ours over 3 even lines, pushing the pill +
@@ -101,7 +126,7 @@
         class="display-xl h-primary [&_h2]:text-wrap"
         use:animateIn={LIVE_REVEAL}
       >
-        <PrismicRichText field={heading} />
+        <PrismicRichText field={headingField} />
       </div>
       <RichTextBody field={body} />
     </div>
@@ -111,8 +136,15 @@
          landscape band (page-diff Ready Δh 9–12%). 70vw tracks it; desktop keeps
          the measured ~800px (20rem at the scaled root). Its white-faded top
          carries the CTAs. -->
+    <!-- `.fiji-section{height:20rem;margin-bottom:-10%}` with a `height:70vw`
+         override at <=767. Against the stepped root that is 640px across
+         769-991 and 800px at >=993 — the md step was missing, so the band ran
+         56px short right through the tablet band. The -10% bottom margin
+         resolves against the containing block's WIDTH, reproducing live's
+         -144/-83/-60/-39 at 1440/834/600/390 in one declaration (the old flat
+         -39px was 44px short at 834). -->
     <div
-      class="relative isolate min-h-[70vw] w-full overflow-hidden lg:min-h-[800px]"
+      class="relative isolate min-h-[70vw] w-full overflow-hidden md:min-h-[640px] lg:min-h-[800px]"
     >
       <HeroBackgroundImage image={backgroundImage} preload={false} />
       <!-- White for the top ~18% fading to clear by ~60%, so the heading above
@@ -132,9 +164,12 @@
              10px small, absolute at bottom 20% (which clears the footer wave
              that overlaps the photo's bottom edge — a lower anchor hides under
              it), 60px / 5% from the left. No scrim on live; the label sits on
-             the darker water band of the photo. -->
+             the darker water band of the photo.
+             Its line-height is the unitless ratio 1.15, so it tracks the font
+             size at every breakpoint (11.5/17.25/23/28.75); the per-breakpoint
+             px values that used to sit here were 6px short at desktop. -->
         <p
-          class="absolute bottom-[20%] left-[5%] z-10 font-sans text-[10px] leading-[1.15] font-light text-white xs:text-[15px] xs:leading-[17px] md:text-[20px] md:leading-[23px] lg:bottom-[31%] lg:left-20 lg:text-[25px]"
+          class="absolute bottom-[20%] left-[5%] z-10 font-sans text-[10px] leading-[1.15] font-light text-white xs:text-[15px] md:text-[20px] lg:bottom-[31%] lg:left-20 lg:text-[25px]"
           use:animateIn={LIVE_REVEAL}
         >
           {caption}
@@ -142,7 +177,10 @@
       {/if}
     </div>
   {:else}
-    <div class="mx-auto max-w-5xl px-6 py-24 text-center">
+    <!-- No-image (detail-route) close: live gives the "Ready" heading ~0 top
+         padding — the gap above comes from each page's back-link section — so
+         only the bottom padding lives here. -->
+    <div class="mx-auto max-w-5xl px-6 pt-0 pb-24 text-center">
       <!-- [&_h2]:text-wrap defeats the global `text-wrap: balance` (app.css:401)
            — live FILLS this heading ("Ready for great / dental health?", 2 lines
            @650) but balance spread ours over 3 even lines, pushing the pill +
@@ -152,7 +190,7 @@
         class="display-xl h-primary [&_h2]:text-wrap"
         use:animateIn={LIVE_REVEAL}
       >
-        <PrismicRichText field={heading} />
+        <PrismicRichText field={headingField} />
       </div>
       <RichTextBody field={body} />
       {@render ctaButtons()}

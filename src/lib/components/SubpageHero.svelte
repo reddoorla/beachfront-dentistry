@@ -26,6 +26,10 @@
     subheadings,
     intro,
     align = "center",
+    headingStyle = "subpage",
+    imagePosition = "center",
+    wash = true,
+    botGradient = "base",
   }: {
     heading?: RichTextField | null;
     backgroundImage?: ImageField | null;
@@ -38,51 +42,141 @@
     // most subpage heroes centre the heading at desktop; contact-us keeps it
     // LEFT-aligned (live `.hero.contact`).
     align?: "center" | "left";
+    /** Which of live's three heading treatments this hero uses. They are
+     *  genuinely different CSS classes on live, not variations of one:
+     *   • "subpage" (`.subpage-hero-heading`) — bottom:2% + margin-bottom:5%,
+     *     centred full-width at >=992, left-aligned at 80%/left-10% below it.
+     *   • "meet" (`.meet-heading`, our-team only) — bottom:.75rem, centred and
+     *     full-width at EVERY width (grep confirms no media override).
+     *   • "contact" (`.contact-heading`) — bottom:1rem, left, its own 50/75/140
+     *     size ladder and padding-right:33%. Selected by align="left".
+     */
+    headingStyle?: "subpage" | "meet";
+    /** object-position for the band photo. Live sets this PER PAGE, not once:
+     *    .hero.redondo      (our-team, services)  background-position: 0 100%
+     *    .hero.contact      (contact-us)          background-position: 50% 50%
+     *    .hero.ask-a-dentist(ask-the-doctor)      background-position: 50% 0
+     *  Applying one of them to all of them swaps which slice of the photo you
+     *  see — a blanket left-bottom put plants where live's contact hero shows
+     *  the office sign. */
+    imagePosition?: "center" | "left-bottom" | "top";
+    /** Whether this hero paints live's cyan wash at all. `/services` is the ONE
+     *  page whose hero markup has NEITHER gradient div: its whole hero is
+     *  `<section class="hero redondo"><div class="bot-wave">…</div><h2
+     *  class="subpage-hero-heading">Services</h2></section>`
+     *  (`matching/spec/services-top.html`). Counting the divs across the saved
+     *  documents: index/our-team/ask-the-doctor/your-first-visit/contact-us all
+     *  carry both, services carries zero. Painting them there covered ~half the
+     *  region in cyan at dE 40-90. */
+    wash?: boolean;
+    /** Which bottom-gradient stop. Live has two and they are NOT interchangeable:
+     *   • "base" (`.hero-bot-gradient`, beachfront.css:6484-6490) —
+     *     `linear-gradient(#0000, #129ecccc)`, alpha 0.8, never closes.
+     *   • "dark" (`.hero-bot-gradient.dark`, :6492-6494) —
+     *     `linear-gradient(#0000, #129ecc 77%)`, OPAQUE from 77% down.
+     *  Grepping the saved documents for `hero-bot-gradient dark`: contact-us is
+     *  the only page that has it. We were emitting the opaque `.dark` stop on
+     *  every subpage, which is most of the `top` mismatch on the others. */
+    botGradient?: "base" | "dark";
   } = $props();
+
+  /** Scroll target for the "Back to Top" pill that closes the question list.
+   *
+   *  Live carries `id="hero"` on exactly one page — `<section id="hero"
+   *  class="hero ask-a-dentist">` on /ask-the-doctor — because that is the only
+   *  page whose content ends in `<a href="#hero">`. We copied the pill verbatim
+   *  (QuestionList/index.svelte:242) but never the id, so the link went
+   *  nowhere AND `pnpm build` hard-failed: SvelteKit's prerenderer resolves
+   *  every in-page anchor and errors on a missing target.
+   *
+   *  Emitted here rather than only on ask-the-doctor because an `id` is inert —
+   *  invisible to the pixel gate and the style census — and scoping it would
+   *  mean teaching the hero which sibling slices its page has. The divergence
+   *  is one unused attribute on three subpage heroes; the alternative is a dead
+   *  link on the page live actually uses it. */
+  const ANCHOR_ID = "hero";
+
+  const objectPos = $derived(
+    imagePosition === "left-bottom"
+      ? "object-left-bottom"
+      : imagePosition === "top"
+        ? "object-top"
+        : "object-center",
+  );
 
   const headingText = $derived(asText((heading ?? []) as RichTextField));
   const introText = $derived(asText((intro ?? []) as RichTextField));
 </script>
 
 <section
+  id={ANCHOR_ID}
   data-slice-type="hero"
   data-slice-variation="subpage"
   class="relative isolate flex min-h-[95vw] w-full items-center justify-center overflow-hidden bg-dark text-white xs:min-h-[70vw] md:min-h-[60vw] lg:min-h-[33vw]"
 >
   {#if backgroundImage?.url}
-    <HeroBackgroundImage image={backgroundImage} preload={true} />
+    <!-- Anchor per live's own per-page rule — see `imagePosition`. -->
+    <HeroBackgroundImage
+      image={backgroundImage}
+      preload={true}
+      class="absolute bottom-0 left-0 h-full w-full object-cover {objectPos}"
+    />
   {/if}
-  <!-- Live's hero overlay is a CYAN wash, not a neutral scrim (measured off
-       `.hero.contact`): a cyan top-tint fading out over the top third + a
-       transparent→solid-cyan bottom wash (full by 77% of its own height). This
-       is what makes the white thin heading read over a bright photo (the plain
-       dark scrim left "Contact Us" washed out over the loaded office shot). -->
+  <!-- Live's hero overlay is a CYAN wash, not a neutral scrim: a cyan top-tint
+       fading out over the top QUARTER (`.hero-top-gradient{height:25%}`,
+       beachfront.css:6477-6482) plus a transparent→cyan bottom wash over the
+       bottom half (`.hero-bot-gradient`, :6484-6490). Both are real <div>s in
+       live's markup, so a page that omits them gets no wash at all — see
+       `wash`. -->
+  {#if wash}
+    <div
+      class="pointer-events-none absolute inset-x-0 top-0 h-1/4"
+      style="background:linear-gradient(rgba(18,158,204,0.8), rgba(0,0,0,0))"
+      aria-hidden="true"
+    ></div>
+    <!-- base = `linear-gradient(#0000, #129ecccc)` (alpha 0.8, never closes);
+         dark = `linear-gradient(#0000, #129ecc 77%)` (opaque from 77% down) and
+         is contact-us ONLY. See `botGradient`. -->
+    <div
+      class="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
+      style="background:linear-gradient(rgba(0,0,0,0), {botGradient === 'dark'
+        ? '#129ecc 77%'
+        : 'rgba(18,158,204,0.8)'})"
+      aria-hidden="true"
+    ></div>
+  {/if}
+  <!-- Live's three heading treatments (see `headingStyle`). The bottom offsets
+       are live's own rem values against its stepped root (24/32/40):
+         subpage  bottom:2%      + margin-bottom:5% of the hero WIDTH
+         meet     bottom:.75rem  → 18/24/30 + the h2's 10px = 28/34/40 measured
+         contact  bottom:1rem    → 24/32/40 + the h2's 10px = 34/42/50 measured
+       For an abspos box with top:auto and bottom set, a percentage margin-bottom
+       resolves against the containing block's WIDTH and shifts the box UP —
+       that 5% is why live's subpage headings clear the wave crest and ours sat
+       72px lower, right on top of it. -->
   <div
-    class="pointer-events-none absolute inset-x-0 top-0 h-1/3"
-    style="background:linear-gradient(rgba(18,158,204,0.8), rgba(0,0,0,0))"
-    aria-hidden="true"
-  ></div>
-  <div
-    class="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
-    style="background:linear-gradient(rgba(0,0,0,0), rgba(18,158,204,0.8))"
-    aria-hidden="true"
-  ></div>
-  <!-- `.subpage-hero-heading`: absolute bottom 2%, full-width centered at
-       desktop, left-aligned 80% (left 10%) below 992. -->
-  <div
-    class="absolute bottom-[2%] z-10 {align === 'left'
-      ? 'left-5 lg:left-20'
-      : 'left-[10%] w-4/5 lg:left-0 lg:w-full'}"
+    class="absolute z-10 {align === 'left'
+      ? 'bottom-[34px] mx-auto w-full max-w-[1400px] px-[5%] xs:px-[8%] md:bottom-[42px] md:px-[48px] lg:bottom-[50px] lg:px-[60px]'
+      : headingStyle === 'meet'
+        ? 'bottom-[28px] left-0 w-full md:bottom-[34px] lg:bottom-[40px]'
+        : 'bottom-[2%] left-[10%] mb-[5%] w-4/5 lg:left-0 lg:w-full'}"
     use:animateIn={LIVE_REVEAL}
   >
     <!-- Inline white: the unlayered global `main h1–h3` primary-colour rule
          outranks a `text-white` utility (same trap as the QA card title), so
-         force the live white heading with an inline style. -->
+         force the live white heading with an inline style.
+         Size ladder — live's GLOBAL h2 rule, which has no <=767 block, so 72/80
+         holds flat all the way from 480 to 991 (an md tier at 90/108 was
+         inventing a step live does not have, and wrapped "Ask the Doctor" to
+         two lines at 768):
+           <=479  56/70      480-991  72/80      >=992  140/168
+         contact overrides the SIZE only (50 <=767, 75 at 480-991, 140 >=992). -->
     <h2
-      class="font-slab text-left text-[56px] leading-[70px] font-thin md:text-[90px] md:leading-[108px] lg:text-[140px] lg:leading-[168px] {align ===
-      'left'
-        ? ''
-        : 'lg:text-center'}"
+      class="font-slab font-thin {align === 'left'
+        ? 'text-left text-[50px] leading-[70px] xs:leading-[80px] md:text-[75px] md:leading-[80px] lg:pr-[33%] lg:text-[140px] lg:leading-[168px]'
+        : headingStyle === 'meet'
+          ? 'text-center text-[56px] leading-[70px] xs:text-[72px] xs:leading-[80px] lg:text-[140px] lg:leading-[168px]'
+          : 'text-left text-[56px] leading-[70px] xs:text-[72px] xs:leading-[80px] lg:text-center lg:text-[140px] lg:leading-[168px]'}"
       style="color:#fff"
     >
       {headingText}
@@ -110,8 +204,10 @@
   <section class="w-full bg-white px-5 text-center" use:animateIn={LIVE_REVEAL}>
     {#each subheadings ?? [] as line, i (line)}
       <!-- first heading nudges up 10px into the wave, matching live. -->
+      <!-- Same global h2 ladder as the band heading: 56/70 -> 72/80 (480-991,
+           flat) -> 140/168. -->
       <h2
-        class="font-slab text-[56px] leading-[70px] font-thin lg:text-[140px] lg:leading-[168px] {i ===
+        class="font-slab text-[56px] leading-[70px] font-thin xs:text-[72px] xs:leading-[80px] lg:text-[140px] lg:leading-[168px] {i ===
         0
           ? '-mt-[10px]'
           : ''}"
@@ -122,8 +218,10 @@
     {/each}
     {#if introText}
       <!-- capped narrow so it wraps to ~5 lines exactly as live does. -->
+      <!-- Live keeps 20/30 from 480-767 (its `.text-align-center.max-w-620px`
+           rule) and only steps to the global h3 21/26 at 768-991. -->
       <h3
-        class="font-slab mx-auto mt-5 mb-[10px] max-w-[620px] text-[20px] leading-[30px] font-light lg:text-[40px] lg:leading-[50px]"
+        class="font-slab mx-auto mt-5 mb-[10px] max-w-[620px] text-[20px] leading-[30px] font-light md:text-[21px] md:leading-[26px] lg:text-[40px] lg:leading-[50px]"
         style="color:#129ecc"
       >
         {introText}

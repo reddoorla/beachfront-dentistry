@@ -7,6 +7,7 @@
   import ContentBand from "$lib/components/ContentBand.svelte";
   import ReadReviewsExpander from "$lib/components/ReadReviewsExpander.svelte";
   import Slider from "$lib/components/Slider.svelte";
+  import { ADDRESS, HOURS, PHONE } from "$lib/site";
   import { PrismicImage, PrismicRichText } from "@prismicio/svelte";
   import {
     isFilled,
@@ -63,6 +64,15 @@
   // Office Tour: photos variation in full-bleed mode.
   const isFullbleedTour = $derived(
     slice.variation === "photos" && slice.primary.layout === "fullbleed",
+  );
+  // `.home-ssb-section { margin-bottom: 1.5rem }` (beachfront.css:7140-7142)
+  // exists ONLY on the home page — the class name says so and index.html is the
+  // only document carrying it. your-first-visit renders the same
+  // `.review-slider-holder` with NO section wrapper, so applying this margin to
+  // the shared slice put 36–60px onto yfv that live does not have (it cost yfv
+  // a region: 5/24 → 4/24 in matching/out-spec3-yfv). Home opts in explicitly.
+  const isHomeSsb = $derived(
+    slice.variation === "review" && slice.primary.layout === "home",
   );
   const trackItems = $derived(isTrackVariation ? (slice.items ?? []) : []);
   const trackCount = $derived(trackItems.length);
@@ -125,21 +135,38 @@
     id="office-tour"
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="mb-10 w-full scroll-mt-24 lg:mb-24 lg:pb-4"
+    class="mb-9 w-full scroll-mt-24 md:mb-12 lg:mb-[60px]"
   >
-    <div class="mb-6 px-5 lg:px-20">
-      <!-- cyan by the global main h1–h3 primary rule; no inline colour needed. -->
+    <!-- `.content-width`: max-width 1400 centred, padding-x `1.5rem` against the
+         stepped root = 60 >=992 / 48 768-991, stepping to 8% <=767 and 5%
+         <=479. Measured content-left 80 / 48 / 19.5. `px-5 lg:px-20` happened
+         to land 80 at 1440 but put the heading at x=20 where live has x=48. -->
+    <div
+      class="mx-auto max-w-[1400px] px-[5%] xs:px-[8%] md:px-12 lg:px-[60px]"
+    >
+      <!-- cyan by the global main h1–h3 primary rule; no inline colour needed.
+           The 10px below the heading is live's own `h1{margin-bottom:10px}`
+           (`beachfront.css:2104-2108`) — a FIXED px, not a rem, so it does not
+           step with the root ladder — and it collapses out of the padding-less
+           `.content-width` wrapper exactly as it does here. We had `mb-6` on
+           the wrapper: 24px, +14 per viewport. -->
       <h1
-        class="font-slab text-[25px] leading-[38px] font-light lg:text-[60px] lg:leading-[72px]"
+        class="font-slab h-primary mb-[10px] text-[28px] leading-[38px] font-light lg:text-[60px] lg:leading-[72px]"
       >
         {trackLabel}
       </h1>
     </div>
     {#if trackCount > 0}
+      <!-- Live ships all 8 `.w-slider-dot`s and then hides the strip:
+           `div.display-none.w-slider-nav.w-round`, and `.display-none` is
+           `display:none` (`beachfront.css:2214-2216`) — the dots are in the DOM
+           and never operable. Ours rendered them in FLOW under the track: 24px
+           of dots + a 32px margin = 56px this section does not have. The edge
+           arrows stay, so the carousel keeps a non-swipe control. -->
       <Slider
         itemCount={trackCount}
         label={trackLabel}
-        showDots={true}
+        showDots={false}
         arrowLayout="sides"
         gap="0px"
         mobileGap="0px"
@@ -150,49 +177,151 @@
         {#snippet children({ index }: { index: number })}
           {@const item = trackItems[index]}
           {#if item && isFilled.image(item.image)}
-            <div class="h-[293px] w-full overflow-hidden md:h-[560px] lg:h-[900px]">
+            <!-- Live's slider holder carries TWO competing 0,1,0 rules:
+                 `.h-half-screen-width` `height:50vw` (beachfront.css:3173-3175)
+                 and `.su-h-screen-to-tablet` `height:100vh` (:5656-5658). The
+                 second is later in the sheet, so **100vh wins at ≥768** — the
+                 box is viewport-HEIGHT dependent, not width dependent. At ≤767
+                 `:8554-8556` sets `height:auto` and the image's own height
+                 governs. We had fixed pixels (293/560/900), which is why this
+                 section was 718px short at 834. -->
+            <!-- `.w-slider` is `background:#ddd` (`beachfront.css:1190-1198`).
+                 Invisible at 1440 (the photo overflows the mask) and at 390
+                 (mask height == photo height), but at 834 the photo is 626 in a
+                 900 mask and live letterboxes 274px of grey below it. -->
+            <div class="w-full overflow-hidden bg-[#ddd] md:h-screen">
+              <!-- Live sets NO object-fit: the img is `max-width:100%`
+                   (`beachfront.css:232-236`) inside the block-flow mask, so it
+                   renders at container width x natural aspect (measured
+                   1440x1080 @1440) and overflows the 900px mask downward,
+                   clipped by `.w-slider-mask{overflow:hidden}` (`:1200-1209`).
+                   Measured live: 1440x1080 in a 900 mask (overflows 180 and is
+                   clipped) but 834x626 in the SAME 900 mask (letterboxed by
+                   274) and 390x293 in a 293 mask. No single object-fit does
+                   that — `cover` filled the mask at 834 where live leaves it
+                   empty. Reproduce the rule, not a fit: width 100%, height
+                   auto, top of the block box. -->
               <PrismicImage
                 field={item.image}
                 fallbackAlt=""
-                class="h-full w-full object-cover object-center"
+                class="h-auto w-full"
               />
             </div>
           {/if}
         {/snippet}
       </Slider>
     {/if}
+    <!-- Live's §8 "Hours + contact pair" — `.content-width >
+         div.w-layout-hflex.mt-6.su-flex-v-mobile` holding two
+         `.footer-contact-block.mb-4.mr-8`. It lives INSIDE
+         `<section id="tour" class="fv-virtual-tour-section">`, i.e. this same
+         section, which is why it belongs here and not in its own slice.
+
+         It was missing entirely, and it is 184px of the Office Tour region at
+         834. The copy is not new hardcoding — it is the same PHONE/ADDRESS/HOURS
+         data `site.ts` already feeds the footer and /contact-us.
+
+         Ladders (all against the stepped root):
+           `.mt-6`  margin-top 1.5rem  = 60 / 48 / 36   beachfront.css:3917-3919
+           `.mb-4`  margin-bottom 1rem = 40 / 32 / 24   :3985-3988
+           `.mr-8`  margin-right 2rem  = 80 / 64 / 48   :3961-3963
+           `.su-flex-v-mobile` is `display:flex` (:5291-5293) going
+           `flex-direction:column` at ≤767 ONLY (:8434-8436) — still a ROW at 834.
+           `.footer-contact-header` 20/40 · 16/32 · 16/32 (:6337-6343, :8130-8132)
+           `div.text-body`          20/30 · 16/24 · 16/24 (:7751-7754, :8359-8361)
+         The header text carries a non-breaking space in the source
+         ("OFFICE&nbsp;HOURS"). -->
+    <div
+      class="mx-auto mt-9 flex max-w-[1400px] flex-col px-[19.5px] text-[#333] md:mt-12 md:flex-row md:px-12 lg:mt-[60px] lg:px-[60px]"
+    >
+      <div class="mb-6 md:mr-16 md:mb-8 lg:mr-20 lg:mb-10">
+        <div
+          class="font-slab text-[16px] leading-[32px] font-medium text-[#365b6d] lg:text-[20px] lg:leading-[40px]"
+        >
+          OFFICE&nbsp;HOURS
+        </div>
+        {#each HOURS as [days, time] (days)}
+          <div
+            class="text-[16px] leading-[24px] lg:text-[20px] lg:leading-[30px]"
+          >
+            {days} / {time}
+          </div>
+        {/each}
+      </div>
+      <div class="mb-6 md:mb-8 lg:mb-10">
+        <div
+          class="font-slab text-[16px] leading-[32px] font-medium text-[#365b6d] lg:text-[20px] lg:leading-[40px]"
+        >
+          CONTACT
+        </div>
+        <div
+          class="text-[16px] leading-[24px] lg:text-[20px] lg:leading-[30px]"
+        >
+          {PHONE.display}
+        </div>
+        <div
+          class="text-[16px] leading-[24px] lg:text-[20px] lg:leading-[30px]"
+        >
+          {ADDRESS.line1}
+        </div>
+        <div
+          class="text-[16px] leading-[24px] lg:text-[20px] lg:leading-[30px]"
+        >
+          {ADDRESS.line2}
+        </div>
+      </div>
+    </div>
   </section>
 {:else if isTrackVariation}
   {#if trackCount > 0}
     <ContentBand
       sliceType={slice.slice_type}
       variation={slice.variation}
-      contentClass="max-w-7xl px-[19.5px] pt-0 pb-9 text-center lg:px-6 lg:py-16"
+      contentClass="max-w-7xl px-[19.5px] text-center lg:px-6"
+      sectionClass={isHomeSsb ? "mb-9 md:mb-12 lg:mb-[60px]" : ""}
       reveal
     >
       {#if hasHeading && slice.primary.heading}
-        <!-- Live's mobile review heading is 24px/38 (its 3-C sibling is 28/38 —
-             Webflow uses per-block sizes, so this one is scoped here rather than
-             moved into the global h2 scale). Desktop is unchanged at 60px. -->
+        <!-- Live is `h1.text-align-center.mb-8`. `.mb-8` is a SPACING utility
+             that also carries `font-size: 1rem` inside the ≤991 block
+             (beachfront.css:7972-7974), so against the stepped root this
+             heading has THREE sizes — 60 @1440 / 32 across the whole 769–991
+             band / 24 @≤768 — not two. Line-height: h1 :2111 = 72, ≤991 :7855
+             = 38. Bottom margin is `.mb-8` = 2rem (:3998-4000) → 80/64/48; we
+             had a flat 48.
+
+             Live's h1 also carries `margin-top: 20px` (:2106) — do NOT
+             reproduce it. `.content-width` has no padding, so that margin
+             COLLAPSES out of `.home-ssb-section` and lands in the gap above,
+             which is why live's anchor sits at the section's border-box top.
+             Adding it as a wrapper margin here double-counts: it pushed our
+             anchor 20px down, and since page-diff cuts AT the anchor that
+             shortened the region from the top (Serving @834 Δh 15.5% → 18.5%,
+             gate run matching/out-spec1-home). -->
         <div
-          class="h-primary mb-12 [&_h2]:text-[24px] [&_h2]:leading-[38px] md:[&_h2]:text-[32px] md:[&_h2]:leading-[38px] lg:[&_h2]:text-[3.75rem] lg:[&_h2]:leading-[1.2]"
+          class="h-primary mb-12 md:mb-16 lg:mb-20 [&_h2]:text-[24px] [&_h2]:leading-[38px] md:[&_h2]:text-[32px] md:[&_h2]:leading-[38px] lg:[&_h2]:text-[3.75rem] lg:[&_h2]:leading-[1.2]"
         >
           <PrismicRichText field={slice.primary.heading} />
         </div>
       {/if}
-      <div class="relative mx-auto max-w-3xl">
+      <!-- `.review-slider-holder` margin-top is TABLET-ONLY: `4rem` lives in
+           the ≤991 block (beachfront.css:8338) and is reset to 0 at ≤767
+           (:8940), with no rule at all ≥992 — so the ladder is 0 / 128 / 0,
+           not a two-tier step. Against the 32px root at 834 that is 128px, and
+           it collapses with the heading's 64px bottom margin to 128 total. -->
+      <div class="relative mx-auto max-w-3xl md:mt-32 lg:mt-0">
         {#if slice.variation === "review"}
           <!-- Live's real hand-drawn "what they say" mark + curved arrow (PNG/SVG
                assets, NOT redrawn) pointing to the review card. -->
           <div
             aria-hidden="true"
-            class="pointer-events-none absolute -top-4 -left-32 z-10 hidden w-56 -rotate-6 lg:block xl:-left-52"
+            class="pointer-events-none absolute -top-4 -left-32 z-10 hidden w-60 lg:block xl:top-0 xl:-left-[176px]"
           >
             <img src="/annotations/what-they-say.png" alt="" class="w-full" />
             <img
               src="/annotations/what-they-say-arrow.svg"
               alt=""
-              class="mt-1 ml-10 w-16"
+              class="mt-[3px] ml-[100px] w-[120px]"
             />
           </div>
         {/if}
@@ -209,7 +338,10 @@
           gap="0px"
           mobileGap="0px"
           arrowLayout={slice.variation === "review" ? "sides" : "below"}
-          arrowClass="text-primary hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          arrowClass="text-primary hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden {slice.variation ===
+          'review'
+            ? '-mt-16 mx-6'
+            : ''}"
           transitionClass="duration-[2000ms] ease-[cubic-bezier(0.19,1,0.22,1)]"
           prevArrow={slice.variation === "review" ? reviewArrowLeft : undefined}
           nextArrow={slice.variation === "review"
@@ -224,7 +356,7 @@
                      side); the holder reserves only ~12px below the card (the
                      badge's 20px overhang draws over the pulled-up expander
                      row, same as live's .shift-up overlap). -->
-                <div class="px-[7px] pb-[20px] lg:px-4 lg:pb-6">
+                <div class="px-[7px] pb-3 md:pb-16 lg:px-4 lg:pb-20">
                   <!-- Pale-blue quote card (live .big-review, 600×400 at
                        desktop, #e7f5fa, 25px radius, padding 24px tablet /
                        30px desktop): the quote sits on TOP with the reviewer
@@ -237,7 +369,7 @@
                        + the fixed tablet/desktop heights open the gap live
                        shows between the two blocks. -->
                   <figure
-                    class="relative mx-auto flex max-w-[600px] flex-col justify-between rounded-[25px] bg-[#e7f5fa] p-[18px] text-left md:h-[320px] md:max-w-[480px] md:p-6 lg:h-[400px] lg:max-w-[600px] lg:p-[30px]"
+                    class="relative mx-auto mb-12 flex max-w-[600px] flex-col justify-between rounded-[25px] bg-[#e7f5fa] p-[18px] text-left xs:mb-0 md:h-[320px] md:max-w-[480px] md:p-6 lg:h-[400px] lg:max-w-[600px] lg:p-[30px]"
                   >
                     {#if isFilled.link(item.review_url)}
                       {@const badge = badgeFor(asLink(item.review_url))}
@@ -285,7 +417,11 @@
                         </p>
                         {#if item.reviewer_place}
                           <p
-                            class="text-[10px] leading-[15px] font-light xs:text-[16px] xs:leading-[24px] md:text-[16px] md:leading-[25px] text-[#365b6d] uppercase lg:mt-1 lg:text-[16px] lg:leading-[25px]"
+                            class="text-[10px] font-light xs:text-[16px] xs:leading-[24px] md:text-[16px] md:leading-[25px] text-[#365b6d] uppercase lg:mt-1 lg:text-[16px] {isHomeSsb
+                              ? 'leading-[15px]'
+                              : 'leading-[12px]'} {isHomeSsb
+                              ? 'lg:leading-[25px]'
+                              : 'lg:leading-[19px]'}"
                           >
                             {item.reviewer_place}
                           </p>
@@ -312,10 +448,20 @@
           {/snippet}
         </Slider>
       </div>
-      {#if slice.variation === "review"}
+      {#if isHomeSsb}
         <!-- Live's .shift-up block: the expander sits tight under the slider
-             (mt -1rem) with 3rem reserved below for the disclosed logo row. -->
-        <div class="-mt-6 mb-18 lg:mt-[-16px] lg:mb-28">
+             with room reserved below for the disclosed logo row. Measured on
+             live: h 69, margin -40px/120px @1440 · h 55, margin -32px/96px @834.
+
+             HOME ONLY. `.home-ssb-section > .content-width` has THREE children
+             on index.html (h1, .review-slider-holder, this row) and only TWO on
+             your-first-visit.html — its `.fv-review-section` ends at the
+             slider. Rendering it on both is what made our yfv review section
+             +53/+31/+15 too tall and cost yfv its Serving region. The holders
+             themselves are byte-identical on the two live pages (1280x480 mt=0
+             / 738x384 mt=128 / 351x322 mt=0 pb=12), which is how this was
+             isolated to content rather than to a rule. -->
+        <div class="-mt-6 mb-18 md:-mt-8 md:mb-24 lg:-mt-10 lg:mb-30">
           <ReadReviewsExpander />
         </div>
       {/if}

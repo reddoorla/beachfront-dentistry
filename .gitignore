@@ -21,6 +21,28 @@ test-results
 .reddoor-a11y
 .reddoor-a11y-spec-*
 
-# page-diff (matching-a-page skill) local output
+# page-diff (matching-a-page skill) local output.
+#
+# The WORKSPACE is ignored — ~2.0GB of downloaded reference HTML/CSS, gate
+# screenshots and out-*/ runs — but the SCRIPTS and RECORDS are tracked (~2.4MB):
+#   • CLAUDE.md's rules tell every future session to run matching/gate.sh,
+#     matching/strikes.mjs and matching/next.mjs. Ignoring them left those rules
+#     pointing at files that do not exist on a fresh clone.
+#   • matching/LEDGER.md is the audit trail for every operator decision on this
+#     rebuild (the AA ACK, the "Book an Appointment" spelling, the dead-buttons
+#     call). It existed in exactly one unbacked place.
+#   • matching/SPEC.md + spec-sections/ are Phase 1's output, which Phase 4
+#     refuses to run without.
 scratch-diff*/
-matching/
+matching/*
+!matching/*.sh
+!matching/*.mjs
+!matching/*.md
+!matching/spec-sections/
+!matching/states/
+matching/states/*
+!matching/states/*.mjs
+# derived artefacts, even where the extensions above would catch them
+matching/*.log
+matching/*.json
+matching/*.png

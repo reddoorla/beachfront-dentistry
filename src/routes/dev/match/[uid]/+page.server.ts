@@ -6,6 +6,11 @@ import {
 } from "$lib/blux-catalog/collections-load";
 import { createClient } from "$lib/prismicio";
 import { assemblies, PERSON_BEACHES } from "$lib/beachfront-pages.js";
+import {
+  PERSON_CONTENT,
+  NEWS_ARTICLE_CONTENT,
+  COLLECTION_ITEM_CONTENT,
+} from "$lib/beachfront-entities.js";
 
 // Local matching gate surface. Renders the EXACT page assembly that
 // scripts/seed-pages.mjs publishes (src/lib/beachfront-pages.js — the shared
@@ -30,6 +35,22 @@ const devImg = (u: string) => ({
   edit: { x: 0, y: 0, zoom: 1, background: "transparent" },
   id: u,
 });
+
+/** Fill only the fields a fetched doc is missing, from a uid-keyed patch. */
+function fillFrom(
+  docs: unknown[] | undefined,
+  patch: Record<string, Record<string, unknown>>,
+) {
+  for (const doc of (docs ?? []) as Array<{
+    uid: string;
+    data: Record<string, unknown>;
+  }>) {
+    for (const [field, value] of Object.entries(patch[doc.uid] ?? {})) {
+      if (doc.data[field] === undefined || doc.data[field] === null)
+        doc.data[field] = value;
+    }
+  }
+}
 
 export async function load({ params, fetch, cookies }) {
   const asm = assemblies(devImg) as Record<string, unknown[]>;
@@ -61,6 +82,18 @@ export async function load({ params, fetch, cookies }) {
       doc.data.gallery = [{ image: devImg(beach.img), caption: beach.caption }];
     }
   }
+
+  // Same idea for the four authored entity fields the Webflow import never
+  // captured (person.teaser/order, news_article.summary/home_order,
+  // collection_item.link_label/order). They are MODELLED on the custom types
+  // and the templates read them straight off the document; this fills them
+  // from the migration payload so the gates measure the post-publish render
+  // before the release goes live. `fillFrom` only writes fields that arrive
+  // EMPTY, so it turns into a no-op the moment the release is published —
+  // and it can never mask a value an author has since edited in Prismic.
+  fillFrom(collections.person, PERSON_CONTENT);
+  fillFrom(collections.news_article, NEWS_ARTICLE_CONTENT);
+  fillFrom(collections.collection_item, COLLECTION_ITEM_CONTENT);
 
   return { uid: params.uid, slices, collections };
 }

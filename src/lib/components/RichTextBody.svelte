@@ -16,21 +16,28 @@
   // without changing any visual. See $lib/utils/richTextHeadings. Everything else
   // (paragraphs, links, lists, images, embeds) renders with PrismicRichText's
   // defaults — only the heading nodes are overridden.
-  let { field }: { field: RichTextField } = $props();
+  // `components` lets a caller override further node types (the detail-page
+  // body supplies its own paragraph renderer); the heading overrides below
+  // always win, since they carry the a11y outline fix.
+  let {
+    field,
+    components = {},
+  }: { field: RichTextField; components?: RichTextComponents } = $props();
 
   const levelMap = $derived(buildHeadingLevelMap(field));
   const lookup: HeadingLevelLookup = (original) =>
     levelMap.get(original) ?? defaultLevel(original);
   setContext(RT_HEADING_CTX, lookup);
 
-  const headingComponents: RichTextComponents = {
+  const headingComponents: RichTextComponents = $derived({
+    ...components,
     heading1: RichTextHeading,
     heading2: RichTextHeading,
     heading3: RichTextHeading,
     heading4: RichTextHeading,
     heading5: RichTextHeading,
     heading6: RichTextHeading,
-  };
+  });
 </script>
 
 <PrismicRichText {field} components={headingComponents} />

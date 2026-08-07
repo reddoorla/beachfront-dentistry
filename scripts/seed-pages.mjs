@@ -23,6 +23,7 @@
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { head, TITLES, assemblies } from "../src/lib/beachfront-pages.js";
+import { assertModelsInSync } from "./lib/slice-models.mjs";
 
 const REPO = "48bb12d1";
 const env = readFileSync(
@@ -166,6 +167,17 @@ async function main() {
   const dryAsm = assemblies(collectImg);
   for (const slices of Object.values(dryAsm)) JSON.stringify(slices); // force eval
   console.log(`page-level images referenced: ${urls.size}`);
+
+  // 1a. PRECONDITION: every slice model this seed writes must already be
+  // registered in Prismic in its current local form. The Migration API drops
+  // undeclared fields silently (200, no warning), so seeding against a stale
+  // model publishes pages that render component defaults and look "fine" —
+  // that is exactly how five fields shipped missing. Fail loudly instead.
+  const sliceIds = Object.values(dryAsm).flatMap((slices) =>
+    slices.map((s) => s.slice_type),
+  );
+  await assertModelsInSync(REPO, TOKEN, sliceIds);
+  console.log(`slice models in sync: ${new Set(sliceIds).size} checked`);
 
   const existing = await listExistingAssets();
   const idByUrl = await resolveAssets([...urls], existing);

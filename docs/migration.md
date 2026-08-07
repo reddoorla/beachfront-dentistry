@@ -37,3 +37,30 @@ The script:
 - Prismic rate-limits the Migration API to **1 document/second per repository**. Plan accordingly for large imports.
 - For new content models or large imports, run against a staging Prismic repository first; diff the output, confirm Slice shapes render correctly in Slice Simulator, then promote.
 - Preserve authorship and original publish dates by setting them on each document.
+
+## This repository's seed scripts
+
+Two scripts stage the Beachfront rebuild into a single unpublished Migration
+release. They share [scripts/lib/prismic-migration.mjs](../scripts/lib/prismic-migration.mjs).
+
+| script                                                                | writes                                      | payload                                                                                |
+| --------------------------------------------------------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------- |
+| [scripts/seed-pages.mjs](../scripts/seed-pages.mjs)                   | the 5 `page` docs' slice assemblies         | [src/lib/beachfront-pages.js](../src/lib/beachfront-pages.js)                          |
+| [scripts/seed-entity-content.mjs](../scripts/seed-entity-content.mjs) | `person`, `news_article`, `collection_item` | [src/lib/beachfront-entities.js](../src/lib/beachfront-entities.js) + `PERSON_BEACHES` |
+
+Run `node scripts/seed-entity-content.mjs --dry-run` first — it prints every
+document it would stage and writes nothing.
+
+**One script per document type — this is a correctness rule, not a style
+preference.** The Migration API's `PUT /documents/{id}` **replaces** a
+document; it does not merge. And the staged version cannot be read back —
+`GET https://migration.prismic.io/documents` is rejected at the gateway (403)
+with the write-token credentials, so there is no way to rebuild a payload from
+"whatever is already in the release". A second script that assembles its payload
+from the **master** document therefore silently drops every field the first one
+staged, and which fields survive depends on the order the two were run. Add a
+field to an existing type by extending that type's existing script, never by
+adding a new one beside it.
+
+Push custom-type changes to Prismic **before** running a script that fills new
+fields, or the values land on documents whose model has no home for them.

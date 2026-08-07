@@ -18,6 +18,16 @@
           "multi": "paragraph,strong,em,hyperlink,list-item,o-list-item"
         }
       },
+      "teaser": {
+        "type": "Text",
+        "config": {
+          "label": "teaser (short card excerpt — falls back to the body lead)"
+        }
+      },
+      "order": {
+        "type": "Number",
+        "config": { "label": "roster order (lowest first; empty sorts last)" }
+      },
       "media": {
         "type": "Image",
         "config": { "label": "media", "constraint": {}, "thumbnails": [] }

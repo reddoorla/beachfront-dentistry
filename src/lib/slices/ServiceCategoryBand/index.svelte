@@ -11,6 +11,15 @@
     data: {
       title?: RichTextField;
       tags?: string | null;
+      // The panel prints an authored SHORT label, not the document title:
+      // live's Cosmetic Dentistry panel links read "dental veneers" while the
+      // detail page's h2 reads "Dental Veneers" (both text-transform:none), and
+      // three differ outright ("oral cancer screening" for Oral Cancer
+      // Dentistry, "Mi paste / Mi Paste plus", "Nitrous oxide (n2O)").
+      link_label?: string | null;
+      // Position within the category panel. Prismic's default document order
+      // matches live in none of the four panels, so the sort key is authored.
+      order?: number | null;
     };
   };
   // One category card in the `grid` variation.
@@ -36,19 +45,29 @@
 
   let { slice, context }: Props = $props();
 
+  // The panel's wording, falling back to the document title when no author has
+  // set a short label (so this slice still reads correctly on other sites).
   const titleText = (doc: CollectionItemDoc): string =>
+    doc.data.link_label?.trim() ||
     asText((doc.data.title ?? []) as RichTextField);
 
   // The tags field is a comma-separated STRING on collection_item docs (e.g.
   // "Cosmetic Dentistry" or "General Dentistry, Specialty Services"), not a
-  // Prismic tags array — split/trim it into a parsed list per doc.
+  // Prismic tags array — split/trim it into a parsed list per doc. Sorted by
+  // the authored `order`; docs without one keep their source position, last.
+  const rank = (doc: CollectionItemDoc) =>
+    typeof doc.data.order === "number"
+      ? doc.data.order
+      : Number.POSITIVE_INFINITY;
   const docsFor = (tag?: string | null): CollectionItemDoc[] =>
-    (context?.collections?.collection_item ?? []).filter((doc) =>
-      (doc.data.tags ?? "")
-        .split(",")
-        .map((t) => t.trim())
-        .includes(tag ?? ""),
-    );
+    (context?.collections?.collection_item ?? [])
+      .filter((doc) =>
+        (doc.data.tags ?? "")
+          .split(",")
+          .map((t) => t.trim())
+          .includes(tag ?? ""),
+      )
+      .sort((a, b) => rank(a) - rank(b));
 
   // default variation still shows one category's matching docs.
   let matchingDocs = $derived(docsFor(slice.primary.category_tag));
@@ -74,12 +93,12 @@
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="mx-auto max-w-[1400px] px-[5%] md:px-9 lg:px-[60px]"
+    class="mx-auto max-w-[1400px] px-[5%] xs:px-[8%] md:px-12 lg:px-[60px]"
   >
     {#if isFilled.richText(slice.primary.intro)}
       <!-- `.we-offer-section`: centered cyan slab intro, capped ~620px. -->
       <div
-        class="mx-auto my-8 max-w-[620px] text-center font-slab text-[20px] leading-[30px] font-light text-[#129ecc] lg:mb-10 lg:text-[30px] lg:leading-[45px] [&_p]:text-[20px] [&_p]:lg:text-[30px]"
+        class="mx-auto my-8 max-w-[620px] text-center font-slab text-[20px] leading-[30px] font-light text-[#129ecc] lg:mb-10 lg:text-[30px] lg:leading-[45px] [&_p]:text-[20px] [&_p]:leading-[30px] [&_p]:lg:text-[30px] [&_p]:lg:leading-[45px]"
         use:animateIn={LIVE_REVEAL}
       >
         <PrismicRichText field={slice.primary.intro} />
@@ -91,13 +110,28 @@
          row and below the last. Mobile: 408px cards in 504px tracks → 96px
          between + 48px top/bottom. gap-y covers the inter-row gutter; the
          edge slack is the container's own py (py-12=48 / lg:py-20=80). -->
+    <!-- `.service-grid.my-8` also carries `margin: 2rem 0` = 48 / 64 / 80, and
+         that margin sits OUTSIDE the grid box: live's section ends flush with
+         the grid and the 80px below it is the collapsed `my-8`. We had only the
+         40/32/24 the next section's own leading margin collapses out, so the
+         last region was one `1rem` short at every viewport (-40/-32/-24).
+         Bottom only — a matching `mt` would move the section's border box,
+         which is where the "Cosmetic Dentistry" region is cut. -->
     <div
-      class="grid grid-cols-1 justify-items-center gap-y-[96px] py-12 md:grid-cols-2 lg:gap-y-[160px] lg:py-20"
+      class="mb-12 grid grid-cols-[384px] justify-start justify-items-center gap-y-[96px] py-12 md:mb-16 md:grid-cols-[512px] md:justify-center md:gap-y-[128px] md:py-16 lg:mb-20 lg:grid-cols-[640px_640px] lg:gap-y-[160px] lg:py-20"
     >
       {#each categories as cat (asText((cat.heading ?? []) as RichTextField))}
         {@const [col1, col2] = splitCols(docsFor(cat.category_tag))}
-        <article
-          class="service-block relative h-[408px] w-full max-w-[312px] rounded-[25px] bg-[#e7f5fa] lg:h-[640px] lg:max-w-[600px]"
+        <!-- A DIV, as live's `.service-block` is. page-diff's anchor finder
+             only looks at h1-h6,p,a,li,span,div,section,button — `article` is
+             not in that list, so with an <article> here the "General Dentistry"
+             cut skipped our card box entirely and landed on the inner 60%
+             block 80px lower, comparing misaligned windows (region 680 against
+             live's 800). The card is a navigational panel of links under an h3,
+             not standalone syndicated content, so the element is div either
+             way; this just stops the two pages being cut in different places. -->
+        <div
+          class="service-block relative h-[408px] w-full max-w-[312px] rounded-[25px] bg-[#e7f5fa] xs:max-w-[360px] md:h-[608px] md:max-w-[480px] lg:h-[640px] lg:max-w-[600px]"
           use:animateIn={LIVE_REVEAL}
         >
           <!-- Tooth icon straddling the top-right edge (live `.service-block-teef`,
@@ -106,20 +140,20 @@
             src="/icons/service-tooth.svg"
             alt=""
             aria-hidden="true"
-            class="pointer-events-none absolute -top-[30px] right-9 z-10 size-[60px] lg:-top-[50px] lg:right-[60px] lg:size-[100px]"
+            class="pointer-events-none absolute -top-[30px] right-9 z-10 size-[60px] md:-top-10 md:right-12 md:size-20 lg:-top-[50px] lg:right-[60px] lg:size-[100px]"
           />
 
           <!-- Top 60%: heading (light cyan slab) + intro (slate), left-aligned. -->
           <div class="h-[60%] text-left">
-            <div class="mx-[18px] mt-12 lg:mx-[30px] lg:mt-20">
+            <div class="mx-[18px] mt-12 md:mx-6 md:mt-16 lg:mx-[30px] lg:mt-20">
               <div
-                class="mb-6 lg:mb-10 [&_h3]:font-slab [&_h3]:text-[21px] [&_h3]:leading-[26px] [&_h3]:font-light [&_h3]:text-[#129ecc] lg:[&_h3]:text-[40px] lg:[&_h3]:leading-[50px]"
+                class="h-primary-lg mb-6 md:mb-8 lg:mb-10 [&_h3]:font-slab [&_h3]:text-[21px] [&_h3]:leading-[26px] [&_h3]:font-light lg:[&_h3]:text-[40px] lg:[&_h3]:leading-[50px]"
               >
                 <PrismicRichText field={(cat.heading ?? []) as RichTextField} />
               </div>
               {#if isFilled.richText(cat.intro)}
                 <div
-                  class="pr-6 lg:pr-10 [&_p]:text-[13px] [&_p]:leading-[19.5px] [&_p]:font-light [&_p]:text-[#365b6d] lg:[&_p]:text-[20px] lg:[&_p]:leading-[30px]"
+                  class="pr-6 md:pr-8 lg:pr-10 [&_p]:text-[13px] [&_p]:leading-[19.5px] [&_p]:font-light [&_p]:text-[#365b6d] md:[&_p]:text-[15px] md:[&_p]:leading-[22.5px] lg:[&_p]:text-[20px] lg:[&_p]:leading-[30px]"
                 >
                   <PrismicRichText field={cat.intro} />
                 </div>
@@ -130,17 +164,17 @@
           <!-- Bottom 40%: cyan link panel with the live dark-gradient-up wash;
                two columns of vertically-stacked uppercase slab links. -->
           <div
-            class="relative h-[40%] overflow-hidden rounded-b-[25px] px-[6px] lg:px-[10px]"
-            style="background:linear-gradient(#129ecc 40%, rgba(54,91,109,0.57))"
+            class="relative h-[40%] overflow-hidden rounded-b-[25px] px-[6px] pb-[6px] md:px-2 md:pb-2 lg:px-[10px] lg:pb-[10px]"
+            style="background-color:#129ecc; background-image:linear-gradient(#129ecc 40%, rgba(54,91,109,0.57))"
           >
             <div class="flex h-full">
               {#each [col1, col2] as col, i (i)}
-                <ul class="w-1/2 pt-3 pl-3 lg:pt-5 lg:pl-5">
+                <ul class="w-1/2 pt-3 pl-3 md:pt-4 md:pl-4 lg:pt-5 lg:pl-5">
                   {#each col as doc (doc.uid)}
                     <li>
                       <a
                         href="/services/{doc.uid}"
-                        class="focus-visible:ring-primary-deep flex items-center gap-1 font-slab text-[7px] leading-[19.25px] font-bold tracking-[1.28px] text-white uppercase underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-hidden lg:text-[14px] lg:leading-[38.5px]"
+                        class="focus-visible:ring-primary-deep flex items-center gap-1 font-slab text-[7px] leading-[19.25px] font-bold tracking-[1.28px] text-white uppercase underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-hidden md:text-[9px] md:leading-[24.75px] lg:text-[14px] lg:leading-[38.5px]"
                       >
                         <span>{titleText(doc)}</span>
                         <svg
@@ -163,7 +197,7 @@
               {/each}
             </div>
           </div>
-        </article>
+        </div>
       {/each}
     </div>
   </section>

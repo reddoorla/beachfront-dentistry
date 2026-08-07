@@ -1,63 +1,77 @@
 <script lang="ts">
   import { asLink, isFilled } from "@prismicio/client";
-  import { PrismicImage } from "@prismicio/svelte";
-  import RichTextBody from "$lib/components/RichTextBody.svelte";
+  import DetailHero from "$lib/components/DetailHero.svelte";
+  import DetailIntro from "$lib/components/DetailIntro.svelte";
+  import DetailBody from "$lib/components/DetailBody.svelte";
+  import OutlineButton from "$lib/components/OutlineButton.svelte";
   import CtaBand from "$lib/components/CtaBand.svelte";
+  import { CTA_BEACH } from "$lib/cta-beach";
   import { splitLede } from "./lede";
+  import type { ImageField } from "@prismicio/client";
   import type { PageData } from "./$types";
+
+  // Matches live `/services/<uid>`: a shared reception-photo hero with a
+  // "Services / <category>" breadcrumb, then the big cyan title + cyan
+  // right-indented lede, then the dark body, then the shared closing CTA.
 
   let { data }: { data: PageData } = $props();
 
-  // The body's opening paragraph reads as the page's lede — styled larger
-  // and set off from the rest, matching the live site (`collection_item`
-  // has no separate excerpt field, so it's split out of `body`, never
-  // duplicated). Promoted ONLY when a paragraph is the body's FIRST block:
-  // hoisting one from deeper in would silently reorder a body that opens
-  // with a heading or image. Rule + rationale live in ./lede.ts.
+  // The body's opening paragraph reads as the page's lede — split out of body
+  // (collection_item has no separate excerpt field), never duplicated. See
+  // $lib/detail-lede.
   const split = $derived(splitLede(data.doc.data.body));
-  const lede = $derived(split.lede);
-  const restBody = $derived(split.rest);
+
+  // Live's service hero is the service's OWN image (an <img> over the `.hero
+  // .reception` band — e.g. dental-exams shows "running-into-our-golden-years",
+  // implants show the implant diagram). doc.data.media is the Prismic-migrated
+  // version (imgix url — clears the app CSP directly). The shared reception
+  // photo is only the base that shows through when a service has no media, so
+  // it's served from /static (CSP) as the fallback, matching live.
+  const heroReception: ImageField = {
+    url: "/images/service-hero.jpg",
+    alt: null,
+    copyright: null,
+    dimensions: { width: 1600, height: 1067 },
+    id: "service-hero",
+    edit: { x: 0, y: 0, zoom: 1, background: "transparent" },
+  };
+  const heroImage = $derived(
+    isFilled.image(data.doc.data.media) ? data.doc.data.media : heroReception,
+  );
+  const crumb = $derived(
+    `Services${data.category ? ` / ${data.category}` : ""}`,
+  );
 
   // The live site embeds a YouTube player via this doc's `link` field on
-  // services that have one — anything else in `link` (or an unfilled field)
-  // renders no iframe.
+  // services that have one — anything else (or an unfilled field) renders none.
   const linkHref = $derived(asLink(data.doc.data.link));
   const youtubeUrl = $derived(
     linkHref?.includes("youtube.com/embed") ? linkHref : undefined,
   );
 </script>
 
-<div class="mx-auto max-w-3xl px-6 pt-32 text-sm">
-  <nav aria-label="Breadcrumb">
-    <a
-      href="/services"
-      class="font-medium tracking-widest uppercase hover:opacity-70 focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
-    >
-      Services
-    </a>
-    {#if data.category}<span aria-hidden="true"> / </span>{data.category}{/if}
-  </nav>
-</div>
+<DetailHero backgroundImage={heroImage} label={crumb} labelSize="crumb" />
 
-<article class="mx-auto max-w-3xl px-6 py-10">
-  <h1 class="text-3xl font-light text-dark">{data.title}</h1>
-  {#if lede}
-    <p class="mt-4 text-lg text-secondary">{lede}</p>
-  {/if}
+<DetailIntro title={data.title} lede={split.lede} titleSize="xl" />
 
-  <div class="richtext-block mt-8">
-    <RichTextBody field={restBody} />
-  </div>
-
-  {#if isFilled.image(data.doc.data.media)}
-    <PrismicImage
-      field={data.doc.data.media}
-      class="mt-8 h-auto w-full rounded object-cover"
-    />
-  {/if}
+<!-- Live's `.service-page-body-section`: ~263px above the body heading, then
+     the body copy, then a centered "Back to All Services" pill (~80px above and
+     below) before the closing CTA. -->
+<!-- Top gap is a MARGIN, not padding: page-diff cuts the region at this
+     section's box top, so padding-top would fold the gap into the body region
+     (mismatching live, whose gap sits above the "What to expect" heading). -->
+<section
+  class="mx-auto mt-14 max-w-[1440px] px-5 md:px-12 lg:mt-[100px] lg:px-20"
+>
+  <!-- Live's body column is `._w-80pc.su-w-full-mobile.w-richtext`: 80%
+       (`beachfront.css:3561-3563`) dropping to 100% at <=767 (`:8426-8428`).
+       `max-w-[1024px]` happens to equal 80% at 1440 and nowhere else — at 834
+       it left the column 738 wide against live's 590, so the same copy wrapped
+       to 306px less height. -->
+  <DetailBody field={split.rest} class="w-full md:w-4/5" />
 
   {#if youtubeUrl}
-    <div class="mt-8 aspect-video w-full">
+    <div class="mt-8 aspect-video w-full max-w-[1020px]">
       <iframe
         src={youtubeUrl}
         title={`${data.title} video`}
@@ -68,6 +82,29 @@
       ></iframe>
     </div>
   {/if}
-</article>
+</section>
 
-<CtaBand />
+<!-- Live wraps the back-link in
+     `div.content-width.flex-align-center.flex-justify-center.my-8`, and `.my-8`
+     is `margin: 2rem 0` (`beachfront.css:3839-3842`) = 48 / 64 / 80. BOTH halves
+     are margin: page-diff cuts at this box's top, so the top gap belongs to the
+     body region above it and the bottom gap collapses into the CTA band. We had
+     invented 86/130 above and 108/80 below. -->
+<div
+  class="mx-auto my-12 flex max-w-[1440px] justify-center px-5 md:my-16 md:px-12 lg:my-20 lg:px-20"
+>
+  <!-- This back-link is `.button.text-color-primary-dark` with no `.mt-2`, so
+       the <=767 rule `beachfront.css:8636-8638` gives it `margin-bottom:60px`
+       — inside the flex holder, so live's holder is 98 tall at 390 against our
+       38. (The team back-link carries `.mt-2`, which overrides that margin to
+       0 and adds 12/16 above instead; the questions one has neither. Measured
+       on all three templates 2026-08-05.) -->
+  <OutlineButton
+    label="Back to All Services"
+    link="/services"
+    variant="teal"
+    class="mb-[60px] md:mb-0"
+  />
+</div>
+
+<CtaBand backgroundImage={CTA_BEACH} caption="FIJI ISLANDS" />

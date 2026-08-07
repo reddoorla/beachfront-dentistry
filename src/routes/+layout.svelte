@@ -83,11 +83,15 @@
        interaction and needs no keyboard handler or interactive role of its own. -->
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
   <div class="flex flex-col min-h-screen" onclick={interceptAppointment}>
+    <!-- logoClass: live's `.header-logo` is 2rem of its own stepped root —
+         48px @390, 64px across the tablet band, 80px at desktop. Only the
+         desktop 80 had ever been matched, so the mobile bar carried a logo
+         67% too big. -->
     <Nav
       navLinks={page.data.navLinks}
       items={siteConfig.nav.items}
       logo={siteConfig.nav.logo}
-      logoClass="h-20 w-auto"
+      logoClass="h-12 w-auto md:h-16 lg:h-20"
       transparentAtTop={navTransparentAtTop}
       hamburgerOnly
       hamburgerSrc="/icons/menu-white.svg"

@@ -121,6 +121,28 @@ interface CollectionItemDocumentData {
   body: prismic.RichTextField;
 
   /**
+   * link label (category-panel wording — falls back to title) field in *Collection Item*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: *None*
+   * - **API ID Path**: collection_item.link_label
+   * - **Tab**: Main
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  link_label: prismic.KeyTextField;
+
+  /**
+   * order within its category panel (lowest first) field in *Collection Item*
+   *
+   * - **Field Type**: Number
+   * - **Placeholder**: *None*
+   * - **API ID Path**: collection_item.order
+   * - **Tab**: Main
+   * - **Documentation**: https://prismic.io/docs/fields/number
+   */
+  order: prismic.NumberField;
+
+  /**
    * media field in *Collection Item*
    *
    * - **Field Type**: Image
@@ -363,6 +385,28 @@ interface NewsArticleDocumentData {
   body: prismic.RichTextField;
 
   /**
+   * summary (card excerpt — falls back to the body lead) field in *News Article*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: *None*
+   * - **API ID Path**: news_article.summary
+   * - **Tab**: Main
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  summary: prismic.KeyTextField;
+
+  /**
+   * home feature order (1 = hero card; empty = not featured) field in *News Article*
+   *
+   * - **Field Type**: Number
+   * - **Placeholder**: *None*
+   * - **API ID Path**: news_article.home_order
+   * - **Tab**: Main
+   * - **Documentation**: https://prismic.io/docs/fields/number
+   */
+  home_order: prismic.NumberField;
+
+  /**
    * media field in *News Article*
    *
    * - **Field Type**: Image
@@ -582,6 +626,28 @@ interface PersonDocumentData {
    * - **Documentation**: https://prismic.io/docs/fields/rich-text
    */
   body: prismic.RichTextField;
+
+  /**
+   * teaser (short card excerpt — falls back to the body lead) field in *Person*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: *None*
+   * - **API ID Path**: person.teaser
+   * - **Tab**: Main
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  teaser: prismic.KeyTextField;
+
+  /**
+   * roster order (lowest first; empty sorts last) field in *Person*
+   *
+   * - **Field Type**: Number
+   * - **Placeholder**: *None*
+   * - **API ID Path**: person.order
+   * - **Tab**: Main
+   * - **Documentation**: https://prismic.io/docs/fields/number
+   */
+  order: prismic.NumberField;
 
   /**
    * media field in *Person*

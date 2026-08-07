@@ -162,7 +162,18 @@ const ctaHero = (img) => ({
   slice_type: "hero",
   variation: "cta",
   primary: {
-    heading: [head(2, "Ready for great dental health?")],
+    // EMPTY ON PURPOSE — CtaBand owns this heading.
+    //
+    // Live hard-breaks it into three lines (`Ready for <br/>great dental
+    // <br/>health?`) and renders the identical band on every page, so it is
+    // chrome, not page content. Seeding the copy here put a SECOND source of
+    // truth into Prismic, and the Migration API strips `\n` out of
+    // StructuredText on write — so the seeded string came back unbroken and
+    // the five nav routes rendered the band 2 lines / 168px short while the
+    // detail routes (which take CtaBand's default) stayed correct at 3 lines.
+    // Sending nothing makes every surface render the one correct band; an
+    // editor can still type an override into Prismic per page.
+    heading: [],
     body: [],
     cta_label: "Book Appointment",
     cta_link: webLink("#appointment"),
@@ -267,7 +278,11 @@ export function assemblies(img) {
       {
         slice_type: "carousel",
         variation: "review",
+        // Selects live's `.home-ssb-section` wrapper margin (1.5rem → 60/48/36),
+        // which exists on the home document only — your-first-visit renders the
+        // same review slider with no section wrapper.
         primary: {
+          layout: "home",
           heading: [head(2, "Serving the South Bay for over 40 years")],
         },
         items: reviewItems(img),
@@ -422,6 +437,14 @@ export function assemblies(img) {
           collection_type: "person",
           max_items: 100,
           layout: "slider",
+          // Live sorts THIS list differently from /our-team's grid — a
+          // Collection List's sort is a per-list setting, and the two disagree:
+          // /our-team is Quan, Hopkins, Stacey, Enrique, Alicia, Linda,
+          // Michelle, Christina, Sabrina, Raquel, Lanette (= `person.order`),
+          // while the your-first-visit slider is the two doctors by surname
+          // then everyone alphabetically. Both orders read off live 2026-08-05.
+          order_uids:
+            "dr-michael-hopkins,dr-robert-quan,alicia,christina,enrique,lanette,linda,michelle,raquel,sabrina,stacey",
         },
         items: [],
       },
@@ -434,9 +457,17 @@ export function assemblies(img) {
         variation: "default",
         primary: {
           heading: [head(3, "First Exam")],
+          // Live emphasises one phrase inline — SPEC.md §11: "Contains an
+          // inline <strong>: 'We ask for 2 hours of your time.' — strong picks
+          // up font-weight:bold from the UA/Webflow reset; keep the tag." The
+          // migration dropped it, and text-diff sees it: live's paragraph is
+          // three text nodes to our one.
           intro: [
-            para(
-              "To be a long term health partner we need to really understand your current dental condition. We ask for 2 hours of your time. We are gentle but thorough to give you the best plan for the future. Here are the basic steps to that first exam:",
+            withStrong(
+              para(
+                "To be a long term health partner we need to really understand your current dental condition. We ask for 2 hours of your time. We are gentle but thorough to give you the best plan for the future. Here are the basic steps to that first exam:",
+              ),
+              "We ask for 2 hours of your time.",
             ),
           ],
           image: img(IMG.firstExam),
@@ -539,6 +570,13 @@ export function assemblies(img) {
         primary: {
           heading: [head(2, "Meet")],
           background_image: img(IMG.heroRedondo),
+          // Live styles THIS band's heading with `.meet-heading`, not
+          // `.subpage-hero-heading` — centred and full-width at every width
+          // (no media override), bottom .75rem. The subpage class instead goes
+          // left/80% below 992, which put "Meet" hard against the left edge.
+          heading_style: "meet",
+          // `.hero.redondo` -> background-position: 0 100%
+          image_position: "left-bottom",
           // Two heading2 blocks (not a raw string array) so the below-wave
           // "Our"/"Team" slab lines round-trip through Prismic — Hero/index
           // maps the blocks back to strings for SubpageHero.
@@ -567,6 +605,12 @@ export function assemblies(img) {
         primary: {
           heading: [head(2, "Services")],
           background_image: img(IMG.heroRedondo),
+          // `.hero.redondo` -> background-position: 0 100%
+          image_position: "left-bottom",
+          // /services is the ONE page whose hero markup carries NEITHER
+          // gradient div — its whole hero is the section, the bot-wave and the
+          // h2 (matching/spec/services-top.html). Every other subpage has both.
+          hero_wash: false,
         },
         items: [],
       },
@@ -633,6 +677,8 @@ export function assemblies(img) {
         primary: {
           heading: [head(2, "Ask the Doctor")],
           background_image: img(IMG.firstExam),
+          // `.hero.ask-a-dentist` -> background-position: 50% 0
+          image_position: "top",
         },
         items: [],
       },

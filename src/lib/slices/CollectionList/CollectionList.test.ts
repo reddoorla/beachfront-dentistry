@@ -202,3 +202,96 @@ describe("CollectionList slice — tags line + detail-route links", () => {
     ).toBe("/team-members/dr-jane-smith");
   });
 });
+
+// The person card's excerpt and the roster order are AUTHORED fields
+// (person.teaser / person.order), not derived from the bio or from Prismic's
+// document order — see the notes on `teamRank` and the personCard snippet.
+describe("CollectionList slice — people variation reads its authored fields", () => {
+  const peopleSlice = {
+    slice_type: "collection_list",
+    variation: "people",
+    primary: {
+      heading: [{ type: "heading2", text: "Our Team", spans: [] }],
+      collection_type: "person",
+      max_items: 24,
+    },
+    items: [],
+  } as unknown as Content.CollectionListSlice;
+
+  const person = (
+    uid: string,
+    name: string,
+    extra: Record<string, unknown> = {},
+  ) => ({
+    uid,
+    type: "person",
+    data: {
+      title: [{ type: "heading3", text: name, spans: [] }],
+      tags: "Dental Hygienist",
+      body: [
+        {
+          type: "paragraph",
+          text: `${name} joined the practice in 2019.`,
+          spans: [],
+        },
+      ],
+      ...extra,
+    },
+  });
+
+  it("prints person.teaser rather than the bio when an author has set one", () => {
+    const { getByText, queryByText } = render(CollectionList, {
+      props: {
+        slice: peopleSlice,
+        context: {
+          collections: {
+            person: [
+              person("stacey", "Stacey", {
+                teaser: "A hand-cut card teaser...",
+              }),
+            ],
+          },
+        } as never,
+      },
+    });
+    expect(getByText("A hand-cut card teaser...")).toBeTruthy();
+    expect(queryByText("Stacey joined the practice in 2019.")).toBeNull();
+  });
+
+  it("falls back to the bio for a person whose teaser is empty", () => {
+    const { getByText } = render(CollectionList, {
+      props: {
+        slice: peopleSlice,
+        context: {
+          collections: {
+            person: [person("stacey", "Stacey", { teaser: "  " })],
+          },
+        } as never,
+      },
+    });
+    expect(getByText("Stacey joined the practice in 2019.")).toBeTruthy();
+  });
+
+  it("sorts the roster by person.order, leaving docs without one at the end", () => {
+    const { getAllByRole } = render(CollectionList, {
+      props: {
+        slice: peopleSlice,
+        context: {
+          collections: {
+            person: [
+              person("linda", "Linda", { order: 3 }),
+              person("unranked", "Unranked"),
+              person("dr-quan", "Dr. Quan", { order: 1 }),
+              person("stacey", "Stacey", { order: 2 }),
+            ],
+          },
+        } as never,
+      },
+    });
+    // each card links its name; the headshot link is absent (no media).
+    const names = getAllByRole("link")
+      .map((a) => a.textContent?.trim())
+      .filter((t) => t && !t.startsWith("Read More"));
+    expect(names).toEqual(["Dr. Quan", "Stacey", "Linda", "Unranked"]);
+  });
+});

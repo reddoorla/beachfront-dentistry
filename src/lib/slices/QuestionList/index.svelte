@@ -21,6 +21,10 @@
       body?: RichTextField;
       media?: ImageField;
       date?: string | null;
+      // authored card excerpt (news_article.summary) — see `teaserText`
+      summary?: string | null;
+      // position in the home page's featured row (news_article.home_order)
+      home_order?: number | null;
     };
   };
 
@@ -48,29 +52,13 @@
     return lead ? asText([lead] as RichTextField) : "";
   };
 
-  // Live's card excerpt is a hand-written Webflow teaser, NOT the article
-  // body's lead paragraph (verified against live 2026-08-02: only 1 of the 6
-  // leads matches its card's excerpt). The import didn't capture that field
-  // and news_article has no summary field, so — like the curated selection
-  // below — live's teasers are pinned verbatim by uid, with the lead
-  // paragraph as the fallback for other docs. (TODO: promote to a CMS field
-  // once Slice Machine is wired.)
-  const TEASERS: Record<string, string> = {
-    "regular-dental-cleanings-support-your-whole-body-health":
-      "Routine cleanings aren’t just about keeping your smile bright—they’re a powerful tool for protecting your entire body",
-    "best-routine-for-my-dental-health":
-      "This simple and effective daily routine will keep your smile healthy and bright between visits.",
-    "do-teeth-turn-yellow-as-you-age":
-      'Tooth discoloration and "Do Teeth Turn Yellow As You Age?" is one of the most common patient concerns/questions that we hear each day. There are a number of reasons why your teeth may...',
-    "creating-perfect-smiles-artistry-or-science":
-      "We’re often asked: Is cosmetic dentistry more of an art or a science? Our answer? It’s both—beautifully intertwined.",
-    "tooth-broke-off":
-      "If your tooth broke off, it is a serious dental problem, whether or not it hurts. The lack of pain implies that you have only a minor break; however, even these sorts of tooth injuries...",
-    "why-does-my-tooth-hurt-when-i-bite-down":
-      "Pain when biting down can signal a cracked tooth, cavity, or infection. Learn common causes, what helps, and when dental care is needed.",
-  };
+  // The card excerpt is AUTHORED (`news_article.summary`), not the article
+  // body's lead paragraph: 18 of the 40 live summaries are not even a prefix
+  // of their body, and the 22 that are all cut at a different point. It is a
+  // real CMS field, so it is read from the document; the lead paragraph stays
+  // as the fallback for a doc whose summary an author hasn't filled in.
   const teaserText = (doc: NewsArticleDoc): string =>
-    TEASERS[doc.uid] ?? leadParagraphText(doc);
+    doc.data.summary?.trim() || leadParagraphText(doc);
 
   // collections-load fetches via a plain `getAllByType` with no ordering, so the
   // slice sorts itself — newest first. This date order is the site's canonical
@@ -87,38 +75,16 @@
     new Map(sortedDocs.map((doc, i) => [doc.uid, i + 1])),
   );
 
-  // The home teaser is an editorial pick, not "newest N": live features one hero
-  // question (no number) then five specific ones, each showing its catalog
-  // number. Webflow stored that as a "featured" flag; the import didn't capture
-  // it and the news_article model has no such field, so the selection is pinned
-  // here by uid, ported verbatim from the live home page. (TODO: promote to a
-  // CMS field once Slice Machine is wired.) Other sites reusing this slice fall
-  // back to newest-N below.
-  const FEATURED_UID =
-    "regular-dental-cleanings-support-your-whole-body-health";
-  const CURATED_UIDS = [
-    "best-routine-for-my-dental-health",
-    "do-teeth-turn-yellow-as-you-age",
-    "creating-perfect-smiles-artistry-or-science",
-    "tooth-broke-off",
-    "why-does-my-tooth-hurt-when-i-bite-down",
-  ];
-
-  // Each teaser card carries its doc + the number to print (null = hero card).
+  // The home row is an editorial pick, not "newest N": one hero question then
+  // five specific ones, each still showing its CATALOG number. That selection
+  // is authored (`news_article.home_order`, 1 = hero) — a doc with no
+  // home_order simply isn't featured. Sites that haven't filled the field in
+  // fall back to newest-N below, so the slice still works uncurated.
   let teaserCards = $derived.by(() => {
-    const byUid = new Map(sortedDocs.map((doc) => [doc.uid, doc]));
-    const cards: { doc: NewsArticleDoc; number: number | null }[] = [];
-    const featured = byUid.get(FEATURED_UID);
-    if (featured)
-      cards.push({
-        doc: featured,
-        number: canonicalNumber.get(FEATURED_UID) ?? 1,
-      });
-    for (const uid of CURATED_UIDS) {
-      const doc = byUid.get(uid);
-      if (doc) cards.push({ doc, number: canonicalNumber.get(uid) ?? null });
-    }
-    // Fallback for other sites / missing curated docs: newest N, hero first.
+    const cards = sortedDocs
+      .filter((doc) => isFilled.number(doc.data.home_order))
+      .sort((a, b) => (a.data.home_order ?? 0) - (b.data.home_order ?? 0))
+      .map((doc) => ({ doc, number: canonicalNumber.get(doc.uid) ?? null }));
     if (cards.length <= 1) {
       const n = isFilled.number(slice.primary.max_items)
         ? slice.primary.max_items
@@ -142,7 +108,7 @@
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="relative -mt-[193px] mx-auto max-w-4xl px-[19.5px] py-20 lg:-mt-[320px] lg:px-6"
+    class="relative -mt-[193px] mx-auto max-w-4xl px-[19.5px] py-20 md:-mt-64 lg:-mt-80 lg:px-6"
   >
     <!-- Live's .qa-block width is 480px across the WHOLE ≤991 range (100% capped
          at max-width:20rem), widening to 600 only at desktop (≥992). An earlier
@@ -208,6 +174,7 @@
               doc={card.doc}
               number={card.number}
               teaser={teaserText(card.doc)}
+              variant="teaser"
             />
           </li>
         {/each}
@@ -216,10 +183,10 @@
       <!-- Live "View All Questions" = `.button.text-color-primary`: the
            light-blue (#129ecc) bordered slab pill, 67px tall at desktop —
            not a neutral rounded-full ghost. -->
-      <div class="mt-12 text-center" use:animateIn={LIVE_REVEAL}>
+      <div class="text-center" use:animateIn={LIVE_REVEAL}>
         <a
           href="/ask-the-doctor"
-          class="font-slab focus-visible:ring-primary-deep inline-flex h-[41px] items-center rounded-lg border border-[#129ecc] px-[15px] text-[14px] font-light text-[#129ecc] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:text-[20px] lg:h-[67px] lg:px-[25px] lg:text-[25px]"
+          class="font-slab focus-visible:ring-primary-deep inline-flex items-center rounded-lg border border-[#129ecc] px-[1em] py-[1.3em] text-[14px] leading-[0] font-light text-[#129ecc] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:text-[20px] lg:text-[25px]"
         >
           View All Questions
         </a>
@@ -237,21 +204,24 @@
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="mx-auto max-w-[1400px] px-[5%] py-8 min-[480px]:px-[8%] md:px-9 lg:px-[60px]"
+    class="mx-auto max-w-[1400px] px-[5%] min-[480px]:px-[8%] md:px-12 lg:px-[60px]"
   >
     {#if isFilled.richText(slice.primary.heading)}
       <div class="mb-8" use:animateIn={LIVE_REVEAL}>
         <PrismicRichText field={slice.primary.heading} />
       </div>
     {/if}
-    <div class="grid grid-cols-1 md:grid-cols-2">
+    <!-- live's `.content-width.my-8` = 2rem block margins against the stepped
+         root (48/64/80px), NOT the flat 32px section padding we had: the whole
+         40-card grid sat 48/32/16px high and lost the same again below. -->
+    <div class="my-12 grid grid-cols-1 md:my-16 md:grid-cols-2 lg:my-20">
       {#each sortedDocs as doc (doc.uid)}
         <!-- Each cell mirrors live's `.ask-the-doctor-collection-item`: the
              `.w-col-6` padding 0 10px (the 10px column gutter that makes the
              card 331 wide @390 / 600 @1440), and the fixed 520px cell over a
              400 card — i.e. ~120px of empty space below each card at desktop
              (top-aligned), 12px at mobile (the qa-block's own margin). -->
-        <div class="px-[10px] pb-3 lg:px-[20px] lg:pb-[120px]">
+        <div class="px-[10px] pb-3 md:pb-[96px] lg:px-[10px] lg:pb-[120px]">
           <QuestionCard
             {doc}
             number={canonicalNumber.get(doc.uid) ?? null}
@@ -259,6 +229,21 @@
           />
         </div>
       {/each}
+    </div>
+    <!-- Live closes the list with a `.content-width` row carrying a cyan
+         outline `Back to Top` pill (`<a href="#hero" class="button
+         text-color-primary">`). It was the only whole element missing from
+         this page — and because the gate anchors on it, its absence hard-failed
+         the whole ask-the-doctor run. Rect matched per the ledgered pill
+         convention (match the RENDERED box, not live's line-height:0 trick):
+         116.6x41 <=767 / 154.8x54 tablet / 193x67 desktop. -->
+    <div class="flex items-center justify-center">
+      <a
+        href="#hero"
+        class="font-slab px-[1em] py-[1.3em] leading-[0] focus-visible:ring-primary-deep inline-flex items-center rounded-lg border border-[#129ecc] text-[14px] font-light whitespace-nowrap text-[#129ecc] xs:text-[15px] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:text-[25px]"
+      >
+        Back to Top
+      </a>
     </div>
   </section>
 {/if}

@@ -1,24 +1,61 @@
 <script lang="ts">
-  import RichTextBody from "$lib/components/RichTextBody.svelte";
+  import DetailHero from "$lib/components/DetailHero.svelte";
+  import DetailIntro from "$lib/components/DetailIntro.svelte";
+  import DetailBody from "$lib/components/DetailBody.svelte";
+  import OutlineButton from "$lib/components/OutlineButton.svelte";
   import CtaBand from "$lib/components/CtaBand.svelte";
+  import { CTA_BEACH } from "$lib/cta-beach";
+  import { splitLede } from "$lib/detail-lede";
   import type { PageData } from "./$types";
 
+  // Matches live `/questions/<uid>`: the question's OWN image as a hero band
+  // with a "Blog / View All Posts" breadcrumb, then the big cyan title + cyan
+  // right-indented lede, then the dark body, a "Have another question?" link,
+  // and the shared closing CTA.
+
   let { data }: { data: PageData } = $props();
+
+  // First body paragraph reads as the lede (news_article has no excerpt field),
+  // never duplicated. See $lib/detail-lede.
+  const split = $derived(splitLede(data.doc.data.body));
 </script>
 
-<article class="mx-auto max-w-3xl px-6 pt-32 pb-16">
-  <a
-    href="/ask-the-doctor"
-    class="text-sm font-medium tracking-widest uppercase hover:opacity-70 focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
-  >
-    <span aria-hidden="true">←</span> All questions
-  </a>
+<!-- Hero bg is this question's own media (a Prismic imgix url — clears the app
+     CSP directly, no static asset needed). -->
+<DetailHero
+  backgroundImage={data.doc.data.media}
+  label="Blog / View All Posts"
+  labelSize="crumb"
+/>
 
-  <h1 class="mt-6 text-3xl font-light text-dark">{data.title}</h1>
+<DetailIntro title={data.title} lede={split.lede} titleSize="lg" />
 
-  <div class="richtext-block mt-6">
-    <RichTextBody field={data.doc.data.body} />
-  </div>
-</article>
+<!-- Live's lede→body gap is 20px mobile / 40px desktop, as a MARGIN (page-diff
+     cuts at this section's box top, so padding would fold the gap into the body
+     region instead of above the "At Beachfront" heading). -->
+<section
+  class="mx-auto mt-[20px] max-w-[1440px] px-5 md:mt-[40px] md:px-12 lg:mt-[40px] lg:px-20"
+>
+  <!-- The Q&A bodies were authored with a trailing <br> above each sub-heading
+       rather than the empty block the service bodies use (28px vs 38px) — see
+       DetailBody. -->
+  <DetailBody field={split.rest} class="max-w-[1024px]" subheadingGap="break" />
+</section>
 
-<CtaBand />
+<!-- Live's `.other-questions-section`: a centered cyan "Have another question?"
+     `.button` outline pill back to the Ask-the-Doctor grid, ~80px above and
+     below before the closing CTA. -->
+<!-- Top gap is a MARGIN (page-diff cuts at this box's top, so padding-top would
+     count into the pill region instead of the body above it); the pill→CTA gap
+     stays padding, inside the pill region. -->
+<div
+  class="mx-auto mt-[86px] flex max-w-[1440px] justify-center px-5 md:px-12 lg:mt-[130px] lg:px-20"
+>
+  <OutlineButton
+    label="Have another question?"
+    link="/ask-the-doctor"
+    variant="cyan"
+  />
+</div>
+
+<CtaBand backgroundImage={CTA_BEACH} caption="FIJI ISLANDS" />

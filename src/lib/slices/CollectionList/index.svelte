@@ -26,6 +26,10 @@
       // person docs carry a bio (`body`) and a favorite-beach `gallery` group
       // (image + caption) — the `people` variation's teaser + bottom banner.
       body?: RichTextField;
+      // authored card excerpt (person.teaser) and editorial roster position
+      // (person.order) — see `teamRank` and the personCard snippet.
+      teaser?: string | null;
+      order?: number | null;
       gallery?: {
         image?: { url?: string; alt?: string | null };
         caption?: string | null;
@@ -47,6 +51,10 @@
       // `people`: "grid" (default, /our-team) or "slider" (your-first-visit's
       // Meet-Our-Team horizontal person-card slider under a big cyan heading).
       layout?: string | null;
+      // Comma-separated uids. A Collection List's sort is a per-LIST setting,
+      // so a page whose order differs from `person.order` carries its own here
+      // rather than fighting the shared field.
+      order_uids?: string | null;
     };
     items: unknown[];
   };
@@ -63,35 +71,33 @@
 
   let { slice, context }: Props = $props();
 
-  // Live pins an editorial team order (the two doctors first, then staff in a
-  // hand-set sequence). getAllByType returns Prismic's default order, so the
-  // `team` variation re-sorts its roster to match live. Pinned by uid, ported
-  // verbatim from the live home page; docs not listed keep their source order
-  // at the end. (TODO: promote to a CMS ordering field once Slice Machine is
-  // wired.)
-  const TEAM_ORDER = [
-    "dr-robert-quan",
-    "dr-michael-hopkins",
-    "stacey",
-    "enrique",
-    "alicia",
-    "linda",
-    "michelle",
-    "christina",
-    "sabrina",
-    "raquel",
-    "lanette",
-  ];
-  const teamRank = (uid: string) => {
-    const i = TEAM_ORDER.indexOf(uid);
-    return i === -1 ? Number.POSITIVE_INFINITY : i;
+  // The roster order is editorial (the two doctors first, then staff in a
+  // hand-set sequence) and getAllByType returns Prismic's own document order,
+  // so the `team`/`people` variations sort on the authored `order` field. A
+  // doc with no order keeps its source position, at the end.
+  const teamRank = (doc: CollectionDoc) =>
+    typeof doc.data.order === "number"
+      ? doc.data.order
+      : Number.POSITIVE_INFINITY;
+  // An explicit per-list uid sequence wins over `person.order`; uids it does
+  // not name keep their `order` rank behind the named ones, so a newly added
+  // person still renders rather than vanishing from the list.
+  const listOrder = $derived(
+    ((slice.primary as { order_uids?: string | null }).order_uids ?? "")
+      .split(",")
+      .map((u) => u.trim())
+      .filter(Boolean),
+  );
+  const rankOf = (doc: CollectionDoc) => {
+    const i = listOrder.indexOf(doc.uid);
+    return i === -1 ? listOrder.length + teamRank(doc) : i;
   };
   let docs = $derived.by(() => {
     const all =
       context?.collections?.[slice.primary.collection_type ?? ""] ?? [];
     const ordered =
       slice.variation === "team" || slice.variation === "people"
-        ? [...all].sort((a, b) => teamRank(a.uid) - teamRank(b.uid))
+        ? [...all].sort((a, b) => rankOf(a) - rankOf(b))
         : all;
     return ordered.slice(0, slice.primary.max_items ?? 24);
   });
@@ -151,34 +157,60 @@
   {/if}
 {/snippet}
 
-{#snippet personCard(doc: CollectionDoc)}
+{#snippet personCard(doc: CollectionDoc, variant: "grid" | "slider" = "grid")}
   <!-- live `.team-list-item` (320×480 / 303×384, bg #E7F5FA, radius 20): a
        circular headshot straddling the top edge, then name (cyan slab) / role
        (teal sans caps) / bio teaser (teal, 3-line clamp) / READ MORE, with the
        favorite-beach banner + white caption pinned across the card bottom. -->
   {@const href = hrefFor(doc)}
   {@const name = asText(doc.data.title as RichTextField)}
-  {@const bio = asText((doc.data.body ?? []) as RichTextField)}
+  <!-- The card excerpt is AUTHORED (`person.teaser`), not a clamp of the bio:
+       9 of live's 11 teasers are a prefix of the body but every cut point is
+       different, and 2 don't match the body at all. Read it from the doc; a
+       person whose teaser an author hasn't filled falls back to the bio. -->
+  {@const bio =
+    doc.data.teaser?.trim() || asText((doc.data.body ?? []) as RichTextField)}
   {@const beach = doc.data.gallery?.[0]}
+  <!-- Live's `.team-list-item.m-2` is sized in REM against its stepped root:
+         <=479    100% x 16rem  mt 4rem            -> 303x384  mt 96
+         480-767  16rem x 24rem m 8rem 1rem 1rem   -> 384x576  mt 192 mx 24
+         768-991  16rem x 24rem m 8rem 1rem 1rem   -> 512x768  mt 256 mx 32
+         >=992    8rem x 12rem  mt 4rem            -> 320x480  mt 160 mx 20
+       The yfv Meet-Our-Team SLIDER is the same element plus `.display-inline`,
+       which overrides the width at the two EXTREMES only — 8.5rem (340) at
+       >=992 and 10rem x 18rem (240x432) at <=479. Between 480 and 991 the two
+       are byte-identical, so gating the tablet tiers off for the slider (the
+       earlier reading of this) left it rendering the phone card across the
+       whole band and cost the section 846px of height at 834. -->
+  <!-- The top margin (live `.m-2` `beachfront.css:6538-6540` / ≤991 `:8183-8187`
+       / ≤479 `:9271-9276`) stays on the CARD in the grid, where the card is the
+       outermost per-card box exactly as it is on live. In the SLIDER it moves
+       to the Slider's cell (`slideClass` below), because there the cell is the
+       outermost per-card box and live has no cell — leaving the margin here put
+       our card box 160/256/96px below the box the reference draws, which is
+       where page-diff cuts the "Dr. Robert Quan" region. -->
   <article
-    class="team-list-item relative mx-6 mt-24 mb-6 h-96 w-[303px] rounded-[20px] bg-[#e7f5fa] lg:mx-5 lg:mt-40 lg:mb-5 lg:h-[480px] lg:w-80"
+    class="team-list-item relative mx-6 mb-6 rounded-[20px] bg-[#e7f5fa] xs:h-[576px] xs:w-[384px] md:mx-8 md:mb-8 md:h-[768px] md:w-[512px] lg:mx-5 lg:mb-5 lg:h-[480px] {variant ===
+    'slider'
+      ? 'h-[432px] w-[240px] lg:mx-[43.33px] lg:w-[340px]'
+      : 'mt-24 h-96 w-[303px] xs:mt-[192px] md:mt-[256px] lg:mt-40 lg:w-80'}"
   >
     {#if doc.data.media?.url}
       <!-- headshot centred ON the card's top edge (half above, half in). -->
       <a
         {href}
         aria-label={name}
-        class="focus-visible:ring-primary-deep absolute top-0 left-1/2 z-10 block -translate-x-1/2 -translate-y-1/2 rounded-full focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+        class="focus-visible:ring-primary-deep absolute top-0 left-1/2 z-10 block w-[120px] -translate-x-1/2 -translate-y-1/2 rounded-full xs:w-[240px] md:w-[320px] lg:w-[200px] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
       >
         <PrismicImage
           field={doc.data.media as unknown as ImageField}
           fallbackAlt=""
-          class="size-[120px] rounded-full object-cover object-top lg:size-[200px]"
+          class="size-[120px] max-w-none rounded-full object-cover object-top xs:size-[240px] md:size-[320px] lg:size-[200px]"
         />
       </a>
     {/if}
     <div
-      class="flex h-full flex-col px-[18px] pt-[70px] text-center lg:px-6 lg:pt-[110px]"
+      class="flex h-full flex-col px-[18px] pt-[70px] text-center xs:pt-[130px] md:pt-[170px] lg:px-6 lg:pt-[110px]"
     >
       <a {href} class="focus-visible:outline-hidden">
         <h5
@@ -189,14 +221,14 @@
       </a>
       {#if doc.data.tags}
         <h6
-          class="mt-[6px] text-[16px] leading-[25px] font-light tracking-[1.28px] text-[#365b6d] uppercase"
+          class="mt-[10px] text-[16px] leading-[25px] font-light tracking-[1.28px] text-[#365b6d] uppercase"
         >
           {doc.data.tags}
         </h6>
       {/if}
       {#if bio}
         <p
-          class="mt-[10px] line-clamp-3 text-left text-[16px] leading-[24px] font-light text-[#365b6d]"
+          class="mt-[12px] h-[75px] overflow-hidden text-left text-[16px] leading-[24px] font-light text-[#365b6d] md:mt-[16px] lg:mt-[20px]"
         >
           {bio}
         </p>
@@ -204,14 +236,14 @@
       {#if href}
         <a
           {href}
-          class="focus-visible:ring-primary-deep mt-[10px] inline-flex items-center gap-1 text-[16px] leading-[24px] font-light text-[#129ecc] uppercase focus-visible:ring-2 focus-visible:outline-hidden"
+          class="focus-visible:ring-primary-deep mt-[6px] inline-flex items-center gap-[12px] text-[14.4px] leading-[21.6px] font-light tracking-[1.03px] text-[#365b6d] uppercase md:mt-[8px] md:gap-[16px] md:text-[19.2px] md:leading-[28.8px] lg:mt-[10px] lg:gap-[20px] lg:text-[16px] lg:leading-[24px] focus-visible:ring-2 focus-visible:outline-hidden"
         >
           Read More
           <!-- live's real Arrow.svg (white-filled), tinted to cyan via mask so
                we ship the actual vector, never a redraw. -->
           <span
             aria-hidden="true"
-            class="h-[11px] w-[10px] shrink-0 bg-[#129ecc] [mask:url(/icons/read-more-arrow.svg)_center/contain_no-repeat] [-webkit-mask:url(/icons/read-more-arrow.svg)_center/contain_no-repeat]"
+            class="h-[11px] w-[10px] shrink-0 bg-[#365b6d] [mask:url(/icons/read-more-arrow.svg)_center/contain_no-repeat] [-webkit-mask:url(/icons/read-more-arrow.svg)_center/contain_no-repeat]"
           ></span>
         </a>
       {/if}
@@ -221,7 +253,7 @@
         src={beach.image.url}
         alt=""
         aria-hidden="true"
-        class="absolute bottom-0 left-0 h-[115px] w-full rounded-b-[20px] object-cover lg:h-36"
+        class="absolute bottom-0 left-0 h-[30%] w-full rounded-b-[20px] object-cover"
       />
       {#if beach.caption}
         <h6
@@ -242,15 +274,21 @@
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="overflow-x-clip pt-0 pb-9 lg:pb-16"
+    class="overflow-x-clip pt-0 pb-12 md:pb-16 lg:pb-20"
   >
     {#if slice.primary.heading}
-      <!-- Eyebrow aligns to the same 80px content-left as live and as the
-           headshot row below it (lg:pl-20). Live reveals the eyebrow and the
-           headshot row as separate elements, not the section as one block. -->
-      <div class="px-5 lg:pl-20" use:animateIn={LIVE_REVEAL}>
+      <!-- Live wraps the eyebrow in `.content-width` — max-width 1400 centred,
+           padding-x 1.5rem against the stepped root (60px >=992, 48px 768-991)
+           stepping to 8% at <=767 and 5% at <=479. Measured content-left:
+           80 @1440 / 48 @834 / 19.5 @390. Live reveals the eyebrow and the
+           headshot row as separate elements, not the section as one block.
+           `mb-4` is 1rem on the same root: 40 / 32 / 24. -->
+      <div
+        class="mx-auto w-full max-w-[1400px] px-[5%] xs:px-[8%] md:px-12 lg:px-[60px]"
+        use:animateIn={LIVE_REVEAL}
+      >
         <p
-          class="font-slab mb-6 text-[12px] leading-[15px] font-medium tracking-[1.28px] text-[#365b6d] uppercase lg:mb-10 lg:text-[24px] lg:leading-[30px]"
+          class="font-slab mb-6 text-[12px] leading-[15px] font-medium tracking-[1.28px] text-[#365b6d] uppercase md:mb-8 lg:mb-10 lg:text-[24px] lg:leading-[30px]"
         >
           {asText(slice.primary.heading)}
         </p>
@@ -259,21 +297,29 @@
     {#if docs.length > 0}
       <!-- Full-bleed row that reaches both screen edges, with live's white
            edge-fade gradients (.heads-opacity-gradient) so the headshots
-           dissolve at the margins. Desktop matches live's fixed-cell carousel
-           exactly — 200px headshots, 40px gaps, the first flush with the
-           content column (80px) while the arrows/fades pin to the true screen
-           edges, the 6th clipped at the right edge. Mobile keeps the px-8
-           fit-to-container 3-across layout unchanged. -->
+           dissolve at the margins. Live's cell is `.heads{width:5rem;
+           height:5rem;margin-right:1rem}` with NO media override — so against
+           its stepped root (40/32/24) the real ladder is three sizes, not two:
+             >=992   200px cell, 40px gap, first flush at the 80px content-left
+             768-991 160px cell, 32px gap, 48px content-left
+             <=767   120px cell, 24px gap, 8%/5% content-left
+           The 768-991 band was rendering the 200px DESKTOP cell (measured 200
+           vs live's 160 at 834), which is what pinned this region at 45.9%.
+           The arrows/fades still pin to the true screen edges. -->
       <div class="relative w-full" use:animateIn={LIVE_REVEAL}>
         <Slider
           itemCount={docs.length}
           label={asText(slice.primary.heading) || "Meet the team"}
           itemWidth="200px"
+          tabletItemWidth="160px"
           mobileItemWidth="120px"
           gap="40px"
+          tabletGap="32px"
           mobileGap="24px"
           trackPadStart="80px"
-          mobileTrackPadStart="20px"
+          tabletTrackPadStart="48px"
+          xsTrackPadStart="8%"
+          mobileTrackPadStart="5%"
           showDots={false}
           arrowLayout="sides"
           edgeFadeColor="#fff"
@@ -318,30 +364,51 @@
     id="meet-our-team"
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="fv-meet-our-team-section mb-12 w-full scroll-mt-24 overflow-x-clip"
+    class="fv-meet-our-team-section mb-[72px] w-full scroll-mt-24 overflow-x-clip md:mb-24 lg:mb-[120px]"
   >
     {#if slice.primary.heading}
-      <div class="mb-4 px-5 lg:mb-10 lg:px-20" use:animateIn={LIVE_REVEAL}>
+      <div
+        class="mb-3 px-[5%] xs:px-[8%] md:mb-4 md:px-12 lg:mb-5 lg:px-[60px]"
+        use:animateIn={LIVE_REVEAL}
+      >
         <h2
-          class="font-slab text-[48px] leading-[1.05] font-thin lg:text-[120px] lg:leading-[1]"
+          class="font-slab h-primary text-[56px] leading-[70px] font-thin md:text-[120px] md:leading-[140px]"
         >
           {asText(slice.primary.heading)}
         </h2>
       </div>
     {/if}
     {#if docs.length > 0}
-      <!-- extra top room so the cards' straddling headshots + live's larger
-           heading-to-card gap clear (live: ~320px from heading top to card). -->
-      <div class="relative w-full lg:pt-10" use:animateIn={LIVE_REVEAL}>
+      <!-- `.team-slider-holder` `beachfront.css:6654-6659` is an explicit
+           `height:16rem` viewport with `overflow:hidden`; ≤991 `:8226-8231`
+           makes it `35rem` and ≤479 `:9309-9312` `23rem`. Against the stepped
+           root that is 640 / 1120 / 552 — and only at 390 does it equal the
+           cards' own stack. At 1440 it CLIPS the last 20px (the card's
+           `margin-bottom`), and at 834 it is 64px TALLER than the cards, which
+           is empty space live reserves and we did not.
+           Height only: the ≤991 rule also sets `width:20rem` with auto side
+           margins, and applying that width alongside the height is what made
+           this region worse on the previous attempt (@390 Δh 18.2 -> 67.5) —
+           our track is not live's JS-positioned one and does not survive being
+           narrowed to a single-card window. -->
+      <div
+        class="relative h-[552px] w-full overflow-hidden xs:h-[840px] md:h-[1120px] lg:h-[640px]"
+        use:animateIn={LIVE_REVEAL}
+      >
         <Slider
           itemCount={docs.length}
           label={asText(slice.primary.heading) || "Meet our team"}
-          itemWidth="360px"
-          mobileItemWidth="351px"
+          itemWidth="426.67px"
+          tabletItemWidth="640px"
+          mobileItemWidth="288px"
           gap="0px"
+          tabletGap="0px"
           mobileGap="0px"
-          trackPadStart="60px"
-          mobileTrackPadStart="0px"
+          slideClass="mt-24 xs:mt-[192px] md:mt-[256px] lg:mt-40"
+          trackPadStart="80px"
+          tabletTrackPadStart="129px"
+          xsTrackPadStart="8%"
+          mobileTrackPadStart="51px"
           showDots={false}
           arrowLayout="sides"
           arrowClass="max-lg:hidden hover:opacity-70 focus-visible:ring-primary-deep focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
@@ -355,7 +422,7 @@
           {#snippet children({ index }: { index: number })}
             {@const doc = docs[index]}
             {#if doc}
-              {@render personCard(doc)}
+              {@render personCard(doc, "slider")}
             {/if}
           {/snippet}
         </Slider>
@@ -370,7 +437,7 @@
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="team-grid-section mx-auto flex max-w-[1280px] flex-wrap justify-center px-5 lg:px-0"
+    class="team-grid-section mx-auto flex max-w-[1280px] flex-wrap justify-center px-5 md:px-12 lg:px-0"
   >
     {#each docs as doc (doc.uid)}
       {@render personCard(doc)}

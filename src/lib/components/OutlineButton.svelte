@@ -19,6 +19,23 @@
   } = $props();
 
   const color = $derived(variant === "cyan" ? "#129ecc" : "#365b6d");
+  // Live's `.button` (`beachfront.css:6028-6040`) has NO height of its own:
+  // `height:auto; padding:1.3em 1em; line-height:0`, so the box is exactly
+  // 2.6em + 2px of border and it tracks the font size. That size is a FOUR-tier
+  // ladder, not the two we had: 25px base, 20px <=991 (`:8045-8047`), 15px
+  // <=767 (`:8632-8634`), and 14px <=479 for both colourways
+  // (`.button.text-color-primary-dark` `:9173-9175` /
+  // `.button.text-color-primary` `:9185-9187`). Resolved heights 38 / 41 / 54 /
+  // 67 — we shipped 66 at every width. Expressing the padding in `em` the way
+  // live does makes the box follow the ladder instead of restating it.
+  // The dark colourway is the one exception to the `em` box:
+  // `.button.text-color-primary-dark` (`beachfront.css:6047-6051`) replaces the
+  // `1.3em` with a hard 32px at >=992, so it is 66 tall where the cyan variant
+  // is 67. The <=991 rule (`:8049-8052`) puts `1.3em` back and they converge.
+  const sizing = $derived(
+    "px-[1em] py-[1.3em] leading-[0] text-[14px] xs:text-[15px] md:text-[20px] lg:text-[25px]" +
+      (variant === "teal" ? " lg:py-8" : ""),
+  );
   const href = $derived(
     typeof link === "string" ? link : (asLink(link ?? undefined) ?? undefined),
   );
@@ -26,7 +43,7 @@
 
 <a
   {href}
-  class="focus-visible:ring-primary-deep inline-flex h-[66px] items-center justify-center rounded-lg border px-6 font-slab text-[20px] font-light transition-opacity hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:text-[25px] {cls}"
+  class="focus-visible:ring-primary-deep inline-flex items-center justify-center rounded-lg border font-slab font-light transition-opacity hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden {sizing} {cls}"
   style="color:{color};border-color:{color}"
 >
   {label}

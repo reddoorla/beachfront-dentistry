@@ -269,6 +269,17 @@ main :where(h1, h2, h3) {
 .h-primary :where(h1, h2, h3) {
   color: var(--color-primary);
 }
+
+/* Same opt-in, but only where the heading is actually large. Live's cyan is
+   AA-safe at >=24px; the TOC and exam h3s are 40px at >=992 and 21px below, so
+   they take live's colour at desktop and keep the AA-safe -deep on the small
+   tiers. Keyed at 992 to match live's own rem ladder, not Tailwind's lg. */
+@media (min-width: 992px) {
+  .h-primary-lg,
+  .h-primary-lg :where(h1, h2, h3) {
+    color: var(--color-primary);
+  }
+}
 /* Only the opening photographic hero keeps white headings. The closing CTA
    band ("Ready for great dental health?") is brand-blue on white on the live
    site, so it stays on the default primary rule above. */
@@ -277,16 +288,52 @@ main :where(h1, h2, h3) {
 }
 
 /* The closing CTA band's "Ready for great dental health?" is oversized,
-   ultra-light display type on the original (140px/w100). */
+   ultra-light display type on the original (140px/w100).
+   Live sizes it from its GLOBAL h2 rule, which has exactly three hard steps and
+   NO <=767 block, so 72/80 holds flat right across 480-991:
+     <=479  50/60   (its `.text-align-center.my-4` override)
+     480-991  72/80
+     >=992  140/168
+   A fluid clamp only agreed with live at the two ends — mid-band it read
+   85.6px at 834 and 100.2px at 991 against live's flat 72px, which changed the
+   line COUNT of the heading (2 lines vs live's 3) and shifted the whole band. */
 .display-xl :where(h1, h2),
 .display-xl {
-  font-size: clamp(
-    3.125rem,
-    0.5rem + 9.3vw,
-    8.75rem
-  ); /* 50px mobile → 140px @ 1440 */
+  font-size: 50px;
+  line-height: 60px;
   font-weight: 100;
-  line-height: 1.2; /* live's display leading (168/140); 1.05 compacted it */
+}
+/* Live's `.my-4{margin:1rem 0}` on the h2 ITSELF — 24/32/40 against its stepped
+   root. It has to be a margin on the heading, not padding on a wrapper: the
+   gate cuts its region AT the element whose text starts with the anchor, so
+   wrapper padding lands INSIDE the region and shifts the whole band down
+   relative to live, while live's margin sits outside the h2's border box. */
+.display-xl :where(h1, h2) {
+  margin-block: 24px;
+}
+@media (min-width: 768px) {
+  .display-xl :where(h1, h2) {
+    margin-block: 32px;
+  }
+}
+@media (min-width: 992px) {
+  .display-xl :where(h1, h2) {
+    margin-block: 40px;
+  }
+}
+@media (min-width: 480px) {
+  .display-xl :where(h1, h2),
+  .display-xl {
+    font-size: 72px;
+    line-height: 80px;
+  }
+}
+@media (min-width: 992px) {
+  .display-xl :where(h1, h2),
+  .display-xl {
+    font-size: 140px;
+    line-height: 168px;
+  }
 }
 
 /* Emphasis inside a slab heading (live bolds "Beachfront Dentistry" in the hero

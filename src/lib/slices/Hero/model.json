@@ -126,6 +126,29 @@
             "label": "intro",
             "multi": "paragraph,strong,em,hyperlink"
           }
+        },
+        "heading_style": {
+          "type": "Select",
+          "config": {
+            "label": "heading_style (empty = subpage)",
+            "options": ["subpage", "meet"]
+          }
+        },
+        "image_position": {
+          "type": "Select",
+          "config": {
+            "label": "image_position (empty = center)",
+            "options": ["center", "left-bottom", "top"]
+          }
+        },
+        "hero_wash": {
+          "type": "Boolean",
+          "config": {
+            "label": "hero_wash",
+            "placeholder_false": "no wash",
+            "placeholder_true": "dark wash over the photo",
+            "default_value": true
+          }
         }
       },
       "items": {}
