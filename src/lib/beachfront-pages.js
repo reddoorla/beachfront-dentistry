@@ -397,8 +397,15 @@ export function assemblies(img) {
           // diverges from the reference's copy on this one label.
           book_label: "Book an Appointment",
           book_link: webLink("#appointment"),
-          form_label: "Registration Form",
-          form_link: webLink("#"),
+          // No form_label/form_link: live's "Registration Form" button is
+          // `href="#"` (matching/spec/your-first-visit.html) and there is no
+          // forms destination anywhere in the reference — app.modento.io is
+          // only ever behind "Make a Payment". A button that does nothing is
+          // worse than no button, so it is omitted rather than pointed at a
+          // guess. Tucker 2026-08-07: "remove both buttons". FirstVisitToc
+          // already renders the CTA only `{#if p.form_label}` and the slice
+          // model still declares both fields, so restoring it is one edit in
+          // Prismic once a real URL exists — no code change.
         },
         items: [
           {
@@ -471,8 +478,10 @@ export function assemblies(img) {
             ),
           ],
           image: img(IMG.firstExam),
-          form_label: "Download Forms",
-          form_link: webLink("#"),
+          // No form_label/form_link — same call as the TOC's "Registration
+          // Form" above: live's "Download Forms" is `href="#"` too, with
+          // nothing to download anywhere in the reference. ExamTimeline
+          // renders it only `{#if p.form_label}`.
           book_label: "Book Appointment",
           book_link: webLink("#appointment"),
         },

@@ -112,6 +112,32 @@ describe("beachfront-pages assemblies vs slice models", () => {
   // shipped the closing CTA band 168px short on all five nav pages. Hard breaks
   // belong in the component (see CtaBand's DEFAULT_HEADING), never in seeded
   // content.
+  // Live ships two `href="#"` buttons on /your-first-visit ("Registration
+  // Form", "Download Forms") and the rebuild reproduced both. They render as
+  // real, focusable, styled CTAs that do nothing when clicked — the worst kind
+  // of dead link, because it looks like the affordance works. There is no
+  // forms destination anywhere in the reference to point them at, so they were
+  // removed (Tucker 2026-08-07: "remove both buttons"). This keeps them gone:
+  // matching a defect is not a reason to ship one, and `href="#"` is never the
+  // answer — a same-page target is a real id, and an unknown target is no link.
+  it("wires no link to a dead '#' target", () => {
+    const dead: string[] = [];
+    const walk = (v: unknown, path: string): void => {
+      if (Array.isArray(v))
+        return v.forEach((x, i) => walk(x, `${path}[${i}]`));
+      if (v && typeof v === "object") {
+        const link = v as { link_type?: string; url?: string };
+        if (link.link_type && link.url === "#") dead.push(path);
+        return Object.entries(v).forEach(([k, x]) => walk(x, `${path}.${k}`));
+      }
+    };
+    for (const [uid, slices] of Object.entries(pages))
+      slices.forEach((s, i) =>
+        walk(s, `${uid}#${i} ${s.slice_type}/${s.variation}`),
+      );
+    expect(dead).toEqual([]);
+  });
+
   it("sets no text the Prismic round trip would silently reflow", () => {
     const withBreaks: string[] = [];
     const walk = (v: unknown, path: string): void => {

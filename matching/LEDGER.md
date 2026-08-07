@@ -2235,7 +2235,7 @@ ask-a-dentist">` on /ask-the-doctor — because that is the only page whose
   including an explicit "no hardcoded past year").
 
   MATCHING IMPACT — measured, not predicted. `bash matching/gate.sh
-r-footer-2026-08-07 home` (threshold=0.1, no masks, matrix 1440/834/390):
+rfooter0807 home` (threshold=0.1, no masks, matrix 1440/834/390):
   24/27 PASS, the SAME 24 as the pre-change baseline out-perffix-home. Diffing
   the two runs row by row, exactly ONE of 27 regions moved:
 
@@ -2260,3 +2260,55 @@ r-footer-2026-08-07 home` (threshold=0.1, no masks, matrix 1440/834/390):
   when-tooth-pain-is-a-dental-emergency, why-do-teeth-hurt-more-at-night.
   Invisible to every gate — the gates read /dev/match/*, which never touches
   news_article — so the mechanical check is scripts/lib/body-links.test.js.
+
+## YFV FORM CTAs REMOVED — deliberate divergence (2026-08-07, feat/site-improvements)
+
+- [deviation | operator-directed 2026-08-07: "remove both buttons"]
+  /your-first-visit "Registration Form" (first_visit_toc) and "Download Forms"
+  (exam_timeline). Live ships BOTH as `href="#"`
+  (matching/spec/your-first-visit.html: `<a href="#" class="button
+text-color-primary w-button">Registration Form</a>` and `<a href="#"
+class="button text-color-primary-dark mt-2 w-button">Download Forms</a>`),
+  and the rebuild reproduced the dead target faithfully. They render as real,
+  focusable, styled CTAs that do nothing — the worst kind of dead link, because
+  the affordance looks live. There is NO forms destination anywhere in the
+  reference to point them at: app.modento.io/beachfront-dentistry is the only
+  external host live links to and it sits exclusively behind "Make a Payment",
+  so aiming a registration link at it would send a patient expecting paperwork
+  to a payment screen. Presented to the operator with three options; answer was
+  remove.
+
+  Both fields are dropped from the FIXTURE only
+  (src/lib/beachfront-pages.js). FirstVisitToc and ExamTimeline already render
+  the CTA `{#if p.form_label}`, and both slice models still declare
+  form_label/form_link, so restoring the button is one edit in Prismic the day a
+  real URL exists — no code change. Guarded by beachfront-pages.test.ts's
+  "wires no link to a dead '#' target", verified to fail (naming both
+  form_link paths) with the fixture restored.
+
+  GATE — bash matching/gate.sh rforms0807 yfv (threshold=0.1, no masks,
+  matrix 1440/834/390): 21/24 PASS, the same count as the baseline, but the
+  regions moved and the movement is the point:
+
+  - @834 NOTHING changed. Every anchor is byte-identical to the previous run.
+    The buttons share a row there and the row height is set by the survivor.
+  - @390 the previously ACK-ACCEPTED failure is RESOLVED, and not by accident.
+    Probed: the TOC section box is h=474.2 on BOTH pages, with 01/02/03 and the
+    button at identical offsets (+170.5/+230.5/+290.5/+375.8). Live's two
+    buttons share one row (both at +375.8, w=170.1 and 151.1). Our corrected
+    spelling makes that button 178.9 wide instead of 170.1, and those 8.8px
+    wrapped "Registration Form" onto a second row — the +76px that had been
+    ACKed on 2026-08-05 as "the extra letter". Removing the second button
+    collapses the wrap: every anchor from "Office Tour" down went from 76-77px
+    tall (993 vs ref 917 … 5696 vs 5619) to within 1px of live (917/917 …
+    5619/5619).
+  - @1440 the cost lands here: live STACKS the buttons at desktop, so removing
+    one shortens the TOC region by 84px (ref 557 -> cand 473, dh=15.1%) and every
+    anchor below shifts up 84px. This is a NEW failing region, accepted on
+    purpose. It is the price of the removal, not a layout bug — the paired
+    captures matching/states/yfv-toc-{ref,cand}-1440-formsremoved.png (local
+    only; matching/states/\*.png is gitignored) show the surviving button
+    correctly spaced above "Office Tour", no dangling gap. Do NOT chase it as
+    geometry.
+  - exam_timeline lost no height at any viewport (that region's dh is 2.7% at
+    1440, was 2.8%) — "Download Forms" sat beside "Book Appointment".
