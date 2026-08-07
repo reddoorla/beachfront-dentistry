@@ -212,7 +212,15 @@
     <div
       class="flex h-full flex-col px-[18px] pt-[70px] text-center xs:pt-[130px] md:pt-[170px] lg:px-6 lg:pt-[110px]"
     >
-      <a {href} class="focus-visible:outline-hidden">
+      <!-- Ring is load-bearing, not decoration: `outline-hidden` alone removed
+           the focus indicator outright, so tabbing /our-team lost the caret for
+           eleven consecutive stops (WCAG 2.4.7). Matches the sibling links at
+           :203 and :239. Rings paint outside the border box, so no layout
+           moves. -->
+      <a
+        {href}
+        class="focus-visible:ring-primary-deep focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+      >
         <h5
           class="font-slab text-[30px] leading-[40px] font-light text-[#129ecc]"
         >

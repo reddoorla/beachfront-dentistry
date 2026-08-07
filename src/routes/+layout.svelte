@@ -6,7 +6,6 @@
   import "../app.css";
   import Seo from "$lib/components/Seo.svelte";
   import { composeTitle, DEFAULT_OG_IMAGE } from "$lib/seo";
-  import LandscapeModal from "$lib/components/LandscapeModal.svelte";
   import TransitionOverlay from "$lib/components/TransitionOverlay.svelte";
   import AppointmentModal from "$lib/components/AppointmentModal.svelte";
   import Nav from "$lib/components/Nav.svelte";
@@ -116,7 +115,6 @@
     />
   </div>
   <TransitionOverlay />
-  <LandscapeModal />
   <!-- The id makes the CTA's `#appointment` anchor target real for prerender
        validation and no-JS clicks (which land harmlessly at the document end —
        /contact-us covers no-JS users); JS clicks are intercepted above to open

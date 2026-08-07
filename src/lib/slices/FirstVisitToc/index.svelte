@@ -57,7 +57,7 @@
        = 36px at ≤767 (`:9001-9003`). -->
   <a
     href={hrefOf(card.target) ?? "#"}
-    class="visit-list-item mb-6 flex w-full items-center no-underline transition-opacity hover:opacity-[0.67] focus-visible:outline-hidden md:mb-8 lg:mb-[60px]"
+    class="visit-list-item focus-visible:ring-primary-deep mb-6 flex w-full items-center no-underline transition-opacity hover:opacity-[0.67] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden md:mb-8 lg:mb-[60px]"
   >
     <h6
       class="font-slab text-[20px] leading-[15px] font-bold tracking-[1.92px] text-[#365b6d] uppercase xs:text-[24px] lg:leading-[30px]"

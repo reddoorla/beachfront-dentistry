@@ -11,9 +11,20 @@ afterEach(() => cleanup());
 // in the global AppointmentModal (opened via the #appointment anchor); this
 // route has no body form of its own.
 describe("contact-us page", () => {
-  it("has the Contact Us heading (h2, matching live)", () => {
+  // Two separate guarantees, deliberately asserted apart: the page title must
+  // ANNOUNCE as level 1 (this band carries the only title on the page, and
+  // shipping it as a bare h2 left /contact-us with no level-1 heading at all),
+  // while the TAG stays h2 because live's global rules key off h1 vs h2 and
+  // swapping it would move pixels the matching gate measures.
+  it("announces the Contact Us title as the page's level-1 heading", () => {
     const { getByRole } = render(Page);
-    expect(getByRole("heading", { level: 2, name: "Contact Us" })).toBeTruthy();
+    expect(getByRole("heading", { level: 1, name: "Contact Us" })).toBeTruthy();
+  });
+
+  it("keeps the title's tag as h2, matching live", () => {
+    const { getByRole } = render(Page);
+    const heading = getByRole("heading", { level: 1, name: "Contact Us" });
+    expect(heading.tagName).toBe("H2");
   });
 
   it("renders the CONTACT / OFFICE HOURS info with a phone link", () => {
