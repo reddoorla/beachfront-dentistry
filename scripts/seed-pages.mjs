@@ -23,7 +23,7 @@
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { pathToFileURL } from "node:url";
-import { head, TITLES, assemblies } from "../src/lib/beachfront-pages.js";
+import { head, META, TITLES, assemblies } from "../src/lib/beachfront-pages.js";
 import { assertModelsInSync } from "./lib/slice-models.mjs";
 
 const REPO = "48bb12d1";
@@ -196,7 +196,18 @@ async function main() {
       uid,
       lang: "en-us",
       title: TITLES[uid] ?? uid,
-      data: stripEmpty({ title: [head(1, TITLES[uid] ?? uid)], slices }),
+      // The SEO tab. Live ships no <meta name="description"> on any page, so
+      // every search snippet is currently whatever Google assembles for itself
+      // — see META in beachfront-pages.js. Seeded rather than hardcoded in the
+      // template so the practice can rewrite them in Prismic without a deploy.
+      data: stripEmpty({
+        title: [head(1, TITLES[uid] ?? uid)],
+        ...(META[uid]?.title ? { meta_title: META[uid].title } : {}),
+        ...(META[uid]?.description
+          ? { meta_description: META[uid].description }
+          : {}),
+        slices,
+      }),
     });
     // POST first; on "already exists", PUT by the master doc id (the stubs are
     // published, so the id resolves).
