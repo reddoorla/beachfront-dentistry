@@ -2213,3 +2213,50 @@ ask-a-dentist">` on /ask-the-doctor — because that is the only page whose
   reveal timing differing between two independent page loads — the same class
   the settled-scroll protocol exists to manage. The real routes are now
   equivalent to the surface every gate was measured against.
+
+## FOOTER BOILERPLATE — deliberate divergence from live (2026-08-07, branch feat/site-improvements)
+
+- [deviation | operator-directed 2026-08-07: "remove all and make the copyright
+  current"] footer `.footer-boiler-holder` row — live ships FOUR plain-text
+  items ("©2023 Beachfront Dentistry", "All Rights Reserved", "Privacy Policy",
+  "Sitemap") and this rebuild reproduced all four exactly. Two of them are dead
+  navigation: "Privacy Policy" and "Sitemap" are not links on live — every
+  captured page renders the row as
+  `<div class="footer-copyright">Privacy Policy</div>`, plain `<div>`s with no
+  `<a>` (matching/spec/index.html and all six subpage captures) — and they lead
+  nowhere here either, so they read to a patient as broken links; the year had
+  been frozen since 2023.
+
+  Replaced by ONE derived line, `copyrightLine()` in src/lib/site.ts:
+  "© <current year> Beachfront Dentistry. All Rights Reserved." The year is
+  computed at render (build time for the prerendered routes), never typed —
+  a literal is only correct until the next January, which is precisely how live
+  reached 2023. Guarded by src/lib/site.test.ts ("copyrightLine()", 4 asserts,
+  including an explicit "no hardcoded past year").
+
+  MATCHING IMPACT — measured, not predicted. `bash matching/gate.sh
+r-footer-2026-08-07 home` (threshold=0.1, no masks, matrix 1440/834/390):
+  24/27 PASS, the SAME 24 as the pre-change baseline out-perffix-home. Diffing
+  the two runs row by row, exactly ONE of 27 regions moved:
+
+  PASS vw1440 Want to learn more mm=7.2% -> 7.3% dE=2.7 Dh=1.7% (both)
+
+  Every other region, including the two footer rows that fail on the map floor
+  (vw390 13.4%, vw834 12.0%), is byte-identical — the boilerplate row is 7px
+  text at mobile and 12px at desktop, so at the small sizes the delta is below
+  the report's precision. One page is the complete test here: the footer is
+  shared chrome rendered from the layout, and home exercises it at all three
+  matrix viewports. This is the first intentional CONTENT divergence from the
+  reference on the nav pages, so it is ledgered rather than treated as a
+  regression when a future round sees the footer number sit 0.1pp higher.
+
+- [content | operator-directed 2026-08-07: same instruction] three published
+  news_articles head their related-links list with "Related reading (internal
+  links)" — the parenthetical is an SEO brief telling the writer what to put
+  there, published verbatim as body copy. Trimmed to "Related reading" (the
+  heading introduces a real list of two article links, so dropping the whole
+  block would take the heading with it). Handled in scripts/lib/body-links.mjs
+  `SCAFFOLDING`; affects how-to-stop-a-toothache-fast,
+  when-tooth-pain-is-a-dental-emergency, why-do-teeth-hurt-more-at-night.
+  Invisible to every gate — the gates read /dev/match/*, which never touches
+  news_article — so the mechanical check is scripts/lib/body-links.test.js.

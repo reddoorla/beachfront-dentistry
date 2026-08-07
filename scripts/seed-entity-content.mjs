@@ -41,6 +41,7 @@ import {
   NEWS_ARTICLE_CONTENT,
   COLLECTION_ITEM_CONTENT,
 } from "../src/lib/beachfront-entities.js";
+import { normalizeBodyLinks } from "./lib/body-links.mjs";
 import {
   asImageRef,
   asText,
@@ -143,81 +144,6 @@ async function resolveBeachAssets() {
 }
 
 // ---- documents ---------------------------------------------------------------
-
-// ---- in-body link repair -----------------------------------------------------
-//
-// The Webflow import carried article cross-links across as ABSOLUTE urls on the
-// production domain (18 of them across 9 paths). Two problems.
-//
-// 1. They are a latent build-breaker. SvelteKit's prerenderer only crawls
-//    SAME-ORIGIN links, and `kit.prerender.origin` comes from Netlify's `URL`.
-//    Today that is the *.netlify.app preview domain, so a beachfrontdentistry.com
-//    link is external and skipped. The moment the site is served from the real
-//    domain those links become internal, get crawled, and `pnpm build` fails on
-//    the first one that 404s. Verified: `URL=https://www.beachfrontdentistry.com
-//    pnpm build` fails today on a clean tree, while CI (no URL set) passes.
-//
-// 2. Five of the nine paths 404 — on our site AND on live. They are inherited
-//    dead links whose slugs never matched any document.
-//
-// Rewriting to root-relative paths fixes both: relative links are unambiguously
-// internal at every origin, so the build behaves identically in CI, on a preview
-// and in production, and there is no domain left to go stale.
-const SITE_ORIGIN = "https://www.beachfrontdentistry.com";
-
-/** Dead slug -> the uid that article actually has. Each mapping is pinned by
- *  the link's own ANCHOR TEXT naming the target article, not by guesswork. */
-const LINK_REDIRECTS = {
-  // "Why do teeth hurt more at night?"
-  "/questions/why-teeth-hurt-at-night":
-    "/questions/why-do-teeth-hurt-more-at-night",
-  // "Why does my tooth hurt when I bite down?"
-  "/questions/tooth-hurts-when-biting-down":
-    "/questions/why-does-my-tooth-hurt-when-i-bite-down",
-  // "Signs you may have a tooth infection"
-  "/questions/signs-of-tooth-infection":
-    "/questions/tooth-infection-symptoms-warning-signs-you-shouldnt-ignore",
-  // "How to stop a toothache until you see a dentist"
-  "/questions/stop-a-toothache": "/questions/how-to-stop-a-toothache-fast",
-};
-
-/** Links whose anchor text names one article while the href points at another.
- *  In tooth-infection-symptoms…, "When tooth pain is a dental emergency" linked
- *  to why-does-my-tooth-hurt-when-i-bite-down — a 200, so no 404 scan would ever
- *  surface it, but the reader lands on the wrong article. Anchor text wins. */
-const ANCHOR_TARGETS = {
-  "when tooth pain is a dental emergency":
-    "/questions/when-tooth-pain-is-a-dental-emergency",
-};
-
-/** Blocks dropped outright. "Pillar: …" is content-strategy scaffolding for a
- *  hub article that was never written — it 404s on live too — so there is no
- *  correct destination to point it at, and leaving it unlinked would publish
- *  the jargon as body copy. */
-const DROP_BLOCK = /^\s*Pillar:\s/i;
-
-/** Rewrite one rich-text body: drop dead scaffolding, make internal links
- *  relative, repoint the ones whose slug never existed. */
-export function normalizeBodyLinks(body) {
-  if (!Array.isArray(body)) return body;
-  return body
-    .filter((b) => !(typeof b.text === "string" && DROP_BLOCK.test(b.text)))
-    .map((b) => {
-      if (!Array.isArray(b.spans) || !b.spans.length) return b;
-      return {
-        ...b,
-        spans: b.spans.map((s) => {
-          const url = s.data?.url;
-          if (!url || !url.startsWith(SITE_ORIGIN)) return s;
-          const anchor = (b.text ?? "").slice(s.start, s.end).trim();
-          const byAnchor = ANCHOR_TARGETS[anchor.toLowerCase()];
-          const path = url.slice(SITE_ORIGIN.length).replace(/\/+$/, "") || "/";
-          const next = byAnchor ?? LINK_REDIRECTS[path] ?? path;
-          return { ...s, data: { ...s.data, url: next } };
-        }),
-      };
-    });
-}
 
 // Every field these three custom types share, carried through verbatim so the
 // replacing PUT preserves them. Images reduce to {id}; unfilled link/date drop.

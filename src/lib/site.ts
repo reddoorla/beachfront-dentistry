@@ -1,4 +1,6 @@
 /** Beachfront practice constants shared by chrome + routes. */
+import { SITE_NAME } from "./seo";
+
 export const PHONE = { display: "(310) 378-9241", href: "tel:+13103789241" };
 export const MODENTO_URL = "https://app.modento.io/beachfront-dentistry";
 /** Yelp business page — the "Read Reviews" target in the closing CTA band. */
@@ -39,6 +41,24 @@ export const HOURS: [string, string][] = [
 /** Practice coordinates, lifted from live's own map widget
  *  (`data-widget-latlng="33.817617,-118.385433"` on /contact-us). */
 export const GEO = { latitude: 33.817617, longitude: -118.385433 };
+
+/** The footer's legal line.
+ *
+ *  Live's footer boilerplate row is four plain-text items — "©2023 Beachfront
+ *  Dentistry", "All Rights Reserved", "Privacy Policy", "Sitemap" — and this
+ *  rebuild reproduced it exactly, dead text and all. "Privacy Policy" and
+ *  "Sitemap" are not links on live and lead nowhere here either, so they read
+ *  as broken navigation; a stale year reads as an abandoned site. Both are now
+ *  gone, which is a DELIBERATE divergence from the reference (see LEDGER).
+ *
+ *  The year is computed, not typed: a literal is only ever correct until the
+ *  next January, and that is exactly how live ended up frozen at 2023. It is
+ *  resolved when the page is rendered — at build time for the prerendered
+ *  routes — so the site is current from any deploy or Prismic publish onward,
+ *  with no annual edit for anyone to forget. */
+export function copyrightLine(now: Date = new Date()): string {
+  return `© ${now.getFullYear()} ${SITE_NAME}. All Rights Reserved.`;
+}
 
 const DAYS = [
   "Monday",

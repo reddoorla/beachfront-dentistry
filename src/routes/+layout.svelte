@@ -13,6 +13,7 @@
   } from "$lib/seo";
   import {
     ADDRESS,
+    copyrightLine,
     GEO,
     MODENTO_URL,
     openingHoursSpecification,
@@ -150,12 +151,7 @@
       socials={siteConfig.footer.socials}
       text={siteConfig.footer.text}
       heading="Want to learn more?"
-      legal={[
-        "©2023 Beachfront Dentistry",
-        "All Rights Reserved",
-        "Privacy Policy",
-        "Sitemap",
-      ]}
+      legal={[copyrightLine()]}
       showMap
     />
   </div>

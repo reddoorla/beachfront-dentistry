@@ -2,11 +2,13 @@ import { describe, it, expect } from "vitest";
 import { loadSiteConfig, type FooterText } from "./blux/site-config";
 import {
   ADDRESS,
+  copyrightLine,
   HOURS,
   PHONE,
   MODENTO_URL,
   openingHoursSpecification,
 } from "./site";
+import { SITE_NAME } from "./seo";
 
 // The practice phone + Modento payment URL live in BOTH src/lib/site.ts (nav
 // CTAs, routes) and site-config.json's footer columns (the Blux chrome shape).
@@ -39,6 +41,32 @@ describe("site constants stay in sync with site-config.json", () => {
     const texts = items.map((i) => i.text);
     expect(texts).toContain(ADDRESS.line1);
     expect(texts).toContain(ADDRESS.line2);
+  });
+});
+
+// The footer inherited live's frozen "©2023" and two items of dead navigation
+// ("Privacy Policy", "Sitemap" — plain text on live, going nowhere on either
+// site). These pin the replacement: a year that is DERIVED, so it cannot freeze
+// a second time, and nothing dead alongside it.
+describe("copyrightLine()", () => {
+  it("uses the year it is rendered in, not a literal", () => {
+    expect(copyrightLine(new Date("2031-06-15T12:00:00Z"))).toContain("2031");
+    expect(copyrightLine(new Date("2027-01-01T12:00:00Z"))).toContain("2027");
+  });
+
+  it("defaults to today, so a build is current without an annual edit", () => {
+    expect(copyrightLine()).toContain(String(new Date().getFullYear()));
+  });
+
+  it("names the practice from the single SITE_NAME source", () => {
+    expect(copyrightLine()).toContain(SITE_NAME);
+  });
+
+  it("carries no dead navigation and no hardcoded past year", () => {
+    const line = copyrightLine();
+    expect(line).not.toMatch(/privacy policy|sitemap/i);
+    // The exact defect this replaced: a year typed into the markup.
+    expect(line).not.toContain("2023");
   });
 });
 

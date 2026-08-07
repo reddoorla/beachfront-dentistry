@@ -13,7 +13,11 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
-    include: ["src/**/*.test.{js,ts}"],
+    // `scripts/**` is included because the seed scripts are the only code that
+    // mutates PUBLISHED content, and none of it was covered. Only side-effect-
+    // free modules there are testable — the seed entrypoints read a write token
+    // at import time, which is why the body-link logic lives in scripts/lib.
+    include: ["src/**/*.test.{js,ts}", "scripts/**/*.test.{js,ts}"],
     setupFiles: ["./vitest-setup.ts"],
     // Hermetic env for the map tests. Nine of them assert the KEYLESS path
     // (placeholder renders, no Maps script injected) and used to rely on
