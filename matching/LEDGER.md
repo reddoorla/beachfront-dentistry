@@ -2351,3 +2351,30 @@ class="button text-color-primary-dark mt-2 w-button">Download Forms</a>`),
   iframe. Google's markup, not ours, and unreachable from here — excluded by
   iframe src alongside the footer Google map (already a declared pixel floor).
   Everything around both embeds is still audited.
+
+## PUBLISH VERIFIED (2026-08-07, release published by the operator)
+
+The Migration release containing the link repairs, the article-scaffolding
+trim, the yfv form-CTA removal and the SEO tab was PUBLISHED. Verified with the
+new matching/gate-published.mjs, which is the check CLAUDE.md has required since
+the migration defects ("after any seed, diff a real route against its
+/dev/match/* twin") and which nothing previously automated.
+
+All 5 core pages x 1440/834/390 — height delta 0 EVERYWHERE, 0 text lines lost:
+
+home 0 / 0 / 0
+your-first-visit 0 / 0 / 0
+our-team 0 / 0 / 0
+services 0 / 0 / 0
+ask-the-doctor 0 / 0 / 0
+
+So the Migration API dropped nothing this time: every field the fixtures set
+survived the round trip, which is only true because the slice models and the
+`page` custom type were pushed first (assertModelsInSync in seed-pages.mjs,
+push-custom-types.mjs reporting "All custom types match Prismic").
+
+Head fields, which live ONLY on the published document and are invisible to
+every pixel/text gate: all five meta descriptions present (143-150 chars), and
+home's meta_title override live as "Beachfront Dentistry | Dentist in Redondo
+Beach, CA". Published article bodies re-scanned: 0 blocks still carrying
+"(internal links)", 4 clean "Related reading" headings.

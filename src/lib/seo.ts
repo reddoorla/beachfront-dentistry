@@ -24,6 +24,27 @@ export const OG_IMAGE_WIDTH = 1200;
 export const OG_IMAGE_HEIGHT = 630;
 
 /**
+ * Route prefixes that must never be indexed: dev fixtures, the slice simulator,
+ * and Prismic preview URLs (which canonicalize to the real page anyway).
+ *
+ * ONE list, two consumers — robots.txt's Disallow lines and the layout's
+ * `noindex` meta — because they answer different questions and only one of them
+ * was being asked. `prerender = "auto"` emits the /dev/* fixtures as public
+ * static HTML in the deployed build, and robots.txt Disallow stops a crawler
+ * FETCHING them but does not stop Google indexing the URL it found elsewhere
+ * and listing it without a snippet. The meta tag is what actually says
+ * "not in the index", and it needs the page to be crawlable to be seen at all.
+ * Keeping both from the same constant means adding a prefix cannot fix one and
+ * forget the other (see seo.test.ts's drift guard).
+ */
+export const NOINDEX_PREFIXES = ["/dev/", "/slice-simulator", "/preview/"];
+
+/** Whether a pathname falls under NOINDEX_PREFIXES. */
+export function isNoindexPath(pathname: string): boolean {
+  return NOINDEX_PREFIXES.some((p) => pathname.startsWith(p));
+}
+
+/**
  * Compose a page's <title>: prefix "SITE_NAME |" for brand recall, unless the
  * title is empty, is the site name itself (the home page), or already contains
  * it (an editor-authored meta_title that mentions the brand). Falls back to the

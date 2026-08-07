@@ -10,6 +10,18 @@ export const prerender = true;
 // shared ENTITY_ROUTE_PREFIX map keeps this route and CollectionList's
 // hrefFor from drifting apart.
 
+/** Indexable routes that exist in the FILESYSTEM rather than in Prismic.
+ *
+ *  Everything below is discovered by querying the CMS, which structurally
+ *  cannot see a hard-coded route — so /contact-us, linked from the nav on every
+ *  page and returning 200, was missing from the sitemap entirely. It is also
+ *  `prerender = false` (a form action cannot live on a prerendered route), so
+ *  no build-output census would have caught it either.
+ *
+ *  Only genuinely public, indexable routes belong here — not /dev/*, not
+ *  /slice-simulator, not /preview (robots.txt disallows those). */
+const STATIC_ROUTES = ["/contact-us"];
+
 export const GET: RequestHandler = async ({ fetch, url }) => {
   const origin = url.origin;
 
@@ -55,7 +67,14 @@ export const GET: RequestHandler = async ({ fetch, url }) => {
       ),
     );
 
-    entries = [...pageEntries, ...entityEntries];
+    // Build time is the right lastmod for a static route: its content changes
+    // when the code ships, which is exactly when this is regenerated.
+    const staticEntries = STATIC_ROUTES.map((path) => ({
+      path,
+      lastmod: new Date().toISOString(),
+    }));
+
+    entries = [...pageEntries, ...entityEntries, ...staticEntries];
   }
 
   const urls = entries.map(

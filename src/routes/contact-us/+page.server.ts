@@ -9,9 +9,20 @@ export const prerender = false;
 
 // Plant a per-request timestamp for the bot timing screen. `title` flows to
 // the root layout's <Seo> (static routes set head via data, not their own tags).
+//
+// `meta_description` is set here for the same reason the five Prismic pages got
+// one — but it has to live in code, not in the CMS, because /contact-us is a
+// hard-coded SvelteKit route with no `page` document and therefore no SEO tab
+// for the seed to write to. That is exactly why it was the one nav page left
+// without a description: the seeding work reached every route that HAS a
+// document and silently skipped the one that does not. It is nav-linked from
+// every page and carries no noindex, so it is indexable, and for a dental
+// practice the contact page is a high-intent search landing.
 export const load: PageServerLoad = () => ({
   formTs: Date.now(),
   title: "Contact",
+  meta_description:
+    "Call Beachfront Dentistry at (310) 378-9241 or send us a message. Find our Redondo Beach office hours, address and directions on the map.",
 });
 
 export const actions: Actions = {

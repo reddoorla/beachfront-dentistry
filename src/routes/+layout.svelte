@@ -8,6 +8,7 @@
   import {
     composeTitle,
     DEFAULT_OG_IMAGE,
+    isNoindexPath,
     organizationJsonLd,
     SITE_NAME,
   } from "$lib/seo";
@@ -104,6 +105,7 @@
   image={page.data.meta_image || DEFAULT_OG_IMAGE || undefined}
   imageAlt={page.data.meta_image_alt}
   url={page.url}
+  noindex={isNoindexPath(page.url.pathname)}
   jsonLd={practiceJsonLd(page.url.origin)}
 />
 {#if page.data.frozen}
