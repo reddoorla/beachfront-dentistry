@@ -22,7 +22,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { assemblies } from "./beachfront-pages.js";
+import { assemblies, META, TITLES } from "./beachfront-pages.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SLICES = join(HERE, "slices");
@@ -105,6 +105,32 @@ describe("beachfront-pages assemblies vs slice models", () => {
     expect(stripped).toEqual([]);
   });
 
+  // Live ships two `href="#"` buttons on /your-first-visit ("Registration
+  // Form", "Download Forms") and the rebuild reproduced both. They render as
+  // real, focusable, styled CTAs that do nothing when clicked — the worst kind
+  // of dead link, because it looks like the affordance works. There is no
+  // forms destination anywhere in the reference to point them at, so they were
+  // removed (Tucker 2026-08-07: "remove both buttons"). This keeps them gone:
+  // matching a defect is not a reason to ship one, and `href="#"` is never the
+  // answer — a same-page target is a real id, and an unknown target is no link.
+  it("wires no link to a dead '#' target", () => {
+    const dead: string[] = [];
+    const walk = (v: unknown, path: string): void => {
+      if (Array.isArray(v))
+        return v.forEach((x, i) => walk(x, `${path}[${i}]`));
+      if (v && typeof v === "object") {
+        const link = v as { link_type?: string; url?: string };
+        if (link.link_type && link.url === "#") dead.push(path);
+        return Object.entries(v).forEach(([k, x]) => walk(x, `${path}.${k}`));
+      }
+    };
+    for (const [uid, slices] of Object.entries(pages))
+      slices.forEach((s, i) =>
+        walk(s, `${uid}#${i} ${s.slice_type}/${s.variation}`),
+      );
+    expect(dead).toEqual([]);
+  });
+
   // The second half of the same asymmetry. Prismic's rich-text serializer turns
   // a `\n` inside a block into a <br> faithfully — but the Migration API strips
   // `\n` out of StructuredText on WRITE, so a fixture that hard-breaks a line
@@ -127,5 +153,52 @@ describe("beachfront-pages assemblies vs slice models", () => {
         walk(s, `${uid}#${i} ${s.slice_type}/${s.variation}`),
       );
     expect(withBreaks).toEqual([]);
+  });
+});
+
+// Meta descriptions are seeded content that NOTHING else can check: they are
+// invisible on the page, so no pixel gate, style census or text-diff sees them,
+// and live ships none at all, so there is no reference to compare against. A
+// truncated, duplicated or missing one costs search traffic silently — for a
+// single-location practice, the main way new patients arrive.
+describe("page meta", () => {
+  const uids = Object.keys(TITLES);
+
+  it("gives every core page a description", () => {
+    const missing = uids.filter((uid) => !META[uid]?.description);
+    expect(missing).toEqual([]);
+  });
+
+  it("keeps each description inside Google's ~155-char snippet", () => {
+    // Over the limit is not an error anywhere — it just gets cut mid-sentence
+    // in the result, which reads as a broken listing.
+    const tooLong = Object.entries(META)
+      .filter(([, m]) => (m.description?.length ?? 0) > 155)
+      .map(([uid, m]) => `${uid}: ${m.description.length}`);
+    expect(tooLong).toEqual([]);
+  });
+
+  it("writes a real sentence, not a stub", () => {
+    const tooShort = Object.entries(META)
+      .filter(([, m]) => (m.description?.length ?? 0) < 70)
+      .map(([uid, m]) => `${uid}: ${m.description?.length ?? 0}`);
+    expect(tooShort).toEqual([]);
+  });
+
+  it("never repeats a description across pages", () => {
+    // Duplicates are the classic failure: Search Console reports them, and the
+    // pages compete with each other for the same snippet.
+    const all = Object.values(META).map((m) => m.description);
+    expect(new Set(all).size).toBe(all.length);
+  });
+
+  it("only overrides the title where the document name is uninformative", () => {
+    // "Beachfront Dentistry | Home" is the one title whose second half says
+    // nothing. The other four describe their page already and are left to match
+    // live's Webflow titles exactly.
+    const overridden = Object.entries(META)
+      .filter(([, m]) => m.title)
+      .map(([uid]) => uid);
+    expect(overridden).toEqual(["home"]);
   });
 });

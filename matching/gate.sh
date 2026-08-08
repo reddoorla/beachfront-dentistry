@@ -33,6 +33,22 @@ REF="https://www.beachfrontdentistry.com"
 CAND="http://localhost:5173"
 SPEC="$(dirname "$0")/SPEC.md"
 TAG="${1:?usage: gate.sh <round-tag> [page ...]}"
+# The tag must not contain a hyphen. Output dirs are "out-<TAG>-<page>", and
+# next.mjs recovers the page with /^out-[^-]+-(.+)$/ — it splits on the FIRST
+# hyphen, so a tag like "r-forms-2026-08-07" yields the page key
+# "forms-2026-08-07-yfv" and that run is silently never counted. It cannot split
+# on the last hyphen instead, because page keys have hyphens of their own
+# ("our-team", "ask-the-doctor"). Failing here is the cheap end of that: a
+# mis-tagged round otherwise LOOKS green because next.mjs keeps reading an older
+# report for the page you just changed. (Cost this once, 2026-08-07.)
+case "$TAG" in
+  *-*)
+    echo "gate.sh: round tag must not contain a hyphen (got '$TAG')." >&2
+    echo "         out-<TAG>-<page> is parsed on the first hyphen, so a" >&2
+    echo "         hyphenated tag hides the run from next.mjs. Try '${TAG//-/}'." >&2
+    exit 2
+    ;;
+esac
 shift || true
 WANT=("$@")
 

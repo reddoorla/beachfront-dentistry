@@ -47,9 +47,15 @@ describe("HeroBackgroundImage", () => {
     expect(link.getAttribute("fetchpriority")).toBe("high");
   });
 
-  it("skips the preload link (but still renders the image) with preload={false}", () => {
+  it("de-prioritises the image entirely with preload={false}", () => {
     // Two hero-ish slices on one page must not both claim fetchpriority=high
     // preloads — every instance after the real LCP hero opts out.
+    //
+    // Opting out has to cover the ELEMENT, not just the <link>. This assertion
+    // previously required fetchpriority="high" even here, which meant the
+    // closing CTA beach (CtaBand.svelte:149, below the fold on every page)
+    // declined the preload link and then competed at highest priority anyway,
+    // against the very LCP image it had deferred to.
     const { container } = render(HeroBackgroundImage, {
       image: prismicImage(),
       preload: false,
@@ -57,7 +63,17 @@ describe("HeroBackgroundImage", () => {
     expect(document.head.querySelector("link[rel='preload']")).toBeNull();
     const img = container.querySelector("img")!;
     expect(img.src).toContain("w=1920");
+    expect(img.getAttribute("fetchpriority")).toBe("auto");
+    expect(img.getAttribute("loading")).toBe("lazy");
+  });
+
+  it("keeps the LCP hero eager and high-priority with preload={true}", () => {
+    const { container } = render(HeroBackgroundImage, {
+      image: prismicImage(),
+    });
+    const img = container.querySelector("img")!;
     expect(img.getAttribute("fetchpriority")).toBe("high");
+    expect(img.getAttribute("loading")).toBe("eager");
   });
 
   it("passes non-Prismic URLs through untouched, with no srcset", () => {

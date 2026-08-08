@@ -205,6 +205,53 @@ export const TITLES = {
   "ask-the-doctor": "Ask the Doctor",
 };
 
+/** Per-page meta descriptions, seeded to each page document's SEO tab.
+ *
+ *  Live ships NONE — not one of the six captured pages carries a
+ *  `<meta name="description">` — so Google writes the snippet for every result
+ *  itself, from whatever text it happens to latch onto. That is the one place
+ *  a single-location practice's organic reach is decided, and it is the reason
+ *  this diverges from the reference: the tag is invisible, changes no pixel,
+ *  and no gate can see it.
+ *
+ *  Every claim below is taken from the page it describes — "over 40 years"
+ *  from the home hero, the two-hour first exam from the exam timeline, the
+ *  service list from the collection_item uids, the roster from
+ *  beachfront-entities. Nothing here is invented, because a description that
+ *  oversells is worse than none. Seeded rather than hardcoded so the practice
+ *  can rewrite any of them in Prismic without a deploy; see
+ *  beachfront-pages.test.ts for the length guard (Google truncates ~155). */
+/** @type {Record<string, { title?: string, description: string }>} */
+export const META = {
+  home: {
+    // The ONLY title override. `title` above is the document name, which the
+    // layout composes into "Beachfront Dentistry | <title>" — matching live's
+    // Webflow titles exactly. Four of those five read well already; "Home" is
+    // the exception, and it is the one page whose blue link in a search result
+    // has to say what this business is and where. `meta_title` wins over
+    // `title` in the layout, so Prismic's document list still reads "Home".
+    title: "Dentist in Redondo Beach, CA",
+    description:
+      "Beachfront Dentistry has cared for the South Bay for over 40 years. Gentle, thorough dentistry in Redondo Beach, with the time to listen first.",
+  },
+  "your-first-visit": {
+    description:
+      "Know what to expect before you arrive: a virtual tour of our Redondo Beach office, the team you will meet, and how the two-hour first exam works.",
+  },
+  "our-team": {
+    description:
+      "Meet the dentists, hygienists and assistants of Beachfront Dentistry in Redondo Beach - and find out which South Bay beach each of them loves most.",
+  },
+  services: {
+    description:
+      "Invisalign, veneers, crowns, implants, whitening, nightguards and full reconstruction - the dental care Beachfront Dentistry offers in Redondo Beach.",
+  },
+  "ask-the-doctor": {
+    description:
+      "Straight answers to the questions patients actually ask, on tooth pain, whitening, implants and daily care, from the dentists at Beachfront Dentistry.",
+  },
+};
+
 // =============================================================================
 // PAGE ASSEMBLIES  (img: url → field resolver, closed over per page:
 //   seed passes url→{id}; the dev matching route passes url→{url})
@@ -397,8 +444,15 @@ export function assemblies(img) {
           // diverges from the reference's copy on this one label.
           book_label: "Book an Appointment",
           book_link: webLink("#appointment"),
-          form_label: "Registration Form",
-          form_link: webLink("#"),
+          // No form_label/form_link: live's "Registration Form" button is
+          // `href="#"` (matching/spec/your-first-visit.html) and there is no
+          // forms destination anywhere in the reference — app.modento.io is
+          // only ever behind "Make a Payment". A button that does nothing is
+          // worse than no button, so it is omitted rather than pointed at a
+          // guess. Tucker 2026-08-07: "remove both buttons". FirstVisitToc
+          // already renders the CTA only `{#if p.form_label}` and the slice
+          // model still declares both fields, so restoring it is one edit in
+          // Prismic once a real URL exists — no code change.
         },
         items: [
           {
@@ -471,8 +525,10 @@ export function assemblies(img) {
             ),
           ],
           image: img(IMG.firstExam),
-          form_label: "Download Forms",
-          form_link: webLink("#"),
+          // No form_label/form_link — same call as the TOC's "Registration
+          // Form" above: live's "Download Forms" is `href="#"` too, with
+          // nothing to download anywhere in the reference. ExamTimeline
+          // renders it only `{#if p.form_label}`.
           book_label: "Book Appointment",
           book_link: webLink("#appointment"),
         },

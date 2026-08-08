@@ -2213,3 +2213,210 @@ ask-a-dentist">` on /ask-the-doctor — because that is the only page whose
   reveal timing differing between two independent page loads — the same class
   the settled-scroll protocol exists to manage. The real routes are now
   equivalent to the surface every gate was measured against.
+
+## FOOTER BOILERPLATE — deliberate divergence from live (2026-08-07, branch feat/site-improvements)
+
+- [deviation | operator-directed 2026-08-07: "remove all and make the copyright
+  current"] footer `.footer-boiler-holder` row — live ships FOUR plain-text
+  items ("©2023 Beachfront Dentistry", "All Rights Reserved", "Privacy Policy",
+  "Sitemap") and this rebuild reproduced all four exactly. Two of them are dead
+  navigation: "Privacy Policy" and "Sitemap" are not links on live — every
+  captured page renders the row as
+  `<div class="footer-copyright">Privacy Policy</div>`, plain `<div>`s with no
+  `<a>` (matching/spec/index.html and all six subpage captures) — and they lead
+  nowhere here either, so they read to a patient as broken links; the year had
+  been frozen since 2023.
+
+  Replaced by ONE derived line, `copyrightLine()` in src/lib/site.ts:
+  "© <current year> Beachfront Dentistry. All Rights Reserved." The year is
+  computed at render (build time for the prerendered routes), never typed —
+  a literal is only correct until the next January, which is precisely how live
+  reached 2023. Guarded by src/lib/site.test.ts ("copyrightLine()", 4 asserts,
+  including an explicit "no hardcoded past year").
+
+  MATCHING IMPACT — measured, not predicted. `bash matching/gate.sh
+rfooter0807 home` (threshold=0.1, no masks, matrix 1440/834/390):
+  24/27 PASS, the SAME 24 as the pre-change baseline out-perffix-home. Diffing
+  the two runs row by row, exactly ONE of 27 regions moved:
+
+  PASS vw1440 Want to learn more mm=7.2% -> 7.3% dE=2.7 Dh=1.7% (both)
+
+  Every other region, including the two footer rows that fail on the map floor
+  (vw390 13.4%, vw834 12.0%), is byte-identical — the boilerplate row is 7px
+  text at mobile and 12px at desktop, so at the small sizes the delta is below
+  the report's precision. One page is the complete test here: the footer is
+  shared chrome rendered from the layout, and home exercises it at all three
+  matrix viewports. This is the first intentional CONTENT divergence from the
+  reference on the nav pages, so it is ledgered rather than treated as a
+  regression when a future round sees the footer number sit 0.1pp higher.
+
+- [content | operator-directed 2026-08-07: same instruction] three published
+  news_articles head their related-links list with "Related reading (internal
+  links)" — the parenthetical is an SEO brief telling the writer what to put
+  there, published verbatim as body copy. Trimmed to "Related reading" (the
+  heading introduces a real list of two article links, so dropping the whole
+  block would take the heading with it). Handled in scripts/lib/body-links.mjs
+  `SCAFFOLDING`; affects how-to-stop-a-toothache-fast,
+  when-tooth-pain-is-a-dental-emergency, why-do-teeth-hurt-more-at-night.
+  Invisible to every gate — the gates read /dev/match/*, which never touches
+  news_article — so the mechanical check is scripts/lib/body-links.test.js.
+
+## YFV FORM CTAs REMOVED — deliberate divergence (2026-08-07, feat/site-improvements)
+
+- [deviation | operator-directed 2026-08-07: "remove both buttons"]
+  /your-first-visit "Registration Form" (first_visit_toc) and "Download Forms"
+  (exam_timeline). Live ships BOTH as `href="#"`
+  (matching/spec/your-first-visit.html: `<a href="#" class="button
+text-color-primary w-button">Registration Form</a>` and `<a href="#"
+class="button text-color-primary-dark mt-2 w-button">Download Forms</a>`),
+  and the rebuild reproduced the dead target faithfully. They render as real,
+  focusable, styled CTAs that do nothing — the worst kind of dead link, because
+  the affordance looks live. There is NO forms destination anywhere in the
+  reference to point them at: app.modento.io/beachfront-dentistry is the only
+  external host live links to and it sits exclusively behind "Make a Payment",
+  so aiming a registration link at it would send a patient expecting paperwork
+  to a payment screen. Presented to the operator with three options; answer was
+  remove.
+
+  Both fields are dropped from the FIXTURE only
+  (src/lib/beachfront-pages.js). FirstVisitToc and ExamTimeline already render
+  the CTA `{#if p.form_label}`, and both slice models still declare
+  form_label/form_link, so restoring the button is one edit in Prismic the day a
+  real URL exists — no code change. Guarded by beachfront-pages.test.ts's
+  "wires no link to a dead '#' target", verified to fail (naming both
+  form_link paths) with the fixture restored.
+
+  GATE — bash matching/gate.sh rforms0807 yfv (threshold=0.1, no masks,
+  matrix 1440/834/390): 21/24 PASS, the same count as the baseline, but the
+  regions moved and the movement is the point:
+
+  - @834 NOTHING changed. Every anchor is byte-identical to the previous run.
+    The buttons share a row there and the row height is set by the survivor.
+  - @390 the previously ACK-ACCEPTED failure is RESOLVED, and not by accident.
+    Probed: the TOC section box is h=474.2 on BOTH pages, with 01/02/03 and the
+    button at identical offsets (+170.5/+230.5/+290.5/+375.8). Live's two
+    buttons share one row (both at +375.8, w=170.1 and 151.1). Our corrected
+    spelling makes that button 178.9 wide instead of 170.1, and those 8.8px
+    wrapped "Registration Form" onto a second row — the +76px that had been
+    ACKed on 2026-08-05 as "the extra letter". Removing the second button
+    collapses the wrap: every anchor from "Office Tour" down went from 76-77px
+    tall (993 vs ref 917 … 5696 vs 5619) to within 1px of live (917/917 …
+    5619/5619).
+  - @1440 the cost lands here: live STACKS the buttons at desktop, so removing
+    one shortens the TOC region by 84px (ref 557 -> cand 473, dh=15.1%) and every
+    anchor below shifts up 84px. This is a NEW failing region, accepted on
+    purpose. It is the price of the removal, not a layout bug — the paired
+    captures matching/states/yfv-toc-{ref,cand}-1440-formsremoved.png (local
+    only; matching/states/\*.png is gitignored) show the surviving button
+    correctly spaced above "Office Tour", no dangling gap. Do NOT chase it as
+    geometry.
+  - exam_timeline lost no height at any viewport (that region's dh is 2.7% at
+    1440, was 2.8%) — "Download Forms" sat beside "Book Appointment".
+
+## A11Y AUDIT MOVED TO REAL PAGES (2026-08-07, feat/site-improvements)
+
+- [a11y | OPERATOR DECISION OPEN] brand cyan `#129ecc` on the pale band
+  `#e7f5fa` measures **2.77:1 against a 3:1 threshold** — WCAG 2.1 AA (1.4.3)
+  for large text, missed by 0.23. Found by pointing axe at real routes for the
+  first time (tests/a11y/pages.spec.ts); the suite had only ever audited three
+  `/dev/*` fixtures, which cannot show a slice's colour against the section it
+  actually lands in.
+
+  ONE root cause, every failing node identical (axe's own fg/bg data):
+  /services 4 nodes - the service-block <h3> titles, 40px
+  /our-team 11 nodes - every team member's <h5> name, 30px
+  /your-first-visit 4 nodes - "Registration Forms" <h5> + the 25px CTA
+  Nothing else on any of the nine audited pages violates anything.
+
+  This is the SAME defect already resolved for the footer's "Want to learn
+  more?" heading, where the operator ACKed swapping live's cyan for the AA-safe
+  `--primary-deep` ("footer color is fine", 2026-08-03). That ACK was scoped to
+  one heading; this is the same swap across three pages' most prominent
+  headings, so it is a brand-colour decision and is NOT being taken unilaterally
+  on a pixel-matching rebuild. Measured candidates on the pale band:
+  #129ecc 2.78:1 live's cyan, current, FAILS
+  #0f8fb8 3.34:1 minimal darkening, closest to the brand
+  #0e7799 4.58:1 the existing --primary-deep token, already in the footer
+  Either passes; the choice is how far from live's cyan to move.
+
+  NOT suppressed while it waits. pages.spec.ts records the rule per page AND
+  asserts the exact colour pair, so a contrast failure with any other pair fails
+  the run, and any new rule on any page fails it too — verified by removing
+  /services from the known list (fails, naming all four <h3>s) and by altering
+  the expected pair (fails, naming the real one). Deleting the constant when the
+  colour is chosen tightens the suite to zero automatically.
+
+- [a11y | third-party] the YouTube player on service detail pages reports
+  aria-allowed-attr, aria-prohibited-attr and button-name violations INSIDE its
+  iframe. Google's markup, not ours, and unreachable from here — excluded by
+  iframe src alongside the footer Google map (already a declared pixel floor).
+  Everything around both embeds is still audited.
+
+## PUBLISH VERIFIED (2026-08-07, release published by the operator)
+
+The Migration release containing the link repairs, the article-scaffolding
+trim, the yfv form-CTA removal and the SEO tab was PUBLISHED. Verified with the
+new matching/gate-published.mjs, which is the check CLAUDE.md has required since
+the migration defects ("after any seed, diff a real route against its
+/dev/match/* twin") and which nothing previously automated.
+
+All 5 core pages x 1440/834/390 — height delta 0 EVERYWHERE, 0 text lines lost:
+
+home 0 / 0 / 0
+your-first-visit 0 / 0 / 0
+our-team 0 / 0 / 0
+services 0 / 0 / 0
+ask-the-doctor 0 / 0 / 0
+
+So the Migration API dropped nothing this time: every field the fixtures set
+survived the round trip, which is only true because the slice models and the
+`page` custom type were pushed first (assertModelsInSync in seed-pages.mjs,
+push-custom-types.mjs reporting "All custom types match Prismic").
+
+Head fields, which live ONLY on the published document and are invisible to
+every pixel/text gate: all five meta descriptions present (143-150 chars), and
+home's meta_title override live as "Beachfront Dentistry | Dentist in Redondo
+Beach, CA". Published article bodies re-scanned: 0 blocks still carrying
+"(internal links)", 4 clean "Related reading" headings.
+
+## QA CARD ANSWER WAS CLIPPED ON HOME (2026-08-07, operator-reported)
+
+- [defect | FIXED] `.qa-text` is `overflow: hidden` and holds the answer that
+  slides in when an "Ask the Doctor" card opens. Live gives the HOME (teaser)
+  variant of that box TWO heights:
+  .qa-text.m-2 { height: 3rem } (:7292)
+  .qa-text.m-2.active { height: 8rem; transition: height .2s } (:7303)
+  Only the collapsed 3rem was implemented, so the box stayed 72/96/120 in both
+  states while the answer sliding into it is 172-193px tall. Measured before the
+  fix, first home card, after opening:
+  1440 box 120px answer 193px CLIPPED 73px
+  834 box 96px answer 172px CLIPPED 76px
+  390 box 72px answer 183px CLIPPED 111px (61% of the answer hidden)
+  The box is `justify-end`, so it cut the ANSWER COPY from the top while leaving
+  "Read More" visible — which is why it read as truncated text, not a dead card.
+
+  The active rule is never overridden: `.qa-text.m-2.active` (three classes)
+  beats the <=767 `.qa-text { height: 10rem }` (one class), so 8rem holds at
+  every width — 320 / 256 / 192 against live's stepped root (40/32/24).
+  After the fix, ours vs live, same probe:
+  1440 ours box 320 answer 193 (fits) live box 320 answer 214 (fits)
+  834 ours box 256 answer 172 (fits) live box 256 answer 183 (fits)
+  390 ours box 192 answer 183 (fits) live box 192 answer 195 (clips 3px)
+  Box geometry now matches live exactly at all three; live clips 3px of its own
+  slightly longer copy at 390, which we do not reproduce.
+
+  ONLY the expanded height changed. The COLLAPSED box is deliberately untouched
+  because it is the element page-diff cuts on for the "Beyond the Smile" anchor.
+  Confirmed zero pixel cost — `bash matching/gate.sh qafix0807 home atd`,
+  threshold 0.1, no masks, matrix 1440/834/390: home 24/27 with every row
+  BYTE-IDENTICAL to the previous run, atd byte-identical to its baseline.
+
+  WHY NOTHING CAUGHT IT: every gate in this project — page-diff, style-census,
+  text-diff, and the new gate-published — measures the page in its DEFAULT
+  state. This defect exists only after a click. That is the matching skill's
+  Phase 5 (interaction states) blind spot, and it had no mechanical check at
+  all. tests/interaction/qa-expand.spec.ts is now that check: it asserts the
+  RENDERED GEOMETRY (answer scrollHeight <= clipping box height, and Read More
+  inside the box) at all three viewports, plus the collapsed contract (answer
+  translated out, `inert` so the hidden link stays untabbable). Verified to fail
+  on the pre-fix component at all three viewports with the exact numbers above.

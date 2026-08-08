@@ -54,6 +54,12 @@
 </svelte:head>
 
 {#if image?.url}
+  <!-- Both hints follow `preload`, which already means "this is THE
+       above-the-fold hero". They used to be unconditional, so an instance
+       explicitly opted out of the preload <link> (CtaBand.svelte:149, the
+       closing beach — below the fold on every page) still announced itself as
+       highest-priority and eagerly loaded, competing for bandwidth with the
+       real LCP image it had just deferred to. -->
   <img
     {src}
     srcset={candidates}
@@ -61,7 +67,8 @@
     width={image.dimensions?.width}
     height={image.dimensions?.height}
     {alt}
-    fetchpriority="high"
+    fetchpriority={preload ? "high" : "auto"}
+    loading={preload ? "eager" : "lazy"}
     decoding="async"
     class={passedClasses}
   />

@@ -22,7 +22,8 @@
 // never printed. Idempotent: re-running reuses assets and re-PUTs the docs.
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { head, TITLES, assemblies } from "../src/lib/beachfront-pages.js";
+import { pathToFileURL } from "node:url";
+import { head, META, TITLES, assemblies } from "../src/lib/beachfront-pages.js";
 import { assertModelsInSync } from "./lib/slice-models.mjs";
 
 const REPO = "48bb12d1";
@@ -195,7 +196,18 @@ async function main() {
       uid,
       lang: "en-us",
       title: TITLES[uid] ?? uid,
-      data: stripEmpty({ title: [head(1, TITLES[uid] ?? uid)], slices }),
+      // The SEO tab. Live ships no <meta name="description"> on any page, so
+      // every search snippet is currently whatever Google assembles for itself
+      // — see META in beachfront-pages.js. Seeded rather than hardcoded in the
+      // template so the practice can rewrite them in Prismic without a deploy.
+      data: stripEmpty({
+        title: [head(1, TITLES[uid] ?? uid)],
+        ...(META[uid]?.title ? { meta_title: META[uid].title } : {}),
+        ...(META[uid]?.description
+          ? { meta_description: META[uid].description }
+          : {}),
+        slices,
+      }),
     });
     // POST first; on "already exists", PUT by the master doc id (the stubs are
     // published, so the id resolves).
@@ -233,7 +245,13 @@ async function main() {
   );
 }
 
-main().catch((e) => {
-  console.error(e.message ?? e);
-  process.exit(1);
-});
+// Run only when invoked directly. This module also EXPORTS helpers, and an
+// unguarded top-level main() meant `import { … } from "./seed-entity-content.mjs"`
+// silently fired a real migration write — a test or a one-off verification
+// script importing a pure function should never stage documents.
+if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
+  main().catch((e) => {
+    console.error(e.message ?? e);
+    process.exit(1);
+  });
+}

@@ -30,6 +30,7 @@
     imagePosition = "center",
     wash = true,
     botGradient = "base",
+    ariaLevel = 1,
   }: {
     heading?: RichTextField | null;
     backgroundImage?: ImageField | null;
@@ -78,6 +79,21 @@
      *  the only page that has it. We were emitting the opaque `.dark` stop on
      *  every subpage, which is most of the `top` mismatch on the others. */
     botGradient?: "base" | "dark";
+    /** Announced heading level for the page title.
+     *
+     *  This band carries the ONLY title on /our-team, /services,
+     *  /ask-the-doctor and /contact-us, and it renders as an `h2` to inherit
+     *  live's global h2 size ladder. That left those four pages with no
+     *  level-1 heading at all (verified against the prerendered build), so
+     *  screen-reader users navigating by top-level heading got nothing and the
+     *  document outline started at level 2 with no root.
+     *
+     *  Overriding the ANNOUNCED level rather than the tag keeps the visual size
+     *  byte-identical — the same technique RichTextHeading.svelte:24 already
+     *  uses. `role="heading"` is emitted alongside so axe's
+     *  `page-has-heading-one` rule, which matches `h1` or
+     *  `[role=heading][aria-level=1]`, is satisfied too. */
+    ariaLevel?: number;
   } = $props();
 
   /** Scroll target for the "Back to Top" pill that closes the question list.
@@ -171,6 +187,15 @@
          two lines at 768):
            <=479  56/70      480-991  72/80      >=992  140/168
          contact overrides the SIZE only (50 <=767, 75 at 480-991, 140 >=992). -->
+    <!-- role="heading" is redundant on an h2 for screen readers, which honour
+         aria-level on the native element regardless. It is kept deliberately
+         because axe's `page-has-heading-one` matches only `h1:not([role])` or
+         `[role=heading][aria-level=1]` — an `h2 aria-level="1"` alone would
+         satisfy assistive tech but still be reported as a page with no level-1
+         heading by Lighthouse or a best-practice axe run. The tag itself cannot
+         become an h1: live's global rules key off h1 vs h2 (the `main h1-h3`
+         cyan rule, `h1{margin-bottom:10px}`), so swapping it would move pixels. -->
+    <!-- svelte-ignore a11y_no_redundant_roles -->
     <h2
       class="font-slab font-thin {align === 'left'
         ? 'text-left text-[50px] leading-[70px] xs:leading-[80px] md:text-[75px] md:leading-[80px] lg:pr-[33%] lg:text-[140px] lg:leading-[168px]'
@@ -178,6 +203,8 @@
           ? 'text-center text-[56px] leading-[70px] xs:text-[72px] xs:leading-[80px] lg:text-[140px] lg:leading-[168px]'
           : 'text-left text-[56px] leading-[70px] xs:text-[72px] xs:leading-[80px] lg:text-center lg:text-[140px] lg:leading-[168px]'}"
       style="color:#fff"
+      role="heading"
+      aria-level={ariaLevel}
     >
       {headingText}
     </h2>

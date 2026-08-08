@@ -33,7 +33,7 @@
 // printed. Idempotent: re-running reuses assets and re-PUTs the same payload.
 // `--dry-run` prints what would be staged and writes nothing.
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { homedir } from "node:os";
 import { PERSON_BEACHES } from "../src/lib/beachfront-pages.js";
 import {
@@ -41,6 +41,7 @@ import {
   NEWS_ARTICLE_CONTENT,
   COLLECTION_ITEM_CONTENT,
 } from "../src/lib/beachfront-entities.js";
+import { normalizeBodyLinks } from "./lib/body-links.mjs";
 import {
   asImageRef,
   asText,
@@ -148,7 +149,7 @@ async function resolveBeachAssets() {
 // replacing PUT preserves them. Images reduce to {id}; unfilled link/date drop.
 const carryOver = (d) => ({
   title: d.title,
-  body: d.body,
+  body: normalizeBodyLinks(d.body),
   media: asImageRef(d.media),
   gallery: (d.gallery ?? []).map((row) => ({
     ...row,
@@ -257,7 +258,13 @@ for (const [type, payload] of [
   assertCovered(type, await masterDocs(type), payload);
 }
 
-main().catch((e) => {
-  console.error(e.message ?? e);
-  process.exit(1);
-});
+// Run only when invoked directly. This module also EXPORTS helpers, and an
+// unguarded top-level main() meant `import { … } from "./seed-entity-content.mjs"`
+// silently fired a real migration write — a test or a one-off verification
+// script importing a pure function should never stage documents.
+if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
+  main().catch((e) => {
+    console.error(e.message ?? e);
+    process.exit(1);
+  });
+}

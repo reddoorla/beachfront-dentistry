@@ -1,3 +1,4 @@
+import { NOINDEX_PREFIXES } from "$lib/seo";
 import type { RequestHandler } from "./$types";
 
 export const prerender = true;
@@ -13,9 +14,7 @@ export const GET: RequestHandler = ({ url }) => {
   // still emits as public static HTML) and Prismic preview URLs (which
   // canonicalize to the real page anyway). Content routes stay open.
   const body = `User-agent: *
-Disallow: /dev/
-Disallow: /slice-simulator
-Disallow: /preview/
+${NOINDEX_PREFIXES.map((p) => `Disallow: ${p}`).join("\n")}
 
 Sitemap: ${url.origin}/sitemap.xml
 `;

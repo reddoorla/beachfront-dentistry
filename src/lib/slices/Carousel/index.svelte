@@ -150,8 +150,15 @@
            step with the root ladder — and it collapses out of the padding-less
            `.content-width` wrapper exactly as it does here. We had `mb-6` on
            the wrapper: 24px, +14 per viewport. -->
+      <!-- Announced as level 2: this is a SECTION heading ("Office Tour"), but
+           it renders as `h1` to pick up live's h1 size + the global
+           `main h1-h3` cyan rule. On your-first-visit that produced a second
+           level-1 heading competing with the page title, so the announced level
+           is corrected without touching the tag or a single pixel — same
+           technique as RichTextHeading.svelte:24 and SubpageHero's ariaLevel. -->
       <h1
         class="font-slab h-primary mb-[10px] text-[28px] leading-[38px] font-light lg:text-[60px] lg:leading-[72px]"
+        aria-level="2"
       >
         {trackLabel}
       </h1>
