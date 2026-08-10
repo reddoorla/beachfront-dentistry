@@ -2592,3 +2592,29 @@ pre-existing).
   static render and gate are unaffected. Expected gate movement @1440 in
   the team-slider region ("Dr. Robert Quan" / the region holding the h2),
   toward Tim's ask (h2 toward the ref, card away from it).
+- [deviation] first-exam photo corners — thread
+  4cdf4f23-cdfc-4275-b7ea-1dc764285c81 (pin #6,
+  https://app.markup.io/markup/4b8d52d2-fdc8-4432-83e5-1fd2339dc420/#thread/4cdf4f23-cdfc-4275-b7ea-1dc764285c81).
+  "Round corners like the registration form background to the left." NEW
+  design request: the reference gives this img no radius (probed 0px both
+  sides — only `.registration-forms-box` carries 25px,
+  beachfront.css:6693-6695). `rounded-[25px]` on the row-1 PrismicImage
+  (ExamTimeline/index.svelte), all widths. AFTER: 25px at
+  1440/1354/1294/834/390. Expected small mm movement (corner pixels) in the
+  exam region at all three matrix widths, away from the ref by design.
+- [deviation] registration box sticky travel — thread
+  2b40d1f7-b53c-4091-828d-030ad2f15f6a (pin #7,
+  https://app.markup.io/markup/4b8d52d2-fdc8-4432-83e5-1fd2339dc420/#thread/2b40d1f7-b53c-4091-828d-030ad2f15f6a).
+  "Should continue be sticky until the bottom aligns with the bottom of
+  step six." Sticky travel is bounded by the MARGIN box, so live's
+  `margin-bottom:3rem` = 120px ≥992 (beachfront.css:6693-6699) froze the
+  box 120px above step six (probed 5253.6 vs 5373.6 @1440; the ref's own
+  box freezes 280px short — Tim is deviating from live here too).
+  `lg:mb-0` (ExamTimeline/index.svelte); ≤991 keeps live's static margins.
+  No compensating spacer: the row's height is the taller steps column, so
+  the section border box is unchanged at every width (probed heights
+  2108.6/2089.2/2064.0/3024.5/2274.1 before = after; meetTop unchanged).
+  AFTER: box bottom = step six bottom (short by 0.0) @1440/1354/1294,
+  instant-scroll probe (triage's smooth-scroll probe had produced a false
+  "never sticks" reading). Invisible to the gate: fullPage captures render
+  the page unscrolled, where the box paints at its static position.

@@ -169,12 +169,19 @@
       <!-- `img._w-60pc.su-w-full-mobile` — 60% >=768 (`:3540-3542`), 100%
            <=767 (`:8426-8428`), no object-fit and no fixed aspect: the img is
            `max-width:100%` at its natural aspect. Measured 351x246 / 443x311 /
-           768x539. -->
+           768x539.
+
+           MarkUp 4b8d52d2 thread 4cdf4f23-cdfc-4275-b7ea-1dc764285c81
+           (pin #6): "Round corners like the registration form background to
+           the left." NEW design request — the reference gives this img no
+           radius (probed 0px both sides); the 25px is
+           `.registration-forms-box`'s (beachfront.css:6693-6695). See
+           LEDGER 2026-08-10 A2. -->
       {#if isFilled.image(p.image)}
         <PrismicImage
           field={p.image}
           fallbackAlt=""
-          class="h-auto w-full md:w-[60%]"
+          class="h-auto w-full rounded-[25px] md:w-[60%]"
         />
       {/if}
     </div>
@@ -189,10 +196,23 @@
            margin-bottom 2rem and **static**; <=767 (`:8791-8795`) 100% capped
            at 20rem. Resolved 351x384 / 640x512 / 480x480, padding 24/32/40,
            margin-bottom 48/64/120. The sticky exists ONLY at >=992, where it
-           pins while the six steps scroll past. -->
+           pins while the six steps scroll past.
+
+           MarkUp 4b8d52d2 thread 2b40d1f7-b53c-4091-828d-030ad2f15f6a
+           (pin #7): "This registration form box should continue be sticky
+           until the bottom aligns with the bottom of step six." Requested
+           DEVIATION from live's `margin-bottom:3rem` = 120px at >=992
+           (beachfront.css:6693-6699): sticky travel is bounded by the MARGIN
+           box, so the 120px froze our box 120px above step six (probed
+           5253.6 vs 5373.6 @1440; the ref's own box freezes 280px short).
+           `lg:mb-0` spends the full range — box bottom = step six bottom at
+           max travel. No compensating spacer needed: the row's height is the
+           taller steps column, so the section's border box is unchanged
+           (probed 2108.6 @1440 before and after). <=991 keeps live's static
+           margins. See LEDGER 2026-08-10 A2. -->
       {#if regStep}
         <div
-          class="registration-forms-box mb-12 flex h-96 w-full max-w-[480px] justify-start rounded-[25px] bg-[#e7f5fa] p-6 md:mb-16 md:h-[512px] md:w-[640px] md:max-w-none md:p-8 lg:sticky lg:top-10 lg:mb-[120px] lg:h-[480px] lg:w-[480px] lg:p-10"
+          class="registration-forms-box mb-12 flex h-96 w-full max-w-[480px] justify-start rounded-[25px] bg-[#e7f5fa] p-6 md:mb-16 md:h-[512px] md:w-[640px] md:max-w-none md:p-8 lg:sticky lg:top-10 lg:mb-0 lg:h-[480px] lg:w-[480px] lg:p-10"
         >
           {@render badge(regStep.number ?? "00", regStep.minutes)}
           <div
