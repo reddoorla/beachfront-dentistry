@@ -2534,3 +2534,29 @@ Verification: matching/probe-markup-align.mjs (kept). AFTER, cand:
 own tablet indent; logo 20@390 = live's nav px-20 vs 5% content quirk) ·
 390 all 19.5; CTA right = hamburger right at 1440/1294/1200/834.
 Gate rounds: mkbase (pre-edit baseline, new REF) → markupa1 (post-edit).
+
+## MARKUP ROUND A2 — /your-first-visit, five pins (2026-08-10, feat/markup-round-2026-08)
+
+Designer round, MarkUp board 4b8d52d2-fdc8-4432-83e5-1fd2339dc420 (page
+/your-first-visit). Before/after probe: scratch probe-yfv-a2 at
+1440/1354/1294/834/390 against the webflow.io reference. Baseline gate:
+markupa1-yfv (24 regions; fails = footer WTLM 12.85@390 / 12.01@834 and the
+operator-ACK'd "We want you to feel comfortable" hΔ15.08@1440 — all
+pre-existing).
+
+- [fidelity fix] group-photo hero h1 — thread
+  ed09da97-36ac-4ad9-b796-c53c5a0f580c (pin #1,
+  https://app.markup.io/markup/4b8d52d2-fdc8-4432-83e5-1fd2339dc420/#thread/ed09da97-36ac-4ad9-b796-c53c5a0f580c).
+  Two defects, both ours. (a) Live's `.first-visit-heading` is absolute with
+  no `left`, so its static position inside `.content-width` IS the gutter
+  (your-first-visit.html:121; beachfront.css:6593-6605 + gutter ladder
+  :5858-5867/:8627-8630/:9164-9167; ref probed 80/60/60/48/19.5). Ours was
+  `left-5 lg:left-20` — right at exactly 1440, wrong everywhere else
+  (80@1354/1294 vs 60; 20@834 vs 48; 20@390 vs 19.5). Now the shared gutter
+  ladder (Hero/index.svelte groupphoto). (b) The reference hard-breaks the
+  headline after "meet" ("We are excited to meet <br>and care for you.",
+  your-first-visit.html:121); we rendered one line at every lg width. The
+  break is restated in the COMPONENT because the Migration API strips `\n`
+  from StructuredText (docs/migration.md) — seeded content cannot carry it.
+  AFTER: x=80/60/60/48/19.5, 2 lines at every width = ref. Expected gate
+  movement in "top" (hero) at all three matrix widths, toward the ref.

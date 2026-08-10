@@ -201,6 +201,13 @@
     wash={slice.primary.hero_wash ?? true}
   />
 {:else if slice.variation === "groupphoto"}
+  <!-- The reference hard-breaks this headline after "meet" ("We are excited
+       to meet <br>and care for you.", your-first-visit.html:121). The break
+       cannot live in the seeded StructuredText — the Migration API strips
+       `\n` (docs/migration.md) — so the component restates it, falling back
+       to the plain text when the heading doesn't contain "meet". -->
+  {@const gpHeading = asText(slice.primary.heading) ?? ""}
+  {@const gpBreak = gpHeading.match(/^(.*\bmeet)\s+(\S.*)$/)}
   <!-- your-first-visit `.hero.group-photo`: a short photo band with a
        lower-LEFT thin slab headline in white and NO CTA. Same wave + scrim as
        the other openers.
@@ -258,8 +265,19 @@
       style="background:linear-gradient(rgba(0,0,0,0), rgba(18,158,204,0.8))"
       aria-hidden="true"
     ></div>
+    <!-- MarkUp 4b8d52d2 thread ed09da97-36ac-4ad9-b796-c53c5a0f580c (pin #1):
+         "Same left alignment issue, and then this headline should stack. See
+         original site." Live-FIDELITY fix: live's h1 is `.first-visit-heading`
+         inside `.content-width` with no `left` of its own
+         (your-first-visit.html:121; beachfront.css:6593-6605), so its static
+         position IS the content gutter — probed on the ref at 80/60/60/48/19.5
+         for 1440/1354/1294/834/390. Our `left-5 lg:left-20` (20px fixed,
+         80px fixed) matched live at exactly 1440 and nowhere else. Ladder:
+         5% ≤479 (beachfront.css:9164-9167), 8% ≤767 (:8627-8630), 48px
+         768-991 / max(60px, 50% − 640px) ≥992 (:5858-5867 against the
+         stepped root). -->
     <div
-      class="absolute bottom-[24px] left-5 z-10 lg:bottom-20 lg:left-20"
+      class="absolute bottom-[24px] left-[5%] z-10 xs:left-[8%] md:left-12 lg:bottom-20 lg:left-[max(60px,calc(50%_-_640px))]"
       use:animateIn={LIVE_REVEAL}
     >
       <!-- Inline white: the global `main h1–h3` primary rule outranks text-white. -->
@@ -267,7 +285,10 @@
         class="font-slab text-left text-[25px] leading-[38px] font-light lg:text-[60px] lg:leading-[72px]"
         style="color:#fff"
       >
-        {asText(slice.primary.heading)}
+        <!-- Reference keeps the space before the break ("meet <br>and",
+             your-first-visit.html:121) — kept so textContent stays two words. -->
+        {#if gpBreak}{gpBreak[1]}
+          <br />{gpBreak[2]}{:else}{gpHeading}{/if}
       </h1>
     </div>
     <div class="absolute bottom-0 left-0 z-10 w-full">
