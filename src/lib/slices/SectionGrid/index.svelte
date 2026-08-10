@@ -424,7 +424,15 @@
            trio's .expanding-box pattern). -->
       <!-- Desktop row geometry from live (2026-08-02): cards are 397 wide in
            the 1280 content box — a 13px inset each side + 31px gaps
-           (13+397+31+397+31+397+13 ≈ 1279), not a flush gap-24 row. -->
+           (13+397+31+397+31+397+13 ≈ 1279; the inset is `.expanding-box`'s
+           `margin: 0 12.5px`, beachfront.css:6927-6928, and the width is the
+           page embed's `calc(33% - 25px)`, index.html:88-102; probed first
+           card x=92.5 on the reference at 1440). MarkUp d486b3c5 thread
+           bdabccea-788f-4df8-9832-12a64544cba5 (pin #3): "Left align image to
+           headline above" — the lg row now drops that inset so the first/last
+           card edges sit flush on the shared content gutter (cards grow
+           397→406 in the same 1280 box, gap stays live's 31px). Deliberate
+           deviation from live's inset row; see LEDGER 2026-08-10. -->
       <!-- Below 992 the row is a single column. `.expanding-box` is sized in rem
            against live's stepped root, so the column has its own ladder:
              <=479    100% x 240 (10rem), margin .5rem -> 24px gap, centred
@@ -432,10 +440,11 @@
              768-991  16rem x 14rem = 512x448, margin 2rem -> 128px gap
            and at 768-991 it is LEFT-aligned, not centred: live's card sits at
            x=112 = the 48px content gutter + its own 64px margin (measured at
-           834; the whole column was centred at x=161 here). -->
+           834; the whole column was centred at x=161 here). Tim's pin is the
+           desktop row; live's own deliberate tablet indent stays. -->
       <div
         data-grid-columns={columns}
-        class="grid grid-cols-1 gap-6 xs:mx-auto xs:max-w-[403px] xs:gap-[96px] md:mx-0 md:ml-16 md:max-w-[512px] md:gap-[128px] lg:mx-0 lg:ml-0 lg:max-w-none lg:gap-[31px] lg:px-[13px] {colClass[
+        class="grid grid-cols-1 gap-6 xs:mx-auto xs:max-w-[403px] xs:gap-[96px] md:mx-0 md:ml-16 md:max-w-[512px] md:gap-[128px] lg:mx-0 lg:ml-0 lg:max-w-none lg:gap-[31px] {colClass[
           columns
         ] ?? 'md:grid-cols-3'}"
       >
