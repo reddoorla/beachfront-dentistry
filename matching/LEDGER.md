@@ -2618,3 +2618,23 @@ pre-existing).
   instant-scroll probe (triage's smooth-scroll probe had produced a false
   "never sticks" reading). Invisible to the gate: fullPage captures render
   the page unscrolled, where the box paints at its static position.
+
+Verification (A2): scratch pin-probe at 1440/1354/1294/834/390, cand vs the
+webflow.io ref (deleted with the round). AFTER, cand: h1 x=80/60/60/48/19.5
+and 2 lines at every width (=ref); toc lede top = list top at lg; meet h2 =
+first card = 80/60/60; exam photo radius 25px everywhere; sticky box bottom
+= step-six bottom (short by 0.0) @1440/1354/1294 with the exam section's
+border box unchanged at every width.
+Gate rounds: markupa1 (baseline) → markupa2 (threshold 0.1, matrix
+1440/834/390, mask [], neutralizeMedia false). Movement confined to intended
+regions: "top" 2.85→0.12 @1440 / 2.45→0.66 @390 / 1.28→1.22 @834 (pin #1,
+toward ref); WTFC @1440 mm 0.41→2.03 (pin #2 deviation; its ACK'd hΔ 15.08
+unchanged); "Office Tour" @1440 1.13→3.20 (the pin-#4 card shift above the
+Dr._Robert_Quan anchor cut; the h2 fidelity half moves toward ref);
+"Dr. Robert Quan" @1440 2.14→16.24 NEW FAIL — pin #4's requested deviation
+(every card 43.33px left of the ref; the diff png is pure horizontal
+displacement, no breakage; @834/390 rows unchanged at 1.45/3.13). Left OPEN
+awaiting operator ACK as a deviation floor (same class as the WTFC hΔ row);
+threshold untouched, nothing masked. Footer WTLM floors 12.85@390 /
+12.01@834 unchanged. next.mjs after: 131/153, yfv 20/24, 3 open failures
+(this DRQ row, plus svc/contact outside this round).
