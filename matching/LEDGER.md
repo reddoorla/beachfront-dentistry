@@ -2560,3 +2560,16 @@ pre-existing).
   from StructuredText (docs/migration.md) — seeded content cannot carry it.
   AFTER: x=80/60/60/48/19.5, 2 lines at every width = ref. Expected gate
   movement in "top" (hero) at all three matrix widths, toward the ref.
+- [deviation] toc lede top — thread a6fdb602-eefa-4fcc-9760-2470af210a60
+  (pin #2,
+  https://app.markup.io/markup/4b8d52d2-fdc8-4432-83e5-1fd2339dc420/#thread/a6fdb602-eefa-4fcc-9760-2470af210a60).
+  "Vertically align to the top of the 1, 2, 3 list." The 20px offset is
+  live's own `.text-body-large` margin-top (beachfront.css:7761), and the
+  reference renders it too (ref probed tocP 620 vs list 600 at every lg
+  width) — a requested deviation, not a defect. `lg:[&_p]:mt-0`
+  (FirstVisitToc/index.svelte) zeroes it in the desktop row only; the
+  stacked ≤991 layout keeps live's margins (delta −130/−140 @834/390,
+  unchanged). Pin caveat: the pin's x lands near the arrow column, but the
+  arrows were already flush — the paragraph reading is the only defect.
+  AFTER: delta 0 @1440/1354. Expected small mm movement in "We want you to
+  feel comfortable" @1440 (its ACK'd hΔ 15.08 floor is untouched).

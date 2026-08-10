@@ -117,9 +117,19 @@
            (`:7761-7762`; `20px 0 20px` at ≤479, `:9574`). The two buttons are
            NOT here: live keeps them in the right column under the visit list,
            and having them on the left is what left this section 67px short at
-           1440 with both columns 36px too narrow. -->
+           1440 with both columns 36px too narrow.
+
+           MarkUp 4b8d52d2 thread a6fdb602-eefa-4fcc-9760-2470af210a60
+           (pin #2): "This should vertically align to the top of the 1, 2, 3
+           list on the right. Right now, it's a little low." Requested
+           DEVIATION from live: the 20px is `.text-body-large`'s own
+           margin-top (`beachfront.css:7761`), and the reference renders the
+           same +20 offset (probed tocP 620 vs list 600 on the ref at every
+           lg width). `lg:[&_p]:mt-0` zeroes it in the desktop row only; the
+           stacked <=991 layout keeps live's margins. See LEDGER 2026-08-10
+           A2. -->
       <div
-        class="w-full lg:w-1/2 [&_p]:font-slab [&_p]:mt-5 [&_p]:mb-5 [&_p]:max-w-[490px] [&_p]:text-[20px] [&_p]:leading-[30px] [&_p]:font-light [&_p]:text-[#365b6d] xs:[&_p]:mb-10 lg:[&_p]:text-[30px] lg:[&_p]:leading-[45px]"
+        class="w-full lg:w-1/2 [&_p]:font-slab [&_p]:mt-5 [&_p]:mb-5 [&_p]:max-w-[490px] [&_p]:text-[20px] [&_p]:leading-[30px] [&_p]:font-light [&_p]:text-[#365b6d] xs:[&_p]:mb-10 lg:[&_p]:mt-0 lg:[&_p]:text-[30px] lg:[&_p]:leading-[45px]"
       >
         {#if isFilled.richText(p.intro)}
           <PrismicRichText field={p.intro} />
