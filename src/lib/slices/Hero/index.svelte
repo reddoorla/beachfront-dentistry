@@ -326,8 +326,16 @@
          (live's .position-absolute-bottom-right offsets from the hero itself);
          z-10 still applies — this is a flex item, which stacks with z-index
          without needing a positioned box. -->
+    <!-- MarkUp d486b3c5 thread ebedbcc9-3c30-42e5-b3f4-7089fe36be86 (pin #1):
+         "Needs to left align to the headline below and the logo above."
+         This is a live-FIDELITY fix, not a deviation: live's h1 sits in the
+         `.content-width` gutter (beachfront.css:5858-5867, 8%≤767 :8627-8630,
+         5%≤479 :9164-9167 — probed on the reference at 80/60/60/48/19.5 for
+         1440/1294/1200/834/390). The original build's box (max-w-1360 + px-6
+         → h1 x=64/24/24) matched nothing; the video region's pixel floor hid
+         it. See LEDGER 2026-08-10. -->
     <div
-      class="z-10 mx-auto flex w-full max-w-[1360px] flex-col items-start gap-8 px-6 pt-36 pb-28 xs:pt-16 xs:pb-12 md:flex-row md:items-center md:justify-between md:gap-12 md:pt-36 md:pb-28"
+      class="z-10 mx-auto flex w-full max-w-[1400px] flex-col items-start gap-8 px-[5%] pt-36 pb-28 xs:px-[8%] xs:pt-16 xs:pb-12 md:flex-row md:items-center md:justify-between md:gap-12 md:px-12 md:pt-36 md:pb-28 lg:px-[60px]"
     >
       <!-- Live reveals the hero h1 with the same rise-in as every other
            element (its H1 sits at opacity 0 / +travel until the ix2 fires). -->
@@ -352,11 +360,20 @@
       {#if slice.primary.cta_label && slice.primary.cta_link}
         <!-- Live pins the pill to the hero's bottom-right at desktop
              (.button.position-absolute-bottom-right.home: bottom 4rem/160px,
-             right 2rem/80px of the SECTION) — the flex slot only positions it
-             on mobile. Hover is live's .button hover (opacity + cyan fill). -->
+             right 2rem — beachfront.css:6073-6076 — measured against live's
+             `.content-width`, so its right edge sits gutter+20px in:
+             1340@1440, 1214@1294). MarkUp d486b3c5 thread
+             2c0b1886-c579-43c0-aa70-d8c1f274c520 (pin #2): "right align to
+             the hamburger menu" — the hamburger's icon edge IS the content
+             gutter, so the pill's right offset is now the gutter itself:
+             max(60px, 50% − 640px) of the full-width section = 60px below
+             1400, (w−1400)/2+60 above (= 80 at 1440, where the old right-20
+             already happened to equal the gutter). Deliberate +20px deviation
+             from live below 1400. See LEDGER 2026-08-10. The flex slot still
+             positions it on mobile. Hover is live's .button hover. -->
         <PrismicLink
           field={slice.primary.cta_link}
-          class="focus-visible:ring-offset-dark inline-flex shrink-0 items-center rounded-lg border border-white font-slab px-[1em] py-[1.3em] leading-[0] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:absolute lg:right-20 lg:bottom-40 lg:text-[25px]"
+          class="focus-visible:ring-offset-dark inline-flex shrink-0 items-center rounded-lg border border-white font-slab px-[1em] py-[1.3em] leading-[0] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:absolute lg:right-[max(60px,calc(50%_-_640px))] lg:bottom-40 lg:text-[25px]"
         >
           {slice.primary.cta_label}
         </PrismicLink>
