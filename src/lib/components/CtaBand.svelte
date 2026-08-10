@@ -163,13 +163,22 @@
         <!-- Live's `.cta-beach-label`: museo-sans w300 white, 25px desktop /
              10px small, absolute at bottom 20% (which clears the footer wave
              that overlaps the photo's bottom edge — a lower anchor hides under
-             it), 60px / 5% from the left. No scrim on live; the label sits on
-             the darker water band of the photo.
+             it). Left ladder on live: 60px inside `.content-width`
+             (beachfront.css:6372-6379 → x=80@1440, 60@1294/1200, 60@834),
+             8% ≤767 (:8714-8717), 5% ≤479 (:9248-9251). No scrim on live.
              Its line-height is the unitless ratio 1.15, so it tracks the font
-             size at every breakpoint (11.5/17.25/23/28.75); the per-breakpoint
-             px values that used to sit here were 6px short at desktop. -->
+             size at every breakpoint (11.5/17.25/23/28.75). -->
+        <!-- MarkUp d486b3c5 thread 9ae81c12-aef2-4a2f-bec2-26aacad680f4
+             (pin #11): "the Fiji Islands label looks like it's too far right…
+             left-align all the way down the page." The label now takes the
+             shared content gutter: max(60px, 50% − 640px) at ≥992 (= live's
+             own 80/60/60 — the old flat lg:left-20 was 20px right of live
+             below 1400), 48px at 768–991 (deliberate deviation: live keeps
+             60px there, the gutter is 48), 8%/5% below (= live, and the
+             missing xs tier was a 5%-vs-8% infidelity). See LEDGER
+             2026-08-10. -->
         <p
-          class="absolute bottom-[20%] left-[5%] z-10 font-sans text-[10px] leading-[1.15] font-light text-white xs:text-[15px] md:text-[20px] lg:bottom-[31%] lg:left-20 lg:text-[25px]"
+          class="absolute bottom-[20%] left-[5%] z-10 font-sans text-[10px] leading-[1.15] font-light text-white xs:left-[8%] xs:text-[15px] md:left-12 md:text-[20px] lg:bottom-[31%] lg:left-[max(60px,calc(50%_-_640px))] lg:text-[25px]"
           use:animateIn={LIVE_REVEAL}
         >
           {caption}

@@ -194,13 +194,20 @@
   <!-- Live gives the copy 20px of lead-in below the wave ("Want to learn
        more?" sits 20px from the info-section top), then 40px more before the
        link columns. -->
-  <!-- Live's footer gutter, measured off `.footer-cols` at every band: 5% of
-       the viewport ≤479 (19.5px at 390), 8% from 480–767, then a flat 48px
-       from 768 up (it's `1.5rem` against live's own stepped root; ours is a
-       fixed root, so it's written in px). At 1440 the max-w-1280 below still
-       wins and centres the box at x=80, exactly as live does. -->
-  <div class="px-[5%] pt-3 pb-6 xs:px-[8%] md:px-[48px] lg:pt-5 lg:pb-12">
-    <div class="mx-auto max-w-[1280px]">
+  <!-- Live's footer gutter IS the site `.content-width` ladder
+       (beachfront.css:5858-5867 + :8627-8630 + :9164-9167): 5% ≤479, 8%
+       480–767, 1.5rem against the stepped root above — 48px at 768–991 but
+       60px at ≥992, 80 at 1440 with the 1400 cap. The old model here ("flat
+       48px from 768 up" + an inner 1280 cap) reproduced the 1440/834/390
+       samples and was 12px short across 992–1399 (probed live footer heading
+       x=60 at 1294/1200, ours was 48 — the misalignment MarkUp d486b3c5
+       thread 9ae81c12-aef2-4a2f-bec2-26aacad680f4 / pin #11 flagged).
+       Live-fidelity fix: the wrapper is now the shared gutter box; at ≥1400
+       the render is unchanged (1400 − 120 = the same 1280 content column). -->
+  <div
+    class="mx-auto max-w-[1400px] px-[5%] pt-3 pb-6 xs:px-[8%] md:px-12 lg:px-[60px] lg:pt-5 lg:pb-12"
+  >
+    <div>
       {#if heading}
         <!-- Live: 16px/40 mobile, 30px/40 desktop, weight 100, museo-slab, 10px
              below. Colour is the one deliberate deviation — live paints this

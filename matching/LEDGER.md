@@ -2435,3 +2435,102 @@ it states is semantically unchanged. Line citations re-mapped in spec-sections
 "`incidental-utils.js` — **1**: 14" still holds (toggle still starts at 14).
 Future byte-diffs against live's raw file will mismatch on whitespace/quotes —
 compare semantically, or re-capture and reformat.
+
+## REFERENCE MOVED — production cut over, gate REF repointed (2026-08-10, feat/markup-round-2026-08)
+
+- [infrastructure] `www.beachfrontdentistry.com` no longer serves the Webflow
+  reference: it 301s to the apex, which serves OUR Netlify build (verified
+  2026-08-10: 29 `_app/immutable` asset refs, zero `website-files.com` refs,
+  `server: Netlify`). The cutover happened after the 2026-08-07 23:40
+  qafix0807 run — that run still measured the stalled team region at its
+  historical 10.9%, which our own build would not produce. From the cutover
+  until today, `matching/gate.sh` was silently comparing the candidate with
+  itself; any run in that window would have gone green for the wrong reason
+  (none were run).
+- [fix] gate.sh REF → `https://beachfront-dentistry.webflow.io` — the Webflow
+  original is still published there under the same site id
+  (`data-wf-site="64af3f93339537d6b661b556"`, `home-hero-heading` present).
+  matching/pages/*.live.html (Last Published 2026-07-22) remain the frozen
+  markup captures. First run against the new REF is tagged `mkbase`
+  (pre-markup-round baseline) so score drift REF-side (e.g. a staging-domain
+  webflow badge, if any) is separable from this round's deliberate changes.
+
+## MARKUP ROUND — the five left gutters become ONE (2026-08-10, feat/markup-round-2026-08)
+
+Designer round, MarkUp board d486b3c5-eed8-4324-9158-289bd4ee8ccb (Tim Holmes,
+2026-08-07, pinned on deploy-preview-17 at ~1294px). The home page had FIVE
+differently-computed left gutters that coincide near x=80 only at exactly
+1440 — at 1294 they splayed to 24/48/60/73/80. Probing the REFERENCE
+(webflow.io staging) showed live itself keeps ONE gutter almost everywhere:
+`.content-width` = 80/60/60/48/19.5 at 1440/1294/1200/834/390
+(beachfront.css:5858-5867, 8%≤767 :8627-8630, 5%≤479 :9164-9167). Three of the
+five pins were therefore OUR matching bugs that the 1440-only lg sampling had
+hidden; two are real deviations Tim requested. After the round, every probed
+anchor (logo, hero h1, "Finally" heading, first card, MEET YOUR TEAM title,
+first team circle, FIJI label, footer heading) sits at 80/60/60/48/19.5, and
+the hero CTA's right edge equals the hamburger's at 1440/1294/1200/834
+(1360/1234/1140/786).
+
+- [fidelity fix] hero h1 box — thread ebedbcc9-3c30-42e5-b3f4-7089fe36be86
+  (pin #1, https://app.markup.io/markup/d486b3c5-eed8-4324-9158-289bd4ee8ccb/#thread/ebedbcc9-3c30-42e5-b3f4-7089fe36be86).
+  Ours was max-w-1360+px-6 (h1 x=64/24/24/24/24, from the pre-matching build);
+  live's h1 sits in `.content-width` (probed 80/60/60/48/19.5). Now the shared
+  gutter box (Hero/index.svelte). The video region's pixel floor (top region
+  mm 6-7% PASS) hid a 16-24px error at every width — pin #1 was a matching
+  defect report, not a taste request.
+- [deviation] hero CTA right edge — thread 2c0b1886-c579-43c0-aa70-d8c1f274c520
+  (pin #2, https://app.markup.io/markup/d486b3c5-eed8-4324-9158-289bd4ee8ccb/#thread/2c0b1886-c579-43c0-aa70-d8c1f274c520).
+  Live: `.button.position-absolute-bottom-right` right:2rem inside
+  `.content-width` (beachfront.css:6073-6076) → right edge gutter+20px in
+  (1340@1440, 1214@1294). Tim: "right align to the hamburger menu" → offset is
+  now the gutter itself, `lg:right-[max(60px,calc(50%_-_640px))]` → 1360@1440
+  (unchanged — ours was already 1360, a pre-existing 20px infidelity at 1440),
+  1234@1294 = hamburger. Deviates +20px from live everywhere in lg; invisible
+  to the gate matrix (1440 row unchanged).
+- [deviation] "Finally…" card row — thread bdabccea-788f-4df8-9832-12a64544cba5
+  (pin #3, https://app.markup.io/markup/d486b3c5-eed8-4324-9158-289bd4ee8ccb/#thread/bdabccea-788f-4df8-9832-12a64544cba5).
+  Live insets the three `.expanding-box` cards 12.5px inside the content box
+  (margin 0 12.5px, beachfront.css:6927-6928; width calc(33% − 25px),
+  index.html:88-102; probed first card x=92.5@1440, 72.5@1294). Tim: flush to
+  the heading → dropped our `lg:px-[13px]` (SectionGrid/index.svelte); cards
+  grow 397→406 in the same 1280 box, gap stays live's 31px. First card now
+  80@1440 vs live 92.5 — EXPECTED gate diff in "Finally have a dentist" @1440.
+  Tablet/mobile columns untouched (live's own x=112 indent at 834 stays; pin
+  was the desktop row).
+- [fidelity fix] team rail inset — thread 234a7635-c747-45c2-b7a2-9cb27cdefb6b
+  (pin #4, https://app.markup.io/markup/d486b3c5-eed8-4324-9158-289bd4ee8ccb/#thread/234a7635-c747-45c2-b7a2-9cb27cdefb6b).
+  Live sets `.heads-slider-holder` padding-left with JS getContentWidthMargin()
+  (index.html:177; matching/spec/incidental-utils.js:41-50; SPEC §3.3) = the
+  content gutter at every width. Our fixed trackPadStart="80px" reproduced the
+  1440 sample only (first circle 80 at 1294 vs title 60). Now
+  "max(60px, calc(50% - 640px))" — that function in pure CSS
+  (CollectionList/index.svelte team variation). Identical at 1440/834/390 →
+  no gate movement; the stalled "Our dental team in Redondo" @834 region is
+  NOT re-attempted by this round (strikes.mjs: flat 10.9% across 29 runs,
+  awaiting operator).
+- [deviation + fidelity fix] FIJI ISLANDS label — thread
+  9ae81c12-aef2-4a2f-bec2-26aacad680f4 (pin #11,
+  https://app.markup.io/markup/d486b3c5-eed8-4324-9158-289bd4ee8ccb/#thread/9ae81c12-aef2-4a2f-bec2-26aacad680f4).
+  Live `.cta-beach-label` left: 60px in `.content-width`
+  (beachfront.css:6372-6379 → 80/60/60/60), 8%≤767 (:8714-8717), 5%≤479
+  (:9248-9251). Ours was 5% + lg:left-20: WRONG vs live at 992-1399 (80 vs 60)
+  AND at 480-767 (5% vs 8%). Now the shared-gutter ladder
+  (5% / xs 8% / md 48px / lg max(60px,50%−640px)): equals live at every width
+  EXCEPT 768-991, where Tim's "left-align all the way down" takes the 48px
+  gutter over live's 60px. EXPECTED (improving) gate movement @834 in every
+  "Ready for great dental health" region that shows the beach band: label x
+  41.7 → 48 against ref 60. Applies to all six nav pages (Hero cta hardcodes
+  the caption, Hero/index.svelte:186).
+- [fidelity fix] footer gutter — same thread 9ae81c12 (pin #11). The old model
+  ("flat 48px from 768 up" + inner 1280 cap, Footer.svelte) reproduced live's
+  1440/834/390 samples but is 12px short across 992-1399: live's footer box is
+  the `.content-width` ladder (1.5rem stepped root → 60px ≥992; probed footer
+  heading x=60@1294/1200 vs ours 48). Wrapper is now the shared gutter box;
+  at ≥1400 the render is byte-identical (1400−120 = the same 1280 column), so
+  no gate movement at any matrix width.
+
+Verification: matching/probe-markup-align.mjs (kept). AFTER, cand:
+1440 all-anchors 80 · 1294 all 60 · 1200 all 60 · 834 all 48 (card 112 = live's
+own tablet indent; logo 20@390 = live's nav px-20 vs 5% content quirk) ·
+390 all 19.5; CTA right = hamburger right at 1440/1294/1200/834.
+Gate rounds: mkbase (pre-edit baseline, new REF) → markupa1 (post-edit).
