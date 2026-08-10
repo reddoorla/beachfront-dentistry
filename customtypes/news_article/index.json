@@ -11,6 +11,12 @@
         "type": "StructuredText",
         "config": { "label": "title", "single": "heading1" }
       },
+      "meta_title": {
+        "type": "Text",
+        "config": {
+          "label": "meta title (SEO <title> override — layout composes \"Beachfront Dentistry | …\"; keep composed length ≤ 70)"
+        }
+      },
       "body": {
         "type": "StructuredText",
         "config": {

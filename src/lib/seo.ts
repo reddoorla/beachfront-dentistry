@@ -44,6 +44,14 @@ export function isNoindexPath(pathname: string): boolean {
   return NOINDEX_PREFIXES.some((p) => pathname.startsWith(p));
 }
 
+/** Noindex is a production contract. The vite dev server must NOT enforce it:
+ *  the fleet lighthouse audit scores /dev/a11y-fixtures on `vite dev`, and BOTH
+ *  the robots meta and a robots.txt Disallow fail its is-crawlable audit
+ *  (weight 4 of 13). Vitest also runs with DEV=true but must exercise the
+ *  production contract, hence the MODE escape (vitest sets MODE to "test"). */
+export const NOINDEX_ENFORCED =
+  !import.meta.env.DEV || import.meta.env.MODE === "test";
+
 /**
  * Compose a page's <title>: prefix "SITE_NAME |" for brand recall, unless the
  * title is empty, is the site name itself (the home page), or already contains

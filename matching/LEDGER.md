@@ -2420,3 +2420,18 @@ Beach, CA". Published article bodies re-scanned: 0 blocks still carrying
   inside the box) at all three viewports, plus the collapsed contract (answer
   translated out, `inert` so the hidden link stays untabbable). Verified to fail
   on the pre-fix component at all three viewports with the exact numbers above.
+
+## INCIDENTAL-UTILS REFORMATTED — deliberate divergence (2026-08-10, fix/fleet-audits)
+
+`matching/spec/incidental-utils.js` was prettier-formatted to clear the fleet
+lint audit (reddoor-maintenance `src/audits/lint.ts` globs `**/*.{ts,js,svelte}`
+and consults neither `.prettierignore` nor `.gitignore`, so the untracked
+capture was audited and failed). The file is NO LONGER a byte-faithful copy of
+live's `raw.githack.com/tucksravin/incidental-js/main/webflow/utils.js` —
+tabs→spaces, single→double quotes, semicolons added; 55 → 51 lines. Every rule
+it states is semantically unchanged. Line citations re-mapped in spec-sections
+(and SPEC.md rebuilt): `toggle` 14-23 → 14-22, resize decoupler 34-36 → 33-35,
+`getContentWidthMargin` 43-51 → 41-50. `services.md` census line
+"`incidental-utils.js` — **1**: 14" still holds (toggle still starts at 14).
+Future byte-diffs against live's raw file will mismatch on whitespace/quotes —
+compare semantically, or re-capture and reformat.

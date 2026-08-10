@@ -9,6 +9,7 @@
     composeTitle,
     DEFAULT_OG_IMAGE,
     isNoindexPath,
+    NOINDEX_ENFORCED,
     organizationJsonLd,
     SITE_NAME,
   } from "$lib/seo";
@@ -52,6 +53,13 @@
   // instantly instead of gliding under app.css's smooth-scroll. See the util.
   beforeNavigate(disableSmoothScroll);
   afterNavigate(restoreSmoothScroll);
+
+  // Landing with the #appointment hash (the /contact legacy redirect, or a
+  // shared /contact-us#appointment link) opens the modal directly — same
+  // contract as clicking an #appointment anchor below.
+  afterNavigate(() => {
+    if (location.hash === "#appointment") appointmentOpen.set(true);
+  });
 
   // Delegated so any anchor with href="#appointment" — including ones from
   // ordinary Prismic link fields, not just hardcoded CTAs — opens the global
@@ -105,7 +113,7 @@
   image={page.data.meta_image || DEFAULT_OG_IMAGE || undefined}
   imageAlt={page.data.meta_image_alt}
   url={page.url}
-  noindex={isNoindexPath(page.url.pathname)}
+  noindex={NOINDEX_ENFORCED && isNoindexPath(page.url.pathname)}
   jsonLd={practiceJsonLd(page.url.origin)}
 />
 {#if page.data.frozen}

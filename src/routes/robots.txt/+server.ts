@@ -1,4 +1,4 @@
-import { NOINDEX_PREFIXES } from "$lib/seo";
+import { NOINDEX_ENFORCED, NOINDEX_PREFIXES } from "$lib/seo";
 import type { RequestHandler } from "./$types";
 
 export const prerender = true;
@@ -12,9 +12,11 @@ export const prerender = true;
 export const GET: RequestHandler = ({ url }) => {
   // Fence crawlers off the dev/tooling routes (which `prerender = "auto"`
   // still emits as public static HTML) and Prismic preview URLs (which
-  // canonicalize to the real page anyway). Content routes stay open.
+  // canonicalize to the real page anyway). Content routes stay open. On the
+  // vite dev server the fence drops entirely (a bare `Disallow:` is the
+  // spec's allow-everything rule) — see NOINDEX_ENFORCED in $lib/seo.
   const body = `User-agent: *
-${NOINDEX_PREFIXES.map((p) => `Disallow: ${p}`).join("\n")}
+${NOINDEX_ENFORCED ? NOINDEX_PREFIXES.map((p) => `Disallow: ${p}`).join("\n") : "Disallow:"}
 
 Sitemap: ${url.origin}/sitemap.xml
 `;
