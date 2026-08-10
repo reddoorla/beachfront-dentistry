@@ -17,6 +17,10 @@ export async function load({ params, fetch, cookies }) {
     return {
       doc,
       title,
+      // SEO-only <title> override (layout: meta_title || title). The visible
+      // H1/card title is pixel-gated against live and must not shorten; the
+      // composed <title> must stay ≤ 70 chars for the fleet browser audit.
+      meta_title: doc.data.meta_title,
       meta_description: (asText(doc.data.body) || "").slice(0, 155),
       meta_image: doc.data.media?.url,
     };

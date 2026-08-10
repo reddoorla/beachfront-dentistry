@@ -87,6 +87,7 @@ export const PERSON_CONTENT = {
  *  18 of the 40 summaries are not a prefix of `body`, so they are authored. */
 export const NEWS_ARTICLE_CONTENT = {
   "regular-dental-cleanings-support-your-whole-body-health": {
+    meta_title: "Beyond the Smile: Supporting Whole-Body Health",
     summary:
       "Routine cleanings aren’t just about keeping your smile bright—they’re a powerful tool for protecting your entire body",
     home_order: 1,
@@ -126,6 +127,7 @@ export const NEWS_ARTICLE_CONTENT = {
     home_order: 3,
   },
   "what-surprising-foods-optimize-my-dental-health": {
+    meta_title: "Surprising Foods That Boost Dental Health",
     summary:
       "People overlook the powerful role that diet plays in your dental health",
   },
@@ -159,6 +161,7 @@ export const NEWS_ARTICLE_CONTENT = {
       "Bacteria found in our teeth and gums can cause bad breath. Bacteria in the mouth harbors in areas where tooth brushing can't eliminate them. You're more likely to suffer from halitosis if...",
   },
   "brushing-mistakes": {
+    meta_title: "Common Tooth-Brushing Mistakes",
     summary:
       "To maintain a healthy smile, you need to have an oral health care regime. Let's look at some of the most common mistakes people make when brushing their teeth...",
   },
@@ -199,6 +202,7 @@ export const NEWS_ARTICLE_CONTENT = {
       "The short answer is that it can last a long time, as long as they're properly done. Porcelain veneers are like cars...",
   },
   "resolutions-that-help-your-dental-health": {
+    meta_title: "New Year’s Resolutions for Dental Health",
     summary:
       "Your New Year’s resolutions can do more than boost your overall health—they can transform your dental health, too. Don’t miss these resolutions that pack a big punch for your oral hygiene!",
   },
@@ -229,14 +233,17 @@ export const NEWS_ARTICLE_CONTENT = {
       "Bleeding gums are often an early sign of gum disease, not normal brushing. Learn why gums bleed and how to restore healthy gums.",
   },
   "sharp-tooth-pain-with-cold-drinks-causes-fixes": {
+    meta_title: "Tooth Pain With Cold Drinks: Causes and Fixes",
     summary:
       "Sudden pain from cold drinks is often tooth sensitivity, but sometimes signals decay or cracks. Learn causes and proven ways to reduce pain.",
   },
   "how-to-stop-a-toothache-fast": {
+    meta_title: "How to Stop a Toothache Fast",
     summary:
       "Need toothache relief now? Learn dentist-recommended ways to reduce pain safely while waiting for treatment.",
   },
   "tooth-sensitivity-or-a-cavity-key-differences": {
+    meta_title: "Tooth Sensitivity or a Cavity?",
     summary:
       "Not sure if your tooth pain is sensitivity or a cavity? Learn the symptoms, differences, and when dental care is necessary.",
   },
@@ -245,6 +252,7 @@ export const NEWS_ARTICLE_CONTENT = {
       "Tooth infections can become serious if untreated. Learn early symptoms, warning signs, and when urgent dental care is needed.",
   },
   "when-tooth-pain-is-a-dental-emergency": {
+    meta_title: "Is Tooth Pain an Emergency? Warning Signs",
     summary:
       "Some tooth pain can wait — others cannot. Learn the symptoms that require same-day dental treatment.",
   },

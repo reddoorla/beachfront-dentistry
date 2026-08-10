@@ -5629,7 +5629,7 @@ The 24 hrefs, in DOM order (`services-blocks.pretty.html`): `/services/`
 | 35    | panel `a.button.show-form.nav` "Book an Appointment" (IX2 `e-307` → `a-5` + jQuery `services-live.html:148-158`)                                                                                                                                                      | chrome §3.6 |
 | 36    | panel `a.button.nav` "Make a Payment" → `app.modento.io/beachfront-dentistry`                                                                                                                                                                                         | chrome §3.1 |
 | 37    | CTA `a.button.show-form[data-w-id=1273e294-…4f60]` "Book Appointment" (IX2 `e-17` → `a-5`)                                                                                                                                                                            | chrome §4.3 |
-| 38    | `div.block-link.social-link-block[data-w-id=9daf7a34-…]` "Read Reviews" toggle (IX2 `e-211`→`a-8`, `e-212`→`a-9`, **plus** jQuery `$('.social-link-block').click(toggle)` at `services-live.html:172`, `toggle` defined in `matching/spec/incidental-utils.js:14-23`) | chrome §4.4 |
+| 38    | `div.block-link.social-link-block[data-w-id=9daf7a34-…]` "Read Reviews" toggle (IX2 `e-211`→`a-8`, `e-212`→`a-9`, **plus** jQuery `$('.social-link-block').click(toggle)` at `services-live.html:172`, `toggle` defined in `matching/spec/incidental-utils.js:14-22`) | chrome §4.4 |
 | 39–41 | 3 × `a._w-8.clickable.su-w-6-portrait` — Google Maps review page · Facebook · Yelp                                                                                                                                                                                    | chrome §4.4 |
 | 42–45 | 4 × footer `a.inline-link` (Your First Visit · Our Team · **Services** `w--current` · Ask the Doctor)                                                                                                                                                                 | chrome §5.3 |
 | 46    | footer `a.button[data-w-id=b1ce8885-…]` "Make a Payment" (IX2 → `a-5`)                                                                                                                                                                                                | chrome §5.3 |
@@ -10931,13 +10931,13 @@ for completeness)
 | Hero wave SVG injection     | `$(".bot-wave").append('<svg …>')`                                                                                                                      | `detail-qa.html:119-123`                                                    |
 | Appointment modal show/hide | `showForm = () => $(".form-modal").css("opacity","1")`; `hideForm` sets `"0"`; bound `$(".show-form").click(showForm); $(".hide-form").click(hideForm)` | `detail-qa.html:126-136`                                                    |
 | Portrait nag                | `alert("Please use Portrait!")` on load and on `window:resize` when `innerWidth<792 && innerHeight<innerWidth`                                          | `detail-qa.html:138-146`                                                    |
-| Reviews toggle              | `$('.social-link-block').click(toggle)` — `toggle` adds/removes `.active` on the clicked element **and every descendant**                               | `detail-qa.html:149`; `toggle` at `matching/spec/incidental-utils.js:14-23` |
-| Resize decoupler            | `$(window).resize(() => $(window).trigger("window:resize"))`                                                                                            | `matching/spec/incidental-utils.js:34-36`                                   |
+| Reviews toggle              | `$('.social-link-block').click(toggle)` — `toggle` adds/removes `.active` on the clicked element **and every descendant**                               | `detail-qa.html:149`; `toggle` at `matching/spec/incidental-utils.js:14-22` |
+| Resize decoupler            | `$(window).resize(() => $(window).trigger("window:resize"))`                                                                                            | `matching/spec/incidental-utils.js:33-35`                                   |
 
 `incidental-utils.js` is loaded from
 `https://raw.githack.com/tucksravin/incidental-js/main/webflow/utils.js`
 (`detail-qa.html:113`); the captured copy is `matching/spec/incidental-utils.js`.
-`getContentWidthMargin()` (`incidental-utils.js:43-51`) is defined but **not
+`getContentWidthMargin()` (`incidental-utils.js:41-50`) is defined but **not
 called on this page** — there is no slider here.
 
 **Nothing on this page is scroll-linked** (no `SCROLL_MOTION`, no `position:sticky`,

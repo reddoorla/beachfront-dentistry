@@ -860,13 +860,13 @@ for completeness)
 | Hero wave SVG injection     | `$(".bot-wave").append('<svg …>')`                                                                                                                      | `detail-qa.html:119-123`                                                    |
 | Appointment modal show/hide | `showForm = () => $(".form-modal").css("opacity","1")`; `hideForm` sets `"0"`; bound `$(".show-form").click(showForm); $(".hide-form").click(hideForm)` | `detail-qa.html:126-136`                                                    |
 | Portrait nag                | `alert("Please use Portrait!")` on load and on `window:resize` when `innerWidth<792 && innerHeight<innerWidth`                                          | `detail-qa.html:138-146`                                                    |
-| Reviews toggle              | `$('.social-link-block').click(toggle)` — `toggle` adds/removes `.active` on the clicked element **and every descendant**                               | `detail-qa.html:149`; `toggle` at `matching/spec/incidental-utils.js:14-23` |
-| Resize decoupler            | `$(window).resize(() => $(window).trigger("window:resize"))`                                                                                            | `matching/spec/incidental-utils.js:34-36`                                   |
+| Reviews toggle              | `$('.social-link-block').click(toggle)` — `toggle` adds/removes `.active` on the clicked element **and every descendant**                               | `detail-qa.html:149`; `toggle` at `matching/spec/incidental-utils.js:14-22` |
+| Resize decoupler            | `$(window).resize(() => $(window).trigger("window:resize"))`                                                                                            | `matching/spec/incidental-utils.js:33-35`                                   |
 
 `incidental-utils.js` is loaded from
 `https://raw.githack.com/tucksravin/incidental-js/main/webflow/utils.js`
 (`detail-qa.html:113`); the captured copy is `matching/spec/incidental-utils.js`.
-`getContentWidthMargin()` (`incidental-utils.js:43-51`) is defined but **not
+`getContentWidthMargin()` (`incidental-utils.js:41-50`) is defined but **not
 called on this page** — there is no slider here.
 
 **Nothing on this page is scroll-linked** (no `SCROLL_MOTION`, no `position:sticky`,
