@@ -29,7 +29,13 @@
 # instead of trusting anyone to remember.
 set -u
 PD="$HOME/.claude/skills/matching-a-page/page-diff.mjs"
-REF="https://www.beachfrontdentistry.com"
+# 2026-08-10: production (www.beachfrontdentistry.com) cut over to OUR Netlify
+# build sometime after the 2026-08-07 qafix0807 run — the old REF now 301s to
+# the rebuild, so gating against it compares the candidate with itself and
+# every run goes silently green. The Webflow original is still published at
+# its staging domain (same data-wf-site 64af3f93339537d6b661b556, same
+# markup classes); that is the reference now. See LEDGER 2026-08-10.
+REF="https://beachfront-dentistry.webflow.io"
 CAND="http://localhost:5173"
 SPEC="$(dirname "$0")/SPEC.md"
 TAG="${1:?usage: gate.sh <round-tag> [page ...]}"
