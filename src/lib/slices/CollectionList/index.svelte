@@ -308,12 +308,22 @@
            dissolve at the margins. Live's cell is `.heads{width:5rem;
            height:5rem;margin-right:1rem}` with NO media override — so against
            its stepped root (40/32/24) the real ladder is three sizes, not two:
-             >=992   200px cell, 40px gap, first flush at the 80px content-left
+             >=992   200px cell, 40px gap, first flush at the content-left
              768-991 160px cell, 32px gap, 48px content-left
              <=767   120px cell, 24px gap, 8%/5% content-left
            The 768-991 band was rendering the 200px DESKTOP cell (measured 200
            vs live's 160 at 834), which is what pinned this region at 45.9%.
            The arrows/fades still pin to the true screen edges. -->
+      <!-- MarkUp d486b3c5 thread 234a7635-c747-45c2-b7a2-9cb27cdefb6b
+           (pin #4): "Left align image to title 'Meet Your Team' above."
+           Live-FIDELITY fix: live sets this rail's padding-left with JS —
+           `getContentWidthMargin()` (index.html:177; captured at
+           matching/spec/incidental-utils.js:41-50; SPEC §3.3) = the
+           `.content-width` left at EVERY width, i.e. 60px + centring excess
+           above 1400 (80 at 1440, 60 at 1294/1200 — probed on the reference).
+           The old fixed "80px" reproduced only the 1440 sample and left the
+           whole 992–1399 band 20px right of the title. max(60px, 50% − 640px)
+           of the full-bleed track is that function in pure CSS. -->
       <div class="relative w-full" use:animateIn={LIVE_REVEAL}>
         <Slider
           itemCount={docs.length}
@@ -324,7 +334,7 @@
           gap="40px"
           tabletGap="32px"
           mobileGap="24px"
-          trackPadStart="80px"
+          trackPadStart="max(60px, calc(50% - 640px))"
           tabletTrackPadStart="48px"
           xsTrackPadStart="8%"
           mobileTrackPadStart="5%"
