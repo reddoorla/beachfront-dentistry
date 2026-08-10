@@ -39,6 +39,12 @@ vi.mock("$app/forms", () => ({
   },
 }));
 
+// The mounted TurnstileWidget reads $env/dynamic/public at module scope; that
+// virtual module is undefined outside a built app (CI), so stand it in with an
+// empty env — no sitekey → the widget renders nothing in these tests (same
+// mock TurnstileWidget.test.ts uses).
+vi.mock("$env/dynamic/public", () => ({ env: {} }));
+
 const AppointmentModal = (await import("./AppointmentModal.svelte")).default;
 
 afterEach(() => cleanup());
