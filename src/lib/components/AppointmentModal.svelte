@@ -2,6 +2,7 @@
   import { enhance } from "$app/forms";
   import Field from "$lib/components/Field.svelte";
   import Modal from "$lib/components/Modal.svelte";
+  import TurnstileWidget from "$lib/components/TurnstileWidget.svelte";
   import { appointmentOpen } from "$lib/stores/appointment";
   import { PHONE } from "$lib/site";
 
@@ -158,6 +159,12 @@
           <a class="underline" href={PHONE.href}>{PHONE.display}</a>.
         </p>
       {/if}
+
+      <!-- Renders nothing until PUBLIC_TURNSTILE_SITE_KEY is set (so dev, tests
+           and the pixel gates never see it). Mounted inside the form: Turnstile
+           injects its hidden cf-turnstile-response input here, and the action's
+           createIngestAction forwards it as the verification token. -->
+      <TurnstileWidget />
 
       <button
         type="submit"
