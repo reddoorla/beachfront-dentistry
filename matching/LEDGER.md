@@ -2573,3 +2573,22 @@ pre-existing).
   arrows were already flush — the paragraph reading is the only defect.
   AFTER: delta 0 @1440/1354. Expected small mm movement in "We want you to
   feel comfortable" @1440 (its ACK'd hΔ 15.08 floor is untouched).
+- [deviation + fidelity fix] meet-our-team first card — thread
+  e23604c9-fb66-4925-9878-9c3247390b44 (pin #4,
+  https://app.markup.io/markup/4b8d52d2-fdc8-4432-83e5-1fd2339dc420/#thread/e23604c9-fb66-4925-9878-9c3247390b44).
+  "Should left align to headline above." Fidelity half: live's h2 sits in
+  `.content-width` (your-first-visit.html:121; beachfront.css:5858-5867) —
+  our heading wrapper was missing the max-w-1400 cap, so it sat at 60@1440
+  where live has 80. Now capped (CollectionList/index.svelte slider branch):
+  h2 x=80/60/60 = live. Deviation half: live's first CARD sits a cell margin
+  past the gutter (gutter + 43.33 = 123.3@1440, probed; our old
+  trackPadStart="80px" reproduced that 1440 sample). Tim wants the card
+  flush with the h2, so lg trackPadStart is now
+  `calc(max(60px, 50% - 640px) - 43.33px)` — first-card = h2 gutter at
+  every lg width (80/60/60 probed @1440/1354/1294); ≤991 tiers untouched
+  (161/75 @834/390 = live's own indents). Known approximation, shared with
+  A1's team rail: Slider's arrow-travel bound parseFloats the pad (NaN→0
+  for calc), so the last arrow step can stop one cell short below ~1400 —
+  static render and gate are unaffected. Expected gate movement @1440 in
+  the team-slider region ("Dr. Robert Quan" / the region holding the h2),
+  toward Tim's ask (h2 toward the ref, card away from it).

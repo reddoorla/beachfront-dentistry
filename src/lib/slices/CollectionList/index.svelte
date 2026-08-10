@@ -385,8 +385,15 @@
     class="fv-meet-our-team-section mb-[72px] w-full scroll-mt-24 overflow-x-clip md:mb-24 lg:mb-[120px]"
   >
     {#if slice.primary.heading}
+      <!-- Live's h2 sits in `.content-width` (your-first-visit.html:121:
+           `<section id="meet" class="fv-meet-our-team-section"><div
+           class="content-width"><h2 …>Meet Our Team</h2>`), which is
+           max-width 1400 centred + padding 1.5rem (beachfront.css:5858-5867)
+           — without the cap our h2 sat at 60@1440 where live has 80
+           (probed). Surfaced by MarkUp 4b8d52d2 pin #4, which aligns the
+           first card to this heading. -->
       <div
-        class="mb-3 px-[5%] xs:px-[8%] md:mb-4 md:px-12 lg:mb-5 lg:px-[60px]"
+        class="mx-auto mb-3 max-w-[1400px] px-[5%] xs:px-[8%] md:mb-4 md:px-12 lg:mb-5 lg:px-[60px]"
         use:animateIn={LIVE_REVEAL}
       >
         <h2
@@ -413,6 +420,18 @@
         class="relative h-[552px] w-full overflow-hidden xs:h-[840px] md:h-[1120px] lg:h-[640px]"
         use:animateIn={LIVE_REVEAL}
       >
+        <!-- MarkUp 4b8d52d2 thread e23604c9-fb66-4925-9878-9c3247390b44
+             (pin #4): "Should left align to headline above, same spacing
+             issue." Requested DEVIATION from live: live pads the track to the
+             content gutter and the first CARD then sits a cell margin further
+             in (gutter + 43.33 = 123.3@1440, probed — which is what our old
+             fixed trackPadStart="80px" reproduced at 1440 only). Tim wants
+             the card itself flush with the h2, so the lg pad is the gutter
+             MINUS the card's `lg:mx-[43.33px]` cell margin:
+             first-card-left = max(60px, 50% − 640px) = the heading's
+             `.content-width` left (beachfront.css:5858-5867) at every lg
+             width. Cell widths, gaps and the ≤991 tiers are untouched. See
+             LEDGER 2026-08-10 A2. -->
         <Slider
           itemCount={docs.length}
           label={asText(slice.primary.heading) || "Meet our team"}
@@ -423,7 +442,7 @@
           tabletGap="0px"
           mobileGap="0px"
           slideClass="mt-24 xs:mt-[192px] md:mt-[256px] lg:mt-40"
-          trackPadStart="80px"
+          trackPadStart="calc(max(60px, 50% - 640px) - 43.33px)"
           tabletTrackPadStart="129px"
           xsTrackPadStart="8%"
           mobileTrackPadStart="51px"
