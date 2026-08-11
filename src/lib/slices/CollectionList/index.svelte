@@ -202,16 +202,19 @@
          equals live's 640 when no card grows. -->
   <!-- The top margin (live `.m-2` `beachfront.css:6538-6540` / ≤991 `:8183-8187`
        / ≤479 `:9271-9276`) stays on the CARD in the grid, where the card is the
-       outermost per-card box exactly as it is on live. In the SLIDER it moves
-       to the Slider's cell (`slideClass` below), because there the cell is the
-       outermost per-card box and live has no cell — leaving the margin here put
-       our card box 160/256/96px below the box the reference draws, which is
-       where page-diff cuts the "Dr. Robert Quan" region. -->
+       outermost per-card box exactly as it is on live — except at lg, where
+       ROUND C moved the grid's margins to the SECTION (30px gaps + pt-40
+       first-row clearance, thread 338f6e07 — see the section below). In the
+       SLIDER it moves to the Slider's cell (`slideClass` below), because
+       there the cell is the outermost per-card box and live has no cell —
+       leaving the margin here put our card box 160/256/96px below the box the
+       reference draws, which is where page-diff cuts the "Dr. Robert Quan"
+       region. -->
   <article
     class="team-list-item relative mx-6 mb-6 flex flex-col rounded-[20px] bg-[#e7f5fa] xs:min-h-[576px] xs:w-[384px] md:mx-8 md:mb-8 md:min-h-[768px] md:w-[512px] lg:min-h-[480px] {variant ===
     'slider'
       ? 'min-h-[432px] w-[240px] lg:mx-[21.67px] lg:mb-0 lg:w-[340px]'
-      : 'mt-24 min-h-96 w-[303px] xs:mt-[192px] md:mt-[256px] lg:mx-5 lg:mt-40 lg:mb-5 lg:w-80'}"
+      : 'mt-24 min-h-96 w-[303px] xs:mt-[192px] md:mt-[256px] lg:mx-0 lg:mt-0 lg:mb-0 lg:w-[calc((100%-60px)/3)]'}"
   >
     {#if doc.data.media?.url}
       <!-- headshot centred ON the card's top edge (half above, half in). -->
@@ -515,13 +518,28 @@
   </section>
 {:else if slice.variation === "people"}
   <!-- live `.team-grid-section` → `.w-dyn-items.w-row` (flex-wrap, justified
-       centre): `.w-col-4` cards, 3-up ≥768 / stacked ≤767. gap-y carries the
-       inter-row gutter; the top padding + card headshot overhang give the
-       first row room for the straddling circles. -->
+       centre): `.w-col-4` cards, 3-up ≥768 / stacked ≤767.
+       ROUND C deviation at lg — threads 338f6e07-02bc-4d14-9bad-45c4cd362e6c
+       (our-team pin #2: "Width of these can grow so that the margins match
+       the text margins on the other page") and
+       b7be52f2-11d0-467c-b4ea-ca086b9aa29f (atd pin #2, supersedes the 40:
+       "Let's use 30px."). Live justify-centres fixed 320px cards inside a
+       1280 box (first card probed x=200@1440 vs the 80px content gutter;
+       40px h / 180px v gaps from `.team-list-item.m-2`'s margins,
+       beachfront.css:6538-6540). Tim: outer card edges on the shared content
+       gutter with 30px gaps both axes — so at lg the section IS the
+       `.content-width` box (max-w-1400 + px-[60px], beachfront.css:5858-5867
+       = max(60px, 50% − 640px) per edge), the 30px gaps live on the section
+       (lg:gap-[30px]), live's 4rem first-row clearance moves from the card
+       to lg:pt-40 (:6538-6540), and the card width derives from the box:
+       (100% − 2×30px)/3 → 406.7@1440, 371.3@1294. 30 is BOX-to-box: the
+       100px headshot overhang means row 2+ circles overlap the row above's
+       banner — flagged in LEDGER ROUND C for Tim's resolve reply. ≤991
+       (single-column, live's ladder) is untouched. -->
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="team-grid-section mx-auto flex max-w-[1280px] flex-wrap justify-center px-5 md:px-12 lg:px-0"
+    class="team-grid-section mx-auto flex w-full max-w-[1400px] flex-wrap justify-center px-5 md:px-12 lg:gap-[30px] lg:px-[60px] lg:pt-40"
   >
     {#each docs as doc (doc.uid)}
       {@render personCard(doc)}

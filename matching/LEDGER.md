@@ -2736,6 +2736,36 @@ entry below is a REQUESTED deviation from a faithful match, not a fidelity fix.
 320w where our museo-slab metrics wrap it to two, which is why only OUR build
 showed pin #3's buried READ MORE — the box model live uses has the same trap.)
 
+- [deviation] grid cards → content gutter + 30px gaps — threads
+  338f6e07-02bc-4d14-9bad-45c4cd362e6c (our-team board 7944efa6 pin #2:
+  "Width of these can grow so that the margins match the text margins on the
+  other page… I do like the spacing in between the blocks … Let's use 40 px")
+  and b7be52f2-11d0-467c-b4ea-ca086b9aa29f (atd board 3c082cae pin #2, which
+  SUPERSEDES the 40: "Let's use 30px. That is a happy medium for all things
+  considered."). Live: fixed 320px (8rem) cards with margin 4rem .5rem .5rem
+  ≥992 (`.team-list-item.m-2`, beachfront.css:6530-6536 + :6538-6540),
+  justify-centred in the 1280 grid box → probed x=200/127 @1440/1294, 40px
+  h-gap, 180px v-gap (= ours before). Tim: card outer edges on the shared
+  content gutter, 30px both axes → at lg the `.team-grid-section` becomes
+  the `.content-width` box (max-w-1400 + lg:px-[60px],
+  beachfront.css:5858-5867 = max(60px, 50% − 640px) per edge), cards drop
+  their lg margins for lg:gap-[30px] on the section, live's 4rem first-row
+  clearance moves to the section as lg:pt-40 (:6538-6540 — first-card y
+  unchanged), and the width derives from the box, never a hardcoded 1280:
+  lg:w-[calc((100%-60px)/3)] → 406.7@1440 / 371.3@1294. ≤991 single-column
+  ladder untouched (probed identical). AFTER @1440: card1 x=80 = gutter,
+  full-row card 3 right = 953.3 + 406.7 = 1360 = vw − gutter, h+v gaps
+  30/30, row rhythm 510 (was 660); the 2-card last row stays justify-centred
+  (live's own `.w-row` behaviour). Bonus: at 406.7px "Dr. Michael Hopkins"
+  fits ONE line, so no lg grid card grows and all rows sit at exactly 480.
+  atd pin #2 sub-question (box-to-box vs photo-to-box): resolved BOX-to-box
+  30px. Consequence to flag in the resolve reply: the lg headshot overhang is
+  100px, so each row 2+ circle overlaps the row above's beach banner by
+  ~70px; the photo-to-box alternative is 130px box-to-box.
+  Gate consequence @1440/1294: the whole team-grid region reflows (cards
+  406.7 wide at the gutter vs live's 320 at x=200; v rhythm 660 → 510/row)
+  and the section shrinks ~450px, so every region below it on our-team
+  shifts up — expected fails vs the ref, listed in the round report.
 - [deviation] card box grows — thread 986a647b-badc-4ecc-9bd5-4292bba404ca
   (our-team board 7944efa6 pin #3: "The box needs to grow, or this type needs
   to get smaller so it doesn't rag like this." Taking the box-grows arm).
