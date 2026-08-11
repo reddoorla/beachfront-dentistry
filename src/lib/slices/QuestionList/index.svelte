@@ -182,8 +182,13 @@
 
       <!-- Live "View All Questions" = `.button.text-color-primary`: the
            light-blue (#129ecc) bordered slab pill, 67px tall at desktop —
-           not a neutral rounded-full ghost. -->
-      <div class="text-center" use:animateIn={LIVE_REVEAL}>
+           not a neutral rounded-full ghost.
+           DEVIATION (MarkUp thread ce17fba0-94d6-4e22-9863-8ee192b92ecc, home
+           pin #10): live butts this row against the last collection item
+           (probed 0px at 1440/834/390 — the `.qa-collection-list` has no
+           bottom margin); Tim: "add 40px of space between button and last
+           question" — the stated 40px is the mt-10. -->
+      <div class="mt-10 text-center" use:animateIn={LIVE_REVEAL}>
         <a
           href="/ask-the-doctor"
           class="font-slab focus-visible:ring-primary-deep inline-flex items-center rounded-lg border border-[#129ecc] px-[1em] py-[1.3em] text-[14px] leading-[0] font-light text-[#129ecc] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:text-[20px] lg:text-[25px]"
@@ -197,8 +202,9 @@
   <!-- Live "/ask-the-doctor" index: EVERY question as the same `.qa-block`
        card, laid out in a Webflow 2-column `.w-col-6` row (stacking to 1 at
        ≤767) inside `.content-width` (max-w 1400, side padding 60/36/19.5px
-       measured, 8%/5% at mobile). The 20px column gutter = live's per-column
-       `padding: 0 10px`. No headshot/handwriting, no featured hero, no "View
+       measured, 8%/5% at mobile). The inter-card spacing deviates from live's
+       `.w-col-6` gutter by request — see the grid comment below (MarkUp atd
+       pin #2). No headshot/handwriting, no featured hero, no "View
        All" — this IS the full list. Each card's number is its canonical
        date-sorted position, the same value the home teaser prints. -->
   <section
@@ -213,21 +219,27 @@
     {/if}
     <!-- live's `.content-width.my-8` = 2rem block margins against the stepped
          root (48/64/80px), NOT the flat 32px section padding we had: the whole
-         40-card grid sat 48/32/16px high and lost the same again below. -->
-    <div class="my-12 grid grid-cols-1 md:my-16 md:grid-cols-2 lg:my-20">
+         40-card grid sat 48/32/16px high and lost the same again below.
+         DEVIATION (MarkUp thread b7be52f2-11d0-467c-b4ea-ca086b9aa29f, atd
+         pin #2): live spaces the cells with `.w-col-6` padding 0 10px (20px
+         column gutter) and the fixed 520px `.ask-the-doctor-collection-item`
+         over a 400px card (~120px empty below each card at desktop, 96px
+         tablet, 12px mobile — the qa-block's own margin). Tim: "get the
+         spacing between to match consistent vertically and horizontally
+         between these 'modules'… Let's use 30px" — one true gap-[30px] on
+         both axes at every width, per-cell padding gone. An opened card grows
+         (margin-top + the ≤479 re-height) INSIDE its own grid cell, so auto
+         rows push the rows below and the 30px gap holds in the open state —
+         probed no-overlap at 1440/834/390. -->
+    <div
+      class="my-12 grid grid-cols-1 gap-[30px] md:my-16 md:grid-cols-2 lg:my-20"
+    >
       {#each sortedDocs as doc (doc.uid)}
-        <!-- Each cell mirrors live's `.ask-the-doctor-collection-item`: the
-             `.w-col-6` padding 0 10px (the 10px column gutter that makes the
-             card 331 wide @390 / 600 @1440), and the fixed 520px cell over a
-             400 card — i.e. ~120px of empty space below each card at desktop
-             (top-aligned), 12px at mobile (the qa-block's own margin). -->
-        <div class="px-[10px] pb-3 md:pb-[96px] lg:px-[10px] lg:pb-[120px]">
-          <QuestionCard
-            {doc}
-            number={canonicalNumber.get(doc.uid) ?? null}
-            teaser={teaserText(doc)}
-          />
-        </div>
+        <QuestionCard
+          {doc}
+          number={canonicalNumber.get(doc.uid) ?? null}
+          teaser={teaserText(doc)}
+        />
       {/each}
     </div>
     <!-- Live closes the list with a `.content-width` row carrying a cyan
