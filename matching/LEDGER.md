@@ -2914,3 +2914,71 @@ pre-existing vw1440 "What to expect" Δh=5.1% (mm=0.0) fail and the WTLM
 floors 12.9/12.0 — so the shared DetailHero / DetailBody / animateIn changes
 are visually inert outside the team template. No mask, no threshold change.
 The three team "Dentist" rows left OPEN awaiting operator ACK.
+
+## MARKUP ROUND E — three home one-offs (2026-08-10, feat/markup-round-2026-08)
+
+- [deviation] steps-band circle centers on the headline block — thread
+  badfa786-0b08-4dce-8431-cacaa688f627 (pin #6: "Ideally, this circle image
+  is horizontally center-aligned to the headline on the left, so it needs to
+  come down."). The reference TOP-ALIGNS its two `._w-half` columns (50%,
+  `beachfront.css:2867-2871`; photo column pads pt 20 / pb 40 at the 40px
+  root) — probed on beachfront-dentistry.webflow.io: circle center vs the
+  headline+subhead block center is +7.5px @1440 but **-89px @1294** (the
+  120px h2 wraps 3→4 lines and the block grows past the circle). Ours
+  matched live to 0.1px at both widths before the fix. Now the row is
+  `lg:items-center` and the circle column carries `lg:pt-0 lg:pb-10`
+  (pb − pt = 40px = the subtitle's trailing mb-10, cancelling the block's
+  half-margin bias), so the flex-centered circle lands exactly on the
+  headline+subhead block center at ANY lg width, whichever column is taller
+  (probed after: -0.1px @1440, 0.0px @1294). Sub-lg stacked pads untouched —
+  probe deltas @834/@390 byte-identical before/after. Tim said "the
+  headline"; block-center is the chosen reading — vs the h2 alone the circle
+  now sits +42.5px lower, offer the h2-only variant in the resolve reply.
+  SectionGrid steps: `src/lib/slices/SectionGrid/index.svelte` (row + image
+  column). Expected gate movement: home "Your Path to Oral Health" only.
+- [deviation] navigation flash white, not black — thread
+  65939802-f1e8-496e-b282-6e82730d7b83 (pin #12: "it goes black and then
+  loads the next page. Is there any way you can go white on the next page,
+  or even the Beachfront blue…"). The black was never a probed live rule —
+  `TransitionOverlay.svelte:14`'s `bg-black` default is starter-template
+  chrome from the Initial commit (63a7b3d). Sole usage
+  `src/routes/+layout.svelte` now passes an explicit class with `bg-white`;
+  the component default is untouched (PreNavTransition, also bg-black by
+  default, is unused outside its tests). The overlay mounts only between
+  beforeNavigate/afterNavigate, so first paint over the hero video is
+  unaffected. Tim offered white OR brand blue — white chosen; the swap is
+  one class at the usage site. Not a gated surface (overlay never shows on
+  direct page loads).
+- [deviation] favicon.ico regenerated with real alpha — thread
+  784b9a3f-3479-4e4c-9b5f-5df9f40c9323 (pin #13: "The favicon looks like it
+  has white corners around the circle Beachfront logo, versus a PNG with a
+  transparent background."). The shipped ico WAS live's own (Webflow
+  logo=blue.ico, `src/app.html:5-7`): single 32px BMP entry, corners probed
+  OPAQUE white 255,255,255,255. static/favicon.png is NOT a substitute — it
+  is the starter's white-on-transparent placeholder (top opaque colors
+  221/221/221 and 255/255/255), wrong branding, left unlinked (and behind a
+  1y immutable Netlify header, so its URL must not be repurposed).
+  Regenerated static/favicon.ico from static/apple-touch-icon.png (live's
+  own webclip: 256px RGBA, corners alpha 0, body #009CCD) as 32+16
+  PNG-in-ICO entries via the repo's sharp devDep — no new dependencies; all
+  four corners now alpha 0. Tim's offered PNG not needed. Caveat for the
+  resolve reply: in the webclip the tooth glyph is a transparent CUTOUT
+  (the asset has no white pixels), so the tab background shows through the
+  tooth; if Tim wants a white tooth inside the circle his PNG is needed
+  after all. Also fixed: `+layout.svelte` JSON-LD `logo` pointed at
+  /favicon.svg, a file that never existed in static/ — now
+  /apple-touch-icon.png (256px, meets Google's >=112px logo guidance).
+  Not a gated surface (browser chrome, not page pixels).
+
+Gate round: markupe (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), out-markupe-home, against out-markupb-home (the
+last home run, 2026-08-11 00:02; rounds C/D gated team/svc only and their
+ledger recorded svc as a byte-identical control, so markupb is a valid home
+baseline). Movement confined to the pinned region: home "Your Path to Oral
+Health" 1.0→1.8 @1440 (dE 0.8→1.2, Δh 1.6% unchanged — the circle drops
+~26px to the block center; PASS with margin). Its @834 (1.6/0.9/1.1) and
+@390 (6.2/3.7/1.8) rows byte-identical — the stacked layout was not
+touched. Every other row on home identical to baseline, including the three
+pre-existing ACK-pending FAILs at exactly their stalled values: WTLM 13.4
+@390 / 12.0 @834, OdT @834 10.9 (33 runs flat), Beyond the Smile @390
+Δh 5.8 (26 runs flat). No mask, no threshold change, anchors identical.
