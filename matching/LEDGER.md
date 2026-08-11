@@ -2814,3 +2814,23 @@ showed pin #3's buried READ MORE — the box model live uses has the same trap.)
 - ACK note: this round re-moves yfv "Dr. Robert Quan" @1440, whose A2
   deviation value is still ACK-pending — unavoidable, pin #5 targets the same
   slider. The pending A2 value is superseded by this round's, same board.
+
+Strikes before the round: clear on both pages (no failing region stalled 3+
+runs). Home check after: the team-circles rail (A1 943b602) probed byte-stable
+— cell 1 x=80, 200px cells, 40px gap @1440; the `team` variation branch has no
+diff hunks this round.
+Gate round: markupc (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), out-markupc-our-team / out-markupc-yfv, baselines
+markupa1-our-team / markupa2-yfv. Movement confined to the pinned regions:
+our-team DRQ 3.9→37.2 @1440 (Δh 17.5% — the grid reflow + the section
+shrinking ~450px) and 5.0→23.7 @390 (Δh 0.7% — MH's card +37.8 and the bio
+text swap); yfv DRQ 16.2→27.2 @1440 (Δh 5.1% — gap halving + MH card 515,
+holder 640→675; supersedes the ACK-pending A2 value, same slider). Three
+sub-threshold ripples stay PASS: yfv "Office Tour" 3.2→4.2 @1440 (cards 2+
+moved left; their overhanging circles sit in that region's band), yfv DRQ
+3.1→4.8 @390 and 1.5→1.6 @834 + our-team DRQ 2.4→2.6 @834 (clamped-bio
+text). Every other row is value-stable to 0.1pp, including the WTLM footer
+floors at yfv (12.8/12.0) and our-team @834/1440 (12.0/7.3); one drift on the
+already-ACK'd our-team @390 WTLM floor, 12.9→13.4 (map-region noise on the
+page that grew 37.8px — no mask, no threshold change, left as the same
+floor). All three deviation regions left OPEN awaiting operator ACK.
