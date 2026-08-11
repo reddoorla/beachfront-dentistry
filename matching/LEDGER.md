@@ -2982,3 +2982,100 @@ touched. Every other row on home identical to baseline, including the three
 pre-existing ACK-pending FAILs at exactly their stalled values: WTLM 13.4
 @390 / 12.0 @834, OdT @834 10.9 (33 runs flat), Beyond the Smile @390
 Δh 5.8 (26 runs flat). No mask, no threshold change, anchors identical.
+
+## MARKUP ROUND F — every Book CTA becomes Request (2026-08-11, feat/markup-round-2026-08)
+
+Thread 5980c9d7-6212-4c78-930d-5a1b3a969ac6 (board 4b8d52d2, pin #3), Tim:
+"Everywhere that says 'book an appointment', it needs to say 'request
+appointment' … This is how it was on the old site."
+
+- DEVIATION (site-wide, deliberate): the REF (beachfront-dentistry.webflow.io)
+  itself says "Book" on every one of these instances — Tim's "how it was on
+  the old site" is only half-true (the reference's desktop nav pill and its
+  request-form modal DO say "Request appointment"; every band/menu/info-band
+  button says "Book"). The pin outranks the reference on wording, so each
+  instance maps Book→Request keeping its own article shape ("Book an
+  Appointment"→"Request an Appointment", "Book Appointment"→"Request
+  Appointment"). Instances (rendered text):
+  - beachfront-pages.js ctaHero cta_label (closing band, seeded on ALL 5 nav
+    pages): "Request Appointment"
+  - beachfront-pages.js home "Your Path" steps grid: cta_label + step-01
+    item_heading → "Request an Appointment"
+  - beachfront-pages.js yfv FirstVisitToc book_label → "Request an
+    Appointment" (this label now deviates from the REF twice over: spelling —
+    REF has the "Apointment" typo — and wording)
+  - beachfront-pages.js yfv ExamTimeline book_label → "Request Appointment"
+  - CtaBand.svelte default ctaLabel (all detail routes: team-members/[slug],
+    services/[slug], questions/[slug]) → "Request Appointment"
+  - Nav.svelte hamburger-menu CTA → "Request an Appointment" (menu is closed
+    at capture, so no gated pixels move)
+  - contact-us/+page.svelte info-band button + closing CtaBand → "Request
+    Appointment"
+    Already correct before this round: desktop nav pill ("Request Appointment",
+    Nav.svelte) and the AppointmentModal ("Request an appointment" /
+    "Request Appointment" submit).
+- GATE DEFINITION CHANGE (forced, contact only): gate.sh's contact info-band
+  anchor WAS the literal button text "Book Appointment". Anchors must resolve
+  on BOTH pages (prefix match on rendered text) and the REF keeps "Book"
+  while the candidate now says "Request", so no button-label anchor can
+  resolve on both. First try "CONTACT (310) 378-9241" resolved on the
+  candidate only (ANCHOR_UNRESOLVED @1440): the ref band reuses adjacent
+  `.footer-contact-*` divs whose textContent concatenates with NO whitespace
+  ("CONTACT(310) 378-9241…"), so a spaced CONTACT-phone anchor can never
+  prefix-match it. Re-anchored to "OFFICE HOURS" — the ref's header div is
+  "OFFICE HOURS" and norm() collapses the nbsp, so it is a clean element
+  prefix on both pages, first occurrence in document order on both (the
+  footer's OFFICE HOURS block comes later). Consequences: the region label in
+  reports/strike history changes (old "Book Appointment" history for contact
+  ends), and the renamed button + the CONTACT column now sit in the region
+  ABOVE the anchor ("top"), so the expected text-swap diff for contact lands
+  in "top" instead of the info-band row. Threshold 0.10, matrix 1440/834/390,
+  no masks — unchanged.
+- EXPECTED MOVED ROWS: every page's closing-band region ("Ready for great
+  dental health") swaps ~7ch of button text vs the REF's "Book Appointment";
+  home "Your Path to Oral Health" additionally swaps the grid CTA + step-01
+  heading (3 chars longer, may rewrap at 390); yfv's TOC and First Exam
+  regions swap one outline-button label each; contact's "top" region swaps
+  the info-band button. Documented per-row in the round F gate results below
+  at the moment they are measured.
+- PRISMIC: the five changed fixture strings live in the seeded `page` docs, so
+  the fixture edit alone would fork the twins from the real routes. Re-seeded
+  via the ONE owner of the `page` type, scripts/seed-pages.mjs (PUT replaces
+  whole documents; models unchanged this round, assertModelsInSync guards).
+  Writes land in the unpublished Migration release — the real site keeps
+  saying "Book" until the operator publishes the release in Prismic.
+
+Gate round: markupf (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), ALL NINE pages (every page's closing band swaps
+button text, so nothing was sampled). Result: every row on every page is
+byte-identical to its page's latest baseline (markupd for team/svc, w4 for
+qa, markupe for home, markupc for yfv/our-team, markupa1 for services,
+markupb for atd) EXCEPT the regions the pin touches:
+
+- "Ready for great dental health" (all 9 pages): +0.0 to +0.1pp from the
+  Book→Request swap, PASS everywhere with margin (worst 7.1 @834, a
+  pre-existing level).
+- home "Your Path to Oral Health": @1440 1.8→2.0 PASS, @834 1.6→1.8 PASS,
+  @390 6.2→4.7 PASS — the longer "Request an Appointment" wraps CLOSER to
+  the ref's own line breaks at 390, so the swap improved the region.
+- yfv "We want you to feel comfortable" (contains the TOC button): @390
+  1.1→1.3 / @834 0.8→1.0 PASS; @1440 2.0→2.1 with its pre-existing
+  ACK-pending Δh 15.1 FAIL unchanged. The ExamTimeline button swap is <0.1pp
+  inside "To be a long term health partner" (unchanged at 2.6/1.0/2.7, PASS).
+- contact: region relabelled per the anchor change above; "top" (now holds
+  the swapped button) 1.5→1.3 @1440 / 4.3→2.6 @390 PASS. NEW region "OFFICE
+  HOURS": 9.6 @834 PASS, 5.8 @390 PASS, **10.5 @1440 FAIL — FLOOR CANDIDATE,
+  operator's call**: the diff image (fail-vw1440-OFFICE_HOURS.png) shows the
+  candidate's Google-map iframe painting blank/differently at capture plus
+  minor hours-column jitter; the same absolute mismatch scored 8.5 PASS on
+  every stable prior run under the old wider "Book Appointment" region
+  (which included the button strip in the denominator). Re-run (markupf2)
+  reproduced 10.5/9.6/5.8 exactly — deterministic capture behaviour of the
+  live embed, not flicker, and no text/geometry change of ours is inside the
+  red area. Same mechanism as the ACK-pending WTLM map rows. NOT
+  reclassified, NOT masked, threshold untouched.
+  All pre-existing ACK-pending FAILs sit at exactly their stalled values:
+  team Dentist 13.0/9.9/6.1, home OdT @834 10.9, home+atd Beyond the Smile
+  (@390 Δh 5.8; atd 61.7/60.5/66.9), yfv+our-team Dr. Robert Quan (27.2 /
+  37.2+23.7), yfv WWYTFC @1440 Δh 15.1, svc What-to-expect @1440 Δh 5.1, and
+  the WTLM footer-map rows (12.0-13.4) on all nine pages.
