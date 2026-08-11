@@ -9,7 +9,7 @@
   import OutlineButton from "$lib/components/OutlineButton.svelte";
 
   // your-first-visit `.fv-toc-section`: a 2-col opener. LEFT = an intro
-  // paragraph (museo-slab 30/45 teal) + two outline buttons (Book Appointment →
+  // paragraph (museo-slab 30/45 teal) + two outline buttons (Request Appointment →
   // modal, Registration Form). RIGHT = three numbered `.visit-list-item` nav
   // cards (number 24px teal ls1.92 + h3 title 40px cyan + download-arrow),
   // anchor-linking to the sections below. Not in the generated Prismic types

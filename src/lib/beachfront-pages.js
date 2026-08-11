@@ -155,8 +155,10 @@ const reviewItems = (img) =>
     review_url: webLink(r.url),
   }));
 
-// Shared closing CTA hero (verbatim off the live site footer band) over the
-// recurring beach photo.
+// Shared closing CTA hero (off the live site footer band) over the recurring
+// beach photo. The copy is verbatim except the button label: live says "Book
+// Appointment", and MarkUp pin 5980c9d7 #3 (Tim, 2026-08) renames every Book
+// CTA to "Request" — a deliberate deviation from the reference.
 /** @param {(u: string) => unknown} img */
 const ctaHero = (img) => ({
   slice_type: "hero",
@@ -175,7 +177,7 @@ const ctaHero = (img) => ({
     // editor can still type an override into Prismic per page.
     heading: [],
     body: [],
-    cta_label: "Book Appointment",
+    cta_label: "Request Appointment",
     cta_link: webLink("#appointment"),
     background_image: img(IMG.ctaBeach),
   },
@@ -342,13 +344,17 @@ export function assemblies(img) {
           heading: [head(2, "Your Path to Oral Health")],
           subtitle: "is like a short walk on the beach",
           side_image: img(IMG.path),
-          cta_label: "Book an Appointment",
+          // Live says "Book an Appointment" (button and step 01 alike); MarkUp
+          // pin 5980c9d7 #3 renames every Book CTA to "Request", keeping each
+          // instance's article shape — a deliberate deviation from the
+          // reference.
+          cta_label: "Request an Appointment",
           cta_link: webLink("#appointment"),
           columns: 3,
         },
         items: [
           {
-            item_heading: [head(4, "Book an Appointment")],
+            item_heading: [head(4, "Request an Appointment")],
             item_body: [],
             item_media: {},
             item_link: {},
@@ -439,10 +445,11 @@ export function assemblies(img) {
               "We want you to feel comfortable before your first visit. Here some ways to give you a clear idea of what to expect:",
             ),
           ],
-          // Live renders "Book an Apointment" (a typo on the reference); Tucker
-          // asked to ship the correct spelling here, so this intentionally
-          // diverges from the reference's copy on this one label.
-          book_label: "Book an Appointment",
+          // Live renders "Book an Apointment" (a typo on the reference);
+          // Tucker asked to ship the correct spelling (2026-08-07), and MarkUp
+          // pin 5980c9d7 #3 then renamed every Book CTA to "Request" — so this
+          // label deviates from the reference twice over, both on purpose.
+          book_label: "Request an Appointment",
           book_link: webLink("#appointment"),
           // No form_label/form_link: live's "Registration Form" button is
           // `href="#"` (matching/spec/your-first-visit.html) and there is no
@@ -529,7 +536,9 @@ export function assemblies(img) {
           // Form" above: live's "Download Forms" is `href="#"` too, with
           // nothing to download anywhere in the reference. ExamTimeline
           // renders it only `{#if p.form_label}`.
-          book_label: "Book Appointment",
+          // Live says "Book Appointment"; renamed per MarkUp pin 5980c9d7 #3
+          // (Book → Request, article shape kept).
+          book_label: "Request Appointment",
           book_link: webLink("#appointment"),
         },
         items: [

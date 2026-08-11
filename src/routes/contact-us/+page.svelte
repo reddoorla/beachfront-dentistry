@@ -6,8 +6,8 @@
   import type { ImageField, RichTextField } from "@prismicio/client";
 
   // Matches the live /contact-us: a left-aligned "Contact Us" photo hero, then
-  // an info band (a Book-Appointment button + CONTACT/OFFICE-HOURS columns + a
-  // Google map), then the shared closing CTA. There is NO body form — the
+  // an info band (a Request-Appointment button + CONTACT/OFFICE-HOURS columns
+  // + a Google map), then the shared closing CTA. There is NO body form — the
   // request-appointment form lives in the global AppointmentModal, opened by
   // the #appointment anchor (and by the footer/CtaBand buttons). The modal
   // POSTs to THIS route's default action (+page.server.ts, untouched), so the
@@ -31,8 +31,9 @@
   // Closing CTA — match the beach composition the assembly pages get from
   // ctaHero (heading over white fading into the FIJI beach). The beach is
   // served from /static so it clears the app CSP on this hand-built route
-  // (the assembly pages resolve it through Prismic). Same "Book Appointment"
-  // label + #appointment target as the rest of the site.
+  // (the assembly pages resolve it through Prismic). Same "Request
+  // Appointment" label (MarkUp pin 5980c9d7 #3 — live says "Book") +
+  // #appointment target as the rest of the site.
   const ctaBeach: ImageField = {
     url: "/images/cta-beach.jpg",
     alt: null,
@@ -66,7 +67,7 @@
     href="#appointment"
     class="font-slab focus-visible:ring-primary-deep inline-flex items-center rounded-lg border border-[#365b6d] px-[1em] py-[1.3em] text-[14px] leading-[0] font-light text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden mb-[60px] xs:text-[15px] md:mb-0 md:text-[20px] lg:text-[25px]"
   >
-    Book Appointment
+    Request Appointment
   </a>
 
   <!-- CONTACT + OFFICE HOURS: side-by-side on desktop, stacked on mobile. -->
@@ -119,7 +120,7 @@
 
 <CtaBand
   heading={ctaHeading}
-  ctaLabel="Book Appointment"
+  ctaLabel="Request Appointment"
   ctaLink={{ link_type: "Web", url: "#appointment" }}
   backgroundImage={ctaBeach}
   caption="FIJI ISLANDS"

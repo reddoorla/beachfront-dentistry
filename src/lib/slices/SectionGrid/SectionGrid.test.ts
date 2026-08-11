@@ -84,7 +84,7 @@ describe("SectionGrid slice", () => {
         layout: "steps",
         heading: [{ type: "heading2", text: "Your Path", spans: [] }],
         subtitle: "is like a short walk on the beach",
-        cta_label: "Book an Appointment",
+        cta_label: "Request an Appointment",
         cta_link: { link_type: "Web", url: "#appointment" },
       },
       items: [
@@ -98,7 +98,9 @@ describe("SectionGrid slice", () => {
     expect(getByText("Step 01")).not.toBeNull();
     expect(getByText("Step 02")).not.toBeNull();
     expect(getByText("is like a short walk on the beach")).not.toBeNull();
-    expect(getByRole("link", { name: "Book an Appointment" })).not.toBeNull();
+    expect(
+      getByRole("link", { name: "Request an Appointment" }),
+    ).not.toBeNull();
   });
 
   it("renders the services layout as a gradient band with an eyebrow and body", () => {

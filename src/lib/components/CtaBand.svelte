@@ -53,9 +53,11 @@
   let {
     heading = DEFAULT_HEADING,
     body = [],
-    // Live's closing-band button reads "Book Appointment" (no "an") — the
-    // detail routes render <CtaBand/> with no label and must match it.
-    ctaLabel = "Book Appointment",
+    // Live's closing-band button reads "Book Appointment" (no "an"), and
+    // MarkUp pin 5980c9d7 #3 renames every Book CTA to "Request", keeping each
+    // label's article shape — a deliberate deviation from the reference. The
+    // detail routes render <CtaBand/> with no label and take this default.
+    ctaLabel = "Request Appointment",
     ctaLink = DEFAULT_CTA_LINK,
     backgroundImage = {},
     caption,

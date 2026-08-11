@@ -292,9 +292,10 @@ describe("Nav — beachfront chrome (siteConfig items + phone/payment CTAs)", ()
     const phone = links.find((a) => a.textContent === "(310) 378-9241");
     expect(phone?.getAttribute("href")).toBe("tel:+13103789241");
 
-    // Live's modal CTA is labelled "Book an Appointment" (not the desktop
-    // band's "Request Appointment").
-    const book = links.find((a) => a.textContent === "Book an Appointment");
+    // Live's modal CTA is labelled "Book an Appointment"; MarkUp pin 5980c9d7
+    // #3 renames every Book CTA to "Request", keeping this instance's "an"
+    // (the desktop pill stays the article-less "Request Appointment").
+    const book = links.find((a) => a.textContent === "Request an Appointment");
     expect(book?.getAttribute("href")).toBe("#appointment");
 
     const payment = links.find((a) => a.textContent === "Make a Payment");

@@ -393,7 +393,7 @@
           href="#appointment"
           onclick={closeMenu}
           class="font-slab px-[1em] py-[1.3em] leading-[0] mt-5 mb-2.5 inline-flex items-center rounded-lg border border-white text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 lg:text-[25px]"
-          >Book an Appointment</a
+          >Request an Appointment</a
         >
         <a
           href={MODENTO_URL}
