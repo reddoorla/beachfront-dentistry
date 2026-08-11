@@ -3157,3 +3157,69 @@ stalled value: team Dentist 13.0/9.9/6.1, home OdT @834 10.9, home BtS @390
 Δh 5.8, atd BtS 61.7/60.5/66.9, our-team DRQ 37.2/23.7, yfv DRQ 27.2, yfv
 WWYTFC @1440 Δh 15.1, svc What-to-expect @1440 Δh 5.1, contact OFFICE HOURS
 @1440 10.5. Per-page exit=1 is those floors, nothing new.
+
+## MARKUP ROUND G2 — the open Q&A card stops growing (2026-08-11, feat/markup-round-2026-08)
+
+DEVIATION BY DESIGN — designer override of a live-match, interaction state
+only. MarkUp thread 3d255366-5bb2-4cb1-9a90-439d49ef63ef (home board, pin #9,
+second half — the first half, reveal + Read More padding, shipped ce0c59d +
+1d5641e): Tim: "the box expands but I don't think it needs to since the
+headline disappears. Thoughts?" Applied to BOTH QuestionList variations per
+atd pin bd8c37b0-2e1c-4dc2-a466-8073e204d90c ("same comments as the
+homepage"). Operator directive 2026-08-11: follow Tim's instruction over the
+live behavior. Both pins already resolved on MarkUp — silent refinement, no
+MarkUp action.
+
+THE LIVE RULES OVERRIDDEN (each named, per rule 1 — the freeze deliberately
+does NOT reproduce them):
+
+- `.qa-text.m-2.active { height: 8rem; transition: height .2s }`
+  beachfront.css:7303 — the teaser box's own expand.
+- `.qa-label.active { margin-top: -2rem }` beachfront.css:7236 — the bar
+  riding up above the card. The bar now stays put as the always-visible
+  disclosure toggle; consequently `.qa-image.active`'s 0 0 25px 25px radius
+  (:7330-ff) is also moot and the media radius is static.
+- `.qa-block.active { margin-top: 2rem }` beachfront.css:7210 plus the ≤479
+  re-height (:9454, measured 288→384) — the card's own drop/growth.
+
+NEW CONTRACT: an open card keeps its collapsed footprint (288/320/400 at
+base/md/lg, top edge unmoved, neighbours still); the disappearing headline +
+in-place bar fund the answer's room: expanded `.qa-text` = card − label =
+240 (xs..767) / 256 (md) / 320 (lg), Round B pb 12/16/20 held.
+
+TIM'S PREMISE VERIFIED, NOT ASSUMED (probe 2026-08-11, every card: 6 home
+teaser + 40 atd numbered × 1440/834/390, panels measured un-transformed,
+fonts settled; need = answer + Read More + pb, room = card − label):
+
+- teaser need 243/212/243 vs room 320/256/240 → @390 SHORT 3px on two
+  cards (do-teeth-turn-yellow-as-you-age, tooth-broke-off — the same 231px
+  panels Round B measured).
+- numbered need 243/236/219 vs room 320/256/240 → fits everywhere (wider
+  box: mx-4% vs w-4/5).
+- off-matrix 650 band check: worst need 195 (home) / 171 (atd) vs room 240 →
+  fits, so the xs..767 band freezes outright.
+  ONE MINIMAL-GROWTH EXCEPTION, viewport-level: the <480 teaser card grows
+  288→291 on open (+3px, the minimum clearing 243; followers shift exactly
+  those 3px — reported, not hidden). Everything else is frozen outright.
+  CONSEQUENCE for numbered base: its old carve-out (no pb, 96px of pill room
+  funded by the 288→384 card growth) dies with the growth — it now takes pb-3
+  like the teaser, and its pill sits 12px above the card bottom (was 96px).
+  Padding is invisible collapsed, so the anchor-cut element's collapsed
+  geometry is untouched at every width.
+
+POST-CHANGE PROOF (probe + tests/interaction/qa-expand.spec.ts, which now
+asserts THIS contract, sweeping every card on both pages × the matrix):
+topShift 0 everywhere (was 48/64/80); height Δ 0 everywhere except home@390
++3 (was +96); pill offsets 20/16/12 both variants all viewports; box
+scrollHeight == clientHeight (clip zero) for all 46 cards × 3 viewports;
+neighbour stillness exact (0 / +3 as declared); footprint restores exactly on
+close. 7/7 playwright tests green.
+
+Gate round: markupg2 (threshold 0.1, maxHeightDelta 0.05, matrix
+1440/834/390, mask [], neutralizeMedia false), pages home + atd as
+no-regression — the freeze is interaction-state, invisible to static
+captures, and the logs prove it: every measured row BYTE-IDENTICAL to
+markupg1 on both pages (diff of out-markupg2-_.log vs out-markupg1-_.log,
+tag lines excluded, empty). Per-page exit=1 is the pre-ACK'd floors at their
+exact stalled values (home OdT @834 10.9, home BtS @390 Δh 5.8, atd BtS
+61.7/60.5/66.9, footer-map rows) — untouched, per the do-not-disturb list.

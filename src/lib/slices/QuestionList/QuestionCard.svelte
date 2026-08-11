@@ -78,28 +78,53 @@
    *  (see the comment on the element below), so changing it would move every
    *  region beneath it.
    *
-   *  DEVIATION (MarkUp threads 3d255366-5bb2-4cb1-9a90-439d49ef63ef home pin #9
-   *  and bd8c37b0-2e1c-4dc2-a466-8073e204d90c atd pin #1): live's box is FLUSH —
-   *  both `.qa-text` (beachfront.css:7282) and `.qa-text.m-2.active` (:7303) end
-   *  exactly at the card bottom, so the revealed "Read More" pill touches the
-   *  edge. Tim: "It should have the same padding as the headline to the bottom
-   *  of box." The headline's ladder is `.qa-question` margin-bottom .5rem
-   *  (:7311) = the bottom-3/4/5 = 12/16/20px on the <h3> below, so the box gets
-   *  the same pb. It is padding, not a height change: absolute children (the
-   *  collapsed title) position off the border box, so collapsed geometry — the
-   *  anchor-cut element — is untouched at every width.
-   *  Two carve-outs, both probed 2026-08-10:
-   *   - teaser base expanded height 192→244: the tallest authored answer panel
-   *     is 231px @390 (six-card sweep; ce0c59d's 8rem=192 was verified on a
-   *     179px card) — 231 was ALREADY clipped 39px, and +12 pb needs 243.
-   *   - numbered gets NO base pb: the ≤479 expanded card is 384px over its
-   *     240px flow box, leaving 96px under the pill already, and 240-12=228
-   *     would re-clip the 231px panels. md/lg (flush, probed 0px) get 16/20. */
+   *  DEVIATION 1 — pb (MarkUp threads 3d255366-5bb2-4cb1-9a90-439d49ef63ef
+   *  home pin #9 and bd8c37b0-2e1c-4dc2-a466-8073e204d90c atd pin #1): live's
+   *  box is FLUSH — both `.qa-text` (beachfront.css:7282) and
+   *  `.qa-text.m-2.active` (:7303) end exactly at the card bottom, so the
+   *  revealed "Read More" pill touches the edge. Tim: "It should have the same
+   *  padding as the headline to the bottom of box." The headline's ladder is
+   *  `.qa-question` margin-bottom .5rem (:7311) = the bottom-3/4/5 =
+   *  12/16/20px on the <h3> below, so the box gets the same pb. It is padding,
+   *  not a height change: absolute children (the collapsed title) position off
+   *  the padding box, so collapsed geometry — the anchor-cut element — is
+   *  untouched at every width.
+   *
+   *  DEVIATION 2 — ROUND G2 FREEZE (same two threads, second half of home pin
+   *  #9; operator directive 2026-08-11: Tim's instruction outranks the live
+   *  behavior). Tim: "the box expands but I don't think it needs to since the
+   *  headline disappears." So an OPEN card keeps its collapsed footprint and
+   *  the answer takes only the room the vanished headline and the in-place
+   *  label bar leave it: expanded box = card − label = 240 (xs..767) /
+   *  256 (md) / 320 (lg). Two live rules are deliberately not reproduced any
+   *  more: `.qa-text.m-2.active { height: 8rem }` (:7303) and the
+   *  `.qa-label`/`.qa-block` active growth (see the card element below).
+   *
+   *  Tim's premise was verified, not assumed (probe 2026-08-11: every card on
+   *  both pages × 1440/834/390, plus a 650 band check). Panel need (answer +
+   *  Read More + the pb above) vs frozen room (card − label):
+   *      teaser   need 243/212/243 vs room 320/256/240 — @390 SHORT 3px on
+   *               two cards (the same 231px panels Round B measured);
+   *      numbered need 243/236/219 vs room 320/256/240 — fits everywhere;
+   *      both fit the xs band (worst need 195 @650 vs room 240).
+   *  The ONE exception: a <480 teaser card grows 288→291 when open (minimum
+   *  that clears 243) and this box gets the matching 243. Clipping is never
+   *  reintroduced — tests/interaction/qa-expand.spec.ts sweeps every card on
+   *  both pages and asserts scrollHeight == clientHeight on this box.
+   *
+   *  The pb ladder HOLDS under the freeze, which costs numbered its old base
+   *  carve-out: its 12px used to come from the ≤479 card growing 288→384 over
+   *  a 240px flow box (96px of card under the pill), and the freeze removes
+   *  that cushion — so numbered now takes the base pb-3 like the teaser.
+   *  Padding stays invisible collapsed (title absolute, answer translated
+   *  out), so the anchor-cut element's collapsed geometry is still untouched. */
   const textBoxClass = $derived(
     variant === "teaser"
       ? "absolute bottom-0 ml-6 w-4/5 pb-3 transition-[height] duration-200 ease-out motion-reduce:transition-none md:ml-8 md:pb-4 lg:ml-10 lg:pb-5 " +
-          (expanded ? "h-[244px] md:h-64 lg:h-80" : "h-18 md:h-24 lg:h-30")
-      : "relative mx-[4%] h-60 md:h-64 md:pb-4 lg:h-80 lg:pb-5",
+          (expanded
+            ? "h-[243px] xs:h-60 md:h-64 lg:h-80"
+            : "h-18 md:h-24 lg:h-30")
+      : "relative mx-[4%] h-60 pb-3 md:h-64 md:pb-4 lg:h-80 lg:pb-5",
   );
 </script>
 
@@ -110,19 +135,23 @@
        inside the revealed answer navigates. The WHOLE card is the toggle
        (live's .qa-block carries cursor:pointer); the header-bar <button> stays
        as the semantic disclosure for keyboard/AT, so this div click is a
-       pointer convenience only. Opening reproduces live's mechanics: the card
-       drops 48px/80px (margin-top .65s ease-out) while the label bar slides up
-       out of the clip. Mobile's card box also grows 288→384 (measured);
-       tablet/desktop stay fixed (live's .qa-block.active only re-heights ≤479).
-       Height ladder read off live's `.qa-block` rule: 10rem base (400 @ the
-       40px desktop root) / 10rem still at tablet (measured 240) / 12rem ≤767
-       (measured 288) — md:h-[240px], NOT 320 (an earlier value verified only
-       at 1440/390 that never held at the 768 tablet cut). -->
+       pointer convenience only.
+       ROUND G2 FREEZE (thread 3d255366-…ef63ef pin #9 second half + operator
+       directive — full citation on textBoxClass above): an open card keeps its
+       collapsed footprint. Live's active mechanics — the margin-top drop
+       (48/64/80, `.qa-block.active`) paired with the label bar riding above
+       the card, and the ≤479 re-height 288→384 — are deliberately not
+       reproduced: the disappearing headline frees the room instead, so
+       neighbours stand still when a card opens. That stillness is the point.
+       ONE probed exception (2026-08-11): the <480 TEASER card grows 288→291
+       when open — the minimum that clears the two tallest home panels (243px
+       need vs 240 room); every other variant × viewport is frozen outright.
+       Collapsed ladder unchanged, read off live's `.qa-block` rule: 288 /
+       320 (md, measured at the 768 cut) / 400 (lg, 10rem @ the 40px root). -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <!-- NOT overflow-hidden: live's .qa-block never clips — when open, the label
-       bar rides up ABOVE the card box (into the 48/80px the card's own
-       margin-top just vacated). The photo and the answer each clip inside
-       their own wrappers instead. -->
+  <!-- Still not overflow-hidden, though nothing protrudes any more now that
+       the label bar stays put: the photo and the answer each clip inside
+       their own wrappers, and the card box has no third child to contain. -->
   <div
     onclick={(e) => {
       if ((e.target as HTMLElement).closest("a, button")) return;
@@ -131,18 +160,17 @@
     onkeydown={(e) => {
       if (e.key === "Escape" && expanded) toggle();
     }}
-    class="relative block cursor-pointer rounded-[25px] shadow-md ring-1 ring-black/5 transition-[margin-top,opacity] duration-[650ms] ease-out hover:opacity-80 motion-reduce:transition-none {expanded
-      ? 'mt-12 h-[384px] xs:h-[288px] md:mt-16 md:h-[320px] lg:mt-20 lg:h-[400px]'
+    class="relative block cursor-pointer rounded-[25px] shadow-md ring-1 ring-black/5 transition-[height,opacity] duration-[650ms] ease-out hover:opacity-80 motion-reduce:transition-none {expanded &&
+    variant === 'teaser'
+      ? 'h-[291px] xs:h-[288px] md:h-[320px] lg:h-[400px]'
       : 'h-[288px] md:h-[320px] lg:h-[400px]'}"
   >
-    <!-- Media + washes clip inside their own rounded box (the card itself no
-         longer clips). Open: top corners square — live's .qa-image.active
-         radius 0 0 25 25, the label bar having ridden above the box. -->
-    <div
-      class="absolute inset-0 overflow-hidden {expanded
-        ? 'rounded-b-[25px]'
-        : 'rounded-[25px]'}"
-    >
+    <!-- Media + washes clip inside their own rounded box (the card itself
+         does not clip). G2 FREEZE: live's `.qa-image.active` radius
+         0 0 25 25 no longer applies — it existed because the label bar rode
+         above the box and bared the photo's top corners; the bar now stays
+         put, so the corners are always covered and the radius is static. -->
+    <div class="absolute inset-0 overflow-hidden rounded-[25px]">
       {#if isFilled.image(doc.data.media)}
         <PrismicImage
           field={doc.data.media}
@@ -183,18 +211,18 @@
     </div>
     <!-- Pale header bar — live's `.qa-label`, which is a FLOW child of
          `.qa-block`, not an overlay: `height: 2rem` (beachfront.css:7222-ff)
-         against the stepped root = 80 / 64 / 48. When the card opens it rides
-         up ABOVE the card box (live's `.qa-label.active` margin-top:-2rem) and
-         remains the disclosure toggle. -->
+         against the stepped root = 80 / 64 / 48. G2 FREEZE: live's
+         `.qa-label.active` (margin-top:-2rem — the bar riding up ABOVE the
+         card) is deliberately not reproduced; the bar stays put as the
+         always-visible disclosure toggle, and the answer takes only the room
+         below it. -->
     <button
       type="button"
       aria-expanded={expanded}
       aria-controls={panelId}
       aria-label="{expanded ? 'Collapse' : 'Expand'}: {titleText}"
       onclick={toggle}
-      class="focus-visible:ring-primary-deep relative z-10 flex h-12 w-full cursor-pointer items-center justify-between rounded-t-[25px] bg-[#e7f5fa] px-5 transition-transform duration-[650ms] ease-out focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden motion-reduce:transition-none md:h-16 lg:h-20 lg:px-5 {expanded
-        ? '-translate-y-full'
-        : ''}"
+      class="focus-visible:ring-primary-deep relative z-10 flex h-12 w-full cursor-pointer items-center justify-between rounded-t-[25px] bg-[#e7f5fa] px-5 focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden md:h-16 lg:h-20 lg:px-5"
     >
       {#if number !== null}
         <!-- Live's .qa-circle: an h6 in museo-slab BOLD 25px/30px, a
