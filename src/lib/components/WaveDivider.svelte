@@ -52,22 +52,20 @@
     : ''} {mirror ? '-scale-x-100' : ''}"
 >
   <!-- DELIBERATE DEVIATION from the reference (MarkUp thread 7dd0c2f2, pin
-       "Flat spot in the curve"; operator directive: follow Tim over the ref).
-       Live's injected SVG (matching/spec/detail-svc.html:123) draws its crest
-       with one cubic (+250.45,-0.39) whose controls sit at y=-2.14/-3.15 — a
-       near-straight lid that dwells within 3px of its peak for ~194px of
-       screen at 1440. Round G1's crest–dip–crest fix was rejected by the
-       operator ("adding a little bump instead of following the same
-       consistent wave shape"): its inserted extrema sat 74-80px apart in a
-       wave whose own half-wavelengths are 299/486. This G1b shape keeps ONE
-       crest — the wave's own rhythm (crest@614 between troughs @321/@1106,
-       half-waves 293/492) — but fuller and rounder than live's: peak
-       (615,0.6) vs live's (620,1.61), with tight tangent-matched controls so
-       the top turns continuously instead of running straight (peak dwell
-       194→156px, |dy/dx|<0.05 span 158→112px, <0.02 63→23px). Junctions
-       (493.39,14.58)/(743.84,14.19) and their tangents (-0.203/+0.210), the
-       flanks, fill mechanics (V0 H0 V27.35 + arc) and viewBox are unchanged,
-       so every A-round seam fix still holds. -->
+       "Flat spot in the curve"). Operator directive, 2026-08-11: "rewiggling
+       is fine, I want a real sine wave even if it means we add some height to
+       the page. I'm no longer concerned about matching the original webflow."
+       So this is a GENUINE sine, not live's asymmetric swoosh
+       (matching/spec/detail-svc.html:123): y = 60 − 32·sin(2π·3x/1200) —
+       three full periods across the viewBox, uniform amplitude 32 (crest 28,
+       trough 92, so it fits the existing 120 box with 28px margins and no
+       page height had to grow). Fitted with 4 cubic Hermite segments per
+       period (exact quarter-period knots + tangents, dx/3 handles; max
+       deviation from the true sine 0.35px). Integer periods make y(0)=y(1200),
+       so the mirrored usage stays seamless. The V0 H0 close and the A-round
+       overlap-seam mechanics (heights, widths, absolute footer overlay) are
+       unchanged — the fill still hugs the full top edge, so every seam stays
+       watertight. -->
   <svg
     viewBox="0 0 1200 120"
     preserveAspectRatio="none"
@@ -75,7 +73,7 @@
     style="width: {width}"
   >
     <path
-      d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86C533.93,6.36,593.11,0.6,615,0.6C638.19,0.6,700.89,5.16,743.84,14.19C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"
+      d="M0,60C33.33,43.24,66.67,28,100,28C133.33,28,166.67,43.24,200,60C233.33,76.76,266.67,92,300,92C333.33,92,366.67,76.76,400,60C433.33,43.24,466.67,28,500,28C533.33,28,566.67,43.24,600,60C633.33,76.76,666.67,92,700,92C733.33,92,766.67,76.76,800,60C833.33,43.24,866.67,28,900,28C933.33,28,966.67,43.24,1000,60C1033.33,76.76,1066.67,92,1100,92C1133.33,92,1166.67,76.76,1200,60V0H0Z"
       {fill}
     />
   </svg>

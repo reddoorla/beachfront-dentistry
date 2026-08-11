@@ -3405,3 +3405,54 @@ neutralizeMedia false), pages home + yfv as no-regression — the redesign is
 interaction-state, invisible to static captures. Comparison baselines:
 out-markupg3-home (this branch's previous round) and out-g4base-yfv (freshly
 captured at the pre-G4 working tree, since yfv's last round predates G2/G3).
+
+## MARKUP ROUND H1 — the divider becomes a real sine (2026-08-11, feat/markup-round-2026-08)
+
+OPERATOR DIRECTIVE, verbatim: "rewiggling is fine, I want a real sine wave
+even if it means we add some height to the page. I'm no longer concerned
+about matching the original webflow." That withdraws the matching constraint
+for this element entirely — the G1b shape (single crest inside live's own
+asymmetric swoosh) is superseded, and every wave-seam mismatch against the
+webflow reference is ACK'd BY DIRECTIVE, the same mechanism as the existing
+deviation floors.
+
+THE SHAPE: src/lib/components/WaveDivider.svelte now draws
+y = 60 − 32·sin(2π·3x/1200) — a genuine sine, three full periods across the
+1200 viewBox, uniform amplitude 32 (crest 28 / trough 92). Chosen from a
+3-candidate sheet (n=2 A=40 / n=3 A=32 / n=4 A=24, scratchpad sheet-h1.png):
+n=4 turns scalloped at 390, n=2 reads as one more broad swoosh; n=3 lands
+~2.25 visible periods at 1440 (λ≈639px screen) and stays graceful at 390.
+Constructed as 4 cubic Hermite segments per period (exact quarter-period
+knots + tangents, dx/3 handles; max deviation from the true sine 0.35px —
+visually exact). Integer periods make y(0)=y(1200), so the mirrored mount is
+seamless. HEIGHT: amplitude 32 fits the existing 120 viewBox with 28px
+margins, so the offered height growth was NOT needed — heightClass ladders
+(72/96/120, footer 96/128/160), the 133%/169% widths, the V0 H0 close and
+every A-round overlap-seam offset are untouched. Consequence: zero layout
+shift (every Δh in the gate is byte-identical) and seams verified watertight
+in all six mounts (Hero ×2, SectionGrid mirror, DetailHero, SubpageHero,
+Footer arc) at 1440/1294/834/390 — scratchpad wave-compare-h1.png.
+
+Gate round: markuph1 (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), ALL NINE pages, baselines = markupg1b everywhere.
+Moved rows — wave-seam regions only, all ACK'd by the directive above:
+
+- "top" (hero seam): team 2.5→6.7 / 1.4→4.7 / 2.5→7.0; svc 0.6→2.9 /
+  0.5→2.8 / 3.1→4.6; qa 2.3→4.8 / 2.1→3.8 / 2.7→4.6; home 6.0→9.6 /
+  3.6→7.0 / **7.3→10.1 FAIL @390 — the one row the sine pushes over
+  threshold; ACK'd by directive, not masked, threshold untouched**; yfv
+  0.1→5.3 / 1.2→4.4 / 0.7→5.0; our-team 0.2→6.8 / 0.4→5.4 / 1.2→5.9;
+  services 1.7→5.6 / 2.0→5.7 / 4.5→7.4; atd 0.2→4.9 / 0.3→3.9 / 0.7→4.6;
+  contact 1.3→5.9 / 0.5→4.2 / 2.6→5.3 (order 1440/834/390).
+- "Ready for great [dental health]" (footer arc): all nine pages, to 3.9-4.0
+  @1440 / 9.6-10.0 @834 (PASS at the line) / 6.9-7.5 @390.
+- our-team "Our": 0.0→0.2 / 2.5→3.0 / 4.7→5.1.
+- home "Your Path to Oral Health" (SectionGrid mirror): 2.0→4.0 / 1.8→3.2 /
+  4.7→5.7.
+
+Every other row byte-identical to markupg1b, every pre-existing ACK'd floor
+at its exact stalled value (team Dentist 13.0/9.9/6.1, home OdT @834 10.9,
+home BtS @390 Δh 5.8, atd BtS 61.7/60.5/66.9, our-team DRQ 37.2/23.7, yfv
+DRQ 27.2, yfv WWYTFC @1440 Δh 15.1, svc What-to-expect @1440 Δh 5.1, contact
+OFFICE HOURS @1440 10.5, WTLM map rows 12.0-13.4) — per-page exit=1 is the
+floors plus the one ACK'd home row, nothing else.
