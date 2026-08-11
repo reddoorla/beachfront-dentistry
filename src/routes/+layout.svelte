@@ -90,7 +90,10 @@
       name: SITE_NAME,
       url: origin,
       telephone: PHONE.href.replace("tel:", ""),
-      logo: `${origin}/favicon.svg`,
+      // apple-touch-icon.png is the blue circle logo with real alpha (256px,
+      // meets Google's >=112px logo guidance). /favicon.svg never existed in
+      // static/ — the reference was dead (MarkUp thread 784b9a3f, pin #13).
+      logo: `${origin}/apple-touch-icon.png`,
       address: {
         streetAddress: ADDRESS.line1,
         addressLocality: "Redondo Beach",

@@ -2,9 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <!-- Live's own favicon + webclip (Webflow logo=blue.ico / logo=blue.png),
-         not the starter placeholder. -->
-    <link rel="icon" href="%sveltekit.assets%/favicon.ico" sizes="32x32" />
+    <!-- The webclip is live's own (Webflow logo=blue.png). The favicon.ico is
+         NOT live's: live's ico bakes opaque white corners around the circle
+         logo (MarkUp thread 784b9a3f, pin #13), so ours is regenerated from
+         the transparent apple-touch-icon.png (32+16 PNG-in-ICO entries,
+         real alpha). Not the starter placeholder either — static/favicon.png
+         is that placeholder (white logo) and is deliberately unlinked. -->
+    <link
+      rel="icon"
+      href="%sveltekit.assets%/favicon.ico"
+      sizes="32x32 16x16"
+    />
     <link
       rel="apple-touch-icon"
       href="%sveltekit.assets%/apple-touch-icon.png"
