@@ -3223,3 +3223,68 @@ markupg1 on both pages (diff of out-markupg2-_.log vs out-markupg1-_.log,
 tag lines excluded, empty). Per-page exit=1 is the pre-ACK'd floors at their
 exact stalled values (home OdT @834 10.9, home BtS @390 Δh 5.8, atd BtS
 61.7/60.5/66.9, footer-map rows) — untouched, per the do-not-disturb list.
+
+## MARKUP ROUND G3 — the floating doctor stops hopping (2026-08-11, feat/markup-round-2026-08)
+
+DEVIATION BY DESIGN — designer override of a live-match, interaction state
+only. MarkUp thread a7c2e0d0-5e13-4cfd-bb17-a21ecee7b188 (home board, pin 7):
+Tim: "I like the user experience of 'Ask The Doctor' and the [floating
+Doctor image] of the original site. I do not like the jumping from question
+to question." Operator directive 2026-08-11: follow Tim over the live
+behavior — keep the floating handwriting+headshot pair, remove the discrete
+per-question hops.
+
+THE LIVE BEHAVIOR OVERRIDDEN (named per rule 1, quoting the record that was
+in floatAlong.ts's own header): "the ask-the-doctor handwriting + doctor
+headshot pair slides down the question column as the visitor scrolls,
+gliding to the BOTTOM-MOST FULLY VISIBLE question. Movement is quantized per
+question — the transform only changes when the target index changes — and
+the glide itself is CSS (the node's own transition, live's anchor rule:
+transform 1s cubic-bezier(0.19,1,0.22,1); set in the markup, not here)."
+Sources: floating-doc.js (live ships the class with its instantiation
+commented out on home — SPEC.md:2031 — so the operator's spec was already
+the authority for running it at all) and `.ask-the-doctor-handwriting-anchor
+{ transition: transform 1s cubic-bezier(.19,1,.22,1) }` beachfront.css:7670.
+The 1s hop transition is deleted from the pair's class list in
+QuestionList/index.svelte — JS owns the motion frame-by-frame now, so a CSS
+transition would only fight it.
+
+NEW CONTRACT (floatAlong.ts): position is a CONTINUOUS function of scroll.
+The viewport bottom (the same edge that decided "fully visible" before) is
+interpolated piecewise-linearly between consecutive item BOTTOMS onto the
+items' offsetTop ladder — the pair passes through every position the old
+code hopped between and everything in between, clamped to [item 0, last
+item] so it never leaves the column. A ~150ms-time-constant rAF follow keeps
+the float soft; target continuous in scroll + follow continuous in time = no
+input can produce a step. Scroll-0 leaves the node's style untouched
+(byte-identical static captures); reduced-motion stays a complete no-op
+(pair pinned statically at rest — the pre-existing behavior, kept); below
+1024px the float stays inert (mobile pair rests in flow, kept). floatAlong
+has exactly one consumer (QuestionList teaser variation, home only — atd's
+numbered variation has no pair, and live's own atd FloatingDoctor is dead
+code per SPEC.md D.4).
+
+PROOF (probe @1440, 93 samples at 25px scroll increments, entrance reveals
+pre-fired): BEFORE inline-target plateaus 0/420/840/1260/1680/2100 with a
+420px jump inside one 25px step (5 steps >60px); AFTER max per-step delta
+25.2px — proportional (slope ~1.0), 0 steps >60px, 0 monotone violations,
+clamp past column exactly 2100 = colTravel. Scroll-0 unchanged to the pixel
+(pair rect top 4508.84375 / left 420, transform none, before AND after).
+Open-card-mid-scroll lurch 0.0px (G2's frozen cards keep every item offset).
+tests/interaction/float-drift.spec.ts now asserts this contract (5/5 green:
+scroll-0 untouched, continuity bound 60px + monotone + column-bounded +
+exact clamp, no open-card lurch, reduced-motion static, atd pair-free);
+floatAlong.test.ts pins the mapping + the no-step follow (10/10).
+Probe-methodology note: animateIn's one-shot reveals sit ON the `.qa-item`s,
+so an unswept page's card rects move on their own for ~1s as each reveals —
+sweeps must fire the reveals first or they measure reveal motion on top of
+the drift (this cost one false 80px reading).
+
+Gate round: markupg3 (threshold 0.1, maxHeightDelta 0.05, matrix
+1440/834/390, mask [], neutralizeMedia false), pages home + atd as
+no-regression — the drift is interaction-state, invisible to static
+captures, and the logs prove it: every measured row BYTE-IDENTICAL to
+markupg2 on both pages (diff of out-markupg3-_.log vs out-markupg2-_.log,
+tag lines excluded, empty). Per-page exit=1 is the pre-ACK'd floors at their
+exact stalled values (home OdT @834 10.9, home BtS @390 Δh 5.8, atd BtS
+61.7/60.5/66.9, footer-map rows) — untouched, per the do-not-disturb list.

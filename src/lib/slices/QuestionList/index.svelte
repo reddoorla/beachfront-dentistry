@@ -121,20 +121,28 @@
              hand-drawn "ask the doctor" annotation (real PNG asset, NOT a
              redrawn cursive font) AND the doctor headshot at the SAME height,
              flanking the question column ~100px below the tracked card's top.
-             floatAlong glides the whole pair to the bottom-most fully visible
-             question, quantized per question, with live's own anchor motion
-             (transform 1s cubic-bezier(0.19,1,0.22,1)). Live x-geometry at
-             1440: handwriting's right edge 10px left of the column, headshot
-             overlapping 40px INTO the column's right edge. -->
+             floatAlong drifts the whole pair CONTINUOUSLY with scroll down
+             the question column. DEVIATION (MarkUp thread
+             a7c2e0d0-5e13-4cfd-bb17-a21ecee7b188, home pin #7; operator
+             directive 2026-08-11: Tim over live): live's floating-doc.js
+             glided the pair per-question to the bottom-most fully visible
+             card via `.ask-the-doctor-handwriting-anchor { transition:
+             transform 1s cubic-bezier(.19,1,.22,1) }` (beachfront.css:7670)
+             — Tim: "I do not like the jumping from question to question."
+             The hop transition is gone from this class list because JS now
+             owns the motion frame-by-frame; see floatAlong.ts for the full
+             override record. Live x-geometry at 1440: handwriting's right
+             edge 10px left of the column, headshot overlapping 40px INTO the
+             column's right edge. -->
         <!-- MOBILE (measured live @390): the pair rests IN PLACE above the
              first card, right-aligned — 120px headshot 24px from the content's
              right edge with its bottom 12px above the card, the 120×70
              handwriting flush against its left edge (float gated off in
-             floatAlong). DESKTOP: flanks the column and glides. -->
+             floatAlong). DESKTOP: flanks the column and drifts. -->
         <div
           use:floatAlong={{ itemSelector: ".qa-item" }}
           aria-hidden="true"
-          class="pointer-events-none absolute inset-x-0 top-0 z-10 transition-transform duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] motion-reduce:transition-none lg:top-[100px]"
+          class="pointer-events-none absolute inset-x-0 top-0 z-10 lg:top-[100px]"
         >
           {#if isFilled.richText(slice.primary.heading)}
             <!-- Live ships the raw handwriting PNG and turns it dark blue with

@@ -1,6 +1,14 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { floatAlong } from "./floatAlong";
 
+// ROUND G3 CONTRACT — the pair drifts CONTINUOUSLY with scroll (MarkUp thread
+// a7c2e0d0-5e13-4cfd-bb17-a21ecee7b188 home pin #7, operator directive
+// 2026-08-11: Tim over live). Live's floating-doc.js hopped the pair
+// per-question to the bottom-most fully visible card; Tim: "I do not like the
+// jumping from question to question." The mapping is now piecewise-linear
+// over the items' viewport-bottom crossings — these tests pin the mapping's
+// endpoints, its interpolation, and the no-step property of the rAF follow.
+
 function mockMatchMedia(reducedMotion: boolean, desktop = true) {
   window.matchMedia = vi.fn().mockImplementation((query: string) => ({
     matches:
@@ -38,10 +46,42 @@ function makeDom(itemCount: number) {
   return { parent, node };
 }
 
+const rect = (top: number, bottom: number) => ({ top, bottom }) as DOMRect;
+
+const items = (parent: HTMLElement) => [
+  ...parent.querySelectorAll<HTMLElement>(".qa-item"),
+];
+
+const setOffsetTop = (el: HTMLElement, value: number) =>
+  Object.defineProperty(el, "offsetTop", { value, configurable: true });
+
+const ty = (node: HTMLElement): number => {
+  const t = node.style.transform;
+  if (!t) return 0;
+  const m = /translateY\((-?[\d.]+)px\)/.exec(t);
+  if (!m) throw new Error(`unexpected transform: ${t}`);
+  return parseFloat(m[1]!);
+};
+
+/** Every instance is destroyed after its test: an undestroyed instance keeps
+ *  its window scroll listener alive across tests, and a later test's scroll
+ *  dispatch would wake the zombie too (its step lands first in a stubbed rAF
+ *  queue and the assertions read a frame that belongs to nobody). */
+const handles: Array<{ destroy(): void } | undefined | void> = [];
+const mount = (node: HTMLElement) => {
+  const handle = floatAlong(node, { itemSelector: ".qa-item" });
+  handles.push(handle);
+  return handle;
+};
+
 afterEach(() => {
+  while (handles.length > 0) handles.pop()?.destroy();
   document.body.innerHTML = "";
   vi.restoreAllMocks();
 });
+
+// jsdom's viewport: the mapping's tracking line is window.innerHeight = 768.
+const VIEWPORT_BOTTOM = 768;
 
 describe("floatAlong — prefers-reduced-motion: reduce", () => {
   it("attaches no scroll/resize listeners", () => {
@@ -49,7 +89,7 @@ describe("floatAlong — prefers-reduced-motion: reduce", () => {
     const { node } = makeDom(3);
     const addSpy = vi.spyOn(window, "addEventListener");
 
-    floatAlong(node, { itemSelector: ".qa-item" });
+    mount(node);
 
     expect(addSpy).not.toHaveBeenCalledWith(
       "scroll",
@@ -59,11 +99,11 @@ describe("floatAlong — prefers-reduced-motion: reduce", () => {
     expect(addSpy).not.toHaveBeenCalledWith("resize", expect.anything());
   });
 
-  it("never sets a transform on the node", () => {
+  it("never sets a transform on the node (statically at rest)", () => {
     mockMatchMedia(true);
     const { node } = makeDom(3);
 
-    floatAlong(node, { itemSelector: ".qa-item" });
+    mount(node);
 
     expect(node.style.transform).toBe("");
   });
@@ -89,13 +129,13 @@ describe("floatAlong — matchMedia unavailable", () => {
   });
 });
 
-describe("floatAlong — motion allowed", () => {
+describe("floatAlong — the continuous mapping", () => {
   it("attaches passive scroll and resize listeners on mount", () => {
     mockMatchMedia(false);
     const { node } = makeDom(3);
     const addSpy = vi.spyOn(window, "addEventListener");
 
-    floatAlong(node, { itemSelector: ".qa-item" });
+    mount(node);
 
     expect(addSpy).toHaveBeenCalledWith("scroll", expect.any(Function), {
       passive: true,
@@ -103,91 +143,68 @@ describe("floatAlong — motion allowed", () => {
     expect(addSpy).toHaveBeenCalledWith("resize", expect.any(Function));
   });
 
-  it("glides to the BOTTOM-MOST fully visible item, measured from item 0", () => {
-    mockMatchMedia(false);
-    const { parent, node } = makeDom(3);
-    const items = [
-      ...parent.querySelectorAll<HTMLElement>(".qa-item"),
-    ] as HTMLElement[];
-    // Items 0-1 fully inside the viewport, item 2 hanging below it — the
-    // pair must target item 1 (bottom-most FULLY visible), translated by its
-    // offset from item 0 (the pair's authored resting position). jsdom rects
-    // default to all-zero, so these stubs are what exercise the predicate.
-    const rect = (top: number, bottom: number) => ({ top, bottom }) as DOMRect;
-    items[0]!.getBoundingClientRect = () => rect(10, 410);
-    items[1]!.getBoundingClientRect = () => rect(430, 750);
-    items[2]!.getBoundingClientRect = () => rect(770, 1190);
-    Object.defineProperty(items[0]!, "offsetTop", {
-      value: 0,
-      configurable: true,
-    });
-    Object.defineProperty(items[1]!, "offsetTop", {
-      value: 420,
-      configurable: true,
-    });
-
-    floatAlong(node, { itemSelector: ".qa-item" });
-
-    expect(node.style.transform).toBe("translateY(420px)");
-  });
-
-  it("holds its current target while NO item is fully visible (no twitching)", () => {
+  it("leaves the authored style untouched while the column is below the tracking line", () => {
     mockMatchMedia(false);
     const { parent, node } = makeDom(2);
-    const items = [
-      ...parent.querySelectorAll<HTMLElement>(".qa-item"),
-    ] as HTMLElement[];
-    // A tall card straddles the top edge and the next hangs off the bottom:
-    // nothing is fully visible, so the pair stays where it is (index 0 =
-    // resting position = no transform written).
-    const rect = (top: number, bottom: number) => ({ top, bottom }) as DOMRect;
-    items[0]!.getBoundingClientRect = () => rect(-40, 380);
-    items[1]!.getBoundingClientRect = () => rect(700, 1120);
+    const [a, b] = items(parent);
+    // First item's bottom sits ON/below the viewport bottom: mapping is 0,
+    // and the node keeps its server-rendered style byte-for-byte (the static
+    // gate captures depend on exactly this).
+    a!.getBoundingClientRect = () => rect(400, VIEWPORT_BOTTOM);
+    b!.getBoundingClientRect = () => rect(790, 1180);
 
-    floatAlong(node, { itemSelector: ".qa-item" });
+    mount(node);
 
     expect(node.style.transform).toBe("");
+  });
+
+  it("interpolates BETWEEN item bottoms — a mid-segment scroll yields a mid-segment position", () => {
+    mockMatchMedia(false);
+    const { parent, node } = makeDom(3);
+    const [a, b, c] = items(parent);
+    // Viewport bottom (768) sits between bottom(item0)=400 and
+    // bottom(item1)=820: t = (768-400)/(820-400) = 368/420, mapped onto the
+    // offsetTop ladder 0→420 = 368px. The OLD quantized rule could only ever
+    // answer 0 or 420 here — this fractional value is the round's point.
+    a!.getBoundingClientRect = () => rect(0, 400);
+    b!.getBoundingClientRect = () => rect(420, 820);
+    c!.getBoundingClientRect = () => rect(840, 1240);
+    setOffsetTop(a!, 0);
+    setOffsetTop(b!, 420);
+    setOffsetTop(c!, 840);
+
+    mount(node);
+
+    expect(node.style.transform).toBe("translateY(368px)");
+  });
+
+  it("clamps to the last item's offset once the whole column is scrolled past (never leaves the column)", () => {
+    mockMatchMedia(false);
+    const { parent, node } = makeDom(3);
+    const [a, b, c] = items(parent);
+    a!.getBoundingClientRect = () => rect(-900, -500);
+    b!.getBoundingClientRect = () => rect(-480, -80);
+    c!.getBoundingClientRect = () => rect(-60, -10);
+    setOffsetTop(a!, 0);
+    setOffsetTop(c!, 840);
+
+    mount(node);
+
+    expect(node.style.transform).toBe("translateY(840px)");
   });
 
   it("parks at rest below the desktop breakpoint (mobile pair sits in place)", () => {
     mockMatchMedia(false, false);
     const { parent, node } = makeDom(3);
-    const items = [
-      ...parent.querySelectorAll<HTMLElement>(".qa-item"),
-    ] as HTMLElement[];
-    // Rects that would target item 2 at desktop — mobile must ignore them.
-    const rect = (top: number, bottom: number) => ({ top, bottom }) as DOMRect;
-    items.forEach((el, i) => {
+    // Rects that would place the pair mid-column at desktop — mobile must
+    // ignore them.
+    items(parent).forEach((el, i) => {
       el.getBoundingClientRect = () => rect(10 + i * 100, 110 + i * 100);
     });
 
-    floatAlong(node, { itemSelector: ".qa-item" });
+    mount(node);
 
     expect(node.style.transform).toBe("");
-  });
-
-  it("clamps to the last item once the whole list is scrolled past", () => {
-    mockMatchMedia(false);
-    const { parent, node } = makeDom(3);
-    const items = [
-      ...parent.querySelectorAll<HTMLElement>(".qa-item"),
-    ] as HTMLElement[];
-    const rect = (top: number, bottom: number) => ({ top, bottom }) as DOMRect;
-    items[0]!.getBoundingClientRect = () => rect(-900, -500);
-    items[1]!.getBoundingClientRect = () => rect(-480, -80);
-    items[2]!.getBoundingClientRect = () => rect(-60, -10);
-    Object.defineProperty(items[0]!, "offsetTop", {
-      value: 0,
-      configurable: true,
-    });
-    Object.defineProperty(items[2]!, "offsetTop", {
-      value: 840,
-      configurable: true,
-    });
-
-    floatAlong(node, { itemSelector: ".qa-item" });
-
-    expect(node.style.transform).toBe("translateY(840px)");
   });
 
   it("removes the listeners it added when destroyed", () => {
@@ -208,5 +225,69 @@ describe("floatAlong — motion allowed", () => {
 
     expect(removeSpy).toHaveBeenCalledWith(scrollEvent, scrollHandler);
     expect(removeSpy).toHaveBeenCalledWith(resizeEvent, resizeHandler);
+  });
+});
+
+describe("floatAlong — the follow cannot step", () => {
+  it("approaches a moved target through strictly intermediate positions, bounded per frame, and settles exactly", () => {
+    mockMatchMedia(false);
+    // Manual rAF: each frame is driven by hand with its own timestamp, so the
+    // exponential follow is fully deterministic here.
+    const frames: FrameRequestCallback[] = [];
+    const originalRaf = window.requestAnimationFrame;
+    window.requestAnimationFrame = ((cb: FrameRequestCallback) => {
+      frames.push(cb);
+      return frames.length;
+    }) as typeof window.requestAnimationFrame;
+    try {
+      const { parent, node } = makeDom(3);
+      const [a, b, c] = items(parent);
+      // Mount geometry: column below the tracking line → rest (0).
+      let scrolled = false;
+      a!.getBoundingClientRect = () =>
+        scrolled ? rect(-900, -500) : rect(400, VIEWPORT_BOTTOM);
+      b!.getBoundingClientRect = () =>
+        scrolled ? rect(-480, -80) : rect(790, 1180);
+      c!.getBoundingClientRect = () =>
+        scrolled ? rect(-60, -10) : rect(1200, 1590);
+      setOffsetTop(a!, 0);
+      setOffsetTop(b!, 420);
+      setOffsetTop(c!, 840);
+
+      mount(node);
+      expect(node.style.transform).toBe("");
+
+      // The user scrolls past the whole column in one jump — the TARGET
+      // leaps 0→840, the worst case the old code answered with a hop.
+      scrolled = true;
+      window.dispatchEvent(new Event("scroll"));
+
+      const positions: number[] = [];
+      let ts = 1000;
+      for (let i = 0; i < 400 && frames.length > 0; i++) {
+        const cb = frames.shift()!;
+        cb(ts);
+        ts += 16;
+        positions.push(ty(node));
+      }
+
+      // Settled: dormant (no pending frame) at exactly the mapped position.
+      expect(frames.length).toBe(0);
+      expect(node.style.transform).toBe("translateY(840px)");
+      // No step: every frame moves, no frame moves more than the follow's
+      // per-frame bound (~10.7% of the remaining gap at 16ms/TAU 150ms —
+      // first frame ≈ 85px), and the sequence is strictly monotone up to
+      // the settle snap.
+      expect(positions.length).toBeGreaterThan(10);
+      expect(positions[0]!).toBeGreaterThan(0);
+      expect(positions[0]!).toBeLessThan(130);
+      for (let i = 1; i < positions.length; i++) {
+        const d = positions[i]! - positions[i - 1]!;
+        expect(d).toBeGreaterThanOrEqual(0);
+        expect(d).toBeLessThan(130);
+      }
+    } finally {
+      window.requestAnimationFrame = originalRaf;
+    }
   });
 });
