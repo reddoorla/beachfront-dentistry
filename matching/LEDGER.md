@@ -2638,3 +2638,84 @@ awaiting operator ACK as a deviation floor (same class as the WTFC hΔ row);
 threshold untouched, nothing masked. Footer WTLM floors 12.85@390 /
 12.01@834 unchanged. next.mjs after: 131/153, yfv 20/24, 3 open failures
 (this DRQ row, plus svc/contact outside this round).
+
+## MARKUP ROUND B — the Q&A card cluster (2026-08-10, feat/markup-round-2026-08)
+
+Designer round, MarkUp boards d486b3c5-eed8-4324-9158-289bd4ee8ccb (home,
+pins #9/#10) and 3c082cae (ask-the-doctor, pins #1/#2). All four pins target
+the shared QuestionCard / QuestionList pair. Before/after probed on
+localhost:5173 / and /ask-the-doctor at 1440/834/390 with reveal transforms
+neutralized (below-fold `.qa-item`s carry animateIn's translateY(160/96) until
+revealed — an un-neutralized probe reads inter-card gaps up to 160px too big;
+one triage number in this round's brief had that error: "~120px vertical" was
+right, an earlier raw probe's 280 was polluted).
+
+- [deviation] Read More bottom padding — threads
+  3d255366-5bb2-4cb1-9a90-439d49ef63ef (home pin #9,
+  https://app.markup.io/markup/d486b3c5-eed8-4324-9158-289bd4ee8ccb/#thread/3d255366-5bb2-4cb1-9a90-439d49ef63ef)
+  and bd8c37b0-2e1c-4dc2-a466-8073e204d90c (atd pin #1, "Same comments as the
+  homepage"). Live's `.qa-text` boxes are FLUSH — `.qa-text`
+  (beachfront.css:7282) and `.qa-text.m-2.active` (:7303) end at the card
+  bottom, so the revealed Read More pill touches the edge (probed offset 0px:
+  teaser 1440/834/390, numbered 1440/834). Tim: "same padding as the headline
+  to the bottom of box" — the headline ladder is `.qa-question`
+  margin-bottom .5rem (:7311) = 12/16/20, so the box gets pb-3/4/5
+  (QuestionCard.svelte textBoxClass). AFTER: offset 20/16/12 teaser,
+  20/16 numbered md/lg. Two probed carve-outs: (1) numbered base keeps NO pb —
+  the ≤479 expanded card is 384px over a 240px flow box (96px under the pill
+  already; offset 96 before = after) and 240−12 would re-clip the tallest
+  panel (231px); (2) teaser base expanded height 192→244 — the six-card sweep
+  found 231px answer panels @390 that ce0c59d's 8rem=192 box (verified on a
+  183px card) was ALREADY clipping by 39px, and 231+12 needs 243. AFTER:
+  pClippedTop 0 on the tallest card at every width, both variations.
+  Collapsed geometry untouched (padding doesn't move absolute children; the
+  anchor-cut `.qa-text` heights are unchanged) — gate-invisible, and the gate
+  agreed (home OdT/BtS mm flat at 1440/834).
+  NOT touched: the box still expands on open — pin #9's "I don't think it
+  needs to expand… Thoughts?" is a design QUESTION on a live-match behaviour
+  (.qa-text.m-2.active height transition, :7303); awaiting Tim's verdict.
+- [deviation] home teaser "View All Questions" gap — thread
+  ce17fba0-94d6-4e22-9863-8ee192b92ecc (home pin #10,
+  https://app.markup.io/markup/d486b3c5-eed8-4324-9158-289bd4ee8ccb/#thread/ce17fba0-94d6-4e22-9863-8ee192b92ecc).
+  Live butts the button row against the last card (probed gap 0.0px at
+  1440/834/390 — no margin between `.qa-collection-list` and the button row).
+  Tim: "add 40px of space between button and last question" — stated-value
+  mt-10 on the button row (QuestionList/index.svelte teaser branch). AFTER:
+  40.0 at all three widths. Gate consequence on home "Beyond the Smile" (the
+  region holding the 6 cards + button): Δh 1.7→3.4% @1440 / 1.5→3.6% @834
+  (PASS), and @390 3.4→5.8% — over the 5% height cap, mm still 1.7% —
+  NEW FAIL by stacking on the region's pre-existing ±33/63px anchor drift.
+  Left OPEN awaiting operator ACK as a deviation floor (same class as the
+  DRQ row); threshold untouched, nothing masked.
+- [deviation] atd numbered grid 30px gap — thread
+  b7be52f2-11d0-467c-b4ea-ca086b9aa29f (atd pin #2, first half; the
+  "meet the team" half is Round C / CollectionList, untouched here).
+  Live's spacing: `.w-col-6` padding 0 10px (20px column gutter) + the 520px
+  `.ask-the-doctor-collection-item` cell over a 400px card = probed gaps
+  h20/v120 @1440, h20/v96 @834, v12 @390. Tim: "consistent vertically and
+  horizontally… Let's use 30px" — one gap-[30px] on the grid wrapper at every
+  width, per-cell px/pb wrappers removed (QuestionList/index.svelte numbered
+  branch). AFTER: h30/v30 @1440+834, v30 @390; card width 620→625 @1440,
+  341.5→346.5 @834, 317.5→337.5 @390. Open-state at 30px: an expanded card
+  grows inside its own grid cell (margin-top + the ≤479 re-height), auto rows
+  push the rows below — probed gap-while-open 30, overlap false, at all three
+  widths (screenshot atd-1440 in round scratch, deleted with it). Gate
+  consequence on atd "Beyond the Smile" (the whole-grid region, 78% of the
+  page): mm 4.6→61.7 @1440 (Δh 17.6%) / 1.0→60.5 @834 (Δh 16.2%) /
+  1.7→66.9 @390 (Δh 5.8%); anchor deltas −1830/−1350/+690 = 19 rows ×
+  (120/96/12→30). The ref cannot agree with a requested rhythm change of this
+  size — left OPEN awaiting operator ACK as a deviation floor. atd "top" and
+  "Back to Top" regions flat (0.2/0.3/0.7 and 0.0×3): the card x/width shift
+  washes out in the pale label bar.
+
+Strikes before the round: home @834 "Our dental team in Redondo" pixels
+10.9%, flat across 31 runs — STALLED, presented for escalation, not
+re-attempted (it holds §6 + card 1's collapsed label/image; this round
+changed no collapsed-state geometry and the row is 10.9 before = after).
+atd: clear.
+Gate round: markupb (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), out-markupb-home / out-markupb-atd. Movement
+confined to the two ledgered deviation regions above; footer WTLM floors
+13.4/12.0 (home) and 12.8/12.0 (atd) unchanged; the two ACK-pending rows
+from A1/A2 (home "Finally have a dentist" 4.6 @1440 PASS, yfv DRQ @1440)
+untouched.
