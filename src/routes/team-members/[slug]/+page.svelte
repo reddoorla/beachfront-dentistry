@@ -17,8 +17,14 @@
   let { data }: { data: PageData } = $props();
 
   // Live gives EVERY team-member hero the same shared beach photo (not the
-  // headshot). Served from /static so it clears the app CSP (img-src is
-  // Prismic-only) — the real asset, not a redraw.
+  // headshot). MarkUp round D deviates — threads
+  // b7a00984-7a22-4830-ab3a-1fe1b636497e (team-member pin #1, "This should be
+  // the same image on their small thumbnail module.") +
+  // 17e321d9-3717-4a6a-810f-d9be03e60de2 (our-team pin #4, each member's
+  // favorite beach as the hero): the hero is now the person's own gallery[0]
+  // (data.heroImage, Prismic-hosted — CSP-fine), and this shared photo is the
+  // FALLBACK for a person with no gallery. Served from /static so it clears
+  // the app CSP (img-src is Prismic-only) — the real asset, not a redraw.
   const heroBeach: ImageField = {
     url: "/images/team-member-hero.jpg",
     alt: null,
@@ -56,7 +62,7 @@
 {/snippet}
 
 <DetailHero
-  backgroundImage={heroBeach}
+  backgroundImage={data.heroImage ?? heroBeach}
   label={data.title}
   labelSize="name"
   overlay={hasHeadshot ? headshot : undefined}
