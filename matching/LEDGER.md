@@ -2834,3 +2834,83 @@ floors at yfv (12.8/12.0) and our-team @834/1440 (12.0/7.3); one drift on the
 already-ACK'd our-team @390 WTLM floor, 12.9→13.4 (map-region noise on the
 page that grew 37.8px — no mask, no threshold change, left as the same
 floor). All three deviation regions left OPEN awaiting operator ACK.
+
+## MARKUP ROUND D — the team-member detail template (2026-08-10, feat/markup-round-2026-08)
+
+Four pins on /team-members/<slug> (boards ad8322a7 team-member detail +
+7944efa6 our-team). Gate page `team` runs the REAL route
+(/team-members/dr-robert-quan) — there is no /dev/match twin for the detail
+templates — and `svc` is gated as the shared-component control (DetailHero /
+DetailBody / animateIn are shared with the services + questions templates).
+Strikes before the round: clear on team and svc.
+
+- [deviation] per-person hero — threads b7a00984-7a22-4830-ab3a-1fe1b636497e
+  (team-member board pin #1: "This should be the same image on their small
+  thumbnail module.") + 17e321d9-3717-4a6a-810f-d9be03e60de2 (our-team board
+  pin #4: "The beach image should be the background hero image. Conceptually,
+  each staff member picked their favorite beach…") — ONE fix. Live's webflow
+  template gives EVERY member hero the same shared beach photo (the hard-coded
+  /images/team-member-hero.jpg copy of it); now the hero is the person's own
+  gallery[0] — the SAME image as their /our-team card banner (person docs
+  carry the seeded gallery in Prismic; verified images.prismic.io URLs on the
+  real /our-team, e.g. Quan→bali, Stacey→cabo-lalo) — with the shared photo as
+  fallback for a person with no gallery. The dev/match our-team twin only
+  patches EMPTY galleries, so real route and twin read identical gallery[0].
+  Gate consequence @all: the team hero region ("top"/"Dentist" band) diffs vs
+  the ref per person — expected deviation rows. Caveat for the resolve reply:
+  stacey/enrique's cabo-lalo gallery image carries the our-team card's
+  portrait crop (rect 674x900), so as a 1440-wide hero it upscales soft; if
+  Tim wants a sharper hero the gallery asset needs an uncropped/wider crop in
+  Prismic, not a render change.
+- [deviation] 700px measure cap — thread b42973fe-6f2a-43d2-ac43-87c8187d9a7e
+  (pin #3: "This text width is way too long. I want this to be 70% width ||
+  Or maybe a max width of 700 pixels, and then as the screen size gets
+  smaller, it starts to rag."). Taking the 700px arm (the || alternative
+  supersedes the 70% first thought). Live has no cap below the 1440 container
+  — the bio measured 1280px wide @1440, 1194 @1354, 738 @834. Now
+  max-w-[700px] on the team DetailBody call ONLY; services keeps its
+  live-derived `w-full md:w-4/5` and questions its `max-w-[1024px]` — Tim
+  pinned the team page; flag extending the cap to the other detail bodies in
+  the resolve reply.
+- [deviation] title→body gap halved to the button's ladder — thread
+  25b788a1-ecb1-436e-bd80-293ad0f277f4 (pin #4: "Half as much vertical space
+  between the job title and the body text. Should be consistent between the
+  button and the body text as well."). Live's role line is
+  `h4.text-color-primary-dark.mt-8.mb-4`, `.mb-4` = `margin-bottom:1rem`
+  (beachfront.css:3985-3988) = 24/32/40 on the stepped root — the value the
+  template carried. Now the body takes the `.mt-2` half-rem ladder the Back
+  to Team button already cites (`margin-top:.5rem`, beachfront.css:3901-3903)
+  = 12/16/20: title→body 40→20 @1440 (halved) AND equal to body→button 20 —
+  both clauses of the pin in one value. Team detail only.
+- [fix] name-reveal fail-safe — thread 738ad46b-0be6-4d92-a1c0-73a53e4c298e
+  (pin #2, the DETERMINATE half: "Sometimes this name shows up and sometimes
+  it doesn't."). Probed: with IntersectionObserver stubbed inert, the hero
+  name settles at opacity 0 FOREVER (it even fades out from first paint,
+  since applyHidden's transition is already attached) — the only mechanism
+  that can hide it, matching Tim's intermittent experience in MarkUp's
+  embed. animateIn gains an opt-in viewport-mode `failSafe` (timer that
+  forces the revealed state; cleared only after the normal reveal actually
+  executes, so a throttled-rAF reveal is also covered) + a guard that reveals
+  in place when IntersectionObserver is missing entirely. DetailHero's label
+  block opts in at 1500ms; no other call site changes. Not a geometry change
+  — settled state is byte-identical (opacity 1, translateY 0). The ALIGNMENT
+  half of the pin ("never aligned correctly") is needs-Tim — the name was NOT
+  moved.
+
+Gate round: markupd (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), out-markupd-team / out-markupd-svc, against a fresh
+pre-change baseline markupd0 (same pages, same settings, run this round).
+Movement confined to the pinned region: team "Dentist" (the role+bio band)
+0.0→6.1 @1440 (Δh 2.8%→39.4% — the 700px measure wraps the bio into more
+lines, outweighing the halved title gap: cand Back-to-Team anchor 920→1050),
+0.4→9.9 @834 (Δh 12.6%) and 6.0→13.0 @390 (dE 3.6→9.6 — the body width is
+unchanged at 390, the −12px title-gap shift misaligns the band's text vs
+ref). Sub-threshold ripples on team "top" only (1.1→2.5 @1440, 1.2→1.4 @834,
+3.1→2.5 @390): the per-person bali hero vs the ref's shared beach reads
+close in tone, so the pin-1 deviation never crosses threshold. WTLM footer
+floors byte-stable on team (12.9 @390 / 12.0 @834 / 7.3-PASS @1440). svc
+control: EVERY row identical to its markupd0 baseline — including the
+pre-existing vw1440 "What to expect" Δh=5.1% (mm=0.0) fail and the WTLM
+floors 12.9/12.0 — so the shared DetailHero / DetailBody / animateIn changes
+are visually inert outside the team template. No mask, no threshold change.
+The three team "Dentist" rows left OPEN awaiting operator ACK.

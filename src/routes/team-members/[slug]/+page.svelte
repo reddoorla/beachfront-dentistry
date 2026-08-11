@@ -91,10 +91,23 @@
   <!-- Live's body copy: museo-sans slate #365b6d, 12px/18 mobile → 20px/30
        desktop, 10px between blocks (shared DetailBody). -->
   <!-- Live's role line is `h4.text-color-primary-dark.mt-8.mb-4`, and `.mb-4`
-       is `margin-bottom:1rem` (`beachfront.css:3985-3988`) = 24 / 32 / 40. We
-       had a flat `mt-6` (24) on the body, which is 8px short at 834 and 16 at
-       1440 — and every paragraph below inherited the drift. -->
-  <DetailBody field={data.doc.data.body} class="mt-6 md:mt-8 lg:mt-10" />
+       is `margin-bottom:1rem` (`beachfront.css:3985-3988`) = 24 / 32 / 40.
+       MarkUp thread 25b788a1-ecb1-436e-bd80-293ad0f277f4 (pin #4, "Half as
+       much vertical space between the job title and the body text. Should be
+       consistent between the button and the body text as well") halves it:
+       the body now carries the same `.mt-2` half-rem ladder the button below
+       already had (`margin-top:.5rem` — `beachfront.css:3901-3903`) = 12 / 16 /
+       20, so title→body equals body→button at every tier. Team detail only.
+       MarkUp thread b42973fe-6f2a-43d2-ac43-87c8187d9a7e (pin #3, "This text
+       width is way too long… Or maybe a max width of 700 pixels, and then as
+       the screen size gets smaller, it starts to rag") caps the measure at
+       700px — live has no cap below the 1440 container (bio ran 1280px wide
+       at 1440). Team detail only; services (w-full md:w-4/5) and questions
+       (max-w-[1024px]) keep their live-derived widths. -->
+  <DetailBody
+    field={data.doc.data.body}
+    class="mt-3 max-w-[700px] md:mt-4 lg:mt-5"
+  />
 
   <!-- Live's cyan outline "Back to Team" pill. It carries `.mt-2` —
        `margin-top:.5rem` (`beachfront.css:3901-3903`) = 12 / 16 / 20 — inside a
