@@ -3102,3 +3102,58 @@ model or an explicit acceptance of its own.
 
 Prismic migration release for the Round F wording (5 page docs) reported
 in flight by the operator at the same checkpoint.
+
+## MARKUP ROUND G1 — the wave loses its flat spot (2026-08-11, feat/markup-round-2026-08)
+
+- PIN: thread 7dd0c2f2 (our-team board 7944efa6, pin #1), "Flat spot in the
+  curve". The flaw is the REFERENCE'S OWN: live's injected SVG
+  (matching/spec/detail-svc.html:123) draws the crest with one cubic
+  (+250.45,-0.39, controls y=-2.14/-3.15) whose middle dwells within 3px of
+  its peak for ~194px of screen at 1440 (|dy/dx|<0.10 for 312px). Operator
+  directive in conversation: where the original site itself has the flaw,
+  follow Tim's instruction over the reference — a DELIBERATE SITE-WIDE
+  deviation, pre-ACK'd.
+- DEVIATION (by design): src/lib/components/WaveDivider.svelte's middle cubic
+  is replaced by four G1-continuous cubics rolling crest(553,2) →
+  dip(631,18.5) → crest(707,6.5) across the same span. Junction points
+  (493.39,14.58)/(743.84,14.19) and their tangents (-0.203/+0.210), the
+  flanks, viewBox, fill mechanics (V0 H0 V27.35 + 600.21 arc) and the crest
+  reach (min y 2.00 vs live's 1.61) are unchanged, so every A-round seam fix
+  holds. Flatness after: crest dwell 77px (was 194), |dy/dx|<0.10 span 51px
+  (was 312), <0.05 span 27px (was 158), <0.02 span 11px (was 63) — the
+  remaining spans straddle true extrema, as a sine's would.
+- SCOPE: WaveDivider renders on every page (Hero ×2, SectionGrid, DetailHero,
+  SubpageHero, Footer arc) — the REF keeps the flat curve, so every wave-seam
+  region on all nine pages may move against it. Those rows are EXPECTED and
+  covered by the operator's pre-ACK; they are listed per-row in the markupg1
+  gate results below at the moment they are measured. Anything that moves
+  OUTSIDE a wave region is a regression, not a deviation.
+- Threshold 0.10, matrix 1440/834/390, no masks — unchanged.
+
+Gate round: markupg1 (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), ALL NINE pages (the footer arc is on every page, so
+nothing was sampled). Measured moved rows — every one a wave-seam region,
+every one PASS→PASS, worst delta +0.4pp, all pre-ACK'd per the operator
+directive above:
+
+- "top" (hero seam; SubpageHero/DetailHero/Hero wave): team 2.5→2.7 / 1.4→1.6
+  / 2.5→2.7; svc 0.6→0.8 / 0.5→0.7 / 3.1→3.2; qa 2.3→2.4 / 2.1→2.2 /
+  2.7→2.8; home 6.0→6.2 / 3.6→3.8 / 7.3→7.4; yfv 0.1→0.4 / 1.2→1.4 /
+  0.7→0.9; our-team 0.2→0.3 / 0.4→0.5 (@390 seam lands in "Our"); services
+  1.7→1.9 / 2.0→2.2 / 4.5→4.7; atd 0.2→0.5 / 0.3→0.5 / 0.7→0.9; contact
+  1.3→1.5 / 0.5→0.7 / 2.6→2.7 (order 1440/834/390 where three moved).
+- our-team "Our" (hero seam continues below the split anchor): 0.0→0.2 @1440,
+  2.5→2.9 @834, 4.6→4.9 @390.
+- "Ready for great [dental health]" (closing CTA band — the footer arc's
+  crest pokes up into it): all nine pages, +0.2 to +0.4pp, e.g. home
+  0.5→0.8/6.7→6.9/2.4→2.8; worst absolute 7.1→7.3 @834 (team/svc/qa/
+  contact), PASS with margin.
+- home "Your Path to Oral Health" @1440 2.0→2.1 (SectionGrid mirror wave,
+  steps→services seam); @834/@390 moved <0.05pp.
+
+Every row NOT listed is byte-identical to its markupf baseline, including
+the "Want to learn more" footer-map rows and every ACK'd floor at its exact
+stalled value: team Dentist 13.0/9.9/6.1, home OdT @834 10.9, home BtS @390
+Δh 5.8, atd BtS 61.7/60.5/66.9, our-team DRQ 37.2/23.7, yfv DRQ 27.2, yfv
+WWYTFC @1440 Δh 15.1, svc What-to-expect @1440 Δh 5.1, contact OFFICE HOURS
+@1440 10.5. Per-page exit=1 is those floors, nothing new.
