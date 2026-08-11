@@ -1,10 +1,9 @@
 <script lang="ts">
   import { Menu, X, ChevronDown } from "@lucide/svelte";
   import { onMount } from "svelte";
-  import { fly } from "svelte/transition";
   import { quintOut } from "svelte/easing";
   import { trapFocus } from "$lib/actions/trapFocus";
-  import { fade } from "$lib/transitions";
+  import { fade, fly } from "$lib/transitions";
   import { PHONE, MODENTO_URL } from "$lib/site";
   import type { NavItem } from "$lib/blux/site-config";
 
@@ -331,8 +330,12 @@
       transition:fly={{ y: -800, duration: 700, easing: quintOut }}
       use:trapFocus={{ onEscape: closeMenu, restoreFocus: () => openButtonEl }}
     >
+      <!-- Mirrors the closed bar's content band EXACTLY (same px/py ladder as
+           the <nav> band above) so the logo and trigger/X sit on the shared
+           content gutter and don't jump when the menu opens. Part of the
+           MarkUp-H2 "the menu [aligns to the content width] too" directive. -->
       <div
-        class="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 lg:h-[120px] lg:px-[60px] lg:py-0"
+        class="mx-auto flex max-w-[1400px] items-center justify-between px-5 py-5 md:px-12 md:py-6 lg:h-[120px] lg:px-[60px] lg:py-0"
       >
         {#if logo}
           <a
@@ -359,18 +362,29 @@
         </button>
       </div>
 
-      <!-- Live's column is NOT spread by its 60vh box — the h3 links carry
-           Webflow's 20px/10px block margins plus the container's 10px gap, a
-           90px pitch that naturally overflows the box (measured off the open
-           modal). -->
+      <!-- MarkUp round H2 (threads bac4decb…/team pin #5 and 738ad46b…/pin #2,
+           operator decode 2026-08-11): the column lives in NORMAL FLOW inside
+           the scrolling dialog — the absolute top-[10%] that let the links
+           detach from the dialog's scroll geometry (Tim's "Make Payment below
+           the fold, no scroll" capture) is gone, so overflow-y-auto above can
+           never miss it. It sits on the SHARED content gutter (identical
+           mx-auto/max-w/px ladder to the bar: 20px @<768, 48px 768–991,
+           60px + the 1400 cap ≥992 — x-80 @1440), left-aligned per "the menu
+           [aligns to the content width] too".
+           Rhythm: live's h3 links carried Webflow's 20px/10px block margins
+           plus the container's 10px gap — a 40px slot, 90px pitch at the lg
+           50px line-height. gap-10 IS that 40px slot, moved off the links so
+           the column starts flush under the header band instead of re-adding
+           the first link's top margin (which is what kept everything on one
+           screen at 1354×930, Tim's capture size). -->
       <nav
-        class="absolute top-[10%] flex w-full flex-col items-center gap-2.5"
+        class="mx-auto flex max-w-[1400px] flex-col items-start gap-10 px-5 md:px-12 lg:px-[60px]"
         aria-label="Menu links"
       >
         <a
           href="/"
           onclick={closeMenu}
-          class="font-slab mt-5 mb-2.5 text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
+          class="font-slab text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
           >Home Page</a
         >
         {#each items as item, i (i)}
@@ -378,7 +392,7 @@
             <a
               href={item.href}
               onclick={closeMenu}
-              class="font-slab mt-5 mb-2.5 text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
+              class="font-slab text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
               >{item.label}</a
             >
           {/if}
@@ -386,13 +400,13 @@
         <a
           href={PHONE.href}
           onclick={closeMenu}
-          class="font-slab mt-5 mb-2.5 text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
+          class="font-slab text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
           >{PHONE.display}</a
         >
         <a
           href="#appointment"
           onclick={closeMenu}
-          class="font-slab px-[1em] py-[1.3em] leading-[0] mt-5 mb-2.5 inline-flex items-center rounded-lg border border-white text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 lg:text-[25px]"
+          class="font-slab px-[1em] py-[1.3em] leading-[0] inline-flex items-center rounded-lg border border-white text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 lg:text-[25px]"
           >Request an Appointment</a
         >
         <a
@@ -400,7 +414,7 @@
           target="_blank"
           rel="noopener"
           onclick={closeMenu}
-          class="font-slab px-[1em] py-[1.3em] leading-[0] mt-5 mb-2.5 inline-flex items-center rounded-lg border border-white text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 lg:text-[25px]"
+          class="font-slab px-[1em] py-[1.3em] leading-[0] inline-flex items-center rounded-lg border border-white text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 lg:text-[25px]"
           >Make a Payment</a
         >
       </nav>

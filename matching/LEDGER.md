@@ -3456,3 +3456,57 @@ home BtS @390 Δh 5.8, atd BtS 61.7/60.5/66.9, our-team DRQ 37.2/23.7, yfv
 DRQ 27.2, yfv WWYTFC @1440 Δh 15.1, svc What-to-expect @1440 Δh 5.1, contact
 OFFICE HOURS @1440 10.5, WTLM map rows 12.0-13.4) — per-page exit=1 is the
 floors plus the one ACK'd home row, nothing else.
+
+## MARKUP ROUND H2 — the hero label and the menu join the content gutter (2026-08-11, feat/markup-round-2026-08)
+
+The two remaining designer pins, decoded by the operator. Tucker, on thread
+738ad46b-2b6d-4392-bc58-73e67df1e07e (team board ad8322a7 pin #2, Tim: the
+name "never aligned correctly"): the complaint means "horizontal alignment to
+the content width" — "and the menu is too" extends the same decode to thread
+bac4decb-8db3-43c9-b52c-7e06eb179f28 (team pin #5, Tim's capture: Make
+Payment below the fold with no scroll). Standing directive from H1 still in
+force, verbatim: "I'm no longer concerned about matching the original
+webflow" — so every reference disagreement below is ACK'd BY DIRECTIVE, not
+awaiting one.
+
+FIX 1 — DetailHero label (team name h1 / svc + qa crumbs, one shared
+component): the old lg:left-20 was a 1440-only sample of the gutter. The
+label now rides the SHARED content-gutter ladder (the same geometry as
+Nav.svelte's band: 20px @<768, 48px 768–991, max(60px, 50% − 640px) ≥992 —
+80 @1440, 60 @1294). Probed before/after on all three templates at
+1440/1354/1294/834/390: before x = 80/80/80/48/20 (adrift 20px across the
+entire 992–1439 band); after x = 80/60/60/48/20 — on the gutter at every
+width. The gate never saw this defect because its matrix (1440/834/390)
+samples exactly the three widths where left-20 happened to agree.
+
+FIX 2 — nav menu overlay: the links column leaves its absolute top-[10%]
+box (the structural detachment behind Tim's below-the-fold capture) and
+lives in NORMAL FLOW inside the scrolling dialog, left-aligned on the same
+gutter ladder (mx-auto max-w-[1400px] px-5/md:px-12/lg:px-[60px]). The
+overlay's logo/X band now mirrors the closed bar's exact px/py ladder too,
+so the chrome doesn't jump on open. Rhythm preserved: the per-link
+mt-5/mb-2.5 + gap-2.5 (a 40px slot, 90px pitch at lg) became gap-10 — the
+identical 40px slot, minus the first link's top margin, which is what keeps
+the whole menu on one screen at 1354×930 (Tim's capture size: content bottom
+924 ≤ 930, no scroll). Scroll contract probed: 1280×700 and 390×660 scroll
+to the last item fully visible; the fly transition now comes from
+$lib/transitions (the repo's own rule) so reduced-motion users get an
+instant menu. DEVIATION from live's centered column — left-aligned per the
+directive above; live's webflow modal centers its links. ACK'd by directive.
+
+Mechanical check: tests/interaction/nav-menu.spec.ts — column on the gutter
+at 1440/834/390, normal-flow + overflow-y-auto structure pinned, scroll
+contract at both short viewports, no-scroll at 1354×930, and the DetailHero
+label pinned at 1440/1354/1294/834/390 (the off-matrix widths the pixel gate
+can never guard).
+
+Gate round: markuph2 (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), pages team/svc/qa + home as no-regression. Moved
+rows: exactly ONE — qa "top" @1440 4.8→4.7 (with the capture scrollbar the
+formula lands the crumb at live's own 72.5px where the fixed 80px sat 7.5px
+wide; an improvement, PASS either side). team/svc/home logs byte-identical
+to markuph1 after tag-strip; every ACK'd floor at its exact stalled value
+(team Dentist 13.0/9.9/6.1, home OdT @834 10.9, home top @390 10.1, home
+BtS @390 Δh 5.8, svc What-to-expect @1440 Δh 5.1, WTLM map rows 12.0-13.4)
+— per-page exit=1 is the floors, nothing else. The menu is closed in every
+gate capture; its geometry is guarded by the interaction suite above.

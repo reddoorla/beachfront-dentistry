@@ -61,9 +61,17 @@
          never fires (or rAF is throttled to a stop) the name persisted at
          opacity 0. Forces the revealed state within 1.5s of mount; when the
          observer works the reveal is byte-identical to before (LIVE_REVEAL,
-         delayMax 0). -->
+         delayMax 0).
+         Alignment (same thread, pin #2's other half, operator decode
+         2026-08-11: "never aligned correctly" = "horizontal alignment to the
+         content width"): the label sits on the SHARED content gutter at every
+         width — the same mx-auto max-w-[1400px] px ladder the nav band
+         carries (Nav.svelte: 20px @<768, 48px 768–991, then 60px + the 1400
+         cap, ≡ max(60px, 50% − 640px) at lg → 80 @1440, 60 @1294). The old
+         lg:left-20 was a 1440-only sample: right at 1440, 20px adrift
+         everywhere in the 992–1399 band (probed 80 vs 60 @1354/1294). -->
     <div
-      class="absolute bottom-[10%] left-5 z-10 md:left-12 lg:left-20"
+      class="absolute bottom-[10%] left-5 z-10 md:left-12 lg:left-[max(60px,calc(50%-640px))]"
       use:animateIn={{ ...LIVE_REVEAL, failSafe: 1500 }}
     >
       {#if labelSize === "name"}
