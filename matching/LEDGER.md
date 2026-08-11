@@ -3288,3 +3288,71 @@ markupg2 on both pages (diff of out-markupg3-_.log vs out-markupg2-_.log,
 tag lines excluded, empty). Per-page exit=1 is the pre-ACK'd floors at their
 exact stalled values (home OdT @834 10.9, home BtS @390 Δh 5.8, atd BtS
 61.7/60.5/66.9, footer-map rows) — untouched, per the do-not-disturb list.
+
+## MARKUP ROUND G4 — the review box becomes the mask (2026-08-11, feat/markup-round-2026-08)
+
+DEVIATION BY DESIGN — designer override of a live-match, interaction state
+only. MarkUp thread 29e4fcac-8dee-4cfe-a3f5-4ef9e4c79524 (home board, pin 5):
+Tim: "the light blue background stays the same. When you click left or
+right, the content, all except for the overlapping logo, slides out as if
+this light blue background was a mask. Then the overlapping logo, either
+just dissolves or does a dissolve / slides down to go out, and then a
+dissolve / slide up to appear. Right now, it's a little bit weird that all
+the content goes behind the words and the arrow and just randomly disappears
+at a certain point." Tim marked it nice-to-have; operator directive: follow
+his instructions. Of his two logo variants the SIMPLER is implemented —
+plain cross-dissolve ("just dissolves"); the slide-down/up variant is
+offered in the pin's resolve reply.
+
+THE LIVE BEHAVIOR OVERRIDDEN (named per rule 1): `.big-review-slider`
+`transition: transform 2s cubic-bezier(.19,1,.22,1)` (beachfront.css:
+7563-7572, SPEC.md:1678) translates the WHOLE `.big-review` card — pale-blue
+box, quote, reviewer row AND the overhanging `.social-logo-big-review`
+badge — across the 600px holder viewport, which is exactly the "randomly
+disappears" Tim describes. Our pre-G4 port reproduced it faithfully on the
+shared Slider (full-content-width viewport, worse clip edge than live's).
+
+THE G4 MECHANISM (src/lib/slices/Carousel/index.svelte, review variation
+only — `photos` and every other Slider consumer untouched, Slider.svelte
+itself untouched): the pale-blue card is static chrome; its padding moved
+onto the track cells so an overflow-hidden rounded-[25px] mask fills the
+card and clips the sliding quote/author track at the card's own border box
+(rounded corners included); the five badge anchors stack on the card layer
+(NOT the track) in identical rects and cross-dissolve (active opacity-100,
+rest opacity-0 + pointer-events-none + inert). The badge genuinely varies —
+seeded reviews are 3 Yelp + 2 Google — so the dissolve is observable on the
+3→4 and 5→1(wrap) steps and degrades to a visually-static badge when
+adjacent sources match. Slide timing keeps live's 2s expo rule verbatim;
+the dissolve runs the same 2000ms with ease-in-out because the expo curve
+front-loads opacity and reads as a pop, not a dissolve. Carousel semantics
+preserved 1:1 (region role, arrow assets/labels/positions, wrap-around,
+ArrowLeft/Right, swipe, aria-live position, hidden-slide inert);
+reduced-motion falls to an instant swap via app.css:490-497's global reset.
+
+RESTING RENDER UNCHANGED, measured: card/badge/arrow/region rects identical
+to pre-G4 at 390/834/1440 on home and at 390 on your-first-visit (all
+five cards measure equal heights at every gated width — 262/320/400 — so
+the uniform mask box is the same box the gate always saw). yfv team slider
+(shared Slider) probe identical before/after: first-card x 58.3 w 383.3,
+gap 0.1, arrows x 0/1403.6, next-step -383.34px.
+
+PROOF (probe @1440, timed samples after a Next click): card rect frozen at
+{420,272,600x400} through 0/503/1029/1503ms and settle; track glides
+-456.0 → -580.1 → -597.9 → exactly -600 (one card width); elementFromPoint
+15px outside both card edges never hits track content at any sample; badge
+wrapper rects frozen at {910,612,80x80} while opacities cross 1/0 →
+0.872/0.128 → 0.296/0.704 → 0.066/0.934 → 0/1; five Next clicks wrap to a
+byte-identical section screenshot; under reduced-motion emulation the track
+reads exactly -600 and badges 0/1 at 105ms after the click.
+tests/interaction/review-mask.spec.ts pins the contract (4/4 green:
+scroll-rest untransformed, mid-flight card+badge stillness + no outside
+paint + monotone glide + dissolve crossing, pixel-identical wrap cycle,
+instant reduced-motion swap); review.test.ts adds the structural contract
+(card outside the track, mask overflow-hidden, badges off-track dissolve-
+only, figure/figcaption semantics kept per slide, keyboard wrap).
+
+Gate round: markupg4 (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), pages home + yfv as no-regression — the redesign is
+interaction-state, invisible to static captures. Comparison baselines:
+out-markupg3-home (this branch's previous round) and out-g4base-yfv (freshly
+captured at the pre-G4 working tree, since yfv's last round predates G2/G3).
