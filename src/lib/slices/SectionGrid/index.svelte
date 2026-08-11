@@ -255,7 +255,14 @@
   >
     <!-- Live animates the heading+photo block as ONE element, then each step
          and the CTA individually as they enter. -->
-    <div class="lg:flex" use:animateIn={REVEAL}>
+    <!-- DEVIATION (MarkUp thread badfa786, pin #6): live top-aligns the two
+         `._w-half` columns (50%, beachfront.css:2867-2871; photo column pads
+         pt 20 / pb 40 at the 40px root), which parks the circle's center 46px
+         ABOVE the h2's center once the 120px heading wraps to 4 lines
+         (live's own probed offsets: circle vs headline+subhead block center
+         +7.5px @1440, -89px @1294). Tim wants the circle centered on the
+         headline block instead, so the row centers its items at lg. -->
+    <div class="lg:flex lg:items-center" use:animateIn={REVEAL}>
       <!-- `._w-half.p-4.su-w-full-tablet`: 50% (`beachfront.css:2867-2871`)
            going 100% at <=991, padding `1rem` = 24/32/40. That padding is what
            wraps live's 120px heading to THREE lines at 834 (a 674 column, not
@@ -292,8 +299,15 @@
         {/if}
       </div>
       {#if isFilled.image(primary.side_image)}
+        <!-- lg pads are deliberately pt-0/pb-10: under lg:items-center the
+             headline+subhead block's center sits (subtitle mb-10)/2 = 20px
+             ABOVE its column's center, so the circle column carries
+             pb − pt = 40px to land the flex-centered circle exactly on the
+             block center — at any lg width, whichever column is taller.
+             Sub-lg (stacked) pads are untouched: they match live's probed
+             stack (thread badfa786, pin #6). -->
         <div
-          class="mx-auto w-full px-6 pt-3 pb-6 md:w-1/2 md:px-8 md:pt-4 md:pb-8 lg:w-1/2 lg:px-10 lg:pt-5 lg:pb-10"
+          class="mx-auto w-full px-6 pt-3 pb-6 md:w-1/2 md:px-8 md:pt-4 md:pb-8 lg:w-1/2 lg:px-10 lg:pt-0 lg:pb-10"
         >
           <PrismicImage
             field={primary.side_image}
