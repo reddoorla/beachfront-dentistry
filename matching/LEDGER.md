@@ -3079,3 +3079,26 @@ markupb for atd) EXCEPT the regions the pin touches:
   (@390 Δh 5.8; atd 61.7/60.5/66.9), yfv+our-team Dr. Robert Quan (27.2 /
   37.2+23.7), yfv WWYTFC @1440 Δh 15.1, svc What-to-expect @1440 Δh 5.1, and
   the WTLM footer-map rows (12.0-13.4) on all nine pages.
+
+## OPERATOR ACK — 2026-08-11, markup round floors accepted
+
+Tucker, in conversation ("floor is fine"), ACKs the markup-round deviation
+floors and the OFFICE HOURS floor candidate presented at the round checkpoint:
+
+- atd "Beyond the Smile" ×3 (61.7/60.5/66.9) — 30px grid rhythm, thread b7be52f2
+- home "Beyond the Smile" @390 Δh 5.8 — 40px button gap, thread ce17fba0
+- our-team "Dr. Robert Quan" @1440 37.2 / @390 23.7 — gutter+30×30+box growth,
+  threads 338f6e07 / 986a647b
+- yfv "Dr. Robert Quan" @1440 27.2 — card onto gutter + halved gap,
+  threads e23604c9 / 4dd560d2
+- team "Dentist" ×3 (6.1/9.9/13.0) — 700px measure + halved gaps,
+  threads b42973fe / 25b788a1
+- contact "OFFICE HOURS" @1440 10.5 — map-embed capture behaviour under the
+  post-Round-F anchor; accepted as a floor.
+
+Still open (not covered by this ACK): home "Our dental team in Redondo" @834
+10.9 — the pre-existing 33-run stall predating the markup round; needs a new
+model or an explicit acceptance of its own.
+
+Prismic migration release for the Round F wording (5 page docs) reported
+in flight by the operator at the same checkpoint.
