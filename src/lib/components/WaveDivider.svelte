@@ -55,13 +55,19 @@
        "Flat spot in the curve"; operator directive: follow Tim over the ref).
        Live's injected SVG (matching/spec/detail-svc.html:123) draws its crest
        with one cubic (+250.45,-0.39) whose controls sit at y=-2.14/-3.15 — a
-       ~400px-wide near-flat plateau at 1440. That cubic is replaced by four
-       G1-continuous cubics rolling crest(553,2) → dip(631,18.5) → crest(707,6.5)
-       through the same span, entering at (493.39,14.58) and leaving at
-       (743.84,14.19) with the ORIGINAL junction tangents (-0.203 / +0.210), so
-       the flanks, fill mechanics (V0 H0 V27.35 + arc), viewBox and crest reach
-       (min y 2.00 vs live's 1.61) are unchanged and every A-round seam fix
-       still holds. -->
+       near-straight lid that dwells within 3px of its peak for ~194px of
+       screen at 1440. Round G1's crest–dip–crest fix was rejected by the
+       operator ("adding a little bump instead of following the same
+       consistent wave shape"): its inserted extrema sat 74-80px apart in a
+       wave whose own half-wavelengths are 299/486. This G1b shape keeps ONE
+       crest — the wave's own rhythm (crest@614 between troughs @321/@1106,
+       half-waves 293/492) — but fuller and rounder than live's: peak
+       (615,0.6) vs live's (620,1.61), with tight tangent-matched controls so
+       the top turns continuously instead of running straight (peak dwell
+       194→156px, |dy/dx|<0.05 span 158→112px, <0.02 63→23px). Junctions
+       (493.39,14.58)/(743.84,14.19) and their tangents (-0.203/+0.210), the
+       flanks, fill mechanics (V0 H0 V27.35 + arc) and viewBox are unchanged,
+       so every A-round seam fix still holds. -->
   <svg
     viewBox="0 0 1200 120"
     preserveAspectRatio="none"
@@ -69,7 +75,7 @@
     style="width: {width}"
   >
     <path
-      d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86C513.26,10.55,527.96,2,553,2C585.76,2,598.24,18.5,631,18.5C662.92,18.5,675.08,6.5,707,6.5C722.47,6.5,731.56,11.61,743.84,14.19C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"
+      d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86C533.93,6.36,593.11,0.6,615,0.6C638.19,0.6,700.89,5.16,743.84,14.19C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"
       {fill}
     />
   </svg>

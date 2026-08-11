@@ -3158,6 +3158,55 @@ stalled value: team Dentist 13.0/9.9/6.1, home OdT @834 10.9, home BtS @390
 WWYTFC @1440 Δh 15.1, svc What-to-expect @1440 Δh 5.1, contact OFFICE HOURS
 @1440 10.5. Per-page exit=1 is those floors, nothing new.
 
+### G1b amendment — the roll was a bump; one crest now (2026-08-11)
+
+OPERATOR FEEDBACK on the G1 shape, verbatim: "for the shape, you're adding a
+little bump instead of following the same consistent wave shape." Numerically
+he is right: the wave's own rhythm is trough@321 → crest@620 → trough@1106
+(half-wavelengths 299/486 viewBox px), and G1's crest–dip–crest inserted
+extrema 74-80px apart — a 4-6× shorter local wavelength, i.e. an extra
+oscillation, not the wave continuing.
+
+NEW SHAPE (replaces G1's four cubics): ONE crest, the wave's own wavelength,
+fuller and rounder than live's flat lid. Two G1-continuous cubics through the
+same span — peak (615,0.6) vs live's (620,1.61), tight tangent-matched
+controls (0.18·dx at the peak, dx/3 at the junctions), junctions
+(493.39,14.58)/(743.84,14.19) and tangents (-0.203/+0.210) unchanged.
+
+- Wavelength: crest@614 between troughs @321/@1106 → half-waves 293/492,
+  inside the flanks' own 299/486 rhythm (G1's inserted pair: 80/74). No
+  extrema added.
+- Flatness vs live (screen px @1440): peak dwell-within-3px 194→156,
+  |dy/dx|<0.05 span 158→112, <0.02 span 63→23, and the crest reaches 1px
+  higher (min y 0.6 vs 1.61 of the 120 viewBox) — a fuller arc whose top
+  turns continuously instead of live's near-straight lid (live's controls
+  at y=-2.14/-3.15 run its mid-section as a line). Honest bound: a single
+  roll with these fixed junction tangents cannot dwell much less — a true
+  sine of this wavelength/amplitude dwells ~185px — so the numbers held are
+  "no added extrema AND dwell/slope spans at-or-below live's", not G1's
+  two-crest spans (77/26/11), which bought their sharpness with the bump.
+
+Gate round: markupg1b (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), ALL NINE pages, baselines = each page's latest run
+(markupg4 for home/yfv, markupg3 for atd, markupg1 for the other six).
+Moved rows — same wave-seam set as G1, all PASS→PASS, and every delta now
+NEGATIVE (the single crest sits closer to the ref's own crest than the G1
+roll did; most rows return to their exact pre-G1 markupf values):
+
+- "top": team 2.7→2.5 / 1.6→1.4 / 2.7→2.5; svc 0.8→0.6 / 0.7→0.5 / 3.2→3.1;
+  qa 2.4→2.3 / 2.2→2.1 / 2.8→2.7; home 6.2→6.0 / 3.8→3.6 / 7.4→7.3; yfv
+  0.4→0.1 / 1.4→1.2 / 0.9→0.7; our-team 0.3→0.2 / 0.5→0.4 (@390 in "Our");
+  services 1.9→1.7 / 2.2→2.0 / 4.7→4.5; atd 0.5→0.2 / 0.5→0.3 / 0.9→0.7;
+  contact 1.5→1.3 / 0.7→0.5 / 2.7→2.6 (order 1440/834/390).
+- our-team "Our": 0.2→0.0 @1440, 2.9→2.5 @834, 4.9→4.7 @390.
+- "Ready for great [dental health]": all nine pages, −0.2 to −0.4pp (e.g.
+  home 0.8→0.5/6.9→6.7/2.8→2.4; worst absolute 7.3→7.1 @834).
+- home "Your Path to Oral Health" @1440 2.1→2.0 (SectionGrid mirror seam).
+
+Every other row byte-identical to its baseline; every ACK'd floor at its
+exact stalled value (list above), no new FAILs — per-page exit=1 is the
+floors, nothing else.
+
 ## MARKUP ROUND G2 — the open Q&A card stops growing (2026-08-11, feat/markup-round-2026-08)
 
 DEVIATION BY DESIGN — designer override of a live-match, interaction state
