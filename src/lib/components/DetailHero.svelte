@@ -54,10 +54,17 @@
     ></div>
 
     <!-- Bottom-left label. Inline white defeats the global `main h1–h3`
-         primary-colour rule (same trap SubpageHero documents). -->
+         primary-colour rule (same trap SubpageHero documents).
+         failSafe (MarkUp thread 738ad46b-0be6-4d92-a1c0-73a53e4c298e pin #2,
+         "Sometimes this name shows up and sometimes it doesn't"): the label's
+         only reveal path was the IntersectionObserver — in an embed where it
+         never fires (or rAF is throttled to a stop) the name persisted at
+         opacity 0. Forces the revealed state within 1.5s of mount; when the
+         observer works the reveal is byte-identical to before (LIVE_REVEAL,
+         delayMax 0). -->
     <div
       class="absolute bottom-[10%] left-5 z-10 md:left-12 lg:left-20"
-      use:animateIn={LIVE_REVEAL}
+      use:animateIn={{ ...LIVE_REVEAL, failSafe: 1500 }}
     >
       {#if labelSize === "name"}
         <!-- Live's name h1 (`.hero` title): 25px/38 @390 (must clear the

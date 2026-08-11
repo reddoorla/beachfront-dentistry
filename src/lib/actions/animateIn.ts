@@ -21,6 +21,18 @@ export type AnimateInOptions = {
   stagger?: number;
   /** This element's position in its group; pairs with `stagger`. Default 0. */
   index?: number;
+  /** Viewport mode only: force the revealed state this many ms after mount if
+   *  the reveal has not run by then. However the reveal machinery fails — an
+   *  IntersectionObserver that never fires (sandboxed review iframes), or
+   *  requestAnimationFrame throttled to a stop in a background iframe so the
+   *  observer's deferred reveal never executes — the element must not persist
+   *  at opacity 0. When the normal reveal already ran, the timer is cleared;
+   *  a fail-safe reveal still plays the transition from the long-committed
+   *  hidden frame, so it fades in rather than popping. Opt-in per element:
+   *  a global timer would pre-reveal below-fold content before it scrolls in.
+   *  (MarkUp thread 738ad46b-0be6-4d92-a1c0-73a53e4c298e pin #2 — the
+   *  team-member hero name intermittently never appeared.) */
+  failSafe?: number;
 };
 
 export type AnimateInParam = boolean | AnimateInOptions | undefined;
@@ -33,6 +45,7 @@ type ResolvedConfig = {
   translateY: string;
   stagger: number | null;
   index: number;
+  failSafe: number | null;
 };
 
 function resolveConfig(param: AnimateInParam): ResolvedConfig {
@@ -52,6 +65,7 @@ function resolveConfig(param: AnimateInParam): ResolvedConfig {
     translateY: opts.translateY ?? "50%",
     stagger: opts.stagger ?? null,
     index: opts.index ?? 0,
+    failSafe: opts.failSafe ?? null,
   };
 }
 
@@ -81,6 +95,7 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
 
   const cfg = resolveConfig(param);
   let observer: IntersectionObserver | undefined;
+  let failSafeTimer: ReturnType<typeof setTimeout> | undefined;
 
   if (cfg.mode === "triggered") {
     if (cfg.trigger) {
@@ -100,6 +115,16 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
           (node.getBoundingClientRect().left / window.innerWidth);
     node.style.transitionDelay = `${delay}ms`;
 
+    // No IntersectionObserver at all (stripped-down embed/ancient browser):
+    // nothing else can ever reveal this element, and constructing the observer
+    // below would throw and break the whole mount. Reveal in place — both
+    // style writes land in one synchronous frame, so the element is simply
+    // visible (no transition), which beats invisible forever.
+    if (typeof IntersectionObserver === "undefined") {
+      reveal(node);
+      return { update() {}, destroy() {} };
+    }
+
     observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -109,7 +134,13 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
           // transition. Committing the hidden frame first makes above-fold
           // reveals actually play (live animates them on load too).
           requestAnimationFrame(() =>
-            requestAnimationFrame(() => reveal(node)),
+            requestAnimationFrame(() => {
+              reveal(node);
+              // Only clear once the reveal has actually executed — an rAF
+              // throttled to a stop (background iframe) after the observer
+              // fired still needs the fail-safe below to run.
+              if (failSafeTimer !== undefined) clearTimeout(failSafeTimer);
+            }),
           );
           observer?.disconnect();
         }
@@ -117,6 +148,16 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
       { threshold: 0 },
     );
     observer.observe(node);
+
+    // See AnimateInOptions.failSafe. setTimeout (not rAF) on purpose: timers
+    // still fire, if clamped, where rAF is suspended. reveal() is idempotent,
+    // so losing the race to the normal reveal is harmless.
+    if (cfg.failSafe !== null) {
+      failSafeTimer = setTimeout(() => {
+        observer?.disconnect();
+        reveal(node);
+      }, cfg.failSafe);
+    }
   }
 
   return {
@@ -131,6 +172,7 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
       }
     },
     destroy() {
+      if (failSafeTimer !== undefined) clearTimeout(failSafeTimer);
       observer?.disconnect();
     },
   };
