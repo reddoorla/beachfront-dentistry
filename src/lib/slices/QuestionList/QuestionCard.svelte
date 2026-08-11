@@ -76,12 +76,30 @@
    *  Only the EXPANDED height is new. The collapsed box is untouched on purpose —
    *  it is the element page-diff cuts on for the "Beyond the Smile" anchor
    *  (see the comment on the element below), so changing it would move every
-   *  region beneath it. */
+   *  region beneath it.
+   *
+   *  DEVIATION (MarkUp threads 3d255366-5bb2-4cb1-9a90-439d49ef63ef home pin #9
+   *  and bd8c37b0-2e1c-4dc2-a466-8073e204d90c atd pin #1): live's box is FLUSH —
+   *  both `.qa-text` (beachfront.css:7282) and `.qa-text.m-2.active` (:7303) end
+   *  exactly at the card bottom, so the revealed "Read More" pill touches the
+   *  edge. Tim: "It should have the same padding as the headline to the bottom
+   *  of box." The headline's ladder is `.qa-question` margin-bottom .5rem
+   *  (:7311) = the bottom-3/4/5 = 12/16/20px on the <h3> below, so the box gets
+   *  the same pb. It is padding, not a height change: absolute children (the
+   *  collapsed title) position off the border box, so collapsed geometry — the
+   *  anchor-cut element — is untouched at every width.
+   *  Two carve-outs, both probed 2026-08-10:
+   *   - teaser base expanded height 192→244: the tallest authored answer panel
+   *     is 231px @390 (six-card sweep; ce0c59d's 8rem=192 was verified on a
+   *     179px card) — 231 was ALREADY clipped 39px, and +12 pb needs 243.
+   *   - numbered gets NO base pb: the ≤479 expanded card is 384px over its
+   *     240px flow box, leaving 96px under the pill already, and 240-12=228
+   *     would re-clip the 231px panels. md/lg (flush, probed 0px) get 16/20. */
   const textBoxClass = $derived(
     variant === "teaser"
-      ? "absolute bottom-0 ml-6 w-4/5 transition-[height] duration-200 ease-out motion-reduce:transition-none md:ml-8 lg:ml-10 " +
-          (expanded ? "h-48 md:h-64 lg:h-80" : "h-18 md:h-24 lg:h-30")
-      : "relative mx-[4%] h-60 md:h-64 lg:h-80",
+      ? "absolute bottom-0 ml-6 w-4/5 pb-3 transition-[height] duration-200 ease-out motion-reduce:transition-none md:ml-8 md:pb-4 lg:ml-10 lg:pb-5 " +
+          (expanded ? "h-[244px] md:h-64 lg:h-80" : "h-18 md:h-24 lg:h-30")
+      : "relative mx-[4%] h-60 md:h-64 md:pb-4 lg:h-80 lg:pb-5",
   );
 </script>
 
