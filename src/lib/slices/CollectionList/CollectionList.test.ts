@@ -203,9 +203,12 @@ describe("CollectionList slice — tags line + detail-route links", () => {
   });
 });
 
-// The person card's excerpt and the roster order are AUTHORED fields
-// (person.teaser / person.order), not derived from the bio or from Prismic's
-// document order — see the notes on `teamRank` and the personCard snippet.
+// The roster order is an AUTHORED field (person.order), not Prismic's
+// document order. The card excerpt was authored too (person.teaser) until
+// MARKUP ROUND C: thread 4dd560d2-3dad-4240-b5bb-3a5d64a6cedd (yfv pin #5)
+// replaced it with a visual 3-line clamp of the real bio, so the card now
+// reads person.body FIRST and keeps the teaser only as a fallback for a
+// person with no bio — see the personCard snippet and LEDGER ROUND C.
 describe("CollectionList slice — people variation reads its authored fields", () => {
   const peopleSlice = {
     slice_type: "collection_list",
@@ -239,7 +242,7 @@ describe("CollectionList slice — people variation reads its authored fields", 
     },
   });
 
-  it("prints person.teaser rather than the bio when an author has set one", () => {
+  it("prints the real bio, not the authored teaser, when both exist (ROUND C)", () => {
     const { getByText, queryByText } = render(CollectionList, {
       props: {
         slice: peopleSlice,
@@ -254,22 +257,27 @@ describe("CollectionList slice — people variation reads its authored fields", 
         } as never,
       },
     });
-    expect(getByText("A hand-cut card teaser...")).toBeTruthy();
-    expect(queryByText("Stacey joined the practice in 2019.")).toBeNull();
+    expect(getByText("Stacey joined the practice in 2019.")).toBeTruthy();
+    expect(queryByText("A hand-cut card teaser...")).toBeNull();
   });
 
-  it("falls back to the bio for a person whose teaser is empty", () => {
+  it("falls back to person.teaser for a person with no bio", () => {
     const { getByText } = render(CollectionList, {
       props: {
         slice: peopleSlice,
         context: {
           collections: {
-            person: [person("stacey", "Stacey", { teaser: "  " })],
+            person: [
+              person("stacey", "Stacey", {
+                body: [],
+                teaser: "A hand-cut card teaser...",
+              }),
+            ],
           },
         } as never,
       },
     });
-    expect(getByText("Stacey joined the practice in 2019.")).toBeTruthy();
+    expect(getByText("A hand-cut card teaser...")).toBeTruthy();
   });
 
   it("sorts the roster by person.order, leaving docs without one at the end", () => {

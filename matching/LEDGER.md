@@ -2719,3 +2719,68 @@ confined to the two ledgered deviation regions above; footer WTLM floors
 13.4/12.0 (home) and 12.8/12.0 (atd) unchanged; the two ACK-pending rows
 from A1/A2 (home "Finally have a dentist" 4.6 @1440 PASS, yfv DRQ @1440)
 untouched.
+
+## MARKUP ROUND C — the person-card cluster (2026-08-10, feat/markup-round-2026-08)
+
+Designer round, MarkUp boards 7944efa6 (our-team, pins #2/#3), 4b8d52d2-fdc8-4432-83e5-1fd2339dc420
+(yfv, pin #5) and 3c082cae (atd, pin #2's meet-the-team half — its QuestionList
+half landed in Round B). All four pins land on CollectionList's shared
+personCard (grid on /our-team, slider on /your-first-visit). Before/after:
+matching/probe-markupc.mjs (round scratch, deleted with it) on
+localhost:5173/dev/match/{our-team,your-first-visit} and the webflow.io
+reference, 1440/1294/834/390, reveal transitions neutralized. Reference probed
+2026-08-10: our-team card1 x=200/127 @1440/1294, h-gap 40, v-gap 180.4, cards
+320x480, teaser rm→banner 22 — our before-state matched every number, so each
+entry below is a REQUESTED deviation from a faithful match, not a fidelity fix.
+(One reference nuance: live renders "Dr. Michael Hopkins" as ONE name line at
+320w where our museo-slab metrics wrap it to two, which is why only OUR build
+showed pin #3's buried READ MORE — the box model live uses has the same trap.)
+
+- [deviation] card box grows — thread 986a647b-badc-4ecc-9bd5-4292bba404ca
+  (our-team board 7944efa6 pin #3: "The box needs to grow, or this type needs
+  to get smaller so it doesn't rag like this." Taking the box-grows arm).
+  Live fixes the card box per tier (the hard-won four-value ladder,
+  beachfront.css:6530-6536 / :6538-6540 / ≤991 :8183-8187 / ≤479 :9271-9276
+  = 320x480 / 512x768 / 384x576 / 303x384) and pins `.team-grid-beach`
+  absolutely over the bottom 30% (:6564-6569), so a two-line name pushes READ
+  MORE under the banner (probed before: rm→banner −18 @1440 grid+slider MH,
+  −30.8 @390 grid MH). Now every ladder height is a MIN-height, the card is a
+  flex column, the banner is in flow at the px the 30% resolves to
+  (115.2 grid / 129.6 slider ≤479, 172.8 xs, 230.4 md, 144 lg) with mt-auto,
+  and the content column keeps pb-[10px]/lg:pb-5 so READ MORE stays clear. A
+  card whose content fits renders at exactly the live height; only overflow
+  cards grow. Gate consequence: grown MH cards shift our-team @390 below-rows
+  and (with the row-stretch from pin #2's flex grid) can move @1440 rows.
+- [deviation] bio = 3-line clamp of the real bio — thread
+  4dd560d2-3dad-4240-b5bb-3a5d64a6cedd (yfv board 4b8d52d2 pin #5: "Ideally,
+  the truncated text is three lines visually and then stops… I want it
+  visually to be three lines every time, and then it gets cut off somewhere
+  in the third line."). Live clips the AUTHORED `person.teaser` at height
+  7.5ch (`.m-2.team-teaser`, beachfront.css:3770-3773 → 75px at the fixed
+  16px card font), and the authored "..." cut points rag (before @1440,
+  our-team card 1: a 33px orphan third line). Now `line-clamp-3` over
+  `person.body` (teaser only as fallback for a person with no bio) — the
+  ellipsis lands mid-line-3, box 75→72px. CONTENT deviation from the
+  reference on both pages: 9 of 11 teasers are bio prefixes (visible diff =
+  line 3's tail + ellipsis position), 2 differ outright.
+- [deviation] yfv slider gap halved — same thread 4dd560d2 ("less space in
+  between the two. Like 50% less. || Then the containers get bigger."). Our
+  A2 cells carried the live-derived 43.33px lg margin each side → 86.7px gap
+  @1440 (probed = the reference; live's JS track shows 51.3 @1294 where our
+  uniform CSS showed 86.7 — pre-existing A2 note). Now lg:mx-[21.67px], cell
+  itemWidth 383.34 (= 340 + 2×21.67), gap 43.3. The A2 trackPadStart
+  compensation (LEDGER A2, commit c075d8c) moves IN THE SAME commit:
+  calc(max(60px, 50% − 640px) − 21.67px) keeps card 1 on the h2's gutter.
+  "The containers get bigger" is satisfied by pin #2's box growth + pin #2
+  (our-team) card widening; slider card width stays live's 340 — flag for
+  the resolve reply if Tim meant the slider card itself.
+- [consequence] yfv `.team-slider-holder` lg 16rem height → min-height —
+  live's fixed 640px viewport (beachfront.css:6654-6659) would clip a grown
+  card, so lg is h-auto/min-h-[640px], and the slider card's lg mb-5 (live
+  `.m-2`'s .5rem, which the 640 holder clipped invisibly — see the 2026-08
+  holder note in the slice) is dropped so the auto height still equals 640
+  when nothing grows. ≤991 keeps live's fixed heights: probed slack 24/72/96
+  (sm/xs/md) absorbs every measured growth case.
+- ACK note: this round re-moves yfv "Dr. Robert Quan" @1440, whose A2
+  deviation value is still ACK-pending — unavoidable, pin #5 targets the same
+  slider. The pending A2 value is superseded by this round's, same board.

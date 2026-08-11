@@ -164,12 +164,15 @@
        favorite-beach banner + white caption pinned across the card bottom. -->
   {@const href = hrefFor(doc)}
   {@const name = asText(doc.data.title as RichTextField)}
-  <!-- The card excerpt is AUTHORED (`person.teaser`), not a clamp of the bio:
-       9 of live's 11 teasers are a prefix of the body but every cut point is
-       different, and 2 don't match the body at all. Read it from the doc; a
-       person whose teaser an author hasn't filled falls back to the bio. -->
+  <!-- Live clips the AUTHORED `person.teaser` (9 of 11 are a bio prefix with
+       ragged "..." cut points, 2 differ outright). MarkUp 4b8d52d2 thread
+       4dd560d2-3dad-4240-b5bb-3a5d64a6cedd (yfv pin #5) replaces that with a
+       visual 3-line clamp of the REAL bio so the ellipsis always lands
+       mid-line-3 — so the card reads `person.body` first and only falls back
+       to the teaser for a person with no bio. See LEDGER ROUND C. -->
   {@const bio =
-    doc.data.teaser?.trim() || asText((doc.data.body ?? []) as RichTextField)}
+    asText((doc.data.body ?? []) as RichTextField).trim() ||
+    doc.data.teaser?.trim()}
   {@const beach = doc.data.gallery?.[0]}
   <!-- Live's `.team-list-item.m-2` is sized in REM against its stepped root:
          <=479    100% x 16rem  mt 4rem            -> 303x384  mt 96
@@ -181,7 +184,22 @@
        >=992 and 10rem x 18rem (240x432) at <=479. Between 480 and 991 the two
        are byte-identical, so gating the tablet tiers off for the slider (the
        earlier reading of this) left it rendering the phone card across the
-       whole band and cost the section 846px of height at 834. -->
+       whole band and cost the section 846px of height at 834.
+       ROUND C deviations from that ladder (MarkUp, see LEDGER ROUND C):
+       - heights are MIN-heights and the card is a flex column with the beach
+         banner in flow, so a card whose content overflows (a two-line name)
+         GROWS instead of hiding READ MORE under the banner — thread
+         986a647b-badc-4ecc-9bd5-4292bba404ca (our-team pin #3, "The box
+         needs to grow"). A card whose content fits renders at exactly the
+         live ladder height.
+       - the slider's lg cell margin is HALF live's visual gap: our A2 cells
+         carried 43.33px each side (86.7px gap, = the reference @1440);
+         thread 4dd560d2-3dad-4240-b5bb-3a5d64a6cedd (yfv pin #5, "less
+         space in between the two. Like 50% less.") halves that to 21.67px
+         (gap 43.3). The Slider itemWidth and trackPadStart compensate below.
+       - the slider card's lg mb-5 (live `.m-2`'s .5rem, clipped invisible by
+         the 640px holder) is dropped so the holder's auto height still
+         equals live's 640 when no card grows. -->
   <!-- The top margin (live `.m-2` `beachfront.css:6538-6540` / ≤991 `:8183-8187`
        / ≤479 `:9271-9276`) stays on the CARD in the grid, where the card is the
        outermost per-card box exactly as it is on live. In the SLIDER it moves
@@ -190,10 +208,10 @@
        our card box 160/256/96px below the box the reference draws, which is
        where page-diff cuts the "Dr. Robert Quan" region. -->
   <article
-    class="team-list-item relative mx-6 mb-6 rounded-[20px] bg-[#e7f5fa] xs:h-[576px] xs:w-[384px] md:mx-8 md:mb-8 md:h-[768px] md:w-[512px] lg:mx-5 lg:mb-5 lg:h-[480px] {variant ===
+    class="team-list-item relative mx-6 mb-6 flex flex-col rounded-[20px] bg-[#e7f5fa] xs:min-h-[576px] xs:w-[384px] md:mx-8 md:mb-8 md:min-h-[768px] md:w-[512px] lg:min-h-[480px] {variant ===
     'slider'
-      ? 'h-[432px] w-[240px] lg:mx-[43.33px] lg:w-[340px]'
-      : 'mt-24 h-96 w-[303px] xs:mt-[192px] md:mt-[256px] lg:mt-40 lg:w-80'}"
+      ? 'min-h-[432px] w-[240px] lg:mx-[21.67px] lg:mb-0 lg:w-[340px]'
+      : 'mt-24 min-h-96 w-[303px] xs:mt-[192px] md:mt-[256px] lg:mx-5 lg:mt-40 lg:mb-5 lg:w-80'}"
   >
     {#if doc.data.media?.url}
       <!-- headshot centred ON the card's top edge (half above, half in). -->
@@ -209,8 +227,12 @@
         />
       </a>
     {/if}
+    <!-- pb keeps READ MORE clear of the in-flow banner when a grown card's
+         content lands flush against it (thread 986a647b, "box grows"); on a
+         card whose content fits, the banner's mt-auto absorbs it and nothing
+         moves. -->
     <div
-      class="flex h-full flex-col px-[18px] pt-[70px] text-center xs:pt-[130px] md:pt-[170px] lg:px-6 lg:pt-[110px]"
+      class="flex flex-col px-[18px] pt-[70px] pb-[10px] text-center xs:pt-[130px] md:pt-[170px] lg:px-6 lg:pt-[110px] lg:pb-5"
     >
       <!-- Ring is load-bearing, not decoration: `outline-hidden` alone removed
            the focus indicator outright, so tabbing /our-team lost the caret for
@@ -235,8 +257,14 @@
         </h6>
       {/if}
       {#if bio}
+        <!-- Live: `.m-2.team-teaser` height 7.5ch + overflow hidden
+             (beachfront.css:3770-3773 → 75px at the 16px card font). ROUND C
+             deviation (thread 4dd560d2, yfv pin #5): a visual 3-line clamp of
+             the full bio, "three lines every time, and then it gets cut off
+             somewhere in the third line" — no authored cut point, no orphan
+             ellipsis line. -->
         <p
-          class="mt-[12px] h-[75px] overflow-hidden text-left text-[16px] leading-[24px] font-light text-[#365b6d] md:mt-[16px] lg:mt-[20px]"
+          class="mt-[12px] line-clamp-3 text-left text-[16px] leading-[24px] font-light text-[#365b6d] md:mt-[16px] lg:mt-[20px]"
         >
           {bio}
         </p>
@@ -257,20 +285,32 @@
       {/if}
     </div>
     {#if beach?.image?.url}
-      <img
-        src={beach.image.url}
-        alt=""
-        aria-hidden="true"
-        class="absolute bottom-0 left-0 h-[30%] w-full rounded-b-[20px] object-cover"
-      />
-      {#if beach.caption}
-        <h6
-          class="font-slab absolute bottom-[10px] left-[18px] z-10 text-[12px] leading-[15px] font-light tracking-[1.28px] uppercase lg:bottom-3 lg:left-6 lg:text-[24px] lg:leading-[30px]"
-          style="color:#fff"
-        >
-          {beach.caption}
-        </h6>
-      {/if}
+      <!-- Live pins `.team-grid-beach` absolutely over the card's bottom 30%
+           (beachfront.css:6564-6569), which is what buried READ MORE when a
+           two-line name pushed the content down. ROUND C (thread 986a647b,
+           "box grows"): the banner is IN FLOW at the same fixed heights live's
+           30% resolves to against the min-height ladder — 115.2 (grid) /
+           129.6 (slider) at <=479, 172.8 xs, 230.4 md, 144 lg — bottom-pinned
+           by mt-auto, so a fitting card renders exactly as before and an
+           overflowing card grows past it. -->
+      <div class="relative mt-auto">
+        <img
+          src={beach.image.url}
+          alt=""
+          aria-hidden="true"
+          class="{variant === 'slider'
+            ? 'h-[129.6px]'
+            : 'h-[115.2px]'} w-full rounded-b-[20px] object-cover xs:h-[172.8px] md:h-[230.4px] lg:h-[144px]"
+        />
+        {#if beach.caption}
+          <h6
+            class="font-slab absolute bottom-[10px] left-[18px] z-10 text-[12px] leading-[15px] font-light tracking-[1.28px] uppercase lg:bottom-3 lg:left-6 lg:text-[24px] lg:leading-[30px]"
+            style="color:#fff"
+          >
+            {beach.caption}
+          </h6>
+        {/if}
+      </div>
     {/if}
   </article>
 {/snippet}
@@ -416,8 +456,13 @@
            this region worse on the previous attempt (@390 Δh 18.2 -> 67.5) —
            our track is not live's JS-positioned one and does not survive being
            narrowed to a single-card window. -->
+      <!-- ROUND C: lg is min-height, not height — live's fixed 640 viewport
+           would clip a GROWN card (thread 986a647b; the slider card's lg mb-5
+           is dropped so the auto height still equals live's 640 when nothing
+           grows). ≤991 keeps the fixed live heights: their probed slack
+           (24/72/96px at sm/xs/md) absorbs every growth case measured. -->
       <div
-        class="relative h-[552px] w-full overflow-hidden xs:h-[840px] md:h-[1120px] lg:h-[640px]"
+        class="relative h-[552px] w-full overflow-hidden xs:h-[840px] md:h-[1120px] lg:h-auto lg:min-h-[640px]"
         use:animateIn={LIVE_REVEAL}
       >
         <!-- MarkUp 4b8d52d2 thread e23604c9-fb66-4925-9878-9c3247390b44
@@ -427,22 +472,24 @@
              in (gutter + 43.33 = 123.3@1440, probed — which is what our old
              fixed trackPadStart="80px" reproduced at 1440 only). Tim wants
              the card itself flush with the h2, so the lg pad is the gutter
-             MINUS the card's `lg:mx-[43.33px]` cell margin:
-             first-card-left = max(60px, 50% − 640px) = the heading's
-             `.content-width` left (beachfront.css:5858-5867) at every lg
-             width. Cell widths, gaps and the ≤991 tiers are untouched. See
-             LEDGER 2026-08-10 A2. -->
+             MINUS the card's lg cell margin: first-card-left =
+             max(60px, 50% − 640px) = the heading's `.content-width` left
+             (beachfront.css:5858-5867) at every lg width. ROUND C (thread
+             4dd560d2, yfv pin #5) halved that cell margin 43.33 → 21.67px, so
+             the compensation and the cell width move with it IN THE SAME
+             commit: itemWidth = 340 + 2×21.67 = 383.34, trackPadStart
+             − 21.67px. ≤991 tiers untouched. See LEDGER 2026-08-10 A2 + C. -->
         <Slider
           itemCount={docs.length}
           label={asText(slice.primary.heading) || "Meet our team"}
-          itemWidth="426.67px"
+          itemWidth="383.34px"
           tabletItemWidth="640px"
           mobileItemWidth="288px"
           gap="0px"
           tabletGap="0px"
           mobileGap="0px"
           slideClass="mt-24 xs:mt-[192px] md:mt-[256px] lg:mt-40"
-          trackPadStart="calc(max(60px, 50% - 640px) - 43.33px)"
+          trackPadStart="calc(max(60px, 50% - 640px) - 21.67px)"
           tabletTrackPadStart="129px"
           xsTrackPadStart="8%"
           mobileTrackPadStart="51px"
