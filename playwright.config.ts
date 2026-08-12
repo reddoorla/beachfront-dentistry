@@ -19,7 +19,14 @@ export default defineConfig({
   ...base,
   use: {
     ...base.use,
-    reducedMotion: "reduce",
+    // `reducedMotion: "reduce"` used to sit here and DID NOTHING: probed on this
+    // Playwright/Chromium, `matchMedia("(prefers-reduced-motion: reduce)")`
+    // reports false under the option at config, project and test.use level, and
+    // true only after an explicit `page.emulateMedia({ reducedMotion })`. So
+    // every spec that believed it ran reduced was running with motion ON — the
+    // line asserted a guarantee it never delivered. Removing it changes no
+    // runtime behaviour (there was none to change); specs that need reduced
+    // motion call emulateMedia themselves, as nav-menu and review-mask do.
     ...(smokePort ? { baseURL: `http://localhost:${smokePort}` } : {}),
   },
   ...(smokePort
