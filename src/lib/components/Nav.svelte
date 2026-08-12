@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Menu, X, ChevronDown } from "@lucide/svelte";
   import { onMount } from "svelte";
-  import { quintOut } from "svelte/easing";
+  import { cubicIn, expoOut } from "svelte/easing";
   import { trapFocus } from "$lib/actions/trapFocus";
   import { fade, fly } from "$lib/transitions";
   import { PHONE, MODENTO_URL } from "$lib/site";
@@ -74,6 +74,61 @@
 
   const openMenu = () => (isMenuOpen = true);
   const closeMenu = () => (isMenuOpen = false);
+
+  // --- menu-overlay motion -------------------------------------------------
+  //
+  // Character: the site runs everything on `--transition-out-expo`
+  // (app.css:70 = cubic-bezier(.19,1,.22,1)) — the carousel's 2s glide, the
+  // animateIn reveals, the reviews expander. `expoOut` is that curve's JS
+  // twin, so the menu moves in the same hand as the rest of the page.
+  //
+  // OPEN — two coordinated parts, 750ms nominal for a 9-row column (the last
+  // row starts at 90 + 8*45 = 450ms and runs 300ms), though expoOut front-loads
+  // so hard that it is perceptually done by ~600ms:
+  //   • the cyan wash cross-fades up over 300ms. It does NOT translate — the
+  //     overlay's chrome band mirrors the closed bar pixel for pixel, so any
+  //     movement of the sheet would slide the logo away from the spot it
+  //     already occupies (and the X would not land on the hamburger it
+  //     replaces). Holding the sheet still is what makes that swap read as one
+  //     control changing state instead of two elements trading places.
+  //   • the links cascade up 22px, 300ms each, 45ms apart.
+  //
+  // The 90ms lead is measured, not guessed: on expoOut the wash is already
+  // ~0.88 opaque at 90ms (and 0.97 by 120ms). Any later and the backdrop has
+  // visibly finished before the first link moves, which reads as two animations
+  // played in sequence rather than one reveal; any earlier and the first links
+  // are white-on-half-transparent over the hero still showing through.
+  //
+  // CLOSE is deliberately NOT the entrance reversed. Rewinding a 9-step cascade
+  // is ~750ms of watching a decision you have already made; the sheet instead
+  // leaves as one object in 170ms on an ease-IN curve (accelerate away), and
+  // the links get no outro of their own.
+  //
+  // Reduced motion: `fade`/`fly` are the $lib/transitions wrappers, which zero
+  // BOTH duration and delay. That is load-bearing for the stagger — the global
+  // reset in app.css (490-497) flattens animation/transition *durations* only,
+  // so a CSS-delay cascade would still have made the last link wait ~480ms
+  // with reduce on. Anything with a delay has to come through this module.
+  const MENU_WASH_IN = 300;
+  const MENU_WASH_OUT = 170;
+  const MENU_LINK_DURATION = 300;
+  const MENU_LINK_STAGGER = 45;
+  const MENU_LINK_LEAD = 90;
+  const MENU_LINK_RISE = 22;
+  /** Intro params for the nth link in the overlay column (0-based, top down). */
+  const linkIn = (i: number) => ({
+    y: MENU_LINK_RISE,
+    duration: MENU_LINK_DURATION,
+    delay: MENU_LINK_LEAD + i * MENU_LINK_STAGGER,
+    easing: expoOut,
+  });
+
+  // The overlay column is a FLAT list of leaf links (live's modal has no
+  // accordion), so a dropdown-only parent contributes no row. Filtering here
+  // rather than with an `{#if}` inside the loop keeps the cascade index equal
+  // to the link's real position in the column — a skipped parent would
+  // otherwise punch a 45ms hole in the middle of the sequence.
+  const menuLeafItems = $derived(items.filter((item) => item.href));
 </script>
 
 {#if useNavLinks}
@@ -289,13 +344,23 @@
   <!-- The open trigger above unmounts while the menu is open, so the element
        trapFocus captured is detached by close time — `restoreFocus` hands it
        the re-mounted trigger instead. -->
+  <!-- Every transition under this `{#if}` is `|global`, and that is not
+       decoration. Svelte transitions are LOCAL by default: they play when
+       their OWN block is created, not when an ancestor's is. Both overlays sit
+       one block deeper (`{#if useNavLinks}` / `{:else}`) than the `{#if
+       isMenuOpen}` that actually toggles, so a local directive here is dead
+       code — probed 2026-08-12 on the pre-existing `transition:fly={{y:-800,
+       duration:700}}`: zero animations on the dialog or any descendant for
+       every frame after the click, opacity 1 and transform none from frame 0.
+       The menu had been popping open, which is the "abrupt" this round was
+       asked to fix. `|global` is what makes the directive run at all. -->
   {#if useNavLinks}
     <div
       role="dialog"
       aria-modal="true"
       aria-label="Menu"
       class="fixed inset-0 z-50 flex h-dvh w-screen flex-col items-center justify-center gap-8 bg-background lg:hidden"
-      transition:fade
+      transition:fade|global
       use:trapFocus={{ onEscape: closeMenu, restoreFocus: () => openButtonEl }}
     >
       <button
@@ -327,7 +392,8 @@
         ? ''
         : 'lg:hidden'}"
       style="background-color:#129ecc;background-image:linear-gradient(rgba(18,158,204,0.92), rgba(18,158,204,0.92)),url('/menu-beach.jpg');background-position:0 0,50%;background-size:auto,cover"
-      transition:fly={{ y: -800, duration: 700, easing: quintOut }}
+      in:fade|global={{ duration: MENU_WASH_IN, easing: expoOut }}
+      out:fade|global={{ duration: MENU_WASH_OUT, easing: cubicIn }}
       use:trapFocus={{ onEscape: closeMenu, restoreFocus: () => openButtonEl }}
     >
       <!-- Mirrors the closed bar's content band EXACTLY (same px/py ladder as
@@ -376,6 +442,12 @@
            the column starts flush under the header band instead of re-adding
            the first link's top margin (which is what keeps everything on one
            screen at 1354×930, Tim's capture size). -->
+      <!-- The cascade: each row carries `in:fly` with its own delay (see
+           `linkIn` above). `fly` only ever sets opacity + transform, so a row
+           is hit-testable and focusable from its first frame — the stagger
+           never makes a visible link inert, and trapFocus's focusable() probe
+           (getClientRects, not opacity) sees the whole column immediately. No
+           `out:` on purpose: the rows leave with the wash. -->
       <nav
         class="flex w-full flex-col items-center gap-10"
         aria-label="Menu links"
@@ -383,28 +455,30 @@
         <a
           href="/"
           onclick={closeMenu}
+          in:fly|global={linkIn(0)}
           class="font-slab text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
           >Home Page</a
         >
-        {#each items as item, i (i)}
-          {#if item.href}
-            <a
-              href={item.href}
-              onclick={closeMenu}
-              class="font-slab text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
-              >{item.label}</a
-            >
-          {/if}
+        {#each menuLeafItems as item, i (i)}
+          <a
+            href={item.href}
+            onclick={closeMenu}
+            in:fly|global={linkIn(i + 1)}
+            class="font-slab text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
+            >{item.label}</a
+          >
         {/each}
         <a
           href={PHONE.href}
           onclick={closeMenu}
+          in:fly|global={linkIn(menuLeafItems.length + 1)}
           class="font-slab text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
           >{PHONE.display}</a
         >
         <a
           href="#appointment"
           onclick={closeMenu}
+          in:fly|global={linkIn(menuLeafItems.length + 2)}
           class="font-slab px-[1em] py-[1.3em] leading-[0] inline-flex items-center rounded-lg border border-white text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 lg:text-[25px]"
           >Request an Appointment</a
         >
@@ -413,6 +487,7 @@
           target="_blank"
           rel="noopener"
           onclick={closeMenu}
+          in:fly|global={linkIn(menuLeafItems.length + 3)}
           class="font-slab px-[1em] py-[1.3em] leading-[0] inline-flex items-center rounded-lg border border-white text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 lg:text-[25px]"
           >Make a Payment</a
         >
