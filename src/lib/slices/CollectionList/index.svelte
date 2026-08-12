@@ -116,6 +116,29 @@
     const prefix = doc.type ? ENTITY_ROUTE_PREFIX[doc.type] : undefined;
     return prefix ? `${prefix}${doc.uid}` : undefined;
   };
+
+  // The person card IS the navigation on /our-team, and it had no pointer
+  // response at all: probed at 1440 the article computed `transition: all 0s`
+  // and `box-shadow: none`, and hovering the headshot, the name or READ MORE
+  // changed nothing. One restrained affordance for the whole card — a 4px
+  // lift plus a shadow, no scale (the headshots are `object-cover object-top`
+  // circles and scaling them crops foreheads) — driven from `hover` OR
+  // `focus-within`, so a keyboard caret landing on the card's link reads the
+  // same as a pointer over it.
+  // Reduced motion: app.css clamps every duration to 0.01ms, which turns the
+  // lift into an instant 4px jump rather than removing it — worse than either
+  // end state. So under `motion-reduce` the transform is pinned to 0 and the
+  // shadow alone carries the state: a state change without movement, which is
+  // the point of the preference.
+  // Applied only when the card has a detail route; a card with nowhere to go
+  // must not advertise a click.
+  // `translate`, not `transform`, in the transition list: Tailwind v4 compiles
+  // `-translate-y-1` to the independent `translate` property (probed — the
+  // hovered card computes `translate: 0px -4px` while `transform` stays
+  // `none`), so `transition-[box-shadow,transform]` animates nothing and the
+  // lift snaps.
+  const CARD_AFFORDANCE =
+    "transition-[box-shadow,translate] duration-200 ease-out hover:-translate-y-1 hover:shadow-lg focus-within:-translate-y-1 focus-within:shadow-lg motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:focus-within:translate-y-0";
 </script>
 
 {#snippet card(doc: CollectionDoc)}
@@ -233,24 +256,27 @@
        reference draws, which is where page-diff cuts the "Dr. Robert Quan"
        region. -->
   <article
-    class="team-list-item relative mx-6 mb-6 flex flex-col rounded-[20px] bg-[#e7f5fa] xs:min-h-[576px] xs:w-[384px] md:mx-8 md:mb-8 md:min-h-[768px] md:w-[512px] lg:min-h-[480px] {variant ===
-    'slider'
+    class="team-list-item group relative mx-6 mb-6 flex flex-col rounded-[20px] bg-[#e7f5fa] xs:min-h-[576px] xs:w-[384px] md:mx-8 md:mb-8 md:min-h-[768px] md:w-[512px] lg:min-h-[480px] {href
+      ? CARD_AFFORDANCE
+      : ''} {variant === 'slider'
       ? 'min-h-[432px] w-[240px] lg:mx-[21.67px] lg:mb-0 lg:w-[340px]'
       : 'mt-24 min-h-96 w-[303px] xs:mt-[192px] md:mt-[256px] lg:mx-0 lg:mt-0 lg:mb-0 lg:w-[calc((100%-60px)/3)]'}"
   >
     {#if doc.data.media?.url}
-      <!-- headshot centred ON the card's top edge (half above, half in). -->
-      <a
-        {href}
-        aria-label={name}
-        class="focus-visible:ring-primary-deep absolute top-0 left-1/2 z-10 block w-[120px] -translate-x-1/2 -translate-y-1/2 rounded-full xs:w-[240px] md:w-[320px] lg:w-[200px] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+      <!-- headshot centred ON the card's top edge (half above, half in).
+           Not a link any more: the card carries exactly ONE link (READ MORE,
+           below), whose hit area is stretched over the card — so the photo is
+           still clickable and still shows a pointer cursor, but it is no
+           longer a third tab stop announcing the same destination. -->
+      <div
+        class="absolute top-0 left-1/2 z-10 block w-[120px] -translate-x-1/2 -translate-y-1/2 rounded-full xs:w-[240px] md:w-[320px] lg:w-[200px]"
       >
         <PrismicImage
           field={doc.data.media as unknown as ImageField}
           fallbackAlt=""
           class="size-[120px] max-w-none rounded-full object-cover object-top xs:size-[240px] md:size-[320px] lg:size-[200px]"
         />
-      </a>
+      </div>
     {/if}
     <!-- pb keeps READ MORE clear of the in-flow banner when a grown card's
          content lands flush against it (thread 986a647b, "box grows"); on a
@@ -259,21 +285,16 @@
     <div
       class="flex flex-col px-[18px] pt-[70px] pb-[10px] text-center xs:pt-[130px] md:pt-[170px] lg:px-6 lg:pt-[110px] lg:pb-5"
     >
-      <!-- Ring is load-bearing, not decoration: `outline-hidden` alone removed
-           the focus indicator outright, so tabbing /our-team lost the caret for
-           eleven consecutive stops (WCAG 2.4.7). Matches the sibling links at
-           :203 and :239. Rings paint outside the border box, so no layout
-           moves. -->
-      <a
-        {href}
-        class="focus-visible:ring-primary-deep focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+      <!-- The name was its own link to the same route (one of three per
+           card). It is plain text now — the stretched READ MORE link below
+           covers it, so pointing at the name still shows a pointer and still
+           navigates, and the heading is no longer wrapped in a link that
+           duplicated its two siblings for AT and the keyboard. -->
+      <h5
+        class="font-slab text-[30px] leading-[40px] font-light text-[#129ecc]"
       >
-        <h5
-          class="font-slab text-[30px] leading-[40px] font-light text-[#129ecc]"
-        >
-          {name}
-        </h5>
-      </a>
+        {name}
+      </h5>
       {#if doc.data.tags}
         <h6
           class="mt-[10px] text-[16px] leading-[25px] font-light tracking-[1.28px] text-[#365b6d] uppercase"
@@ -295,16 +316,41 @@
         </p>
       {/if}
       {#if href}
+        <!-- The card's ONE link, and the whole card's hit area.
+             `::after` stretches it over the card box and `::before` over the
+             headshot circle that straddles the top edge (same box the photo's
+             own anchor used to occupy: top-0/left-1/2, the circle's size,
+             centred on the edge, `rounded-full` so the hit area is the disc
+             and not its bounding square). Both sit at z-20, above the photo's
+             z-10 wrapper and the beach banner, and both inherit the link's
+             pointer cursor — so a patient pointing at a face or a name gets
+             the pointer and the navigation, without a second `<a>` in the
+             card. Cost of the pattern: text inside the card can no longer be
+             drag-selected.
+             `w-fit self-start` is the fix for a ring that was drawing the
+             card: the link is a flex item, so `inline-flex` blockified and
+             stretched to the full 359px content column while its text is
+             131px — the focus ring painted a near-card-width box around the
+             words. Shrink the box to the words and the ring hugs them.
+             `aria-label` because eleven links called "Read More" is WCAG
+             2.4.4; the visible text is contained in the label (2.5.3).
+             `draggable="false"`: the yfv slider is swipe-driven
+             (Slider.svelte's `useSwipe`), and a link now covers the whole
+             card, so a drag across it must not start a native link drag. -->
         <a
           {href}
-          class="focus-visible:ring-primary-deep mt-[6px] inline-flex items-center gap-[12px] text-[14.4px] leading-[21.6px] font-light tracking-[1.03px] text-[#365b6d] uppercase md:mt-[8px] md:gap-[16px] md:text-[19.2px] md:leading-[28.8px] lg:mt-[10px] lg:gap-[20px] lg:text-[16px] lg:leading-[24px] focus-visible:ring-2 focus-visible:outline-hidden"
+          aria-label="Read more about {name}"
+          draggable="false"
+          class="focus-visible:ring-primary-deep mt-[6px] inline-flex w-fit items-center gap-[12px] self-start text-[14.4px] leading-[21.6px] font-light tracking-[1.03px] text-[#365b6d] uppercase before:absolute before:top-0 before:left-1/2 before:z-20 before:size-[120px] before:-translate-x-1/2 before:-translate-y-1/2 before:rounded-full before:content-[''] after:absolute after:inset-0 after:z-20 after:content-[''] md:mt-[8px] md:gap-[16px] md:text-[19.2px] md:leading-[28.8px] xs:before:size-[240px] md:before:size-[320px] lg:mt-[10px] lg:gap-[20px] lg:text-[16px] lg:leading-[24px] lg:before:size-[200px] focus-visible:ring-2 focus-visible:outline-hidden"
         >
           Read More
           <!-- live's real Arrow.svg (white-filled), tinted to cyan via mask so
-               we ship the actual vector, never a redraw. -->
+               we ship the actual vector, never a redraw. The nudge is the
+               card-level hover's only echo inside the card, and it mirrors on
+               focus so the keyboard sees what the pointer sees. -->
           <span
             aria-hidden="true"
-            class="h-[11px] w-[10px] shrink-0 bg-[#365b6d] [mask:url(/icons/read-more-arrow.svg)_center/contain_no-repeat] [-webkit-mask:url(/icons/read-more-arrow.svg)_center/contain_no-repeat]"
+            class="h-[11px] w-[10px] shrink-0 bg-[#365b6d] transition-transform duration-200 group-hover:translate-x-1 group-focus-within:translate-x-1 motion-reduce:transition-none [mask:url(/icons/read-more-arrow.svg)_center/contain_no-repeat] [-webkit-mask:url(/icons/read-more-arrow.svg)_center/contain_no-repeat]"
           ></span>
         </a>
       {/if}

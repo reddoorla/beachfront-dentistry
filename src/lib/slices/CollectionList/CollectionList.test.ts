@@ -367,10 +367,121 @@ describe("CollectionList slice — people variation reads its authored fields", 
         } as never,
       },
     });
-    // each card links its name; the headshot link is absent (no media).
-    const names = getAllByRole("link")
-      .map((a) => a.textContent?.trim())
-      .filter((t) => t && !t.startsWith("Read More"));
+    // the card's name is a plain heading now (the card carries ONE link —
+    // READ MORE — whose stretched hit area covers the name; see below).
+    const names = getAllByRole("heading", { level: 5 }).map((h) =>
+      h.textContent?.trim(),
+    );
     expect(names).toEqual(["Dr. Quan", "Stacey", "Linda", "Unranked"]);
+  });
+});
+
+// The person card used to carry THREE links to one route (headshot, name,
+// READ MORE): three tab stops per card, 33 on /our-team, all announcing the
+// same destination, and none of them giving the pointer any response. It is
+// one link now, stretched over the card, and the card answers hover/focus.
+describe("CollectionList slice — the person card is one card-wide link", () => {
+  const peopleSlice = {
+    slice_type: "collection_list",
+    variation: "people",
+    primary: {
+      heading: [{ type: "heading2", text: "Our Team", spans: [] }],
+      collection_type: "person",
+      max_items: 24,
+    },
+    items: [],
+  } as unknown as Content.CollectionListSlice;
+
+  const withPhoto = {
+    collections: {
+      person: [
+        {
+          uid: "stacey",
+          type: "person",
+          data: {
+            title: [{ type: "heading3", text: "Stacey", spans: [] }],
+            tags: "Dental Hygienist",
+            body: [{ type: "paragraph", text: "Stacey joined.", spans: [] }],
+            media: {
+              url: "https://img.example/stacey.jpg",
+              alt: "Stacey",
+              dimensions: { width: 800, height: 800 },
+            },
+          },
+        },
+      ],
+    },
+  } as never;
+
+  it("exposes exactly one link per card, named for the person", () => {
+    const { getAllByRole } = render(CollectionList, {
+      props: { slice: peopleSlice, context: withPhoto },
+    });
+    const links = getAllByRole("link");
+    expect(links).toHaveLength(1);
+    // not eleven links called "Read More" (WCAG 2.4.4); the visible words are
+    // still contained in the accessible name (2.5.3).
+    expect(links[0].getAttribute("aria-label")).toBe("Read more about Stacey");
+    expect(links[0].textContent).toContain("Read More");
+    expect(links[0].getAttribute("href")).toBe("/team-members/stacey");
+  });
+
+  it("leaves the headshot and the name outside the link, and stretches the link over the card", () => {
+    const { container, getByRole } = render(CollectionList, {
+      props: { slice: peopleSlice, context: withPhoto },
+    });
+    expect(container.querySelector("img")?.closest("a")).toBeNull();
+    expect(getByRole("heading", { level: 5 }).closest("a")).toBeNull();
+    // ::after covers the card box, ::before the headshot circle straddling
+    // its top edge — that is what makes the photo and the name clickable.
+    const cls = getByRole("link").className;
+    expect(cls).toContain("after:absolute");
+    expect(cls).toContain("after:inset-0");
+    expect(cls).toContain("before:rounded-full");
+    // and the ring hugs the words rather than the 359px content column
+    expect(cls).toContain("w-fit");
+  });
+
+  it("gives the whole card a hover/focus-within affordance, suppressed under reduced motion", () => {
+    const { container } = render(CollectionList, {
+      props: { slice: peopleSlice, context: withPhoto },
+    });
+    const card = container.querySelector("article.team-list-item");
+    const cls = card?.className ?? "";
+    expect(cls).toContain("group");
+    expect(cls).toContain("hover:-translate-y-1");
+    expect(cls).toContain("focus-within:-translate-y-1");
+    expect(cls).toContain("hover:shadow-lg");
+    expect(cls).toContain("focus-within:shadow-lg");
+    // Tailwind v4 compiles -translate-y-1 to the `translate` property, so the
+    // transition list must name `translate`, not `transform`, or the lift
+    // snaps instead of easing.
+    expect(cls).toContain("transition-[box-shadow,translate]");
+    // reduced motion keeps the shadow (state) and drops the movement
+    expect(cls).toContain("motion-reduce:hover:translate-y-0");
+    expect(cls).toContain("motion-reduce:focus-within:translate-y-0");
+  });
+
+  it("does not advertise a click on a card with no detail route", () => {
+    const { container } = render(CollectionList, {
+      props: {
+        slice: peopleSlice,
+        context: {
+          collections: {
+            // no `type`, so hrefFor() returns undefined
+            person: [
+              {
+                uid: "stacey",
+                data: { title: [{ type: "heading3", text: "S", spans: [] }] },
+              },
+            ],
+          },
+        } as never,
+      },
+    });
+    expect(container.querySelectorAll("a")).toHaveLength(0);
+    expect(container.querySelector("article")?.className).not.toContain(
+      "hover:shadow-lg",
+    );
   });
 });
