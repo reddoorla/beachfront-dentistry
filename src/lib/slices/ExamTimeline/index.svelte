@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { PrismicImage, PrismicRichText } from "@prismicio/svelte";
+  import { PrismicRichText } from "@prismicio/svelte";
+  import PrismicPhoto from "$lib/components/PrismicPhoto.svelte";
   import {
     asText,
     isFilled,
@@ -169,12 +170,21 @@
       <!-- `img._w-60pc.su-w-full-mobile` — 60% >=768 (`:3540-3542`), 100%
            <=767 (`:8426-8428`), no object-fit and no fixed aspect: the img is
            `max-width:100%` at its natural aspect. Measured 351x246 / 443x311 /
-           768x539. -->
+           768x539.
+
+           MarkUp 4b8d52d2 thread 4cdf4f23-cdfc-4275-b7ea-1dc764285c81
+           (pin #6): "Round corners like the registration form background to
+           the left." NEW design request — the reference gives this img no
+           radius (probed 0px both sides); the 25px is
+           `.registration-forms-box`'s (beachfront.css:6693-6695). See
+           LEDGER 2026-08-10 A2. -->
       {#if isFilled.image(p.image)}
-        <PrismicImage
+        <!-- 60% of the container at md+, full width below. Measured 351/443/768. -->
+        <PrismicPhoto
           field={p.image}
           fallbackAlt=""
-          class="h-auto w-full md:w-[60%]"
+          sizes="(min-width: 1024px) 768px, (min-width: 768px) 443px, 351px"
+          class="h-auto w-full rounded-[25px] md:w-[60%]"
         />
       {/if}
     </div>
@@ -189,17 +199,37 @@
            margin-bottom 2rem and **static**; <=767 (`:8791-8795`) 100% capped
            at 20rem. Resolved 351x384 / 640x512 / 480x480, padding 24/32/40,
            margin-bottom 48/64/120. The sticky exists ONLY at >=992, where it
-           pins while the six steps scroll past. -->
+           pins while the six steps scroll past.
+
+           MarkUp 4b8d52d2 thread 2b40d1f7-b53c-4091-828d-030ad2f15f6a
+           (pin #7): "This registration form box should continue be sticky
+           until the bottom aligns with the bottom of step six." Requested
+           DEVIATION from live's `margin-bottom:3rem` = 120px at >=992
+           (beachfront.css:6693-6699): sticky travel is bounded by the MARGIN
+           box, so the 120px froze our box 120px above step six (probed
+           5253.6 vs 5373.6 @1440; the ref's own box freezes 280px short).
+           `lg:mb-0` spends the full range — box bottom = step six bottom at
+           max travel. No compensating spacer needed: the row's height is the
+           taller steps column, so the section's border box is unchanged
+           (probed 2108.6 @1440 before and after). <=991 keeps live's static
+           margins. See LEDGER 2026-08-10 A2. -->
       {#if regStep}
         <div
-          class="registration-forms-box mb-12 flex h-96 w-full max-w-[480px] justify-start rounded-[25px] bg-[#e7f5fa] p-6 md:mb-16 md:h-[512px] md:w-[640px] md:max-w-none md:p-8 lg:sticky lg:top-10 lg:mb-[120px] lg:h-[480px] lg:w-[480px] lg:p-10"
+          class="registration-forms-box mb-12 flex h-96 w-full max-w-[480px] justify-start rounded-[25px] bg-[#e7f5fa] p-6 md:mb-16 md:h-[512px] md:w-[640px] md:max-w-none md:p-8 lg:sticky lg:top-10 lg:mb-0 lg:h-[480px] lg:w-[480px] lg:p-10"
         >
           {@render badge(regStep.number ?? "00", regStep.minutes)}
           <div
             class="exam-content-holder flex min-w-0 flex-col items-start md:block"
           >
+            <!-- `-deep` here, brand cyan on the six steps above — and that is
+                 the system working, not an inconsistency. The step titles sit
+                 on WHITE, where #129ecc is 3.09:1 and clears the 3.0 large-text
+                 bar. THIS one sits inside the box's own #e7f5fa (:215), where
+                 the identical colour is 2.78:1 and fails. Heading colour tracks
+                 the ground on this site by design (see app.css's `.h-primary`
+                 block); the defect was that the opt-in ignored the ground. -->
             <h5
-              class="font-slab my-2.5 text-[30px] leading-[40px] font-light text-[#129ecc]"
+              class="font-slab text-primary-deep my-2.5 text-[30px] leading-[40px] font-light"
             >
               {asText(regStep.title as RichTextField)}
             </h5>
@@ -247,8 +277,23 @@
                (`:8818-8826`) goes back to auto height with padding-bottom and
                padding-x 1rem; <=479 (`:9343-9347`) zeroes the top padding and
                halves the sides. -->
+          <!-- Only row 1 revealed before this; the six steps themselves never
+               animated, which is the section where sequence matters most — a
+               stepwise "what happens at your first visit" explainer.
+               A plain per-element reveal, NOT `stagger`. The audit filed these
+               under "horizontal rows", but this is a vertical column: animateIn
+               writes `transitionDelay` once at mount and counts it from each
+               element's OWN trigger, so on a stack step 6 would sit invisible
+               for 350ms after the reader had already scrolled it into view.
+               Stacked steps get their sequence from the scroll itself — each
+               rises as it arrives — which is the effect the stagger was
+               reaching for, without the delay.
+               The sticky registration-forms box below is deliberately NOT a
+               target: a transform changes its containing block and breaks the
+               pin. -->
           <div
             class="exam-step flex px-3 pt-0 pb-6 xs:px-6 xs:pt-6 md:h-80 md:px-0 md:pt-8 md:pb-0 lg:h-auto lg:pt-10"
+            use:animateIn={LIVE_REVEAL}
           >
             {@render badge(step.number ?? "", step.minutes)}
             {@render stepContent(step, i === 0)}

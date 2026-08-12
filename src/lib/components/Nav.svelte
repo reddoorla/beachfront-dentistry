@@ -1,11 +1,11 @@
 <script lang="ts">
   import { Menu, X, ChevronDown } from "@lucide/svelte";
   import { onMount } from "svelte";
-  import { fly } from "svelte/transition";
-  import { quintOut } from "svelte/easing";
+  import { cubicIn, expoOut } from "svelte/easing";
   import { trapFocus } from "$lib/actions/trapFocus";
-  import { fade } from "$lib/transitions";
+  import { fade, fly } from "$lib/transitions";
   import { PHONE, MODENTO_URL } from "$lib/site";
+  import { pillClass } from "$lib/components/OutlineButton.svelte";
   import type { NavItem } from "$lib/blux/site-config";
 
   interface NavLink {
@@ -54,9 +54,20 @@
   // The bar is solid unless it's explicitly a transparent-over-hero page AND
   // still at the top. `scrolled` flips after a small threshold; it starts false
   // (matching SSR, where the page always loads at the top → no hydration jump).
+  //
+  // Only the `!hamburgerOnly` chrome reads `navSolid` (the bar's bg ternary and
+  // the legibility scrim below), and Beachfront's layout passes `hamburgerOnly`
+  // on every route — so before this guard a scroll listener ran on every scroll
+  // of every page and its result was discarded. The listener is GATED rather
+  // than DELETED because the sticky solid-on-scroll bar is still a live,
+  // prop-reachable capability of this component (`hamburgerOnly` defaults to
+  // false — that is the fleet default chrome, and Nav.test.ts exercises it);
+  // deleting the path would remove a documented feature to fix a wasted
+  // listener. Under `hamburgerOnly` nothing subscribes to scroll at all.
   let scrolled = $state(false);
   const navSolid = $derived(!transparentAtTop || scrolled);
   onMount(() => {
+    if (hamburgerOnly) return;
     const onScroll = () => (scrolled = window.scrollY > 24);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -75,6 +86,133 @@
 
   const openMenu = () => (isMenuOpen = true);
   const closeMenu = () => (isMenuOpen = false);
+
+  // --- menu-overlay motion -------------------------------------------------
+  //
+  // Character: the site runs everything on `--transition-out-expo`
+  // (app.css:70 = cubic-bezier(.19,1,.22,1)) — the carousel's 2s glide, the
+  // animateIn reveals, the reviews expander. `expoOut` is that curve's JS
+  // twin, so the menu moves in the same hand as the rest of the page.
+  //
+  // OPEN — two coordinated parts, 750ms nominal for a 9-row column (the last
+  // row starts at 90 + 8*45 = 450ms and runs 300ms), though expoOut front-loads
+  // so hard that it is perceptually done by ~600ms:
+  //   • the cyan wash cross-fades up over 300ms. It does NOT translate — the
+  //     overlay's chrome band mirrors the closed bar pixel for pixel, so any
+  //     movement of the sheet would slide the logo away from the spot it
+  //     already occupies (and the X would not land on the hamburger it
+  //     replaces). Holding the sheet still is what makes that swap read as one
+  //     control changing state instead of two elements trading places.
+  //   • the links cascade up 22px, 300ms each, 45ms apart.
+  //
+  // The 90ms lead is measured, not guessed: on expoOut the wash is already
+  // ~0.88 opaque at 90ms (and 0.97 by 120ms). Any later and the backdrop has
+  // visibly finished before the first link moves, which reads as two animations
+  // played in sequence rather than one reveal; any earlier and the first links
+  // are white-on-half-transparent over the hero still showing through.
+  //
+  // CLOSE is deliberately NOT the entrance reversed. Rewinding a 9-step cascade
+  // is ~750ms of watching a decision you have already made; the sheet instead
+  // leaves as one object in 170ms on an ease-IN curve (accelerate away), and
+  // the links get no outro of their own.
+  //
+  // Reduced motion: `fade`/`fly` are the $lib/transitions wrappers, which zero
+  // BOTH duration and delay. That is load-bearing for the stagger — the global
+  // reset in app.css (490-497) flattens animation/transition *durations* only,
+  // so a CSS-delay cascade would still have made the last link wait ~480ms
+  // with reduce on. Anything with a delay has to come through this module.
+  const MENU_WASH_IN = 300;
+  const MENU_WASH_OUT = 170;
+  const MENU_LINK_DURATION = 300;
+  const MENU_LINK_STAGGER = 45;
+  const MENU_LINK_LEAD = 90;
+  const MENU_LINK_RISE = 22;
+  /** Intro params for the nth link in the overlay column (0-based, top down). */
+  const linkIn = (i: number) => ({
+    y: MENU_LINK_RISE,
+    duration: MENU_LINK_DURATION,
+    delay: MENU_LINK_LEAD + i * MENU_LINK_STAGGER,
+    easing: expoOut,
+  });
+
+  // The overlay column is a FLAT list of leaf links (live's modal has no
+  // accordion), so a dropdown-only parent contributes no row. Filtering here
+  // rather than with an `{#if}` inside the loop keeps the cascade index equal
+  // to the link's real position in the column — a skipped parent would
+  // otherwise punch a 45ms hole in the middle of the sequence.
+  const menuLeafItems = $derived(items.filter((item) => item.href));
+
+  // --- the bar's icon controls: hover + PRESS affordance --------------------
+  //
+  // The trigger used to be `transition-opacity hover:opacity-40`, which is two
+  // defects in one class. `hover:` compiles behind `@media (hover: hover)`, so
+  // a phone got NO feedback at all on the site's only navigation control — and
+  // a tap that looks like nothing happened gets tapped again, the second tap
+  // landing after the overlay has mounted and closing it. In a mouse context
+  // the control faded to 0.4, the browser's own disabled idiom.
+  //
+  // The replacement is ADDITIVE — a brand pill grows in behind the glyph
+  // (0.9 → 1, 0 → .7 opacity) and the glyph itself dips to 0.9 while held —
+  // and it is driven by POINTER EVENTS, not by `:active` alone. That is
+  // measured, not assumed: dispatching a real `Input.dispatchTouchEvent`
+  // touchStart on the trigger (Chromium 1440 and 390, iPhone-13 emulation,
+  // held 600ms) leaves `el.matches(":active")` FALSE and the pill at opacity 0.
+  // A CSS-only `active:` press is therefore exactly the same class of defect as
+  // the `hover:` it replaced: correct on a mouse, invisible on the device the
+  // bug is about. `onpointerdown` fires for touch, pen and mouse alike, so the
+  // press state below is what the phone actually gets; the `group-active:`
+  // variants ride alongside it purely for keyboard Space, which browsers do
+  // deliver as `:active` and which produces no pointer event.
+  //
+  // Reduced-motion callers still get the state change — app.css flattens
+  // transition DURATION, not the end state, so the pill appears instantly
+  // instead of growing.
+  //
+  // TONE is per-ground, not per-control: the pill has to be visible against
+  // whatever sits behind the bar. The rule is "whichever of the two brand tones
+  // the ground is NOT". Over a hero photo that is `--color-primary` (#129ecc);
+  // inside the open menu the ground IS `--color-primary-deep` since the wash
+  // was darkened for AA (see the dialog below), so the menu's copy takes
+  // `--color-primary`. Note this is the OPPOSITE assignment to the one that
+  // shipped before the wash changed — the rule did not move, the ground did.
+  // Everything else about the two controls — geometry, timings, curve — is
+  // shared, so they read as one control changing state.
+  const ICON_BUTTON =
+    "group relative flex min-h-11 min-w-11 items-center rounded-full focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden";
+  const ICON_GLYPH =
+    "relative inline-flex items-center justify-center transition-[opacity,scale] duration-150 ease-[var(--transition-out-expo)] group-active:scale-90 group-active:opacity-90 group-data-[pressed]:scale-90 group-data-[pressed]:opacity-90";
+  const ICON_PILL =
+    "pointer-events-none absolute inset-[-8px] scale-90 rounded-full opacity-0 transition-[opacity,scale] duration-150 ease-[var(--transition-out-expo)] group-hover:scale-100 group-hover:opacity-70 group-active:scale-100 group-active:opacity-95 group-data-[pressed]:scale-100 group-data-[pressed]:opacity-95";
+
+  /** Which icon control is currently held. Cleared on up/cancel/leave/blur so a
+   *  finger that slides off the target, or a drag that the browser turns into a
+   *  scroll, never leaves the pill stuck on. */
+  let pressedControl = $state<string | null>(null);
+  const pressProps = (key: string) => ({
+    "data-pressed": pressedControl === key ? "" : undefined,
+    onpointerdown: () => (pressedControl = key),
+    onpointerup: () => (pressedControl = null),
+    onpointercancel: () => (pressedControl = null),
+    onpointerleave: () => (pressedControl = null),
+    onblur: () => (pressedControl = null),
+  });
+
+  // The logo carried TWO fades that multiplied — the anchor's `hover:opacity-60`
+  // and the img's `group-hover:opacity-50` — landing the practice's mark at an
+  // effective 0.30, which reads as "disabled" or "image failed" rather than
+  // "link home". Worse, the open-menu copy of the img rule was dead (its anchor
+  // had no `group`), so the same control faded to 0.30 closed and 0.60 open.
+  // One treatment now, shared by both: a single 0.85 step plus a 1.04 lift, and
+  // the imgs carry no hover rule of their own.
+  const LOGO_LINK =
+    "flex items-center rounded-sm transition-[opacity,scale] duration-200 ease-[var(--transition-out-expo)] hover:scale-[1.04] hover:opacity-85 active:scale-100 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden";
+
+  // The trigger unmounts while the overlay is open and the overlay renders its
+  // own Close in the same slot, so `aria-expanded` cannot flip on one element.
+  // Both buttons therefore carry the pair, pointing at the dialog's id: a
+  // reader querying `[aria-controls="nav-menu"]` sees false → true across the
+  // swap, and either button announces the menu's state on its own.
+  const MENU_ID = "nav-menu";
 </script>
 
 {#if useNavLinks}
@@ -95,11 +233,17 @@
       <button
         bind:this={openButtonEl}
         type="button"
-        class="flex min-h-11 min-w-11 items-center justify-center lg:hidden"
+        class="{ICON_BUTTON} justify-center lg:hidden"
         onclick={openMenu}
         aria-label="Open menu"
+        aria-expanded={isMenuOpen}
+        aria-controls={MENU_ID}
+        {...pressProps("trigger")}
       >
-        <Menu size={24} />
+        <span class={ICON_GLYPH}>
+          <span aria-hidden="true" class="{ICON_PILL} bg-primary"></span>
+          <Menu size={24} class="relative" />
+        </span>
       </button>
     {/if}
   </nav>
@@ -136,15 +280,12 @@
     <div
       class="mx-auto flex max-w-[1400px] items-center justify-between px-5 py-5 md:px-12 md:py-6 lg:h-[120px] lg:px-[60px] lg:py-0"
     >
-      <a
-        href="/"
-        class="group flex items-center text-lg font-bold transition-opacity hover:opacity-60"
-      >
+      <a href="/" class="{LOGO_LINK} text-lg font-bold">
         {#if logo}
           <img
             src={logo.url}
             alt="Home"
-            class="{logoClass} transition-opacity group-hover:opacity-50"
+            class={logoClass}
             style={logo.maxWidth ? `max-width:${logo.maxWidth}` : undefined}
           />
         {:else}
@@ -157,103 +298,108 @@
            flex item so `justify-between` on <nav> reads as [logo] ↔ [everything
            else], instead of spreading three separate groups apart. -->
         <div class="flex items-center gap-6">
-          <!-- Desktop: inline top items. An item with children is a disclosure —
+          <!-- The inline link list and the phone/CTA cluster below belong to the
+             FLEET default chrome only. `hamburgerOnly` collapses the bar to
+             logo + trigger at every breakpoint, and both blocks used to render
+             anyway with no `lg:flex` to un-hide them — eight controls that were
+             `display:none` on every page of this site, on every render, forever.
+             They are not "the desktop copies of the overlay links": under
+             `hamburgerOnly` the overlay column below is the ONLY real one.
+             An `{#if}` keeps them out of the DOM here while leaving the fleet
+             chrome (hamburgerOnly=false) exactly as it was. -->
+          {#if !hamburgerOnly}
+            <!-- Desktop: inline top items. An item with children is a disclosure —
              click toggles it (aria-expanded), and hover/focus-within also reveal it
              for pointer/keyboard-tab users. Keyed by index: nav labels/hrefs aren't
              unique (two "" heading hrefs or repeated labels would collide and Svelte
              throws each_key_duplicate at hydration). gap-4 until xl: measured at a
              1024px viewport (real museo fonts) the items + both pills fill the band
              to 0px slack at gap-8 and 1px at gap-6 — gap-4 buys ~33px headroom. -->
-          <ul
-            class="hidden items-center gap-4 xl:gap-8 {hamburgerOnly
-              ? ''
-              : 'lg:flex'}"
-          >
-            {#each items as item, i (i)}
-              {#if item.children && item.children.length > 0}
-                <li class="group relative">
-                  <button
-                    type="button"
-                    class="flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
-                    aria-expanded={openDesktopIndex === i}
-                    aria-controls="nav-dropdown-{i}"
-                    onclick={() =>
-                      (openDesktopIndex = openDesktopIndex === i ? null : i)}
-                    onkeydown={(e) => {
-                      if (e.key === "Escape") openDesktopIndex = null;
-                    }}
-                  >
-                    {item.label}
-                    <ChevronDown size={16} aria-hidden="true" />
-                  </button>
-                  <ul
-                    id="nav-dropdown-{i}"
-                    class="absolute top-full left-0 flex min-w-48 flex-col gap-1 bg-background p-2 text-dark shadow-lg transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
-                    class:invisible={openDesktopIndex !== i}
-                    class:opacity-0={openDesktopIndex !== i}
-                  >
-                    {#each item.children as child, ci (ci)}
-                      <li>
-                        {#if child.href}
-                          <a
-                            href={child.href}
-                            class="block px-3 py-2 hover:opacity-70"
-                            >{child.label}</a
-                          >
-                        {:else}
-                          <span class="block px-3 py-2">{child.label}</span>
-                        {/if}
-                      </li>
-                    {/each}
-                  </ul>
-                </li>
-              {:else if item.href}
-                <li>
-                  <a
-                    href={item.href}
-                    class="hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
-                    >{item.label}</a
-                  >
-                </li>
-              {:else}
-                <li><span>{item.label}</span></li>
-              {/if}
-            {/each}
-          </ul>
+            <ul class="hidden items-center gap-4 lg:flex xl:gap-8">
+              {#each items as item, i (i)}
+                {#if item.children && item.children.length > 0}
+                  <li class="group relative">
+                    <button
+                      type="button"
+                      class="flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
+                      aria-expanded={openDesktopIndex === i}
+                      aria-controls="nav-dropdown-{i}"
+                      onclick={() =>
+                        (openDesktopIndex = openDesktopIndex === i ? null : i)}
+                      onkeydown={(e) => {
+                        if (e.key === "Escape") openDesktopIndex = null;
+                      }}
+                    >
+                      {item.label}
+                      <ChevronDown size={16} aria-hidden="true" />
+                    </button>
+                    <ul
+                      id="nav-dropdown-{i}"
+                      class="absolute top-full left-0 flex min-w-48 flex-col gap-1 bg-background p-2 text-dark shadow-lg transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
+                      class:invisible={openDesktopIndex !== i}
+                      class:opacity-0={openDesktopIndex !== i}
+                    >
+                      {#each item.children as child, ci (ci)}
+                        <li>
+                          {#if child.href}
+                            <a
+                              href={child.href}
+                              class="block px-3 py-2 hover:opacity-70"
+                              >{child.label}</a
+                            >
+                          {:else}
+                            <span class="block px-3 py-2">{child.label}</span>
+                          {/if}
+                        </li>
+                      {/each}
+                    </ul>
+                  </li>
+                {:else if item.href}
+                  <li>
+                    <a
+                      href={item.href}
+                      class="hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
+                      >{item.label}</a
+                    >
+                  </li>
+                {:else}
+                  <li><span>{item.label}</span></li>
+                {/if}
+              {/each}
+            </ul>
 
-          <!-- Phone + appointment/payment CTAs — desktop only; mirrored in the
-             mobile menu below (the two clusters carry the same links — edit
-             them together). The band itself is deep brand blue, so the "solid"
-             CTA needs to be white-on-blue to read as solid there (a blue fill
-             would vanish into the band), and the outline CTA needs a white
-             ring instead of the brand-color ring that reads on a light bg.
-             The phone number is xl-only (xl = Tailwind's default 1280px — the
-             theme's --screen-* vars are width utilities, not breakpoints):
-             measured at a 1024px viewport the items + both pills alone leave
-             ~33px slack, so adding the phone would force the item labels to
-             wrap inside the band. -->
-          <div
-            class="items-center gap-4 {hamburgerOnly
-              ? 'hidden'
-              : 'hidden lg:flex'}"
-          >
-            <a
-              href={PHONE.href}
-              class="hidden font-slab focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden xl:inline"
-              >{PHONE.display}</a
-            >
-            <a
-              href="#appointment"
-              class="rounded-full bg-white px-5 py-2 font-semibold text-primary-deep hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
-              >Request Appointment</a
-            >
-            <a
-              href={MODENTO_URL}
-              class="rounded-full border border-white px-5 py-2 text-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
-              target="_blank"
-              rel="noopener">Make a Payment</a
-            >
-          </div>
+            <!-- Phone + appointment/payment CTAs — the fleet chrome's desktop
+             cluster. It carries the same links as the overlay column below;
+             they are two INDEPENDENT chromes, not copies to be kept in sync
+             (only one can render: this one needs hamburgerOnly=false, the
+             overlay is what hamburgerOnly=true leaves). The band itself is deep
+             brand blue, so the "solid" CTA needs to be white-on-blue to read as
+             solid there (a blue fill would vanish into the band), and the
+             outline CTA needs a white ring instead of the brand-color ring that
+             reads on a light bg. The phone number is xl-only (xl = Tailwind's
+             default 1280px — the theme's --screen-* vars are width utilities,
+             not breakpoints): measured at a 1024px viewport the items + both
+             pills alone leave ~33px slack, so adding the phone would force the
+             item labels to wrap inside the band. -->
+            <div class="hidden items-center gap-4 lg:flex">
+              <a
+                href={PHONE.href}
+                class="hidden font-slab focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden xl:inline"
+                >{PHONE.display}</a
+              >
+              <a
+                href="#appointment"
+                class="rounded-full bg-white px-5 py-2 font-semibold text-primary-deep hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
+                >Request Appointment</a
+              >
+              <a
+                href={MODENTO_URL}
+                class="rounded-full border border-white px-5 py-2 text-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
+                target="_blank"
+                rel="noopener">Make a Payment</a
+              >
+            </div>
+          {/if}
 
           {#if !isMenuOpen}
             <!-- justify-END, not center: the min-w-11 box is an a11y tap target
@@ -263,21 +409,35 @@
             <button
               bind:this={openButtonEl}
               type="button"
-              class="flex min-h-11 min-w-11 items-center justify-end transition-opacity hover:opacity-40 {hamburgerOnly
+              class="{ICON_BUTTON} justify-end {hamburgerOnly
                 ? ''
                 : 'lg:hidden'}"
               onclick={openMenu}
               aria-label="Open menu"
+              aria-expanded={isMenuOpen}
+              aria-controls={MENU_ID}
+              {...pressProps("trigger")}
             >
-              {#if hamburgerSrc}
-                <!-- Live's exact icon (#E7F5FA, thick bars) — matches the
-                   reference's weight/colour where the Lucide glyph would not.
-                   Its `.header-hamburger` is 1rem of live's stepped root, so
-                   it steps 24×19 / 32×25 / 40×31 with the logo. -->
-                <img src={hamburgerSrc} alt="" class="w-6 md:w-8 lg:w-10" />
-              {:else}
-                <Menu size={28} />
-              {/if}
+              <!-- The glyph is `relative` so it paints ABOVE the absolutely
+                   positioned pill behind it (both are in the same stacking
+                   context; a static child would lose to a positioned sibling
+                   regardless of source order). -->
+              <span class={ICON_GLYPH}>
+                <span aria-hidden="true" class="{ICON_PILL} bg-primary"></span>
+                {#if hamburgerSrc}
+                  <!-- Live's exact icon (#E7F5FA, thick bars) — matches the
+                     reference's weight/colour where the Lucide glyph would not.
+                     Its `.header-hamburger` is 1rem of live's stepped root, so
+                     it steps 24×19 / 32×25 / 40×31 with the logo. -->
+                  <img
+                    src={hamburgerSrc}
+                    alt=""
+                    class="relative w-6 md:w-8 lg:w-10"
+                  />
+                {:else}
+                  <Menu size={28} class="relative" />
+                {/if}
+              </span>
             </button>
           {/if}
         </div>
@@ -290,22 +450,39 @@
   <!-- The open trigger above unmounts while the menu is open, so the element
        trapFocus captured is detached by close time — `restoreFocus` hands it
        the re-mounted trigger instead. -->
+  <!-- Every transition under this `{#if}` is `|global`, and that is not
+       decoration. Svelte transitions are LOCAL by default: they play when
+       their OWN block is created, not when an ancestor's is. Both overlays sit
+       one block deeper (`{#if useNavLinks}` / `{:else}`) than the `{#if
+       isMenuOpen}` that actually toggles, so a local directive here is dead
+       code — probed 2026-08-12 on the pre-existing `transition:fly={{y:-800,
+       duration:700}}`: zero animations on the dialog or any descendant for
+       every frame after the click, opacity 1 and transform none from frame 0.
+       The menu had been popping open, which is the "abrupt" this round was
+       asked to fix. `|global` is what makes the directive run at all. -->
   {#if useNavLinks}
     <div
+      id={MENU_ID}
       role="dialog"
       aria-modal="true"
       aria-label="Menu"
       class="fixed inset-0 z-50 flex h-dvh w-screen flex-col items-center justify-center gap-8 bg-background lg:hidden"
-      transition:fade
+      transition:fade|global
       use:trapFocus={{ onEscape: closeMenu, restoreFocus: () => openButtonEl }}
     >
       <button
         type="button"
-        class="absolute top-4 right-8 flex min-h-11 min-w-11 items-center justify-center"
+        class="{ICON_BUTTON} absolute top-4 right-8 justify-center"
         onclick={closeMenu}
         aria-label="Close menu"
+        aria-expanded={isMenuOpen}
+        aria-controls={MENU_ID}
+        {...pressProps("close")}
       >
-        <X size={24} />
+        <span class={ICON_GLYPH}>
+          <span aria-hidden="true" class="{ICON_PILL} bg-primary"></span>
+          <X size={24} class="relative" />
+        </span>
       </button>
 
       {#each navLinks as link (link.href)}
@@ -314,93 +491,153 @@
       {/each}
     </div>
   {:else}
-    <!-- Live's .dropdown-modal: a full-screen cyan wash (#129ecc @ 92%) over
-         the beach photo (its own asset), sliding down from the top. Links are
-         white museo-slab h3s (hover opacity .5) in a 60vh justify-between
-         column starting at 10% down; the phone rides the same style; the two
-         CTAs are the white-outlined .button.nav pills. Logo badge stays
-         top-left, live's own X icon top-right. -->
+    <!-- Live's .dropdown-modal: a full-screen wash over the beach photo (its
+         own asset), sliding down from the top. Links are white museo-slab h3s
+         in a column; the phone rides the same style; the two CTAs are the
+         white-outlined .button.nav pills. Logo badge stays top-left, live's
+         own X icon top-right.
+
+         DEVIATION from live, operator-ACKed: the wash is `--color-primary-deep`
+         (#0e7799), not live's brand cyan #129ecc. Measured on the real
+         composited pixels — the wash is only 92% opaque, so the effective
+         ground varies with the surf underneath and has to be read off the
+         rendered surface, not off this hex — every one of the nine white
+         things in here failed WCAG AA on the cyan: 2.85-2.96:1 at both 390 and
+         1440, against the 3.0 the 30/40px links need and the 4.5 the 15px
+         mobile pill labels need. Deep takes the same measurement to 4.46-4.65.
+         That is the WORST pixel under each link's whole box, padding included,
+         so it reads lower than what any actual glyph sits on — conservative in
+         the safe direction, and the 15px pill labels clear 4.5 by 0.02 on it.
+         The audit had reported this as a pill-only defect; it was the whole
+         menu.
+
+         Two things downstream are load-bearing on this hex, and both invert
+         when it changes — see the Close button's pill below and `white-deep`
+         in OutlineButton. A fill equal to the ground composites to nothing. -->
     <div
+      id={MENU_ID}
       role="dialog"
       aria-modal="true"
       aria-label="Menu"
       class="fixed inset-0 z-50 h-dvh w-screen overflow-y-auto {hamburgerOnly
         ? ''
         : 'lg:hidden'}"
-      style="background-color:#129ecc;background-image:linear-gradient(rgba(18,158,204,0.92), rgba(18,158,204,0.92)),url('/menu-beach.jpg');background-position:0 0,50%;background-size:auto,cover"
-      transition:fly={{ y: -800, duration: 700, easing: quintOut }}
+      style="background-color:#0e7799;background-image:linear-gradient(rgba(14,119,153,0.92), rgba(14,119,153,0.92)),url('/menu-beach.jpg');background-position:0 0,50%;background-size:auto,cover"
+      in:fade|global={{ duration: MENU_WASH_IN, easing: expoOut }}
+      out:fade|global={{ duration: MENU_WASH_OUT, easing: cubicIn }}
       use:trapFocus={{ onEscape: closeMenu, restoreFocus: () => openButtonEl }}
     >
+      <!-- Mirrors the closed bar's content band EXACTLY (same px/py ladder as
+           the <nav> band above) so the logo and trigger/X sit on the shared
+           content gutter and don't jump when the menu opens. Part of the
+           MarkUp-H2 "the menu [aligns to the content width] too" directive. -->
       <div
-        class="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 lg:h-[120px] lg:px-[60px] lg:py-0"
+        class="mx-auto flex max-w-[1400px] items-center justify-between px-5 py-5 md:px-12 md:py-6 lg:h-[120px] lg:px-[60px] lg:py-0"
       >
         {#if logo}
-          <a
-            href="/"
-            onclick={closeMenu}
-            class="transition-opacity hover:opacity-60"
-          >
-            <img
-              src={logo.url}
-              alt="Home"
-              class="{logoClass} transition-opacity group-hover:opacity-50"
-            />
+          <a href="/" onclick={closeMenu} class={LOGO_LINK}>
+            <img src={logo.url} alt="Home" class={logoClass} />
           </a>
         {:else}
           <span></span>
         {/if}
+        <!-- The Close takes the TRIGGER's box and icon ladder (justify-end,
+             w-6/8/10) it replaces, so the control does not resize or jump
+             sideways in the frame the overlay mounts: the X used to be a flat
+             w-10 in a justify-CENTER box, which at 390 grew the glyph 67% and
+             moved it 10px inboard in one frame. Its press pill steps to
+             `--color-primary`: the ground here IS `--color-primary-deep`, where
+             a deep pill composites to nothing. Before the wash was darkened
+             this read the other way round, and it is the same rule either way —
+             the pill takes whichever of the two brand tones the ground is not.
+             Measured on the rendered pixels: 1.56:1 at 390 and 1.65:1 at 1440
+             against the wash, where a deep-on-deep pill is 1.06:1 — i.e. no
+             press feedback at all, on the site's only navigation control. -->
         <button
           type="button"
-          class="flex min-h-11 min-w-11 items-center justify-center transition-opacity hover:opacity-60"
+          class="{ICON_BUTTON} justify-end"
           onclick={closeMenu}
           aria-label="Close menu"
+          aria-expanded={isMenuOpen}
+          aria-controls={MENU_ID}
+          {...pressProps("close")}
         >
-          <img src="/icons/menu-close-white.svg" alt="" class="w-10" />
+          <span class={ICON_GLYPH}>
+            <span aria-hidden="true" class="{ICON_PILL} bg-primary"></span>
+            <img
+              src="/icons/menu-close-white.svg"
+              alt=""
+              class="relative w-6 md:w-8 lg:w-10"
+            />
+          </span>
         </button>
       </div>
 
-      <!-- Live's column is NOT spread by its 60vh box — the h3 links carry
-           Webflow's 20px/10px block margins plus the container's 10px gap, a
-           90px pitch that naturally overflows the box (measured off the open
-           modal). -->
+      <!-- MarkUp round H2 (thread bac4decb…/team pin #5): the column lives in
+           NORMAL FLOW inside the scrolling dialog — the absolute top-[10%]
+           that let the links detach from the dialog's scroll geometry (Tim's
+           "Make Payment below the fold, no scroll" capture) is gone, so
+           overflow-y-auto above can never miss it. Horizontally the links
+           stay CENTERED — H2 briefly left-aligned them onto the content
+           gutter, and the operator corrected it same-day: "nav should still
+           have links centered like before" (LEDGER MARKUP ROUND H2).
+           Rhythm: live's h3 links carried Webflow's 20px/10px block margins
+           plus the container's 10px gap — a 40px slot, 90px pitch at the lg
+           50px line-height. gap-10 IS that 40px slot, moved off the links so
+           the column starts flush under the header band instead of re-adding
+           the first link's top margin (which is what keeps everything on one
+           screen at 1354×930, Tim's capture size). -->
+      <!-- The cascade: each row carries `in:fly` with its own delay (see
+           `linkIn` above). `fly` only ever sets opacity + transform, so a row
+           is hit-testable and focusable from its first frame — the stagger
+           never makes a visible link inert, and trapFocus's focusable() probe
+           (getClientRects, not opacity) sees the whole column immediately. No
+           `out:` on purpose: the rows leave with the wash. -->
       <nav
-        class="absolute top-[10%] flex w-full flex-col items-center gap-2.5"
+        class="flex w-full flex-col items-center gap-10"
         aria-label="Menu links"
       >
         <a
           href="/"
           onclick={closeMenu}
-          class="font-slab mt-5 mb-2.5 text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
+          in:fly|global={linkIn(0)}
+          class="font-slab text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
           >Home Page</a
         >
-        {#each items as item, i (i)}
-          {#if item.href}
-            <a
-              href={item.href}
-              onclick={closeMenu}
-              class="font-slab mt-5 mb-2.5 text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
-              >{item.label}</a
-            >
-          {/if}
+        {#each menuLeafItems as item, i (i)}
+          <a
+            href={item.href}
+            onclick={closeMenu}
+            in:fly|global={linkIn(i + 1)}
+            class="font-slab text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
+            >{item.label}</a
+          >
         {/each}
         <a
           href={PHONE.href}
           onclick={closeMenu}
-          class="font-slab mt-5 mb-2.5 text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
+          in:fly|global={linkIn(menuLeafItems.length + 1)}
+          class="font-slab text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
           >{PHONE.display}</a
         >
         <a
           href="#appointment"
           onclick={closeMenu}
-          class="font-slab px-[1em] py-[1.3em] leading-[0] mt-5 mb-2.5 inline-flex items-center rounded-lg border border-white text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 lg:text-[25px]"
-          >Book an Appointment</a
+          in:fly|global={linkIn(menuLeafItems.length + 2)}
+          class="{pillClass(
+            'white-deep',
+          )} px-[1em] py-[1.3em] leading-[0] text-[15px] lg:text-[25px]"
+          >Request an Appointment</a
         >
         <a
           href={MODENTO_URL}
           target="_blank"
           rel="noopener"
           onclick={closeMenu}
-          class="font-slab px-[1em] py-[1.3em] leading-[0] mt-5 mb-2.5 inline-flex items-center rounded-lg border border-white text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 lg:text-[25px]"
+          in:fly|global={linkIn(menuLeafItems.length + 3)}
+          class="{pillClass(
+            'white-deep',
+          )} px-[1em] py-[1.3em] leading-[0] text-[15px] lg:text-[25px]"
           >Make a Payment</a
         >
       </nav>

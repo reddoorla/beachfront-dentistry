@@ -54,10 +54,45 @@
     ></div>
 
     <!-- Bottom-left label. Inline white defeats the global `main h1–h3`
-         primary-colour rule (same trap SubpageHero documents). -->
+         primary-colour rule (same trap SubpageHero documents).
+         failSafe (MarkUp thread 738ad46b-0be6-4d92-a1c0-73a53e4c298e pin #2,
+         "Sometimes this name shows up and sometimes it doesn't"): the label's
+         only reveal path was the IntersectionObserver — in an embed where it
+         never fires (or rAF is throttled to a stop) the name persisted at
+         opacity 0. Forces the revealed state within 1.5s of mount; when the
+         observer works the reveal is byte-identical to before (LIVE_REVEAL,
+         delayMax 0).
+         Alignment (same thread, pin #2's other half, operator decode
+         2026-08-11: "never aligned correctly" = "horizontal alignment to the
+         content width"): the label sits on the SHARED content gutter at every
+         width — the same mx-auto max-w-[1400px] px ladder the nav band
+         carries (Nav.svelte: 20px @<768, 48px 768–991, then 60px + the 1400
+         cap, ≡ max(60px, 50% − 640px) at lg → 80 @1440, 60 @1294). The old
+         lg:left-20 was a 1440-only sample: right at 1440, 20px adrift
+         everywhere in the 992–1399 band (probed 80 vs 60 @1354/1294). -->
+    <!-- Bottom offset (Round H4): `bottom-[10%]` is a fraction of the BAND, so
+         it tracked nothing in particular and put the label inside the wave
+         divider's box at every width — probed overlap −23.9/−25.0 @390,
+         −20.6/−22.6 @834, −44.5/−43.5 @1440 (name / breadcrumb variants).
+         Operator, MarkUp thread 7dd0c2f2: "wave should never touch the text".
+         The offset is now the divider's own box-height ladder (WaveDivider
+         `heightClass`, 72/96/120), so the label clears the whole box with a
+         measured 11.8/17.4/23px to spare. Absolute box — the band's height and
+         everything below it are untouched. -->
+    <!-- `data-detail-label` is the interaction suite's handle on this block.
+         It used to select on `[class*="bottom-[10%]"]`, which meant a spacing
+         change (H4's) silently broke a test about HORIZONTAL alignment. -->
+    <!-- This one already had a failSafe — it is the element MarkUp thread
+         738ad46b pin #2 was about, the team-member name that intermittently
+         never appeared. It now also carries `data-reveal`, which is what stops
+         the name being painted and then yanked. Its 1500ms stays: this is the
+         known-flaky target, so it gets the tighter deadline rather than the
+         2500ms shared preset. -->
     <div
-      class="absolute bottom-[10%] left-5 z-10 md:left-12 lg:left-20"
-      use:animateIn={LIVE_REVEAL}
+      data-reveal
+      data-detail-label
+      class="absolute bottom-[72px] left-5 z-10 md:bottom-[96px] md:left-12 lg:bottom-[120px] lg:left-[max(60px,calc(50%-640px))]"
+      use:animateIn={{ ...LIVE_REVEAL, failSafe: 1500 }}
     >
       {#if labelSize === "name"}
         <!-- Live's name h1 (`.hero` title): 25px/38 @390 (must clear the

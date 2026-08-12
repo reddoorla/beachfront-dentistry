@@ -1,5 +1,6 @@
 <script lang="ts">
   import RichTextBody from "$lib/components/RichTextBody.svelte";
+  import PrismicPhoto from "$lib/components/PrismicPhoto.svelte";
   import ContentBand from "$lib/components/ContentBand.svelte";
   import WaveDivider from "$lib/components/WaveDivider.svelte";
   import {
@@ -15,7 +16,12 @@
     type LinkField,
     type RichTextField,
   } from "@prismicio/client";
-  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
+  import {
+    animateIn,
+    LIVE_REVEAL,
+    ABOVE_FOLD_REVEAL,
+  } from "$lib/actions/animateIn";
+  import { pillClass } from "$lib/components/OutlineButton.svelte";
   import { SvelteSet } from "svelte/reactivity";
   import { viewport } from "$lib/stores/viewport.svelte";
   import { onMount } from "svelte";
@@ -200,7 +206,9 @@
           <div use:animateIn={REVEAL}>
             <PrismicLink
               field={primary.cta_link}
-              class="focus-visible:ring-offset-primary font-slab px-[1em] py-[1.3em] leading-[0] inline-flex items-center rounded-lg border border-white text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:text-[25px]"
+              class="{pillClass(
+                'white',
+              )} focus-visible:ring-offset-primary px-[1em] py-[1.3em] text-[15px] leading-[0] md:text-[20px] lg:text-[25px]"
             >
               {primary.cta_label}
             </PrismicLink>
@@ -213,9 +221,14 @@
         {#each items as item (item)}
           {@const label = asText(item.item_heading)}
           <li use:animateIn={REVEAL}>
+            <!-- Hover moves the row toward where it goes instead of dimming it:
+                 fading a link to 80% is the disabled idiom, and these rows are
+                 this section's only navigation. `translate` (not `transform`) is
+                 the property Tailwind v4 compiles `translate-x-*` to, so that is
+                 what transitions. -->
             <PrismicLink
               field={item.item_link}
-              class="group flex items-center gap-4 rounded-lg transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent focus-visible:outline-hidden lg:gap-10"
+              class="group flex items-center gap-4 rounded-lg transition-[translate] duration-200 ease-out hover:translate-x-1 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent focus-visible:outline-hidden motion-reduce:transition-none lg:gap-10"
             >
               <!-- Live tooth icons are 60px on mobile (100px on desktop); labels
                    stay one line (mobile ~20px). -->
@@ -255,7 +268,14 @@
   >
     <!-- Live animates the heading+photo block as ONE element, then each step
          and the CTA individually as they enter. -->
-    <div class="lg:flex" use:animateIn={REVEAL}>
+    <!-- DEVIATION (MarkUp thread badfa786, pin #6): live top-aligns the two
+         `._w-half` columns (50%, beachfront.css:2867-2871; photo column pads
+         pt 20 / pb 40 at the 40px root), which parks the circle's center 46px
+         ABOVE the h2's center once the 120px heading wraps to 4 lines
+         (live's own probed offsets: circle vs headline+subhead block center
+         +7.5px @1440, -89px @1294). Tim wants the circle centered on the
+         headline block instead, so the row centers its items at lg. -->
+    <div class="lg:flex lg:items-center" use:animateIn={REVEAL}>
       <!-- `._w-half.p-4.su-w-full-tablet`: 50% (`beachfront.css:2867-2871`)
            going 100% at <=991, padding `1rem` = 24/32/40. That padding is what
            wraps live's 120px heading to THREE lines at 834 (a 674 column, not
@@ -292,12 +312,24 @@
         {/if}
       </div>
       {#if isFilled.image(primary.side_image)}
+        <!-- lg pads are deliberately pt-0/pb-10: under lg:items-center the
+             headline+subhead block's center sits (subtitle mb-10)/2 = 20px
+             ABOVE its column's center, so the circle column carries
+             pb − pt = 40px to land the flex-centered circle exactly on the
+             block center — at any lg width, whichever column is taller.
+             Sub-lg (stacked) pads are untouched: they match live's probed
+             stack (thread badfa786, pin #6). -->
         <div
-          class="mx-auto w-full px-6 pt-3 pb-6 md:w-1/2 md:px-8 md:pt-4 md:pb-8 lg:w-1/2 lg:px-10 lg:pt-5 lg:pb-10"
+          class="mx-auto w-full px-6 pt-3 pb-6 md:w-1/2 md:px-8 md:pt-4 md:pb-8 lg:w-1/2 lg:px-10 lg:pt-0 lg:pb-10"
         >
-          <PrismicImage
+          <!-- The big services circle: half the container at md+, full width
+               below. Measured 303/305/560 at 390/834/1440 — the 50% column at
+               834 lands almost exactly where the full-width phone does, which
+               is why both mid steps are ~305 rather than the viewport. -->
+          <PrismicPhoto
             field={primary.side_image}
             fallbackAlt=""
+            sizes="(min-width: 1024px) 560px, (min-width: 768px) 305px, 303px"
             class="aspect-square w-full rounded-full object-cover"
           />
         </div>
@@ -307,7 +339,21 @@
       class="flex flex-col gap-10 text-center md:flex-row md:justify-between md:gap-0"
     >
       {#each items as item, i (item)}
-        <li class="md:w-[30%] md:min-w-0" use:animateIn={REVEAL}>
+        <!-- The home trio used to land on ONE frame — `LIVE_REVEAL.delayMax`
+             is 0, so the position heuristic computes 0ms for everything and
+             three cards arrive as a slab, which reads as a trigger firing
+             rather than as a page laid out deliberately.
+             Staggered, not gated on the breakpoint: this `<ol>` is a row at md+
+             (where the stagger sequences correctly, all three triggering in the
+             same frame) and a COLUMN below it, where item 3 waits 140ms after
+             entering the viewport. With three items that penalty is well inside
+             the 750ms transition and never reads as stuck — the audit's warning
+             about vertical stagger is about long lists, where it would be 420ms
+             and would. -->
+        <li
+          class="md:w-[30%] md:min-w-0"
+          use:animateIn={{ ...REVEAL, stagger: 70, index: i }}
+        >
           <!-- Live's STEP label is an h6: museo-SLAB 400, 1.28px tracking,
                slate #365b6d at BOTH breakpoints — 12px/15px mobile, 24px/30px
                desktop (the small sans eyebrow was an invention; census caught
@@ -342,7 +388,9 @@
       <div class="mt-12 text-center md:mt-16 lg:mt-20" use:animateIn={REVEAL}>
         <PrismicLink
           field={primary.cta_link}
-          class="font-slab focus-visible:ring-primary-deep inline-flex items-center rounded-lg border border-[#365b6d] px-[1em] py-[1.3em] text-[14px] leading-[0] font-light text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:text-[20px] lg:text-[25px]"
+          class="{pillClass(
+            'teal',
+          )} px-[1em] py-[1.3em] text-[14px] leading-[0] xs:text-[15px] md:text-[20px] lg:text-[25px]"
         >
           {primary.cta_label}
         </PrismicLink>
@@ -395,9 +443,13 @@
            max-w-[640px] gave the RIGHT answer at 1440 and 390 and the wrong one
            across 768-991, where it let the heading run 640 wide on one line
            instead of wrapping to two at 369. -->
+      <!-- Home's first content heading, and the second reveal target inside the
+           first viewport at BOTH widths (measured top=850 @1440, 702 @390) —
+           so it takes the server-rendered hidden state like the hero above it. -->
       <div
+        data-reveal
         class="h-primary mb-9 [&_h2]:text-[28px] [&_h2]:leading-[38px] [&_h2]:text-wrap xs:mb-[72px] md:mt-8 md:mb-32 md:w-1/2 lg:mb-20 lg:[&_h2]:text-[60px] lg:[&_h2]:leading-[1.2]"
-        use:animateIn={REVEAL}
+        use:animateIn={ABOVE_FOLD_REVEAL}
       >
         <PrismicRichText field={slice.primary.heading} />
       </div>
@@ -424,7 +476,15 @@
            trio's .expanding-box pattern). -->
       <!-- Desktop row geometry from live (2026-08-02): cards are 397 wide in
            the 1280 content box — a 13px inset each side + 31px gaps
-           (13+397+31+397+31+397+13 ≈ 1279), not a flush gap-24 row. -->
+           (13+397+31+397+31+397+13 ≈ 1279; the inset is `.expanding-box`'s
+           `margin: 0 12.5px`, beachfront.css:6927-6928, and the width is the
+           page embed's `calc(33% - 25px)`, index.html:88-102; probed first
+           card x=92.5 on the reference at 1440). MarkUp d486b3c5 thread
+           bdabccea-788f-4df8-9832-12a64544cba5 (pin #3): "Left align image to
+           headline above" — the lg row now drops that inset so the first/last
+           card edges sit flush on the shared content gutter (cards grow
+           397→406 in the same 1280 box, gap stays live's 31px). Deliberate
+           deviation from live's inset row; see LEDGER 2026-08-10. -->
       <!-- Below 992 the row is a single column. `.expanding-box` is sized in rem
            against live's stepped root, so the column has its own ladder:
              <=479    100% x 240 (10rem), margin .5rem -> 24px gap, centred
@@ -432,10 +492,11 @@
              768-991  16rem x 14rem = 512x448, margin 2rem -> 128px gap
            and at 768-991 it is LEFT-aligned, not centred: live's card sits at
            x=112 = the 48px content gutter + its own 64px margin (measured at
-           834; the whole column was centred at x=161 here). -->
+           834; the whole column was centred at x=161 here). Tim's pin is the
+           desktop row; live's own deliberate tablet indent stays. -->
       <div
         data-grid-columns={columns}
-        class="grid grid-cols-1 gap-6 xs:mx-auto xs:max-w-[403px] xs:gap-[96px] md:mx-0 md:ml-16 md:max-w-[512px] md:gap-[128px] lg:mx-0 lg:ml-0 lg:max-w-none lg:gap-[31px] lg:px-[13px] {colClass[
+        class="grid grid-cols-1 gap-6 xs:mx-auto xs:max-w-[403px] xs:gap-[96px] md:mx-0 md:ml-16 md:max-w-[512px] md:gap-[128px] lg:mx-0 lg:ml-0 lg:max-w-none lg:gap-[31px] {colClass[
           columns
         ] ?? 'md:grid-cols-3'}"
       >
@@ -456,9 +517,13 @@
               class="relative h-[240px] overflow-hidden rounded-[25px] bg-[#e7f5fa] shadow-sm xs:h-[336px] md:h-[448px]"
               use:animateIn={REVEAL}
             >
-              <PrismicImage
+              <!-- The mobile "Finally…" card. Measured 351/480/600 at
+                   390/834/1440 — its column narrows at md, which is why the
+                   middle step is not simply the viewport. -->
+              <PrismicPhoto
                 field={item.item_media}
                 fallbackAlt=""
+                sizes="(min-width: 1024px) 600px, (min-width: 768px) 480px, 351px"
                 class="absolute inset-0 h-full w-full object-cover object-center"
               />
               <!-- Live's `.box-gradient` is BREAKPOINT-DEPENDENT (read from the
@@ -512,13 +577,48 @@
                  box) — while the label bar stays put. -->
             <!-- 14rem tall across 768–991 (448 at that band's 32px root), 7rem
                  at >=992 (280 at 40). -->
+            <!-- The WHOLE card toggles, not just its 80px bar. This card is
+                 the Q&A card's visual twin on the same page — pale bar, "+",
+                 cyan wash, one open — and that one has toggled from anywhere
+                 since it shipped (QuestionCard.svelte:156-159). Probed at
+                 1440: 406x280 with `cursor: auto`, and a click dispatched on
+                 the photo left `aria-expanded="false"`, so 71% of the surface
+                 was silently inert. A patient who learns the gesture on one
+                 family and tries it on the other should not be told the page
+                 is broken. The guard is copied verbatim rather than
+                 reimplemented: the bar's own <button>, and any link the body
+                 copy carries, must not double-fire through the wrapper. The
+                 <button> stays the semantic disclosure — same tab stop, same
+                 ARIA, keyboard path unchanged; this is a pointer convenience.
+                 The mobile card (isMobile branch above) deliberately has no
+                 toggle at all — its copy is already showing — so this is the
+                 desktop/tablet structure only. -->
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div
-              class="relative h-[448px] overflow-hidden rounded-[25px] bg-[#e7f5fa] shadow-sm lg:h-[280px]"
+              onclick={expandable
+                ? (e: MouseEvent) => {
+                    if ((e.target as HTMLElement).closest("a, button")) return;
+                    toggleCard(i);
+                  }
+                : undefined}
+              onkeydown={expandable
+                ? (e: KeyboardEvent) => {
+                    if (e.key === "Escape" && open) toggleCard(i);
+                  }
+                : undefined}
+              class="group relative h-[448px] overflow-hidden rounded-[25px] bg-[#e7f5fa] shadow-sm lg:h-[280px] {expandable
+                ? 'cursor-pointer'
+                : ''}"
               use:animateIn={REVEAL}
             >
-              <PrismicImage
+              <!-- The desktop accordion card. Non-monotonic: 512 wide at 834
+                   in the stacked layout, 406 at 1440 once the 3-up grid takes
+                   over. A rising ladder would understate the tablet by 106px.
+                   Overshoot before this line: 3.5x. -->
+              <PrismicPhoto
                 field={item.item_media}
                 fallbackAlt=""
+                sizes="(min-width: 1024px) 406px, (min-width: 768px) 512px, 351px"
                 class="absolute inset-0 h-full w-full object-cover"
               />
               <div
@@ -548,12 +648,20 @@
                 >
                   <RichTextBody field={item.item_body} />
                 </div>
+                <!-- The bar is what the eye tracks, so it is what acknowledges
+                     the pointer: one step brighter (#e7f5fa -> #d9eef7) under
+                     `group-hover` from the card, in 200ms. It had no hover
+                     rule at all and computed `transition: all / 0s`, so
+                     nothing on this card moved until the cursor reached the
+                     "+". Same colour and timing as the Q&A card's bar
+                     (QuestionCard.svelte) — the two families brighten
+                     identically on purpose. -->
                 <button
                   type="button"
                   aria-expanded={open}
                   aria-controls={panelId}
                   onclick={() => toggleCard(i)}
-                  class="focus-visible:ring-primary-deep absolute inset-x-0 bottom-0 flex h-16 cursor-pointer items-center justify-between gap-4 bg-[#e7f5fa] px-4 text-left focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden lg:h-20 lg:px-5"
+                  class="focus-visible:ring-primary-deep absolute inset-x-0 bottom-0 flex h-16 cursor-pointer items-center justify-between gap-4 bg-[#e7f5fa] px-4 text-left transition-colors duration-200 group-hover:bg-[#d9eef7] focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden motion-reduce:transition-none lg:h-20 lg:px-5"
                 >
                   <span
                     class="font-slab text-[30px] leading-[45px] font-bold text-[#365b6d]"

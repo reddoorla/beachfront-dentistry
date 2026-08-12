@@ -66,9 +66,22 @@ describe("motion-aware transitions — prefers-reduced-motion", () => {
     expect(config.delay).toBe(0);
   });
 
-  it("still returns a usable config so elements appear/disappear", () => {
-    const config = fade(element(), { duration: 700 });
-    expect(typeof config.css).toBe("function");
+  // Zero duration alone is not enough. Svelte samples a config's `css` at t=0
+  // and commits that frame even when the transition is zero-length, so a
+  // reduced-motion `fly({ y: 22 })` used to paint its full offset for one
+  // frame before snapping back — visible motion for someone who asked for
+  // none, and a wrong answer for anything measuring layout in that frame (it
+  // inflated the nav overlay's scrollHeight by exactly the fly distance).
+  // Returning a config with NO style hooks is what makes "instant" literal.
+  it("applies no styles at all — nothing for Svelte to paint, not even at t=0", () => {
+    for (const config of [
+      fade(element(), { duration: 700 }),
+      fly(element(), { duration: 700, y: 22 }),
+      slide(element(), { duration: 700 }),
+    ]) {
+      expect(config.css).toBeUndefined();
+      expect(config.tick).toBeUndefined();
+    }
   });
 });
 

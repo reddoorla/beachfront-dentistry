@@ -264,7 +264,17 @@ main :where(h1, h2, h3) {
    not for small headings (blux `txt-role` bands, dev fixtures), which stay on
    the AA-safe -deep default above. So primary is opt-in via `.h-primary`, added
    only to the genuinely large headings (30–140px here). Unlayered + a class
-   selector so it outranks both Tailwind utilities and the -deep default. */
+   selector so it outranks both Tailwind utilities and the -deep default.
+
+   THE OPT-IN IS ALSO GROUND-DEPENDENT, and that half was missing. "AA-safe at
+   ≥24px" is a statement about #129ecc ON WHITE. On the site's pale band
+   (#e7f5fa — the team card, the service block) the same colour is 2.78:1 and
+   fails the very threshold this rule invokes to justify itself. That is not
+   hypothetical: it was every colour-contrast violation the a11y suite could
+   find, 19 nodes across three pages, carved out as a known pair for weeks.
+   Before adding `.h-primary`/`.h-primary-lg` to anything, check what the
+   heading actually sits on. On the pale band the answer is: don't — let it
+   fall through to the -deep default above (4.58:1 there). */
 .h-primary,
 .h-primary :where(h1, h2, h3) {
   color: var(--color-primary);
@@ -380,16 +390,46 @@ main :where(h1, h2, h3) strong,
 }
 
 @layer base {
-  /* Live's Webflow reveal travel: elements rise 4rem of ITS responsive root
-     (24px mobile → 40px desktop rem) = 96px / 160px. Our root stays 16px, so
-     the travel ships as a breakpoint-stepped var, consumed by animateIn's
-     LIVE_REVEAL preset. */
+  /* How far a scroll-revealed element rises, consumed by animateIn's
+     LIVE_REVEAL preset. This used to transcribe live's Webflow travel (4rem of
+     ITS responsive root = 96px mobile / 160px desktop). That was too far to
+     ship: animateIn's observer watches the TRANSFORMED box with `threshold: 0`
+     and no rootMargin, so an element cannot begin revealing until its resting
+     top is already one full travel inside the viewport — at 1440x720 a row
+     laid out at y=660 was drawn at y=820, below the fold, at opacity 0. The
+     bottom fifth of a laptop screen was a dead band. 56/72 keeps the rise
+     legible and shrinks that band to something a scroll crosses immediately. */
   :root {
-    --reveal-travel: 96px;
+    --reveal-travel: 56px;
   }
   @media (min-width: 1024px) {
     :root {
-      --reveal-travel: 160px;
+      --reveal-travel: 72px;
+    }
+  }
+
+  /* The reveal's hidden state, in CSS, so it exists at FIRST PAINT.
+     animateIn can only hide its targets from JS at hydration, which is
+     150ms-850ms after the browser has already painted them: the hero headline
+     appeared in final position, sat there, then dropped `--reveal-travel` and
+     vanished before floating back. Reading as a broken page load.
+     The no-JS contract lives in app.html: a <noscript><style> there forces
+     these two properties back with !important, so a browser that will never run
+     the reveal never hides anything. Read that comment before changing either
+     half — it records why the guard is a noscript style and not the inline
+     `html.js` class script the audit proposed (CSP drops the script on
+     server-rendered routes).
+     `[data-reveal]` is written by animateIn while an element is hidden and
+     removed the moment it reveals; server-rendered markup can carry it too, and
+     must for a given element to be covered at first paint. Inline styles from
+     applyHidden are byte-identical to these declarations, so hydration is a
+     no-op re-write rather than a visible state change. An element whose SSR
+     markup carries `data-reveal` depends on JS to ever appear — pair it with
+     animateIn's `failSafe` option, which is what that option is for. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-reveal] {
+      opacity: 0;
+      transform: translateY(var(--reveal-travel));
     }
   }
 
@@ -486,16 +526,45 @@ main :where(h1, h2, h3) strong,
 
   /* Respect users who ask for less motion: neutralize CSS transitions/animations
      and smooth scrolling. Svelte's JS-driven transitions don't see this reset —
-     import fade/fly/slide from $lib/transitions instead of svelte/transition. */
+     import fade/fly/slide from $lib/transitions instead of svelte/transition.
+     The DELAYS have to go too, not just the durations: a zero-length animation
+     that still waits out its delay is "nothing happens, then it pops", which is
+     worse than the motion it replaced. The nav menu's 45ms-per-item cascade is
+     the live case; delay-1000 in the Animation/* components is the loaded one.
+     NOT COVERED, measured: scroll-driven animations. An element on
+     `animation-timeline: scroll(root)` tracked scroll to a byte-identical
+     transform with and without the preference — progress-based timelines have
+     no duration for this block to zero. The first component to reach for
+     `animation-timeline: view()` or `scroll()` must ship its own
+     `@media (prefers-reduced-motion: reduce)` opt-out (`animation-timeline:
+     auto` plus a static resting state); nothing here will do it for you. */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
+      transition-delay: 0ms !important;
       scroll-behavior: auto !important;
     }
+  }
+
+  /* Keyboard focus floor (WCAG 2.4.7). Focus styling on this site is opt-in
+     per component — ~35 elements carry the teal `focus-visible:ring-2` and
+     everything else fell back to Chrome's 1px UA hairline, which is invisible
+     on the dark nav and the photo heroes. This is the base every interactive
+     element gets for free.
+     `:where()` contributes ZERO specificity, so the whole selector weighs
+     (0,1,0) — one pseudo-class — and every authored `focus-visible:ring-*` /
+     `focus-visible:outline-hidden` utility still wins on two counts: higher
+     specificity AND Tailwind emitting utilities into a later cascade layer
+     than `base`. Form controls are deliberately absent: Field.svelte styles
+     its own inputs. */
+  :where(a, button, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 2px solid var(--color-primary-deep);
+    outline-offset: 2px;
   }
 
   a,

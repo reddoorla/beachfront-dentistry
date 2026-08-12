@@ -2,6 +2,8 @@
   import BrandIcon from "./BrandIcon.svelte";
   import WaveDivider from "./WaveDivider.svelte";
   import MapEmbed from "./MapEmbed.svelte";
+  import { pillClass } from "./OutlineButton.svelte";
+  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
   import type {
     FooterSocial,
     FooterItem,
@@ -139,9 +141,16 @@
              mt = live's last-link → button gap (48/41/37) minus the link row's
              own bottom margin (6/8/10). mb closes the gap to the next stacked
              block: live puts 60px there at mobile and the grid supplies 24. -->
+        <!-- Hover/press is the shared pill language (OutlineButton.svelte's
+             module block carries the colourways and their measured contrast).
+             It stays a hand-authored <a> rather than an <OutlineButton> for its
+             `linkAttrs` target/rel — Modento is external — and its own column
+             margins. -->
         <a
           {...linkAttrs(item.href)}
-          class="font-slab px-[1em] py-[1.3em] leading-[0] focus-visible:ring-primary-deep mt-[42px] mb-[36px] inline-flex w-fit items-center rounded-lg border border-[#365b6d] text-[14px] font-light whitespace-nowrap text-[#365b6d] transition-[background-color] hover:bg-[#129ecc4a] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:mt-[33px] md:mb-0 md:text-[20px] lg:mt-[27px] lg:text-[25px]"
+          class="{pillClass(
+            'teal',
+          )} px-[1em] py-[1.3em] leading-[0] mt-[42px] mb-[36px] w-fit text-[14px] whitespace-nowrap xs:text-[15px] md:mt-[33px] md:mb-0 md:text-[20px] lg:mt-[27px] lg:text-[25px]"
           >{item.text}</a
         >
       {:else if item.href}
@@ -182,25 +191,47 @@
        too) — leaving it in flow at mobile ate the CtaBand's -39px overlap and
        pushed every footer line 39px below live's (the desktop version of the
        same bug cost 144px in an earlier round). -->
+  <!-- The 169% width override died in Round H4: an overflowing SVG is exactly
+       what left the arc entering at its mid-line and leaving on a trough
+       (+42.1px of net rise at 1440). WaveDivider now fixes the width at 100%
+       of its box; only the taller height ladder is still the footer's own. -->
   <div class="absolute inset-x-0 bottom-full">
     <WaveDivider
       fill={waveFill}
       flip
       heightClass="h-[96px] md:h-[128px] lg:h-[160px]"
-      width="169%"
     />
   </div>
 
   <!-- Live gives the copy 20px of lead-in below the wave ("Want to learn
        more?" sits 20px from the info-section top), then 40px more before the
        link columns. -->
-  <!-- Live's footer gutter, measured off `.footer-cols` at every band: 5% of
-       the viewport ≤479 (19.5px at 390), 8% from 480–767, then a flat 48px
-       from 768 up (it's `1.5rem` against live's own stepped root; ours is a
-       fixed root, so it's written in px). At 1440 the max-w-1280 below still
-       wins and centres the box at x=80, exactly as live does. -->
-  <div class="px-[5%] pt-3 pb-6 xs:px-[8%] md:px-[48px] lg:pt-5 lg:pb-12">
-    <div class="mx-auto max-w-[1280px]">
+  <!-- Live's footer gutter IS the site `.content-width` ladder
+       (beachfront.css:5858-5867 + :8627-8630 + :9164-9167): 5% ≤479, 8%
+       480–767, 1.5rem against the stepped root above — 48px at 768–991 but
+       60px at ≥992, 80 at 1440 with the 1400 cap. The old model here ("flat
+       48px from 768 up" + an inner 1280 cap) reproduced the 1440/834/390
+       samples and was 12px short across 992–1399 (probed live footer heading
+       x=60 at 1294/1200, ours was 48 — the misalignment MarkUp d486b3c5
+       thread 9ae81c12-aef2-4a2f-bec2-26aacad680f4 / pin #11 flagged).
+       Live-fidelity fix: the wrapper is now the shared gutter box; at ≥1400
+       the render is unchanged (1400 − 120 = the same 1280 content column). -->
+  <div
+    class="mx-auto max-w-[1400px] px-[5%] pt-3 pb-6 xs:px-[8%] md:px-12 lg:px-[60px] lg:pt-5 lg:pb-12"
+  >
+    <!-- The footer had NO reveal on any page — a 702px dead block closing all
+         six of them, which is why every page's coverage number ended low
+         regardless of what happened above.
+         `translateY: 24px`, not the shared `--reveal-travel` (56/72): the
+         footer is the LAST thing on the page, so a full-height rise reads as a
+         second page-load starting rather than as the end arriving. A short lift
+         is the whole intent.
+         Because the travel is custom this element must never carry a
+         server-rendered `data-reveal` — app.css would hide it at
+         `--reveal-travel` while JS reveals it from 24px. See ABOVE_FOLD_REVEAL.
+         The reveal goes on this wrapper and not on the map iframe below it,
+         which is one of the two heaviest paint regions on the site. -->
+    <div use:animateIn={{ ...LIVE_REVEAL, translateY: "24px" }}>
       {#if heading}
         <!-- Live: 16px/40 mobile, 30px/40 desktop, weight 100, museo-slab, 10px
              below. Colour is the one deliberate deviation — live paints this

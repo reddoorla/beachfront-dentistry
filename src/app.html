@@ -2,9 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <!-- Live's own favicon + webclip (Webflow logo=blue.ico / logo=blue.png),
-         not the starter placeholder. -->
-    <link rel="icon" href="%sveltekit.assets%/favicon.ico" sizes="32x32" />
+    <!-- The webclip is live's own (Webflow logo=blue.png). The favicon.ico is
+         NOT live's: live's ico bakes opaque white corners around the circle
+         logo (MarkUp thread 784b9a3f, pin #13), so ours is regenerated from
+         the transparent apple-touch-icon.png (32+16 PNG-in-ICO entries,
+         real alpha). Not the starter placeholder either — static/favicon.png
+         is that placeholder (white logo) and is deliberately unlinked. -->
+    <link
+      rel="icon"
+      href="%sveltekit.assets%/favicon.ico"
+      sizes="32x32 16x16"
+    />
     <link
       rel="apple-touch-icon"
       href="%sveltekit.assets%/apple-touch-icon.png"
@@ -13,6 +21,32 @@
     <link rel="preconnect" href="https://use.typekit.net" />
     <link rel="preconnect" href="https://p.typekit.net" crossorigin />
     <link rel="stylesheet" href="https://use.typekit.net/tao4byj.css" />
+    <!-- The no-JS half of the scroll-reveal's first-paint hidden state (app.css,
+         `[data-reveal]`). With scripting off this style applies and every
+         revealed element paints normally; with scripting on the browser ignores
+         the whole element, so the hidden state stands and animateIn owns it.
+         Content can therefore never be stranded at opacity 0 by a browser that
+         was never going to run the reveal — same guarantee a curl of the SSR
+         HTML gives a crawler.
+         WHY A STYLE AND NOT AN INLINE `classList.add("js")` SCRIPT: measured on
+         the real build, an unhashed inline script in this template is governed
+         by the site's own CSP (svelte.config.js `kit.csp`, script-src with no
+         'unsafe-inline'). On prerendered routes it survives only because the
+         policy ships as a <meta> tag emitted after it; on server-rendered
+         routes the policy is an HTTP header carrying a nonce, and the script is
+         silently dropped — `documentElement.className` came back "" on
+         /contact-us and "js" on /. A guard that is live on some routes and dead
+         on others is worse than no guard. style-src already allows inline
+         styles (Typekit needs it), so this half works identically everywhere
+         and needs no CSP hash to maintain. -->
+    <noscript>
+      <style>
+        [data-reveal] {
+          opacity: 1 !important;
+          transform: none !important;
+        }
+      </style>
+    </noscript>
     %sveltekit.head%
   </head>
   <body data-sveltekit-preload-data="hover">

@@ -35,7 +35,7 @@ const slice = {
       alt: "Beachfront office exterior",
       dimensions: { width: 1600, height: 900 },
     },
-    cta_label: "Book an Appointment",
+    cta_label: "Request an Appointment",
     cta_link: { link_type: "Web", url: "#appointment" },
   },
   items: [],
@@ -55,7 +55,7 @@ describe("Hero cta variation", () => {
 
   it("renders the CTA anchor with an href the appointment-modal handler matches", () => {
     const { getByRole } = render(Hero, { props: { slice } });
-    const link = getByRole("link", { name: "Book an Appointment" });
+    const link = getByRole("link", { name: "Request an Appointment" });
     expect(link.getAttribute("href")).toBe("#appointment");
   });
 

@@ -1,4 +1,5 @@
 import { render, screen, cleanup, act } from "@testing-library/svelte";
+import { tick } from "svelte";
 import { get } from "svelte/store";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { appointmentOpen } from "$lib/stores/appointment";
@@ -78,6 +79,20 @@ describe("AppointmentModal", () => {
     expect(dialog.getAttribute("aria-label")).toMatch(/appointment/i);
     expect(dialog.querySelector("form")?.getAttribute("action")).toBe(
       "/contact-us",
+    );
+  });
+
+  it("opens onto the Name field, not the ✕", async () => {
+    // Modal's ✕ is first in the DOM, so without the autofocus marker the
+    // spec's dialog-focusing steps land there: the keyboard path to booking
+    // an appointment used to start on the exit.
+    render(AppointmentModal);
+    appointmentOpen.set(true);
+    const dialog = await screen.findByRole("dialog");
+    await tick();
+    await tick();
+    expect(document.activeElement).toBe(
+      dialog.querySelector('input[name="name"]'),
     );
   });
 
@@ -199,6 +214,42 @@ describe("AppointmentModal submit results", () => {
     await openAndSubmit();
     await finish({ type: "success", status: 200, data: { success: true } });
     expect(document.activeElement).toBe(screen.getByRole("status"));
+  });
+
+  it("puts the failure alert ABOVE the fields, not between them and the button", async () => {
+    // The alert used to render between the last field and the submit button.
+    // Probed at 1440x900: that moved the button's top 416 → 498, an 82px jump
+    // in the half-second after a failure — with the pointer still over the
+    // button and about to click again. DOM order is the part a unit test can
+    // hold; the geometry is pinned in tests/interaction/appointment-modal.spec.ts.
+    const { dialog } = await openAndSubmit();
+    await finish({ type: "failure", status: 502, data: { error: "nope" } });
+
+    const alert = screen.getByRole("alert");
+    const nameField = dialog.querySelector('input[name="name"]')!;
+    const submit = dialog.querySelector('button[type="submit"]')!;
+
+    expect(
+      alert.compareDocumentPosition(nameField) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      alert.compareDocumentPosition(submit) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("marks the button aria-busy while the request is in flight", async () => {
+    // `disabled` alone changes only the accessible name ("Sending…"), silently.
+    const { dialog } = await openAndSubmit();
+    const button = dialog.querySelector(
+      'button[type="submit"]',
+    ) as HTMLButtonElement;
+
+    expect(button.getAttribute("aria-busy")).toBe("true");
+    expect(button.textContent?.trim()).toBe("Sending…");
+
+    await finish({ type: "failure", status: 502, data: { error: "nope" } });
+    expect(button.getAttribute("aria-busy")).toBe("false");
   });
 
   it("clears a previous error when the modal is reopened", async () => {

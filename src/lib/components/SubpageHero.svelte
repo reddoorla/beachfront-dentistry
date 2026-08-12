@@ -1,7 +1,7 @@
 <script lang="ts">
   import HeroBackgroundImage from "$lib/components/HeroBackgroundImage.svelte";
   import WaveDivider from "$lib/components/WaveDivider.svelte";
-  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
+  import { animateIn, ABOVE_FOLD_REVEAL } from "$lib/actions/animateIn";
   import {
     asText,
     type ImageField,
@@ -161,22 +161,34 @@
       aria-hidden="true"
     ></div>
   {/if}
-  <!-- Live's three heading treatments (see `headingStyle`). The bottom offsets
-       are live's own rem values against its stepped root (24/32/40):
+  <!-- Live's three heading treatments (see `headingStyle`). They used to carry
+       live's own bottom rem values against its stepped root (24/32/40):
          subpage  bottom:2%      + margin-bottom:5% of the hero WIDTH
          meet     bottom:.75rem  → 18/24/30 + the h2's 10px = 28/34/40 measured
          contact  bottom:1rem    → 24/32/40 + the h2's 10px = 34/42/50 measured
-       For an abspos box with top:auto and bottom set, a percentage margin-bottom
-       resolves against the containing block's WIDTH and shifts the box UP —
-       that 5% is why live's subpage headings clear the wave crest and ours sat
-       72px lower, right on top of it. -->
+       All three put the heading INSIDE the wave divider's box, and the white
+       crest cut through it at every width — probed overlap, worst per variant:
+         subpage (services, ask-the-doctor)  −27.3 @390  −24.9 @834  −10.5 @1440
+         meet    (our-team)                  −26.2 @390  −31.7 @834  −42.9 @1440
+         contact                             −16.2 @390  −36.6 @834  −42.0 @1440
+       Operator, MarkUp thread 7dd0c2f2: "wave should never touch the text". So
+       the bottom offset is now the divider's own box-height ladder
+       (WaveDivider `heightClass`, 72/96/120) on all three — the heading clears
+       the whole box, which is 30% more room than the crest strictly needs and
+       is the version anyone can check by eye. Live's ladder is a DELIBERATE
+       DEVIATION now (see matching/LEDGER.md, MARKUP ROUND H4): the wave is no
+       longer held to the webflow reference, so neither is the clearance it
+       demands. The band's height does not change — these are absolute boxes,
+       so nothing below the hero moves. -->
   <div
-    class="absolute z-10 {align === 'left'
-      ? 'bottom-[34px] mx-auto w-full max-w-[1400px] px-[5%] xs:px-[8%] md:bottom-[42px] md:px-[48px] lg:bottom-[50px] lg:px-[60px]'
+    class="absolute z-10 bottom-[72px] md:bottom-[96px] lg:bottom-[120px] {align ===
+    'left'
+      ? 'mx-auto w-full max-w-[1400px] px-[5%] xs:px-[8%] md:px-[48px] lg:px-[60px]'
       : headingStyle === 'meet'
-        ? 'bottom-[28px] left-0 w-full md:bottom-[34px] lg:bottom-[40px]'
-        : 'bottom-[2%] left-[10%] mb-[5%] w-4/5 lg:left-0 lg:w-full'}"
-    use:animateIn={LIVE_REVEAL}
+        ? 'left-0 w-full'
+        : 'left-[10%] w-4/5 lg:left-0 lg:w-full'}"
+    data-reveal
+    use:animateIn={ABOVE_FOLD_REVEAL}
   >
     <!-- Inline white: the unlayered global `main h1–h3` primary-colour rule
          outranks a `text-white` utility (same trap as the QA card title), so
@@ -228,16 +240,31 @@
        headings (dark-teal #365B6D, same 56/70 → 140/168 scale as the band
        heading) over the cyan slab intro (#129ECC). Colours forced inline for
        the same reason as the band heading (global `main h1–h3` primary rule). -->
-  <section class="w-full bg-white px-5 text-center" use:animateIn={LIVE_REVEAL}>
-    {#each subheadings ?? [] as line, i (line)}
-      <!-- first heading nudges up 10px into the wave, matching live. -->
-      <!-- Same global h2 ladder as the band heading: 56/70 -> 72/80 (480-991,
+  <!-- Above the fold on /our-team at both 390 and 1440 (measured: it is the
+       second reveal target inside the first viewport there), so it takes the
+       server-rendered hidden state too. -->
+  <section
+    data-reveal
+    class="w-full bg-white px-5 text-center"
+    use:animateIn={ABOVE_FOLD_REVEAL}
+  >
+    {#each subheadings ?? [] as line (line)}
+      <!-- The first heading used to carry `-mt-[10px]` — "nudges up 10px into
+           the wave, matching live". Round H4 removed it: it was the only text
+           on the site sitting INSIDE a divider's box from below, which is the
+           same defect as the headings that sat inside it from above (operator,
+           MarkUp thread 7dd0c2f2: "wave should never touch the text"). Probed
+           overlap with the wave's painted extent was −10.0 @390/@1294/@1440 and
+           −14.0 @834; against the wave's visible CURVED edge the margin was
+           6.8px @390, under the 8px this round enforces. At 0 the heading
+           clears that edge by 16.8/18.4/28px. DELIBERATE DEVIATION from live —
+           the nudge existed only to tuck the heading under a wave the operator
+           has since released from the reference. Costs our-team 10px of height,
+           all of it inside the hero's own `top` region.
+           Same global h2 ladder as the band heading: 56/70 -> 72/80 (480-991,
            flat) -> 140/168. -->
       <h2
-        class="font-slab text-[56px] leading-[70px] font-thin xs:text-[72px] xs:leading-[80px] lg:text-[140px] lg:leading-[168px] {i ===
-        0
-          ? '-mt-[10px]'
-          : ''}"
+        class="font-slab text-[56px] leading-[70px] font-thin xs:text-[72px] xs:leading-[80px] lg:text-[140px] lg:leading-[168px]"
         style="color:#365b6d"
       >
         {line}

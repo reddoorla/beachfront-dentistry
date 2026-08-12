@@ -1,7 +1,8 @@
 <script lang="ts">
   import RichTextBody from "$lib/components/RichTextBody.svelte";
+  import PrismicPhoto from "$lib/components/PrismicPhoto.svelte";
   import ContentBand from "$lib/components/ContentBand.svelte";
-  import { PrismicImage, PrismicRichText } from "@prismicio/svelte";
+  import { PrismicRichText } from "@prismicio/svelte";
   import { isFilled, type Content } from "@prismicio/client";
 
   let { slice }: { slice: Content.MediaTextSlice } = $props();
@@ -20,9 +21,11 @@
     variation={slice.variation}
     contentClass="max-w-5xl px-6 py-16"
   >
-    <PrismicImage
+    <!-- Full-bleed body photo on /your-first-visit: measured 390/834/1440 — genuinely the viewport at every tier, so 100vw is right and the win here is `loading=lazy` moving it off the critical path (that page carried 1703KB before scroll at 1440). -->
+    <PrismicPhoto
       field={slice.primary.media}
       fallbackAlt=""
+      sizes="100vw"
       class="mx-auto h-auto w-full"
     />
   </ContentBand>
@@ -48,9 +51,11 @@
     </div>
     {#if hasMedia}
       <div class="mt-media lg:col-span-8 {reverse ? 'lg:order-1' : ''}">
-        <PrismicImage
+        <!-- Same block, second image. -->
+        <PrismicPhoto
           field={slice.primary.media}
           fallbackAlt=""
+          sizes="100vw"
           class="h-auto w-full"
         />
       </div>

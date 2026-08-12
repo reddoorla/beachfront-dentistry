@@ -6,7 +6,8 @@
   import WaveDivider from "$lib/components/WaveDivider.svelte";
   import SubpageHero from "$lib/components/SubpageHero.svelte";
   import { PrismicLink, PrismicRichText } from "@prismicio/svelte";
-  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
+  import { animateIn, ABOVE_FOLD_REVEAL } from "$lib/actions/animateIn";
+  import { pillClass } from "$lib/components/OutlineButton.svelte";
   import {
     asText,
     type Content,
@@ -201,6 +202,13 @@
     wash={slice.primary.hero_wash ?? true}
   />
 {:else if slice.variation === "groupphoto"}
+  <!-- The reference hard-breaks this headline after "meet" ("We are excited
+       to meet <br>and care for you.", your-first-visit.html:121). The break
+       cannot live in the seeded StructuredText — the Migration API strips
+       `\n` (docs/migration.md) — so the component restates it, falling back
+       to the plain text when the heading doesn't contain "meet". -->
+  {@const gpHeading = asText(slice.primary.heading) ?? ""}
+  {@const gpBreak = gpHeading.match(/^(.*\bmeet)\s+(\S.*)$/)}
   <!-- your-first-visit `.hero.group-photo`: a short photo band with a
        lower-LEFT thin slab headline in white and NO CTA. Same wave + scrim as
        the other openers.
@@ -258,16 +266,44 @@
       style="background:linear-gradient(rgba(0,0,0,0), rgba(18,158,204,0.8))"
       aria-hidden="true"
     ></div>
+    <!-- MarkUp 4b8d52d2 thread ed09da97-36ac-4ad9-b796-c53c5a0f580c (pin #1):
+         "Same left alignment issue, and then this headline should stack. See
+         original site." Live-FIDELITY fix: live's h1 is `.first-visit-heading`
+         inside `.content-width` with no `left` of its own
+         (your-first-visit.html:121; beachfront.css:6593-6605), so its static
+         position IS the content gutter — probed on the ref at 80/60/60/48/19.5
+         for 1440/1354/1294/834/390. Our `left-5 lg:left-20` (20px fixed,
+         80px fixed) matched live at exactly 1440 and nowhere else. Ladder:
+         5% ≤479 (beachfront.css:9164-9167), 8% ≤767 (:8627-8630), 48px
+         768-991 / max(60px, 50% − 640px) ≥992 (:5858-5867 against the
+         stepped root). -->
+    <!-- Bottom offset = the wave divider's own box height ladder
+         (WaveDivider `heightClass`, 72/96/120). Operator, MarkUp thread
+         7dd0c2f2: "wave should never touch the text" — at bottom-[24px] /
+         lg:bottom-20 this heading sat INSIDE the divider box and the white
+         crest ran straight through it (probed −27.2px @390, −30.0 @834,
+         −12.0 @1440 of overlap). Clearing the whole box, rather than just the
+         crest's 76.67% of it, keeps the rule checkable by eye and leaves a
+         measured 11.8/17.4/23px of daylight. The band's height is unchanged —
+         this is an absolute box, so nothing below it moves. -->
+    <!-- `data-reveal` + ABOVE_FOLD_REVEAL: the home headline is the single
+         worst instance of the first-paint flash on the site — it is the first
+         thing painted and the first thing hydration hides. The pair is one
+         decision; see ABOVE_FOLD_REVEAL's doc before changing either half. -->
     <div
-      class="absolute bottom-[24px] left-5 z-10 lg:bottom-20 lg:left-20"
-      use:animateIn={LIVE_REVEAL}
+      data-reveal
+      class="absolute bottom-[72px] left-[5%] z-10 xs:left-[8%] md:bottom-[96px] md:left-12 lg:bottom-[120px] lg:left-[max(60px,calc(50%_-_640px))]"
+      use:animateIn={ABOVE_FOLD_REVEAL}
     >
       <!-- Inline white: the global `main h1–h3` primary rule outranks text-white. -->
       <h1
         class="font-slab text-left text-[25px] leading-[38px] font-light lg:text-[60px] lg:leading-[72px]"
         style="color:#fff"
       >
-        {asText(slice.primary.heading)}
+        <!-- Reference keeps the space before the break ("meet <br>and",
+             your-first-visit.html:121) — kept so textContent stays two words. -->
+        {#if gpBreak}{gpBreak[1]}
+          <br />{gpBreak[2]}{:else}{gpHeading}{/if}
       </h1>
     </div>
     <div class="absolute bottom-0 left-0 z-10 w-full">
@@ -326,8 +362,16 @@
          (live's .position-absolute-bottom-right offsets from the hero itself);
          z-10 still applies — this is a flex item, which stacks with z-index
          without needing a positioned box. -->
+    <!-- MarkUp d486b3c5 thread ebedbcc9-3c30-42e5-b3f4-7089fe36be86 (pin #1):
+         "Needs to left align to the headline below and the logo above."
+         This is a live-FIDELITY fix, not a deviation: live's h1 sits in the
+         `.content-width` gutter (beachfront.css:5858-5867, 8%≤767 :8627-8630,
+         5%≤479 :9164-9167 — probed on the reference at 80/60/60/48/19.5 for
+         1440/1294/1200/834/390). The original build's box (max-w-1360 + px-6
+         → h1 x=64/24/24) matched nothing; the video region's pixel floor hid
+         it. See LEDGER 2026-08-10. -->
     <div
-      class="z-10 mx-auto flex w-full max-w-[1360px] flex-col items-start gap-8 px-6 pt-36 pb-28 xs:pt-16 xs:pb-12 md:flex-row md:items-center md:justify-between md:gap-12 md:pt-36 md:pb-28"
+      class="z-10 mx-auto flex w-full max-w-[1400px] flex-col items-start gap-8 px-[5%] pt-36 pb-28 xs:px-[8%] xs:pt-16 xs:pb-12 md:flex-row md:items-center md:justify-between md:gap-12 md:px-12 md:pt-36 md:pb-28 lg:px-[60px]"
     >
       <!-- Live reveals the hero h1 with the same rise-in as every other
            element (its H1 sits at opacity 0 / +travel until the ix2 fires). -->
@@ -336,8 +380,9 @@
            was wrapping "where you / are" a word earlier than live's plain
            fill ("where you are /"). -->
       <div
+        data-reveal
         class="max-w-3xl [&_h1]:text-wrap max-lg:[&_h1]:text-[28px] max-lg:[&_h1]:leading-[38px]"
-        use:animateIn={LIVE_REVEAL}
+        use:animateIn={ABOVE_FOLD_REVEAL}
       >
         {#if brandParts}
           <h1>
@@ -352,11 +397,22 @@
       {#if slice.primary.cta_label && slice.primary.cta_link}
         <!-- Live pins the pill to the hero's bottom-right at desktop
              (.button.position-absolute-bottom-right.home: bottom 4rem/160px,
-             right 2rem/80px of the SECTION) — the flex slot only positions it
-             on mobile. Hover is live's .button hover (opacity + cyan fill). -->
+             right 2rem — beachfront.css:6073-6076 — measured against live's
+             `.content-width`, so its right edge sits gutter+20px in:
+             1340@1440, 1214@1294). MarkUp d486b3c5 thread
+             2c0b1886-c579-43c0-aa70-d8c1f274c520 (pin #2): "right align to
+             the hamburger menu" — the hamburger's icon edge IS the content
+             gutter, so the pill's right offset is now the gutter itself:
+             max(60px, 50% − 640px) of the full-width section = 60px below
+             1400, (w−1400)/2+60 above (= 80 at 1440, where the old right-20
+             already happened to equal the gutter). Deliberate +20px deviation
+             from live below 1400. See LEDGER 2026-08-10. The flex slot still
+             positions it on mobile. Hover is live's .button hover. -->
         <PrismicLink
           field={slice.primary.cta_link}
-          class="focus-visible:ring-offset-dark inline-flex shrink-0 items-center rounded-lg border border-white font-slab px-[1em] py-[1.3em] leading-[0] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:absolute lg:right-20 lg:bottom-40 lg:text-[25px]"
+          class="{pillClass(
+            'white',
+          )} focus-visible:ring-offset-dark shrink-0 px-[1em] py-[1.3em] text-[15px] leading-[0] md:text-[20px] lg:absolute lg:right-[max(60px,calc(50%_-_640px))] lg:bottom-40 lg:text-[25px]"
         >
           {slice.primary.cta_label}
         </PrismicLink>

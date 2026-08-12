@@ -1,12 +1,58 @@
-/** Live's Webflow scroll-reveal, read off the reference (2026-08-02): each
- *  element rises `--reveal-travel` (96px mobile / 160px desktop — live's 4rem
- *  in its responsive root) over 1s on the shared expo-out curve, with no
- *  x-position stagger — same-row elements land together, exactly like the
- *  Webflow ix2 triggers. Spread into per-element `use:animateIn` calls. */
+import { reducedMotion } from "$lib/transitions";
+
+/** The site's standard scroll reveal: an element rises `--reveal-travel` on the
+ *  shared expo-out curve, with no x-position stagger — same-row elements land
+ *  together. Spread into per-element `use:animateIn` calls.
+ *
+ *  These are OUR numbers, not a transcription of anything. They started as
+ *  live's Webflow values (96/160px over 1000ms) and were cut back once the
+ *  reveal was measured rather than copied: the travel decides how far INSIDE
+ *  the viewport an element must be laid out before the observer will fire on
+ *  its transformed box, and 160px turned the bottom fifth of a 720px-tall
+ *  laptop viewport into a band where laid-out content was never painted. The
+ *  duration went with it — on this curve opacity is already at 0.94 by 425ms,
+ *  so the last 40% of a 1000ms reveal was a tail nobody could see. Do not
+ *  "restore" the old numbers as a fidelity fix; the pixel-matching program is
+ *  over and these were changed on purpose. */
 export const LIVE_REVEAL = {
-  duration: 1000,
+  duration: 750,
   translateY: "var(--reveal-travel)",
   delayMax: 0,
+} as const;
+
+/** LIVE_REVEAL for a target that is ABOVE THE FOLD on a cold entry.
+ *
+ *  Use it together with a literal `data-reveal` attribute on the same element —
+ *  the two are one decision and neither works alone:
+ *
+ *    <div data-reveal use:animateIn={ABOVE_FOLD_REVEAL}>
+ *
+ *  `data-reveal` in the SERVER markup is what removes the flash. Without it the
+ *  element is painted in final position and then yanked to opacity 0 when
+ *  hydration runs the action, 150-850ms later, which reads as the page
+ *  breaking. app.css hides `[data-reveal]` with the same opacity and the same
+ *  `--reveal-travel`, so the hidden state exists at first paint and the
+ *  action's write is a byte-identical no-op. That equality is why this preset
+ *  must not override `translateY`: CSS would hide it at a different distance
+ *  than JS reveals it from.
+ *
+ *  `failSafe` is what makes shipping the attribute safe. An element hidden by
+ *  server markup depends on JS to ever appear, so a broken observer, a
+ *  throttled rAF, or a script error would leave it invisible rather than
+ *  merely unanimated. 2500ms is far past any real reveal (the transition is
+ *  750ms and above-fold targets intersect immediately) and far short of a
+ *  reader deciding the page is empty.
+ *
+ *  ONLY for above-fold targets. Do not reach for it as the default, and do not
+ *  fold `failSafe` into LIVE_REVEAL to save the spread — a blanket timer
+ *  pre-reveals below-fold content before it is scrolled to, which is the exact
+ *  failure the option's own doc warns about. Below the fold the flash is
+ *  nearly unobservable anyway (you would have to scroll within ~500ms of
+ *  load), so the trade — a certain flash for a possible invisible element —
+ *  only pays above it. */
+export const ABOVE_FOLD_REVEAL = {
+  ...LIVE_REVEAL,
+  failSafe: 2500,
 } as const;
 
 export type AnimateInOptions = {
@@ -21,6 +67,18 @@ export type AnimateInOptions = {
   stagger?: number;
   /** This element's position in its group; pairs with `stagger`. Default 0. */
   index?: number;
+  /** Viewport mode only: force the revealed state this many ms after mount if
+   *  the reveal has not run by then. However the reveal machinery fails — an
+   *  IntersectionObserver that never fires (sandboxed review iframes), or
+   *  requestAnimationFrame throttled to a stop in a background iframe so the
+   *  observer's deferred reveal never executes — the element must not persist
+   *  at opacity 0. When the normal reveal already ran, the timer is cleared;
+   *  a fail-safe reveal still plays the transition from the long-committed
+   *  hidden frame, so it fades in rather than popping. Opt-in per element:
+   *  a global timer would pre-reveal below-fold content before it scrolls in.
+   *  (MarkUp thread 738ad46b-0be6-4d92-a1c0-73a53e4c298e pin #2 — the
+   *  team-member hero name intermittently never appeared.) */
+  failSafe?: number;
 };
 
 export type AnimateInParam = boolean | AnimateInOptions | undefined;
@@ -33,6 +91,7 @@ type ResolvedConfig = {
   translateY: string;
   stagger: number | null;
   index: number;
+  failSafe: number | null;
 };
 
 function resolveConfig(param: AnimateInParam): ResolvedConfig {
@@ -52,10 +111,21 @@ function resolveConfig(param: AnimateInParam): ResolvedConfig {
     translateY: opts.translateY ?? "50%",
     stagger: opts.stagger ?? null,
     index: opts.index ?? 0,
+    failSafe: opts.failSafe ?? null,
   };
 }
 
 function applyHidden(node: HTMLElement, cfg: ResolvedConfig) {
+  // The attribute is the declarative twin of the two style writes below:
+  // app.css hides `[data-reveal]` under `prefers-reduced-motion: no-preference`
+  // with the same opacity and the same travel, so markup that ships the
+  // attribute from the server is already hidden at FIRST PAINT and this call
+  // re-writes byte-identical values instead of yanking a painted element out
+  // from under the reader. (Only true for LIVE_REVEAL, which reads the same
+  // `--reveal-travel` var: a call site passing its own `translateY` must not
+  // put `data-reveal` in its server-rendered markup, because CSS would hide it
+  // at a different distance than JS reveals it from.)
+  node.setAttribute("data-reveal", "");
   node.style.opacity = "0";
   node.style.transform = `translateY(${cfg.translateY})`;
   // --transition-out-expo = cubic-bezier(0.19,1,0.22,1) — the exact curve
@@ -66,31 +136,66 @@ function applyHidden(node: HTMLElement, cfg: ResolvedConfig) {
 }
 
 function reveal(node: HTMLElement) {
+  // Drop the marker before the styles: nothing may be able to describe this
+  // element as hidden once it is on its way to visible.
+  node.removeAttribute("data-reveal");
   node.style.opacity = "1";
   node.style.transform = "translateY(0)";
 }
 
 export function animateIn(node: HTMLElement, param?: AnimateInParam) {
-  if (
-    typeof window !== "undefined" &&
-    window.matchMedia &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  ) {
-    return { update() {}, destroy() {} };
-  }
-
   const cfg = resolveConfig(param);
   let observer: IntersectionObserver | undefined;
+  let failSafeTimer: ReturnType<typeof setTimeout> | undefined;
+  let reduced = false;
+  let hidden = false;
+
+  const hide = () => {
+    hidden = true;
+    applyHidden(node, cfg);
+  };
+  const show = () => {
+    hidden = false;
+    reveal(node);
+  };
+
+  // Reduced motion is watched, not sampled, so turning the OS setting on mid-
+  // session stops the reveals where the reader is instead of on their next
+  // reload. It only ever moves in the SAFE direction: whatever is hidden is
+  // revealed and the machinery torn down. Re-applying the hidden state on a
+  // switch would strand content at opacity 0 with nothing left running to
+  // un-hide it — the exact failure `failSafe` exists to catch.
+  const unwatch = reducedMotion.subscribe((value) => {
+    reduced = value;
+    if (!value) return;
+    if (failSafeTimer !== undefined) clearTimeout(failSafeTimer);
+    observer?.disconnect();
+    // `hidden` is false on the first, synchronous call, so an element that was
+    // never touched keeps its untouched inline styles — as before, the action
+    // is a complete no-op when the preference is already on. The attribute test
+    // catches server-rendered `data-reveal`, whose CSS hidden state does not
+    // apply under reduce but whose marker should not linger either.
+    if (hidden || node.hasAttribute("data-reveal")) show();
+  });
+
+  if (reduced) {
+    return {
+      update() {},
+      destroy() {
+        unwatch();
+      },
+    };
+  }
 
   if (cfg.mode === "triggered") {
     if (cfg.trigger) {
-      applyHidden(node, cfg);
-      reveal(node);
+      hide();
+      show();
     } else {
-      applyHidden(node, cfg);
+      hide();
     }
   } else {
-    applyHidden(node, cfg);
+    hide();
     // Explicit index-based stagger (grids/columns) overrides the default
     // horizontal-position heuristic (which only sequences a left-to-right row).
     const delay =
@@ -99,6 +204,21 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
         : cfg.delayMax *
           (node.getBoundingClientRect().left / window.innerWidth);
     node.style.transitionDelay = `${delay}ms`;
+
+    // No IntersectionObserver at all (stripped-down embed/ancient browser):
+    // nothing else can ever reveal this element, and constructing the observer
+    // below would throw and break the whole mount. Reveal in place — both
+    // style writes land in one synchronous frame, so the element is simply
+    // visible (no transition), which beats invisible forever.
+    if (typeof IntersectionObserver === "undefined") {
+      show();
+      return {
+        update() {},
+        destroy() {
+          unwatch();
+        },
+      };
+    }
 
     observer = new IntersectionObserver(
       ([entry]) => {
@@ -109,7 +229,13 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
           // transition. Committing the hidden frame first makes above-fold
           // reveals actually play (live animates them on load too).
           requestAnimationFrame(() =>
-            requestAnimationFrame(() => reveal(node)),
+            requestAnimationFrame(() => {
+              show();
+              // Only clear once the reveal has actually executed — an rAF
+              // throttled to a stop (background iframe) after the observer
+              // fired still needs the fail-safe below to run.
+              if (failSafeTimer !== undefined) clearTimeout(failSafeTimer);
+            }),
           );
           observer?.disconnect();
         }
@@ -117,6 +243,16 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
       { threshold: 0 },
     );
     observer.observe(node);
+
+    // See AnimateInOptions.failSafe. setTimeout (not rAF) on purpose: timers
+    // still fire, if clamped, where rAF is suspended. reveal() is idempotent,
+    // so losing the race to the normal reveal is harmless.
+    if (cfg.failSafe !== null) {
+      failSafeTimer = setTimeout(() => {
+        observer?.disconnect();
+        show();
+      }, cfg.failSafe);
+    }
   }
 
   return {
@@ -124,13 +260,18 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
     update(next?: AnimateInParam) {
       if (cfg.mode !== "triggered") return;
       const nextCfg = resolveConfig(next);
-      if (nextCfg.trigger) {
-        reveal(node);
+      // Under reduced motion the element must never go back to hidden: the
+      // watcher above has already torn everything down, so nothing would be
+      // left to reveal it again.
+      if (nextCfg.trigger || reduced) {
+        show();
       } else {
-        applyHidden(node, cfg);
+        hide();
       }
     },
     destroy() {
+      unwatch();
+      if (failSafeTimer !== undefined) clearTimeout(failSafeTimer);
       observer?.disconnect();
     },
   };

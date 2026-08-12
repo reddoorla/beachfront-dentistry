@@ -1,5 +1,7 @@
 <script lang="ts">
   import { bandFor, type Presentation } from "$lib/blux/presentation";
+  import PrismicPhoto from "$lib/components/PrismicPhoto.svelte";
+  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
   import SectionBand from "$lib/blux/SectionBand.svelte";
   import CarouselFrames, {
     type CarouselFrame,
@@ -7,6 +9,7 @@
   import ContentBand from "$lib/components/ContentBand.svelte";
   import ReadReviewsExpander from "$lib/components/ReadReviewsExpander.svelte";
   import Slider from "$lib/components/Slider.svelte";
+  import { useSwipe, type SwipeCustomEvent } from "svelte-gestures";
   import { ADDRESS, HOURS, PHONE } from "$lib/site";
   import { PrismicImage, PrismicRichText } from "@prismicio/svelte";
   import {
@@ -76,6 +79,34 @@
   );
   const trackItems = $derived(isTrackVariation ? (slice.items ?? []) : []);
   const trackCount = $derived(trackItems.length);
+
+  // ROUND G4 review-mask carousel state (see the markup comment at the
+  // review branch below): the review variation no longer rides the shared
+  // Slider — its track moves INSIDE the static card, so the slice owns the
+  // index / wrap-around / keyboard / swipe machinery, mirroring Slider's
+  // semantics 1:1 (loop always on, ArrowLeft/Right on the arrow buttons,
+  // 60px pan-y swipe). `photos` still renders on the shared Slider.
+  let reviewSlide = $state(0);
+  const reviewLast = $derived(trackCount - 1);
+  const reviewNext = () => {
+    reviewSlide = reviewSlide < reviewLast ? reviewSlide + 1 : 0;
+  };
+  const reviewPrev = () => {
+    reviewSlide = reviewSlide > 0 ? reviewSlide - 1 : reviewLast;
+  };
+  const reviewKeydown = (e: KeyboardEvent) => {
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      reviewPrev();
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      reviewNext();
+    }
+  };
+  const reviewSwipe = (e: SwipeCustomEvent) => {
+    if (e.detail.direction === "left") reviewNext();
+    if (e.detail.direction === "right") reviewPrev();
+  };
 
   // Each review card carries its SOURCE's logo badge (live ships the Yelp
   // logo on every card, even the Google-linked ones — corrected here per
@@ -156,9 +187,15 @@
            level-1 heading competing with the page title, so the announced level
            is corrected without touching the tag or a single pixel — same
            technique as RichTextHeading.svelte:24 and SubpageHero's ariaLevel. -->
+      <!-- The Office Tour block had zero reveal targets across 1492px. The
+           heading is the target; the image TRACK deliberately is not — it is
+           one of the two heaviest paint regions on the site, and putting a
+           transform on it would composite the whole strip for no gain the
+           heading does not already give. -->
       <h1
         class="font-slab h-primary mb-[10px] text-[28px] leading-[38px] font-light lg:text-[60px] lg:leading-[72px]"
         aria-level="2"
+        use:animateIn={LIVE_REVEAL}
       >
         {trackLabel}
       </h1>
@@ -332,112 +369,230 @@
             />
           </div>
         {/if}
-        <!-- The slide movement (Slider's transition-transform utility) is a
-             plain CSS transition, so app.css's global prefers-reduced-motion
-             reset flattens it for reduced-motion users — no local gate needed.
-             Timing is live's .big-review-slider rule verbatim: transform 2s
-             cubic-bezier(0.19,1,0.22,1) — the long expo glide, not a quick
-             ease-in-out. Arrows are live's own left-arrow/right-arrow SVGs. -->
-        <Slider
-          itemCount={trackCount}
-          label={trackLabel}
-          showDots={false}
-          gap="0px"
-          mobileGap="0px"
-          arrowLayout={slice.variation === "review" ? "sides" : "below"}
-          arrowClass="text-primary hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden {slice.variation ===
-          'review'
-            ? '-mt-16 mx-6'
-            : ''}"
-          transitionClass="duration-[2000ms] ease-[cubic-bezier(0.19,1,0.22,1)]"
-          prevArrow={slice.variation === "review" ? reviewArrowLeft : undefined}
-          nextArrow={slice.variation === "review"
-            ? reviewArrowRight
-            : undefined}
-        >
-          {#snippet children({ index }: { index: number })}
-            {@const item = trackItems[index]}
-            {#if item}
-              {#if slice.variation === "review"}
-                <!-- Live's mobile slide: viewport 337 inside 351 (7px each
-                     side); the holder reserves only ~12px below the card (the
-                     badge's 20px overhang draws over the pulled-up expander
-                     row, same as live's .shift-up overlap). -->
-                <div class="px-[7px] pb-3 md:pb-16 lg:px-4 lg:pb-20">
-                  <!-- Pale-blue quote card (live .big-review, 600×400 at
-                       desktop, #e7f5fa, 25px radius, padding 24px tablet /
-                       30px desktop): the quote sits on TOP with the reviewer
-                       row beneath, and the source's logo badge overhangs the
-                       bottom-right edge. Order is NOT breakpoint-dependent —
-                       live is quote-on-top at every width (probe-verified
-                       column/QUOTE-top at 390/834/1440), so DOM order
-                       (blockquote then figcaption) maps 1:1 to paint order
-                       with plain flex-col; no reverse anywhere. justify-between
-                       + the fixed tablet/desktop heights open the gap live
-                       shows between the two blocks. -->
-                  <figure
-                    class="relative mx-auto mb-12 flex max-w-[600px] flex-col justify-between rounded-[25px] bg-[#e7f5fa] p-[18px] text-left xs:mb-0 md:h-[320px] md:max-w-[480px] md:p-6 lg:h-[400px] lg:max-w-[600px] lg:p-[30px]"
-                  >
+        {#if slice.variation === "review"}
+          <!-- ROUND G4 (MarkUp thread 29e4fcac-8dee-4cfe-a3f5-4ef9e4c79524,
+               home board pin #5; operator directive: follow Tim's redesign).
+               Tim: "the light blue background stays the same … the content,
+               all except for the overlapping logo, slides out as if this
+               light blue background was a mask … the overlapping logo …
+               just dissolves." Live's own carousel translates the WHOLE
+               card — `.big-review-slider` `transition: transform 2s
+               cubic-bezier(.19,1,.22,1)` (beachfront.css:7563-7572) slides
+               `.big-review` and its badge across the holder, and the quote
+               "randomly disappears" at the holder's clip edge. Overridden
+               by design direction:
+               • the pale-blue card is STATIC chrome — it never moves;
+               • the quote/author content rides a track INSIDE the card's
+                 own overflow-hidden rounded mask, so the card clips the
+                 slide at its own border box (rounded corners included) and
+                 nothing ever paints outside it;
+               • the badge layer sits on the card, NOT the track, and
+                 cross-dissolves between sources — Tim's simpler "just
+                 dissolves" variant (the slide-down/up variant is offered
+                 in the pin's resolve reply). The card padding moved onto
+                 the track cells so the mask clips at the card edge, not
+                 the padding edge; all five cards measure equal heights at
+                 every gated width, so the uniform mask box is the same
+                 box the static gate always saw.
+               Slide timing stays live's .big-review-slider rule verbatim
+               (2s expo glide, above); the dissolve runs the same 2000ms
+               with ease-in-out because the expo curve front-loads opacity
+               and reads as a pop, not a dissolve. Both movements are plain
+               CSS transitions, so app.css's global prefers-reduced-motion
+               reset (src/app.css:490-497) flattens them to an instant
+               swap — no local gate needed. This branch replicates the
+               shared Slider's carousel semantics 1:1 (region role, arrow
+               labels, ArrowLeft/Right keys, swipe, aria-live position,
+               hidden-slide inert); `photos` still rides Slider below. -->
+          <div
+            class="relative w-full"
+            role="region"
+            aria-roledescription="carousel"
+            aria-label={trackLabel}
+          >
+            <div
+              class="w-full"
+              {...useSwipe(reviewSwipe, () => ({
+                timeframe: 300,
+                minSwipeDistance: 60,
+                touchAction: "pan-y",
+              }))}
+            >
+              <!-- Live's mobile slide: viewport 337 inside 351 (7px each
+                   side); the holder reserves only ~12px below the card (the
+                   badge's 20px overhang draws over the pulled-up expander
+                   row, same as live's .shift-up overlap). -->
+              <div class="px-[7px] pb-3 md:pb-16 lg:px-4 lg:pb-20">
+                <!-- Pale-blue quote card (live .big-review, 600×400 at
+                     desktop, #e7f5fa, 25px radius, padding 24px tablet /
+                     30px desktop): the quote sits on TOP with the reviewer
+                     row beneath, and the source's logo badge overhangs the
+                     bottom-right edge. Order is NOT breakpoint-dependent —
+                     live is quote-on-top at every width (probe-verified
+                     column/QUOTE-top at 390/834/1440), so DOM order
+                     (blockquote then figcaption) maps 1:1 to paint order
+                     with plain flex-col; no reverse anywhere. justify-between
+                     + the fixed tablet/desktop heights open the gap live
+                     shows between the two blocks. -->
+                <div
+                  class="relative mx-auto mb-12 max-w-[600px] rounded-[25px] bg-[#e7f5fa] text-left xs:mb-0 md:h-[320px] md:max-w-[480px] lg:h-[400px] lg:max-w-[600px]"
+                >
+                  <div class="h-full w-full overflow-hidden rounded-[25px]">
+                    <div
+                      class="flex h-full transition-transform duration-[2000ms] ease-[cubic-bezier(0.19,1,0.22,1)]"
+                      style="transform: translateX(-{reviewSlide * 100}%)"
+                    >
+                      {#each trackItems as item, i (i)}
+                        <div
+                          class="h-full w-full shrink-0"
+                          role="group"
+                          aria-roledescription="slide"
+                          aria-label="{i + 1} of {trackCount}"
+                          aria-hidden={i === reviewSlide ? undefined : "true"}
+                          inert={i !== reviewSlide}
+                        >
+                          <!-- The card's padding lives here (not on the
+                               pale-blue box) so the mask clips the sliding
+                               content at the card's border box, not at the
+                               padding edge. -->
+                          <figure
+                            class="flex h-full flex-col justify-between p-[18px] md:p-6 lg:p-[30px]"
+                          >
+                            <!-- Direct [&_p] hits: the base main :where(p)
+                                 clamp rule beats inherited sizes on the inner
+                                 <p>, so the blockquote's own text-[16px] never
+                                 reached it (computed 17.365/19px until pinned
+                                 here). -->
+                            <blockquote
+                              class="[&_p]:text-[16px] [&_p]:leading-[24px] text-[#365b6d] lg:[&_p]:text-[20px] lg:[&_p]:leading-[30px] lg:font-light"
+                            >
+                              <p>{item.quote}</p>
+                            </blockquote>
+                            <figcaption
+                              class="mb-[10px] flex items-center gap-4 lg:mb-0 lg:gap-5"
+                            >
+                              {#if isFilled.image(item.reviewer_photo)}
+                                <!-- The worst ratio measured anywhere on the
+                                     site: 12.0x. A fixed 72px avatar (120 at
+                                     lg) was pulling the 1440-wide candidate. -->
+                                <PrismicPhoto
+                                  field={item.reviewer_photo}
+                                  fallbackAlt=""
+                                  sizes="(min-width: 1024px) 120px, 72px"
+                                  class="h-[72px] w-[72px] rounded-full object-cover lg:h-[120px] lg:w-[120px]"
+                                />
+                              {/if}
+                              <div class="flex-1">
+                                <p
+                                  class="text-[16px] leading-[24px] font-medium text-[#365b6d] xs:text-[20px] xs:leading-[30px] md:text-[20px] md:leading-[60px] lg:text-[30px] lg:leading-[40px]"
+                                >
+                                  {item.reviewer_name}
+                                </p>
+                                {#if item.reviewer_place}
+                                  <p
+                                    class="text-[10px] font-light xs:text-[16px] xs:leading-[24px] md:text-[16px] md:leading-[25px] text-[#365b6d] uppercase lg:mt-1 lg:text-[16px] {isHomeSsb
+                                      ? 'leading-[15px]'
+                                      : 'leading-[12px]'} {isHomeSsb
+                                      ? 'lg:leading-[25px]'
+                                      : 'lg:leading-[19px]'}"
+                                  >
+                                    {item.reviewer_place}
+                                  </p>
+                                {/if}
+                              </div>
+                            </figcaption>
+                          </figure>
+                        </div>
+                      {/each}
+                    </div>
+                  </div>
+                  {#each trackItems as item, i (i)}
                     {#if isFilled.link(item.review_url)}
                       {@const badge = badgeFor(asLink(item.review_url))}
                       <!-- Live .social-logo-big-review: an 80×80 logo anchor
                            poking 20px below the card's bottom edge, 30px in
-                           from the right — no card chrome of its own. -->
-                      <a
-                        href={asLink(item.review_url)}
-                        target="_blank"
-                        rel="noopener"
-                        aria-label="Read this review on {badge.label}"
-                        class="focus-visible:ring-primary-deep absolute -bottom-5 right-6 transition-opacity hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden lg:right-[30px]"
+                           from the right — no card chrome of its own. The
+                           wrapper carries the cross-dissolve so the anchor
+                           keeps its own quick hover fade (live's
+                           `.social-logo-big-review:hover` `opacity: .6`,
+                           beachfront.css:6830). -->
+                      <div
+                        class="absolute right-6 -bottom-5 transition-opacity duration-[2000ms] ease-in-out lg:right-[30px] {i ===
+                        reviewSlide
+                          ? 'opacity-100'
+                          : 'pointer-events-none opacity-0'}"
+                        aria-hidden={i === reviewSlide ? undefined : "true"}
+                        inert={i !== reviewSlide}
                       >
-                        <img
-                          src={badge.icon}
-                          alt={badge.label}
-                          class="h-14 w-14 object-contain lg:h-20 lg:w-20"
-                        />
-                      </a>
-                    {/if}
-                    <!-- Direct [&_p] hits: the base main :where(p) clamp rule
-                         beats inherited sizes on the inner <p>, so the
-                         blockquote's own text-[16px] never reached it
-                         (computed 17.365/19px until pinned here). -->
-                    <blockquote
-                      class="[&_p]:text-[16px] [&_p]:leading-[24px] text-[#365b6d] lg:[&_p]:text-[20px] lg:[&_p]:leading-[30px] lg:font-light"
-                    >
-                      <p>{item.quote}</p>
-                    </blockquote>
-                    <figcaption
-                      class="mb-[10px] flex items-center gap-4 lg:mb-0 lg:gap-5"
-                    >
-                      {#if isFilled.image(item.reviewer_photo)}
-                        <PrismicImage
-                          field={item.reviewer_photo}
-                          fallbackAlt=""
-                          class="h-[72px] w-[72px] rounded-full object-cover lg:h-[120px] lg:w-[120px]"
-                        />
-                      {/if}
-                      <div class="flex-1">
-                        <p
-                          class="text-[16px] leading-[24px] font-medium text-[#365b6d] xs:text-[20px] xs:leading-[30px] md:text-[20px] md:leading-[60px] lg:text-[30px] lg:leading-[40px]"
+                        <a
+                          href={asLink(item.review_url)}
+                          target="_blank"
+                          rel="noopener"
+                          aria-label="Read this review on {badge.label}"
+                          class="focus-visible:ring-primary-deep block transition-opacity hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
                         >
-                          {item.reviewer_name}
-                        </p>
-                        {#if item.reviewer_place}
-                          <p
-                            class="text-[10px] font-light xs:text-[16px] xs:leading-[24px] md:text-[16px] md:leading-[25px] text-[#365b6d] uppercase lg:mt-1 lg:text-[16px] {isHomeSsb
-                              ? 'leading-[15px]'
-                              : 'leading-[12px]'} {isHomeSsb
-                              ? 'lg:leading-[25px]'
-                              : 'lg:leading-[19px]'}"
-                          >
-                            {item.reviewer_place}
-                          </p>
-                        {/if}
+                          <img
+                            src={badge.icon}
+                            alt={badge.label}
+                            class="h-14 w-14 object-contain lg:h-20 lg:w-20"
+                          />
+                        </a>
                       </div>
-                    </figcaption>
-                  </figure>
+                    {/if}
+                  {/each}
                 </div>
-              {:else if isFilled.image(item.image) || item.caption}
+              </div>
+            </div>
+
+            {#if trackCount > 1}
+              <!-- Edge-pinned prev/next: same box and classes the shared
+                   Slider's side-arrow buttons + the review arrowClass gave
+                   them, so the arrows land on the same pixels. Arrows are
+                   live's own left-arrow/right-arrow SVGs. -->
+              <button
+                type="button"
+                onclick={reviewPrev}
+                onkeydown={reviewKeydown}
+                class="text-primary hover:bg-primary/10 focus-visible:ring-primary-deep absolute top-1/2 left-0 z-10 mx-6 -mt-16 flex -translate-y-1/2 items-center justify-center rounded-full transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                aria-label="Previous slide"
+              >
+                {@render reviewArrowLeft()}
+              </button>
+              <button
+                type="button"
+                onclick={reviewNext}
+                onkeydown={reviewKeydown}
+                class="text-primary hover:bg-primary/10 focus-visible:ring-primary-deep absolute top-1/2 right-0 z-10 mx-6 -mt-16 flex -translate-y-1/2 items-center justify-center rounded-full transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                aria-label="Next slide"
+              >
+                {@render reviewArrowRight()}
+              </button>
+            {/if}
+
+            <!-- Announce position to screen readers (no autoplay here, so
+                 always polite — same rule as the shared Slider). -->
+            <div class="sr-only" aria-live="polite" aria-atomic="true">
+              Slide {reviewSlide + 1} of {trackCount}
+            </div>
+          </div>
+        {:else}
+          <!-- `photos` (non-fullbleed) still rides the shared Slider; its
+               movement is a plain CSS transition, so app.css's global
+               prefers-reduced-motion reset flattens it — no local gate
+               needed. Timing is live's .big-review-slider rule verbatim:
+               transform 2s cubic-bezier(0.19,1,0.22,1). -->
+          <Slider
+            itemCount={trackCount}
+            label={trackLabel}
+            showDots={false}
+            gap="0px"
+            mobileGap="0px"
+            arrowClass="text-primary hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
+            transitionClass="duration-[2000ms] ease-[cubic-bezier(0.19,1,0.22,1)]"
+          >
+            {#snippet children({ index }: { index: number })}
+              {@const item = trackItems[index]}
+              {#if item && (isFilled.image(item.image) || item.caption)}
                 <div class="px-4">
                   {#if isFilled.image(item.image)}
                     <PrismicImage
@@ -451,9 +606,9 @@
                   {/if}
                 </div>
               {/if}
-            {/if}
-          {/snippet}
-        </Slider>
+            {/snippet}
+          </Slider>
+        {/if}
       </div>
       {#if isHomeSsb}
         <!-- Live's .shift-up block: the expander sits tight under the slider

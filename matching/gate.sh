@@ -29,7 +29,13 @@
 # instead of trusting anyone to remember.
 set -u
 PD="$HOME/.claude/skills/matching-a-page/page-diff.mjs"
-REF="https://www.beachfrontdentistry.com"
+# 2026-08-10: production (www.beachfrontdentistry.com) cut over to OUR Netlify
+# build sometime after the 2026-08-07 qafix0807 run — the old REF now 301s to
+# the rebuild, so gating against it compares the candidate with itself and
+# every run goes silently green. The Webflow original is still published at
+# its staging domain (same data-wf-site 64af3f93339537d6b661b556, same
+# markup classes); that is the reference now. See LEDGER 2026-08-10.
+REF="https://beachfront-dentistry.webflow.io"
 CAND="http://localhost:5173"
 SPEC="$(dirname "$0")/SPEC.md"
 TAG="${1:?usage: gate.sh <round-tag> [page ...]}"
@@ -116,8 +122,18 @@ run services "/services" "/dev/match/services" \
   "Cosmetic Dentistry,General Dentistry,Ready for great dental health,Want to learn more"
 run atd "/ask-the-doctor" "/dev/match/ask-the-doctor" \
   "Beyond the Smile,Back to Top,Ready for great dental health,Want to learn more"
+# 2026-08-11: the info-band anchor was "Book Appointment", but MarkUp pin
+# 5980c9d7 #3 renamed the button to "Request Appointment" while the REF still
+# says "Book" — an anchor must resolve on BOTH pages (prefix match on rendered
+# text), so no button-label anchor can survive that split. "OFFICE HOURS" is
+# the nearest text both pages share as an element PREFIX: the ref band reuses
+# adjacent `.footer-contact-*` divs whose textContent concatenates with no
+# whitespace ("CONTACT(310) 378-9241…"), so any CONTACT-phone anchor dies on
+# the missing space, while the OFFICE-HOURS header div is a clean prefix on
+# both. The renamed button + CONTACT column now fall in the region ABOVE this
+# anchor ("top"). See LEDGER 2026-08-11 (markup round F).
 run contact "/contact-us" "/contact-us" \
-  "Book Appointment,Ready for great dental health,Want to learn more"
+  "OFFICE HOURS,Ready for great dental health,Want to learn more"
 
 if [ "${FAILED_PREFLIGHT:-0}" = "1" ]; then
   echo

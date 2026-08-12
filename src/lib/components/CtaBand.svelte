@@ -2,6 +2,7 @@
   import HeroBackgroundImage from "$lib/components/HeroBackgroundImage.svelte";
   import ReadReviewsExpander from "$lib/components/ReadReviewsExpander.svelte";
   import RichTextBody from "$lib/components/RichTextBody.svelte";
+  import { pillClass } from "$lib/components/OutlineButton.svelte";
   import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
   import { PrismicLink, PrismicRichText } from "@prismicio/svelte";
   import type { ImageField, LinkField, RichTextField } from "@prismicio/client";
@@ -53,9 +54,11 @@
   let {
     heading = DEFAULT_HEADING,
     body = [],
-    // Live's closing-band button reads "Book Appointment" (no "an") — the
-    // detail routes render <CtaBand/> with no label and must match it.
-    ctaLabel = "Book Appointment",
+    // Live's closing-band button reads "Book Appointment" (no "an"), and
+    // MarkUp pin 5980c9d7 #3 renames every Book CTA to "Request", keeping each
+    // label's article shape — a deliberate deviation from the reference. The
+    // detail routes render <CtaBand/> with no label and take this default.
+    ctaLabel = "Request Appointment",
     ctaLink = DEFAULT_CTA_LINK,
     backgroundImage = {},
     caption,
@@ -89,11 +92,17 @@
   >
     {#if ctaLabel && ctaLink}
       <!-- Live's `.button.text-color-primary-dark`: 25px museo-slab in a 67px
-           pill, and the hover is opacity .6 + a translucent cyan fill (the
-           border/text colours do NOT change). -->
+           pill. The hover/press language is the shared one — see
+           OutlineButton.svelte's module block for the colourways and their
+           measured contrast. This band's pill stays a `<PrismicLink>` rather
+           than an `<OutlineButton>` because its href is an editor-settable
+           field whose external values need the target/rel PrismicLink resolves
+           and the component does not model. -->
       <PrismicLink
         field={ctaLink}
-        class="closing-cta-button font-slab px-[1em] py-[1.3em] leading-[0] focus-visible:ring-primary-deep inline-flex items-center rounded-lg border border-[#365b6d] text-[14px] font-light text-[#365b6d] transition-[background-color] hover:bg-[#129ecc4a] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:text-[20px] lg:text-[25px]"
+        class="closing-cta-button {pillClass(
+          'teal',
+        )} px-[1em] py-[1.3em] leading-[0] text-[14px] xs:text-[15px] md:text-[20px] lg:text-[25px]"
       >
         {ctaLabel}
       </PrismicLink>
@@ -163,13 +172,44 @@
         <!-- Live's `.cta-beach-label`: museo-sans w300 white, 25px desktop /
              10px small, absolute at bottom 20% (which clears the footer wave
              that overlaps the photo's bottom edge — a lower anchor hides under
-             it), 60px / 5% from the left. No scrim on live; the label sits on
-             the darker water band of the photo.
+             it). Left ladder on live: 60px inside `.content-width`
+             (beachfront.css:6372-6379 → x=80@1440, 60@1294/1200, 60@834),
+             8% ≤767 (:8714-8717), 5% ≤479 (:9248-9251). No scrim on live.
              Its line-height is the unitless ratio 1.15, so it tracks the font
-             size at every breakpoint (11.5/17.25/23/28.75); the per-breakpoint
-             px values that used to sit here were 6px short at desktop. -->
+             size at every breakpoint (11.5/17.25/23/28.75). -->
+        <!-- MarkUp d486b3c5 thread 9ae81c12-aef2-4a2f-bec2-26aacad680f4
+             (pin #11): "the Fiji Islands label looks like it's too far right…
+             left-align all the way down the page." The label now takes the
+             shared content gutter: max(60px, 50% − 640px) at ≥992 (= live's
+             own 80/60/60 — the old flat lg:left-20 was 20px right of live
+             below 1400), 48px at 768–991 (deliberate deviation: live keeps
+             60px there, the gutter is 48), 8%/5% below (= live, and the
+             missing xs tier was a 5%-vs-8% infidelity). See LEDGER
+             2026-08-10. -->
+        <!-- Round H4, operator (MarkUp thread 7dd0c2f2): "wave should never
+             touch the text". `bottom-[20%]`/`lg:bottom-[31%]` are fractions of
+             the PHOTO, but the thing to clear is the footer's wave, which is
+             anchored to the footer's top — and the footer top is not the photo
+             bottom: this section's `-mb-[10%]` (a percentage of WIDTH) drags
+             the footer up over the photo by 39/83/144px at 390/834/1440. So a
+             percentage of the photo's height could never track it, and the
+             label sat under the arc: probed overlap −24.0 @834, −14.0 @1440,
+             −1.4 @1294. `calc(10vw + Npx)` undoes the overlap exactly, leaving
+             N px between the label and the footer's top at every width in the
+             band; N is the footer wave's own box height (128/160), the same
+             "clear the divider's box" rule the hero mounts take, so the
+             clearance is constant (29.9px @md, 37.3px @lg) instead of drifting.
+             ≤767 now takes the same rule (footer wave box = 96px there). H4
+             left it on `bottom-[20%]` believing the label was unpainted below
+             768; it is not — probed at 390/480/700 it renders at opacity 1
+             with its baseline 80.4/76.8/68.0px INSIDE the footer wave's box,
+             which is the "wave touching the text" this directive forbids. The
+             wave-divider spec could not see it because its scroll pass never
+             actually scrolled (`scroll-behavior: smooth` ate the jumps) and it
+             measured hidden elements' boxes; both are fixed in the same
+             commit, and the 8px-clearance assertion now covers 390. -->
         <p
-          class="absolute bottom-[20%] left-[5%] z-10 font-sans text-[10px] leading-[1.15] font-light text-white xs:text-[15px] md:text-[20px] lg:bottom-[31%] lg:left-20 lg:text-[25px]"
+          class="absolute bottom-[calc(10vw_+_96px)] left-[5%] z-10 font-sans text-[10px] leading-[1.15] font-light text-white xs:left-[8%] xs:text-[15px] md:bottom-[calc(10vw_+_128px)] md:left-12 md:text-[20px] lg:bottom-[calc(10vw_+_160px)] lg:left-[max(60px,calc(50%_-_640px))] lg:text-[25px]"
           use:animateIn={LIVE_REVEAL}
         >
           {caption}

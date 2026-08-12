@@ -1,12 +1,12 @@
 <script lang="ts">
   import { isFilled } from "@prismicio/client";
-  import { PrismicImage } from "@prismicio/svelte";
+  import PrismicPhoto from "$lib/components/PrismicPhoto.svelte";
   import DetailHero from "$lib/components/DetailHero.svelte";
   import DetailBody from "$lib/components/DetailBody.svelte";
   import OutlineButton from "$lib/components/OutlineButton.svelte";
   import CtaBand from "$lib/components/CtaBand.svelte";
   import { CTA_BEACH } from "$lib/cta-beach";
-  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
+  import { animateIn, ABOVE_FOLD_REVEAL } from "$lib/actions/animateIn";
   import type { ImageField } from "@prismicio/client";
   import type { PageData } from "./$types";
 
@@ -17,8 +17,14 @@
   let { data }: { data: PageData } = $props();
 
   // Live gives EVERY team-member hero the same shared beach photo (not the
-  // headshot). Served from /static so it clears the app CSP (img-src is
-  // Prismic-only) — the real asset, not a redraw.
+  // headshot). MarkUp round D deviates — threads
+  // b7a00984-7a22-4830-ab3a-1fe1b636497e (team-member pin #1, "This should be
+  // the same image on their small thumbnail module.") +
+  // 17e321d9-3717-4a6a-810f-d9be03e60de2 (our-team pin #4, each member's
+  // favorite beach as the hero): the hero is now the person's own gallery[0]
+  // (data.heroImage, Prismic-hosted — CSP-fine), and this shared photo is the
+  // FALLBACK for a person with no gallery. Served from /static so it clears
+  // the app CSP (img-src is Prismic-only) — the real asset, not a redraw.
   const heroBeach: ImageField = {
     url: "/images/team-member-hero.jpg",
     alt: null,
@@ -44,19 +50,25 @@
        so one left value replaces the old right-4 / right-13% pair.
        No white ring: live's rule has no border — the photo fills the circle.
        `object-position: 50% 0%` anchors a headshot to the top of its crop. -->
+  <!-- The headshot rides the hero seam and is the second thing in the first
+       viewport (measured top=191 @390) — it flashed with the name beside it. -->
   <div
+    data-reveal
     class="absolute bottom-[-14px] left-[64.2%] z-20 size-[96px] overflow-hidden rounded-full xs:size-[144px] md:bottom-[-64px] md:size-[256px] lg:bottom-[-80px] lg:size-[320px]"
-    use:animateIn={LIVE_REVEAL}
+    use:animateIn={ABOVE_FOLD_REVEAL}
   >
-    <PrismicImage
+    <!-- The circular headshot straddling the hero seam. Measured 96/256/320 at 390/834/1440 — overshoot 4.5x. eager: it is above the fold on every team-member page. -->
+    <PrismicPhoto
       field={data.doc.data.media}
+      sizes="(min-width: 1024px) 320px, (min-width: 768px) 256px, 96px"
+      loading="eager"
       class="h-full w-full object-cover object-top"
     />
   </div>
 {/snippet}
 
 <DetailHero
-  backgroundImage={heroBeach}
+  backgroundImage={data.heroImage ?? heroBeach}
   label={data.title}
   labelSize="name"
   overlay={hasHeadshot ? headshot : undefined}
@@ -85,10 +97,23 @@
   <!-- Live's body copy: museo-sans slate #365b6d, 12px/18 mobile → 20px/30
        desktop, 10px between blocks (shared DetailBody). -->
   <!-- Live's role line is `h4.text-color-primary-dark.mt-8.mb-4`, and `.mb-4`
-       is `margin-bottom:1rem` (`beachfront.css:3985-3988`) = 24 / 32 / 40. We
-       had a flat `mt-6` (24) on the body, which is 8px short at 834 and 16 at
-       1440 — and every paragraph below inherited the drift. -->
-  <DetailBody field={data.doc.data.body} class="mt-6 md:mt-8 lg:mt-10" />
+       is `margin-bottom:1rem` (`beachfront.css:3985-3988`) = 24 / 32 / 40.
+       MarkUp thread 25b788a1-ecb1-436e-bd80-293ad0f277f4 (pin #4, "Half as
+       much vertical space between the job title and the body text. Should be
+       consistent between the button and the body text as well") halves it:
+       the body now carries the same `.mt-2` half-rem ladder the button below
+       already had (`margin-top:.5rem` — `beachfront.css:3901-3903`) = 12 / 16 /
+       20, so title→body equals body→button at every tier. Team detail only.
+       MarkUp thread b42973fe-6f2a-43d2-ac43-87c8187d9a7e (pin #3, "This text
+       width is way too long… Or maybe a max width of 700 pixels, and then as
+       the screen size gets smaller, it starts to rag") caps the measure at
+       700px — live has no cap below the 1440 container (bio ran 1280px wide
+       at 1440). Team detail only; services (w-full md:w-4/5) and questions
+       (max-w-[1024px]) keep their live-derived widths. -->
+  <DetailBody
+    field={data.doc.data.body}
+    class="mt-3 max-w-[700px] md:mt-4 lg:mt-5"
+  />
 
   <!-- Live's cyan outline "Back to Team" pill. It carries `.mt-2` —
        `margin-top:.5rem` (`beachfront.css:3901-3903`) = 12 / 16 / 20 — inside a

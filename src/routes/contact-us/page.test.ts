@@ -6,7 +6,7 @@ import Page from "./+page.svelte";
 afterEach(() => cleanup());
 
 // The page takes no props — it matches the live /contact-us: a left-aligned
-// "Contact Us" photo hero, an info band (Book-Appointment button + CONTACT /
+// "Contact Us" photo hero, an info band (Request-Appointment button + CONTACT /
 // OFFICE HOURS + map), and the shared CTA. The request-appointment FORM lives
 // in the global AppointmentModal (opened via the #appointment anchor); this
 // route has no body form of its own.
@@ -50,9 +50,10 @@ describe("contact-us page", () => {
     const { container, getAllByText } = render(Page);
     // No body form on the page — the form is in the global AppointmentModal.
     expect(container.querySelector("form")).toBeNull();
-    // Both the info-band button and the closing CTA say "Book Appointment" and
-    // open that modal via the #appointment anchor.
-    const books = getAllByText("Book Appointment");
+    // Both the info-band button and the closing CTA say "Request Appointment"
+    // (MarkUp pin 5980c9d7 #3 — live says "Book") and open that modal via the
+    // #appointment anchor.
+    const books = getAllByText("Request Appointment");
     expect(books.length).toBeGreaterThanOrEqual(1);
     for (const el of books) {
       expect(el.closest("a")?.getAttribute("href")).toBe("#appointment");

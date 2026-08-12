@@ -1,10 +1,12 @@
 import { defineConfig } from "@playwright/test";
 import base from "@reddoorla/maintenance/configs/playwright-a11y";
 
-// Emulate reduced motion in tests: instant scrollIntoView (no long animated
-// smooth-scroll that flakes Playwright's actionability checks under parallel
-// load) and view transitions fall back to instant. Pairs with the
-// prefers-reduced-motion gate on scroll-behavior in src/app.css.
+// This file used to claim it emulated reduced motion suite-wide (for instant
+// scrollIntoView and instant view transitions, pairing with the
+// prefers-reduced-motion gate on scroll-behavior in src/app.css). It never
+// did — see the note in `use` below. Specs that need the preference emulate
+// it themselves; the intent above was never actually in force, so nothing
+// depends on it.
 //
 // R1.1 (health-gate): the central `smoke` audit (reddoor-maintenance
 // src/audits/smoke.ts) allocates a free port and passes it as
@@ -19,7 +21,14 @@ export default defineConfig({
   ...base,
   use: {
     ...base.use,
-    reducedMotion: "reduce",
+    // `reducedMotion: "reduce"` used to sit here and DID NOTHING: probed on this
+    // Playwright/Chromium, `matchMedia("(prefers-reduced-motion: reduce)")`
+    // reports false under the option at config, project and test.use level, and
+    // true only after an explicit `page.emulateMedia({ reducedMotion })`. So
+    // every spec that believed it ran reduced was running with motion ON — the
+    // line asserted a guarantee it never delivered. Removing it changes no
+    // runtime behaviour (there was none to change); specs that need reduced
+    // motion call emulateMedia themselves, as nav-menu and review-mask do.
     ...(smokePort ? { baseURL: `http://localhost:${smokePort}` } : {}),
   },
   ...(smokePort

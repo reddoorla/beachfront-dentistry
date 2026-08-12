@@ -90,7 +90,10 @@
       name: SITE_NAME,
       url: origin,
       telephone: PHONE.href.replace("tel:", ""),
-      logo: `${origin}/favicon.svg`,
+      // apple-touch-icon.png is the blue circle logo with real alpha (256px,
+      // meets Google's >=112px logo guidance). /favicon.svg never existed in
+      // static/ — the reference was dead (MarkUp thread 784b9a3f, pin #13).
+      logo: `${origin}/apple-touch-icon.png`,
       address: {
         streetAddress: ADDRESS.line1,
         addressLocality: "Redondo Beach",
@@ -165,7 +168,15 @@
       showMap
     />
   </div>
-  <TransitionOverlay />
+  <!-- WHITE, not the component's bg-black default (MarkUp thread 65939802,
+       pin #12: "it goes black and then loads the next page. Is there any way
+       you can go white on the next page, or even the Beachfront blue…").
+       The overlay only mounts between beforeNavigate and afterNavigate, so
+       first paint (hero video) never sees it. Swap bg-white for the brand
+       blue by changing this one class if Tim prefers. -->
+  <TransitionOverlay
+    class="fixed top-0 left-0 z-50 h-screen w-screen bg-white"
+  />
   <!-- The id makes the CTA's `#appointment` anchor target real for prerender
        validation and no-JS clicks (which land harmlessly at the document end —
        /contact-us covers no-JS users); JS clicks are intercepted above to open

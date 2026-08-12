@@ -203,9 +203,83 @@ describe("CollectionList slice — tags line + detail-route links", () => {
   });
 });
 
-// The person card's excerpt and the roster order are AUTHORED fields
-// (person.teaser / person.order), not derived from the bio or from Prismic's
-// document order — see the notes on `teamRank` and the personCard snippet.
+// The team row's name is a HOVER reveal, and Tailwind v4 wraps `group-hover:`
+// in `@media (hover: hover)` — so on a phone or a tablet the row that exists
+// to introduce the staff rendered eleven unlabelled faces. Probed at 390 with
+// touch emulation before the fix: `matchMedia("(hover: hover)")` false, badge
+// opacity 0 on all 11, before and after a tap.
+// These assert the CLASS CONTRACT, since jsdom evaluates no media queries;
+// the rendered proof is the 390 screenshot pair in the commit body.
+describe("CollectionList slice — the team row names a face without hover", () => {
+  const teamSlice = {
+    slice_type: "collection_list",
+    variation: "team",
+    primary: {
+      heading: [{ type: "heading2", text: "Meet Your Team", spans: [] }],
+      collection_type: "person",
+      max_items: 24,
+    },
+    items: [],
+  } as unknown as Content.CollectionListSlice;
+
+  const context = {
+    collections: {
+      person: [
+        {
+          uid: "stacey",
+          type: "person",
+          data: {
+            title: [{ type: "heading3", text: "Stacey", spans: [] }],
+            media: {
+              url: "https://img.example/stacey.jpg",
+              alt: "Stacey",
+              dimensions: { width: 800, height: 800 },
+            },
+          },
+        },
+      ],
+    },
+  } as never;
+
+  const render_ = () =>
+    render(CollectionList, { props: { slice: teamSlice, context } });
+
+  it("prints the name in a caption that touch devices can see", () => {
+    const { getByRole } = render_();
+    const link = getByRole("link", { name: "Stacey" });
+    const caption = [...link.querySelectorAll("span")].find((s) =>
+      s.className.includes("[@media(hover:none)]"),
+    );
+    expect(caption?.textContent?.trim()).toBe("Stacey");
+    // hidden where a pointer can hover (the design's reveal still owns that
+    // case), shown where it cannot — the Grid.svelte:169 idiom
+    expect(caption?.className).toContain("hidden");
+    expect(caption?.className).toContain("[@media(hover:none)]:block");
+    // and it is inside the link, so tapping the name navigates
+    expect(caption?.closest("a")).toBe(link);
+  });
+
+  it("keeps the cyan hover badge off the face on touch, not permanently over it", () => {
+    const { getByRole } = render_();
+    const badge = getByRole("link", { name: "Stacey" }).querySelector(
+      "span.absolute",
+    );
+    expect(badge?.className).toContain("opacity-0");
+    expect(badge?.className).toContain("group-hover:opacity-100");
+    expect(badge?.className).toContain("group-focus-visible:opacity-100");
+    // deliberately NOT `[@media(hover:none)]:opacity-100`: that one-class fix
+    // paints a 65% cyan disc over every face permanently (probed at 390), and
+    // this row's job is the faces. The caption above carries touch instead.
+    expect(badge?.className).not.toContain("[@media(hover:none)]:opacity-100");
+  });
+});
+
+// The roster order is an AUTHORED field (person.order), not Prismic's
+// document order. The card excerpt was authored too (person.teaser) until
+// MARKUP ROUND C: thread 4dd560d2-3dad-4240-b5bb-3a5d64a6cedd (yfv pin #5)
+// replaced it with a visual 3-line clamp of the real bio, so the card now
+// reads person.body FIRST and keeps the teaser only as a fallback for a
+// person with no bio — see the personCard snippet and LEDGER ROUND C.
 describe("CollectionList slice — people variation reads its authored fields", () => {
   const peopleSlice = {
     slice_type: "collection_list",
@@ -239,7 +313,7 @@ describe("CollectionList slice — people variation reads its authored fields", 
     },
   });
 
-  it("prints person.teaser rather than the bio when an author has set one", () => {
+  it("prints the real bio, not the authored teaser, when both exist (ROUND C)", () => {
     const { getByText, queryByText } = render(CollectionList, {
       props: {
         slice: peopleSlice,
@@ -254,22 +328,27 @@ describe("CollectionList slice — people variation reads its authored fields", 
         } as never,
       },
     });
-    expect(getByText("A hand-cut card teaser...")).toBeTruthy();
-    expect(queryByText("Stacey joined the practice in 2019.")).toBeNull();
+    expect(getByText("Stacey joined the practice in 2019.")).toBeTruthy();
+    expect(queryByText("A hand-cut card teaser...")).toBeNull();
   });
 
-  it("falls back to the bio for a person whose teaser is empty", () => {
+  it("falls back to person.teaser for a person with no bio", () => {
     const { getByText } = render(CollectionList, {
       props: {
         slice: peopleSlice,
         context: {
           collections: {
-            person: [person("stacey", "Stacey", { teaser: "  " })],
+            person: [
+              person("stacey", "Stacey", {
+                body: [],
+                teaser: "A hand-cut card teaser...",
+              }),
+            ],
           },
         } as never,
       },
     });
-    expect(getByText("Stacey joined the practice in 2019.")).toBeTruthy();
+    expect(getByText("A hand-cut card teaser...")).toBeTruthy();
   });
 
   it("sorts the roster by person.order, leaving docs without one at the end", () => {
@@ -288,10 +367,121 @@ describe("CollectionList slice — people variation reads its authored fields", 
         } as never,
       },
     });
-    // each card links its name; the headshot link is absent (no media).
-    const names = getAllByRole("link")
-      .map((a) => a.textContent?.trim())
-      .filter((t) => t && !t.startsWith("Read More"));
+    // the card's name is a plain heading now (the card carries ONE link —
+    // READ MORE — whose stretched hit area covers the name; see below).
+    const names = getAllByRole("heading", { level: 5 }).map((h) =>
+      h.textContent?.trim(),
+    );
     expect(names).toEqual(["Dr. Quan", "Stacey", "Linda", "Unranked"]);
+  });
+});
+
+// The person card used to carry THREE links to one route (headshot, name,
+// READ MORE): three tab stops per card, 33 on /our-team, all announcing the
+// same destination, and none of them giving the pointer any response. It is
+// one link now, stretched over the card, and the card answers hover/focus.
+describe("CollectionList slice — the person card is one card-wide link", () => {
+  const peopleSlice = {
+    slice_type: "collection_list",
+    variation: "people",
+    primary: {
+      heading: [{ type: "heading2", text: "Our Team", spans: [] }],
+      collection_type: "person",
+      max_items: 24,
+    },
+    items: [],
+  } as unknown as Content.CollectionListSlice;
+
+  const withPhoto = {
+    collections: {
+      person: [
+        {
+          uid: "stacey",
+          type: "person",
+          data: {
+            title: [{ type: "heading3", text: "Stacey", spans: [] }],
+            tags: "Dental Hygienist",
+            body: [{ type: "paragraph", text: "Stacey joined.", spans: [] }],
+            media: {
+              url: "https://img.example/stacey.jpg",
+              alt: "Stacey",
+              dimensions: { width: 800, height: 800 },
+            },
+          },
+        },
+      ],
+    },
+  } as never;
+
+  it("exposes exactly one link per card, named for the person", () => {
+    const { getAllByRole } = render(CollectionList, {
+      props: { slice: peopleSlice, context: withPhoto },
+    });
+    const links = getAllByRole("link");
+    expect(links).toHaveLength(1);
+    // not eleven links called "Read More" (WCAG 2.4.4); the visible words are
+    // still contained in the accessible name (2.5.3).
+    expect(links[0].getAttribute("aria-label")).toBe("Read more about Stacey");
+    expect(links[0].textContent).toContain("Read More");
+    expect(links[0].getAttribute("href")).toBe("/team-members/stacey");
+  });
+
+  it("leaves the headshot and the name outside the link, and stretches the link over the card", () => {
+    const { container, getByRole } = render(CollectionList, {
+      props: { slice: peopleSlice, context: withPhoto },
+    });
+    expect(container.querySelector("img")?.closest("a")).toBeNull();
+    expect(getByRole("heading", { level: 5 }).closest("a")).toBeNull();
+    // ::after covers the card box, ::before the headshot circle straddling
+    // its top edge — that is what makes the photo and the name clickable.
+    const cls = getByRole("link").className;
+    expect(cls).toContain("after:absolute");
+    expect(cls).toContain("after:inset-0");
+    expect(cls).toContain("before:rounded-full");
+    // and the ring hugs the words rather than the 359px content column
+    expect(cls).toContain("w-fit");
+  });
+
+  it("gives the whole card a hover/focus-within affordance, suppressed under reduced motion", () => {
+    const { container } = render(CollectionList, {
+      props: { slice: peopleSlice, context: withPhoto },
+    });
+    const card = container.querySelector("article.team-list-item");
+    const cls = card?.className ?? "";
+    expect(cls).toContain("group");
+    expect(cls).toContain("hover:-translate-y-1");
+    expect(cls).toContain("focus-within:-translate-y-1");
+    expect(cls).toContain("hover:shadow-lg");
+    expect(cls).toContain("focus-within:shadow-lg");
+    // Tailwind v4 compiles -translate-y-1 to the `translate` property, so the
+    // transition list must name `translate`, not `transform`, or the lift
+    // snaps instead of easing.
+    expect(cls).toContain("transition-[box-shadow,translate]");
+    // reduced motion keeps the shadow (state) and drops the movement
+    expect(cls).toContain("motion-reduce:hover:translate-y-0");
+    expect(cls).toContain("motion-reduce:focus-within:translate-y-0");
+  });
+
+  it("does not advertise a click on a card with no detail route", () => {
+    const { container } = render(CollectionList, {
+      props: {
+        slice: peopleSlice,
+        context: {
+          collections: {
+            // no `type`, so hrefFor() returns undefined
+            person: [
+              {
+                uid: "stacey",
+                data: { title: [{ type: "heading3", text: "S", spans: [] }] },
+              },
+            ],
+          },
+        } as never,
+      },
+    });
+    expect(container.querySelectorAll("a")).toHaveLength(0);
+    expect(container.querySelector("article")?.className).not.toContain(
+      "hover:shadow-lg",
+    );
   });
 });

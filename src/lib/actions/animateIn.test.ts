@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 import { animateIn } from "./animateIn";
 
 class FakeIntersectionObserver {
@@ -231,6 +231,80 @@ describe("animateIn — viewport mode", () => {
 
     expect(el.style.opacity).toBe("1");
     expect(el.style.transitionDelay).toBe("200ms");
+  });
+});
+
+describe("animateIn — viewport fail-safe", () => {
+  // The timer path never touches requestAnimationFrame (that suspension is
+  // one of the failure modes it guards), so fake setTimeout is sufficient.
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("force-reveals after `failSafe` ms when the observer never fires", () => {
+    vi.useFakeTimers();
+    const el = document.createElement("div");
+    document.body.appendChild(el);
+
+    animateIn(el, { failSafe: 1500 });
+    expect(el.style.opacity).toBe("0");
+
+    vi.advanceTimersByTime(1499);
+    expect(el.style.opacity).toBe("0");
+
+    vi.advanceTimersByTime(1);
+    expect(el.style.opacity).toBe("1");
+    expect(el.style.transform).toBe("translateY(0)");
+    expect(FakeIntersectionObserver.instances[0].disconnected).toBe(true);
+  });
+
+  it("arms no timer without `failSafe` (below-fold stays unrevealed)", () => {
+    vi.useFakeTimers();
+    const el = document.createElement("div");
+    document.body.appendChild(el);
+
+    animateIn(el);
+    vi.advanceTimersByTime(60_000);
+
+    expect(el.style.opacity).toBe("0");
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("normal intersection reveal is unchanged when it wins the race", async () => {
+    const el = document.createElement("div");
+    document.body.appendChild(el);
+
+    animateIn(el, { failSafe: 1500 });
+    FakeIntersectionObserver.instances[0].trigger(true);
+    await nextTwoFrames();
+
+    expect(el.style.opacity).toBe("1");
+    expect(el.style.transform).toBe("translateY(0)");
+    expect(FakeIntersectionObserver.instances[0].disconnected).toBe(true);
+  });
+
+  it("destroy cancels a pending fail-safe", () => {
+    vi.useFakeTimers();
+    const el = document.createElement("div");
+    document.body.appendChild(el);
+
+    const ret = animateIn(el, { failSafe: 1000 });
+    ret.destroy();
+    vi.advanceTimersByTime(5000);
+
+    expect(el.style.opacity).toBe("0");
+  });
+
+  it("reveals in place when IntersectionObserver does not exist at all", () => {
+    // @ts-expect-error — simulating an environment with no IO constructor.
+    delete window.IntersectionObserver;
+    const el = document.createElement("div");
+    document.body.appendChild(el);
+
+    animateIn(el);
+
+    expect(el.style.opacity).toBe("1");
+    expect(el.style.transform).toBe("translateY(0)");
   });
 });
 

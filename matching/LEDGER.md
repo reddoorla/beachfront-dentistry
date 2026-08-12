@@ -2435,3 +2435,1276 @@ it states is semantically unchanged. Line citations re-mapped in spec-sections
 "`incidental-utils.js` — **1**: 14" still holds (toggle still starts at 14).
 Future byte-diffs against live's raw file will mismatch on whitespace/quotes —
 compare semantically, or re-capture and reformat.
+
+## REFERENCE MOVED — production cut over, gate REF repointed (2026-08-10, feat/markup-round-2026-08)
+
+- [infrastructure] `www.beachfrontdentistry.com` no longer serves the Webflow
+  reference: it 301s to the apex, which serves OUR Netlify build (verified
+  2026-08-10: 29 `_app/immutable` asset refs, zero `website-files.com` refs,
+  `server: Netlify`). The cutover happened after the 2026-08-07 23:40
+  qafix0807 run — that run still measured the stalled team region at its
+  historical 10.9%, which our own build would not produce. From the cutover
+  until today, `matching/gate.sh` was silently comparing the candidate with
+  itself; any run in that window would have gone green for the wrong reason
+  (none were run).
+- [fix] gate.sh REF → `https://beachfront-dentistry.webflow.io` — the Webflow
+  original is still published there under the same site id
+  (`data-wf-site="64af3f93339537d6b661b556"`, `home-hero-heading` present).
+  matching/pages/*.live.html (Last Published 2026-07-22) remain the frozen
+  markup captures. First run against the new REF is tagged `mkbase`
+  (pre-markup-round baseline) so score drift REF-side (e.g. a staging-domain
+  webflow badge, if any) is separable from this round's deliberate changes.
+
+## MARKUP ROUND — the five left gutters become ONE (2026-08-10, feat/markup-round-2026-08)
+
+Designer round, MarkUp board d486b3c5-eed8-4324-9158-289bd4ee8ccb (Tim Holmes,
+2026-08-07, pinned on deploy-preview-17 at ~1294px). The home page had FIVE
+differently-computed left gutters that coincide near x=80 only at exactly
+1440 — at 1294 they splayed to 24/48/60/73/80. Probing the REFERENCE
+(webflow.io staging) showed live itself keeps ONE gutter almost everywhere:
+`.content-width` = 80/60/60/48/19.5 at 1440/1294/1200/834/390
+(beachfront.css:5858-5867, 8%≤767 :8627-8630, 5%≤479 :9164-9167). Three of the
+five pins were therefore OUR matching bugs that the 1440-only lg sampling had
+hidden; two are real deviations Tim requested. After the round, every probed
+anchor (logo, hero h1, "Finally" heading, first card, MEET YOUR TEAM title,
+first team circle, FIJI label, footer heading) sits at 80/60/60/48/19.5, and
+the hero CTA's right edge equals the hamburger's at 1440/1294/1200/834
+(1360/1234/1140/786).
+
+- [fidelity fix] hero h1 box — thread ebedbcc9-3c30-42e5-b3f4-7089fe36be86
+  (pin #1, https://app.markup.io/markup/d486b3c5-eed8-4324-9158-289bd4ee8ccb/#thread/ebedbcc9-3c30-42e5-b3f4-7089fe36be86).
+  Ours was max-w-1360+px-6 (h1 x=64/24/24/24/24, from the pre-matching build);
+  live's h1 sits in `.content-width` (probed 80/60/60/48/19.5). Now the shared
+  gutter box (Hero/index.svelte). The video region's pixel floor (top region
+  mm 6-7% PASS) hid a 16-24px error at every width — pin #1 was a matching
+  defect report, not a taste request.
+- [deviation] hero CTA right edge — thread 2c0b1886-c579-43c0-aa70-d8c1f274c520
+  (pin #2, https://app.markup.io/markup/d486b3c5-eed8-4324-9158-289bd4ee8ccb/#thread/2c0b1886-c579-43c0-aa70-d8c1f274c520).
+  Live: `.button.position-absolute-bottom-right` right:2rem inside
+  `.content-width` (beachfront.css:6073-6076) → right edge gutter+20px in
+  (1340@1440, 1214@1294). Tim: "right align to the hamburger menu" → offset is
+  now the gutter itself, `lg:right-[max(60px,calc(50%_-_640px))]` → 1360@1440
+  (unchanged — ours was already 1360, a pre-existing 20px infidelity at 1440),
+  1234@1294 = hamburger. Deviates +20px from live everywhere in lg; invisible
+  to the gate matrix (1440 row unchanged).
+- [deviation] "Finally…" card row — thread bdabccea-788f-4df8-9832-12a64544cba5
+  (pin #3, https://app.markup.io/markup/d486b3c5-eed8-4324-9158-289bd4ee8ccb/#thread/bdabccea-788f-4df8-9832-12a64544cba5).
+  Live insets the three `.expanding-box` cards 12.5px inside the content box
+  (margin 0 12.5px, beachfront.css:6927-6928; width calc(33% − 25px),
+  index.html:88-102; probed first card x=92.5@1440, 72.5@1294). Tim: flush to
+  the heading → dropped our `lg:px-[13px]` (SectionGrid/index.svelte); cards
+  grow 397→406 in the same 1280 box, gap stays live's 31px. First card now
+  80@1440 vs live 92.5 — EXPECTED gate diff in "Finally have a dentist" @1440.
+  Tablet/mobile columns untouched (live's own x=112 indent at 834 stays; pin
+  was the desktop row).
+- [fidelity fix] team rail inset — thread 234a7635-c747-45c2-b7a2-9cb27cdefb6b
+  (pin #4, https://app.markup.io/markup/d486b3c5-eed8-4324-9158-289bd4ee8ccb/#thread/234a7635-c747-45c2-b7a2-9cb27cdefb6b).
+  Live sets `.heads-slider-holder` padding-left with JS getContentWidthMargin()
+  (index.html:177; matching/spec/incidental-utils.js:41-50; SPEC §3.3) = the
+  content gutter at every width. Our fixed trackPadStart="80px" reproduced the
+  1440 sample only (first circle 80 at 1294 vs title 60). Now
+  "max(60px, calc(50% - 640px))" — that function in pure CSS
+  (CollectionList/index.svelte team variation). Identical at 1440/834/390 →
+  no gate movement; the stalled "Our dental team in Redondo" @834 region is
+  NOT re-attempted by this round (strikes.mjs: flat 10.9% across 29 runs,
+  awaiting operator).
+- [deviation + fidelity fix] FIJI ISLANDS label — thread
+  9ae81c12-aef2-4a2f-bec2-26aacad680f4 (pin #11,
+  https://app.markup.io/markup/d486b3c5-eed8-4324-9158-289bd4ee8ccb/#thread/9ae81c12-aef2-4a2f-bec2-26aacad680f4).
+  Live `.cta-beach-label` left: 60px in `.content-width`
+  (beachfront.css:6372-6379 → 80/60/60/60), 8%≤767 (:8714-8717), 5%≤479
+  (:9248-9251). Ours was 5% + lg:left-20: WRONG vs live at 992-1399 (80 vs 60)
+  AND at 480-767 (5% vs 8%). Now the shared-gutter ladder
+  (5% / xs 8% / md 48px / lg max(60px,50%−640px)): equals live at every width
+  EXCEPT 768-991, where Tim's "left-align all the way down" takes the 48px
+  gutter over live's 60px. EXPECTED (improving) gate movement @834 in every
+  "Ready for great dental health" region that shows the beach band: label x
+  41.7 → 48 against ref 60. Applies to all six nav pages (Hero cta hardcodes
+  the caption, Hero/index.svelte:186).
+- [fidelity fix] footer gutter — same thread 9ae81c12 (pin #11). The old model
+  ("flat 48px from 768 up" + inner 1280 cap, Footer.svelte) reproduced live's
+  1440/834/390 samples but is 12px short across 992-1399: live's footer box is
+  the `.content-width` ladder (1.5rem stepped root → 60px ≥992; probed footer
+  heading x=60@1294/1200 vs ours 48). Wrapper is now the shared gutter box;
+  at ≥1400 the render is byte-identical (1400−120 = the same 1280 column), so
+  no gate movement at any matrix width.
+
+Verification: matching/probe-markup-align.mjs (kept). AFTER, cand:
+1440 all-anchors 80 · 1294 all 60 · 1200 all 60 · 834 all 48 (card 112 = live's
+own tablet indent; logo 20@390 = live's nav px-20 vs 5% content quirk) ·
+390 all 19.5; CTA right = hamburger right at 1440/1294/1200/834.
+Gate rounds: mkbase (pre-edit baseline, new REF) → markupa1 (post-edit).
+
+## MARKUP ROUND A2 — /your-first-visit, five pins (2026-08-10, feat/markup-round-2026-08)
+
+Designer round, MarkUp board 4b8d52d2-fdc8-4432-83e5-1fd2339dc420 (page
+/your-first-visit). Before/after probe: scratch probe-yfv-a2 at
+1440/1354/1294/834/390 against the webflow.io reference. Baseline gate:
+markupa1-yfv (24 regions; fails = footer WTLM 12.85@390 / 12.01@834 and the
+operator-ACK'd "We want you to feel comfortable" hΔ15.08@1440 — all
+pre-existing).
+
+- [fidelity fix] group-photo hero h1 — thread
+  ed09da97-36ac-4ad9-b796-c53c5a0f580c (pin #1,
+  https://app.markup.io/markup/4b8d52d2-fdc8-4432-83e5-1fd2339dc420/#thread/ed09da97-36ac-4ad9-b796-c53c5a0f580c).
+  Two defects, both ours. (a) Live's `.first-visit-heading` is absolute with
+  no `left`, so its static position inside `.content-width` IS the gutter
+  (your-first-visit.html:121; beachfront.css:6593-6605 + gutter ladder
+  :5858-5867/:8627-8630/:9164-9167; ref probed 80/60/60/48/19.5). Ours was
+  `left-5 lg:left-20` — right at exactly 1440, wrong everywhere else
+  (80@1354/1294 vs 60; 20@834 vs 48; 20@390 vs 19.5). Now the shared gutter
+  ladder (Hero/index.svelte groupphoto). (b) The reference hard-breaks the
+  headline after "meet" ("We are excited to meet <br>and care for you.",
+  your-first-visit.html:121); we rendered one line at every lg width. The
+  break is restated in the COMPONENT because the Migration API strips `\n`
+  from StructuredText (docs/migration.md) — seeded content cannot carry it.
+  AFTER: x=80/60/60/48/19.5, 2 lines at every width = ref. Expected gate
+  movement in "top" (hero) at all three matrix widths, toward the ref.
+- [deviation] toc lede top — thread a6fdb602-eefa-4fcc-9760-2470af210a60
+  (pin #2,
+  https://app.markup.io/markup/4b8d52d2-fdc8-4432-83e5-1fd2339dc420/#thread/a6fdb602-eefa-4fcc-9760-2470af210a60).
+  "Vertically align to the top of the 1, 2, 3 list." The 20px offset is
+  live's own `.text-body-large` margin-top (beachfront.css:7761), and the
+  reference renders it too (ref probed tocP 620 vs list 600 at every lg
+  width) — a requested deviation, not a defect. `lg:[&_p]:mt-0`
+  (FirstVisitToc/index.svelte) zeroes it in the desktop row only; the
+  stacked ≤991 layout keeps live's margins (delta −130/−140 @834/390,
+  unchanged). Pin caveat: the pin's x lands near the arrow column, but the
+  arrows were already flush — the paragraph reading is the only defect.
+  AFTER: delta 0 @1440/1354. Expected small mm movement in "We want you to
+  feel comfortable" @1440 (its ACK'd hΔ 15.08 floor is untouched).
+- [deviation + fidelity fix] meet-our-team first card — thread
+  e23604c9-fb66-4925-9878-9c3247390b44 (pin #4,
+  https://app.markup.io/markup/4b8d52d2-fdc8-4432-83e5-1fd2339dc420/#thread/e23604c9-fb66-4925-9878-9c3247390b44).
+  "Should left align to headline above." Fidelity half: live's h2 sits in
+  `.content-width` (your-first-visit.html:121; beachfront.css:5858-5867) —
+  our heading wrapper was missing the max-w-1400 cap, so it sat at 60@1440
+  where live has 80. Now capped (CollectionList/index.svelte slider branch):
+  h2 x=80/60/60 = live. Deviation half: live's first CARD sits a cell margin
+  past the gutter (gutter + 43.33 = 123.3@1440, probed; our old
+  trackPadStart="80px" reproduced that 1440 sample). Tim wants the card
+  flush with the h2, so lg trackPadStart is now
+  `calc(max(60px, 50% - 640px) - 43.33px)` — first-card = h2 gutter at
+  every lg width (80/60/60 probed @1440/1354/1294); ≤991 tiers untouched
+  (161/75 @834/390 = live's own indents). Known approximation, shared with
+  A1's team rail: Slider's arrow-travel bound parseFloats the pad (NaN→0
+  for calc), so the last arrow step can stop one cell short below ~1400 —
+  static render and gate are unaffected. Expected gate movement @1440 in
+  the team-slider region ("Dr. Robert Quan" / the region holding the h2),
+  toward Tim's ask (h2 toward the ref, card away from it).
+- [deviation] first-exam photo corners — thread
+  4cdf4f23-cdfc-4275-b7ea-1dc764285c81 (pin #6,
+  https://app.markup.io/markup/4b8d52d2-fdc8-4432-83e5-1fd2339dc420/#thread/4cdf4f23-cdfc-4275-b7ea-1dc764285c81).
+  "Round corners like the registration form background to the left." NEW
+  design request: the reference gives this img no radius (probed 0px both
+  sides — only `.registration-forms-box` carries 25px,
+  beachfront.css:6693-6695). `rounded-[25px]` on the row-1 PrismicImage
+  (ExamTimeline/index.svelte), all widths. AFTER: 25px at
+  1440/1354/1294/834/390. Expected small mm movement (corner pixels) in the
+  exam region at all three matrix widths, away from the ref by design.
+- [deviation] registration box sticky travel — thread
+  2b40d1f7-b53c-4091-828d-030ad2f15f6a (pin #7,
+  https://app.markup.io/markup/4b8d52d2-fdc8-4432-83e5-1fd2339dc420/#thread/2b40d1f7-b53c-4091-828d-030ad2f15f6a).
+  "Should continue be sticky until the bottom aligns with the bottom of
+  step six." Sticky travel is bounded by the MARGIN box, so live's
+  `margin-bottom:3rem` = 120px ≥992 (beachfront.css:6693-6699) froze the
+  box 120px above step six (probed 5253.6 vs 5373.6 @1440; the ref's own
+  box freezes 280px short — Tim is deviating from live here too).
+  `lg:mb-0` (ExamTimeline/index.svelte); ≤991 keeps live's static margins.
+  No compensating spacer: the row's height is the taller steps column, so
+  the section border box is unchanged at every width (probed heights
+  2108.6/2089.2/2064.0/3024.5/2274.1 before = after; meetTop unchanged).
+  AFTER: box bottom = step six bottom (short by 0.0) @1440/1354/1294,
+  instant-scroll probe (triage's smooth-scroll probe had produced a false
+  "never sticks" reading). Invisible to the gate: fullPage captures render
+  the page unscrolled, where the box paints at its static position.
+
+Verification (A2): scratch pin-probe at 1440/1354/1294/834/390, cand vs the
+webflow.io ref (deleted with the round). AFTER, cand: h1 x=80/60/60/48/19.5
+and 2 lines at every width (=ref); toc lede top = list top at lg; meet h2 =
+first card = 80/60/60; exam photo radius 25px everywhere; sticky box bottom
+= step-six bottom (short by 0.0) @1440/1354/1294 with the exam section's
+border box unchanged at every width.
+Gate rounds: markupa1 (baseline) → markupa2 (threshold 0.1, matrix
+1440/834/390, mask [], neutralizeMedia false). Movement confined to intended
+regions: "top" 2.85→0.12 @1440 / 2.45→0.66 @390 / 1.28→1.22 @834 (pin #1,
+toward ref); WTFC @1440 mm 0.41→2.03 (pin #2 deviation; its ACK'd hΔ 15.08
+unchanged); "Office Tour" @1440 1.13→3.20 (the pin-#4 card shift above the
+Dr._Robert_Quan anchor cut; the h2 fidelity half moves toward ref);
+"Dr. Robert Quan" @1440 2.14→16.24 NEW FAIL — pin #4's requested deviation
+(every card 43.33px left of the ref; the diff png is pure horizontal
+displacement, no breakage; @834/390 rows unchanged at 1.45/3.13). Left OPEN
+awaiting operator ACK as a deviation floor (same class as the WTFC hΔ row);
+threshold untouched, nothing masked. Footer WTLM floors 12.85@390 /
+12.01@834 unchanged. next.mjs after: 131/153, yfv 20/24, 3 open failures
+(this DRQ row, plus svc/contact outside this round).
+
+## MARKUP ROUND B — the Q&A card cluster (2026-08-10, feat/markup-round-2026-08)
+
+Designer round, MarkUp boards d486b3c5-eed8-4324-9158-289bd4ee8ccb (home,
+pins #9/#10) and 3c082cae (ask-the-doctor, pins #1/#2). All four pins target
+the shared QuestionCard / QuestionList pair. Before/after probed on
+localhost:5173 / and /ask-the-doctor at 1440/834/390 with reveal transforms
+neutralized (below-fold `.qa-item`s carry animateIn's translateY(160/96) until
+revealed — an un-neutralized probe reads inter-card gaps up to 160px too big;
+one triage number in this round's brief had that error: "~120px vertical" was
+right, an earlier raw probe's 280 was polluted).
+
+- [deviation] Read More bottom padding — threads
+  3d255366-5bb2-4cb1-9a90-439d49ef63ef (home pin #9,
+  https://app.markup.io/markup/d486b3c5-eed8-4324-9158-289bd4ee8ccb/#thread/3d255366-5bb2-4cb1-9a90-439d49ef63ef)
+  and bd8c37b0-2e1c-4dc2-a466-8073e204d90c (atd pin #1, "Same comments as the
+  homepage"). Live's `.qa-text` boxes are FLUSH — `.qa-text`
+  (beachfront.css:7282) and `.qa-text.m-2.active` (:7303) end at the card
+  bottom, so the revealed Read More pill touches the edge (probed offset 0px:
+  teaser 1440/834/390, numbered 1440/834). Tim: "same padding as the headline
+  to the bottom of box" — the headline ladder is `.qa-question`
+  margin-bottom .5rem (:7311) = 12/16/20, so the box gets pb-3/4/5
+  (QuestionCard.svelte textBoxClass). AFTER: offset 20/16/12 teaser,
+  20/16 numbered md/lg. Two probed carve-outs: (1) numbered base keeps NO pb —
+  the ≤479 expanded card is 384px over a 240px flow box (96px under the pill
+  already; offset 96 before = after) and 240−12 would re-clip the tallest
+  panel (231px); (2) teaser base expanded height 192→244 — the six-card sweep
+  found 231px answer panels @390 that ce0c59d's 8rem=192 box (verified on a
+  183px card) was ALREADY clipping by 39px, and 231+12 needs 243. AFTER:
+  pClippedTop 0 on the tallest card at every width, both variations.
+  Collapsed geometry untouched (padding doesn't move absolute children; the
+  anchor-cut `.qa-text` heights are unchanged) — gate-invisible, and the gate
+  agreed (home OdT/BtS mm flat at 1440/834).
+  NOT touched: the box still expands on open — pin #9's "I don't think it
+  needs to expand… Thoughts?" is a design QUESTION on a live-match behaviour
+  (.qa-text.m-2.active height transition, :7303); awaiting Tim's verdict.
+- [deviation] home teaser "View All Questions" gap — thread
+  ce17fba0-94d6-4e22-9863-8ee192b92ecc (home pin #10,
+  https://app.markup.io/markup/d486b3c5-eed8-4324-9158-289bd4ee8ccb/#thread/ce17fba0-94d6-4e22-9863-8ee192b92ecc).
+  Live butts the button row against the last card (probed gap 0.0px at
+  1440/834/390 — no margin between `.qa-collection-list` and the button row).
+  Tim: "add 40px of space between button and last question" — stated-value
+  mt-10 on the button row (QuestionList/index.svelte teaser branch). AFTER:
+  40.0 at all three widths. Gate consequence on home "Beyond the Smile" (the
+  region holding the 6 cards + button): Δh 1.7→3.4% @1440 / 1.5→3.6% @834
+  (PASS), and @390 3.4→5.8% — over the 5% height cap, mm still 1.7% —
+  NEW FAIL by stacking on the region's pre-existing ±33/63px anchor drift.
+  Left OPEN awaiting operator ACK as a deviation floor (same class as the
+  DRQ row); threshold untouched, nothing masked.
+- [deviation] atd numbered grid 30px gap — thread
+  b7be52f2-11d0-467c-b4ea-ca086b9aa29f (atd pin #2, first half; the
+  "meet the team" half is Round C / CollectionList, untouched here).
+  Live's spacing: `.w-col-6` padding 0 10px (20px column gutter) + the 520px
+  `.ask-the-doctor-collection-item` cell over a 400px card = probed gaps
+  h20/v120 @1440, h20/v96 @834, v12 @390. Tim: "consistent vertically and
+  horizontally… Let's use 30px" — one gap-[30px] on the grid wrapper at every
+  width, per-cell px/pb wrappers removed (QuestionList/index.svelte numbered
+  branch). AFTER: h30/v30 @1440+834, v30 @390; card width 620→625 @1440,
+  341.5→346.5 @834, 317.5→337.5 @390. Open-state at 30px: an expanded card
+  grows inside its own grid cell (margin-top + the ≤479 re-height), auto rows
+  push the rows below — probed gap-while-open 30, overlap false, at all three
+  widths (screenshot atd-1440 in round scratch, deleted with it). Gate
+  consequence on atd "Beyond the Smile" (the whole-grid region, 78% of the
+  page): mm 4.6→61.7 @1440 (Δh 17.6%) / 1.0→60.5 @834 (Δh 16.2%) /
+  1.7→66.9 @390 (Δh 5.8%); anchor deltas −1830/−1350/+690 = 19 rows ×
+  (120/96/12→30). The ref cannot agree with a requested rhythm change of this
+  size — left OPEN awaiting operator ACK as a deviation floor. atd "top" and
+  "Back to Top" regions flat (0.2/0.3/0.7 and 0.0×3): the card x/width shift
+  washes out in the pale label bar.
+
+Strikes before the round: home @834 "Our dental team in Redondo" pixels
+10.9%, flat across 31 runs — STALLED, presented for escalation, not
+re-attempted (it holds §6 + card 1's collapsed label/image; this round
+changed no collapsed-state geometry and the row is 10.9 before = after).
+atd: clear.
+Gate round: markupb (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), out-markupb-home / out-markupb-atd. Movement
+confined to the two ledgered deviation regions above; footer WTLM floors
+13.4/12.0 (home) and 12.8/12.0 (atd) unchanged; the two ACK-pending rows
+from A1/A2 (home "Finally have a dentist" 4.6 @1440 PASS, yfv DRQ @1440)
+untouched.
+
+## MARKUP ROUND C — the person-card cluster (2026-08-10, feat/markup-round-2026-08)
+
+Designer round, MarkUp boards 7944efa6 (our-team, pins #2/#3), 4b8d52d2-fdc8-4432-83e5-1fd2339dc420
+(yfv, pin #5) and 3c082cae (atd, pin #2's meet-the-team half — its QuestionList
+half landed in Round B). All four pins land on CollectionList's shared
+personCard (grid on /our-team, slider on /your-first-visit). Before/after:
+matching/probe-markupc.mjs (round scratch, deleted with it) on
+localhost:5173/dev/match/{our-team,your-first-visit} and the webflow.io
+reference, 1440/1294/834/390, reveal transitions neutralized. Reference probed
+2026-08-10: our-team card1 x=200/127 @1440/1294, h-gap 40, v-gap 180.4, cards
+320x480, teaser rm→banner 22 — our before-state matched every number, so each
+entry below is a REQUESTED deviation from a faithful match, not a fidelity fix.
+(One reference nuance: live renders "Dr. Michael Hopkins" as ONE name line at
+320w where our museo-slab metrics wrap it to two, which is why only OUR build
+showed pin #3's buried READ MORE — the box model live uses has the same trap.)
+
+- [deviation] grid cards → content gutter + 30px gaps — threads
+  338f6e07-02bc-4d14-9bad-45c4cd362e6c (our-team board 7944efa6 pin #2:
+  "Width of these can grow so that the margins match the text margins on the
+  other page… I do like the spacing in between the blocks … Let's use 40 px")
+  and b7be52f2-11d0-467c-b4ea-ca086b9aa29f (atd board 3c082cae pin #2, which
+  SUPERSEDES the 40: "Let's use 30px. That is a happy medium for all things
+  considered."). Live: fixed 320px (8rem) cards with margin 4rem .5rem .5rem
+  ≥992 (`.team-list-item.m-2`, beachfront.css:6530-6536 + :6538-6540),
+  justify-centred in the 1280 grid box → probed x=200/127 @1440/1294, 40px
+  h-gap, 180px v-gap (= ours before). Tim: card outer edges on the shared
+  content gutter, 30px both axes → at lg the `.team-grid-section` becomes
+  the `.content-width` box (max-w-1400 + lg:px-[60px],
+  beachfront.css:5858-5867 = max(60px, 50% − 640px) per edge), cards drop
+  their lg margins for lg:gap-[30px] on the section, live's 4rem first-row
+  clearance moves to the section as lg:pt-40 (:6538-6540 — first-card y
+  unchanged), and the width derives from the box, never a hardcoded 1280:
+  lg:w-[calc((100%-60px)/3)] → 406.7@1440 / 371.3@1294. ≤991 single-column
+  ladder untouched (probed identical). AFTER @1440: card1 x=80 = gutter,
+  full-row card 3 right = 953.3 + 406.7 = 1360 = vw − gutter, h+v gaps
+  30/30, row rhythm 510 (was 660); the 2-card last row stays justify-centred
+  (live's own `.w-row` behaviour). Bonus: at 406.7px "Dr. Michael Hopkins"
+  fits ONE line, so no lg grid card grows and all rows sit at exactly 480.
+  atd pin #2 sub-question (box-to-box vs photo-to-box): resolved BOX-to-box
+  30px. Consequence to flag in the resolve reply: the lg headshot overhang is
+  100px, so each row 2+ circle overlaps the row above's beach banner by
+  ~70px; the photo-to-box alternative is 130px box-to-box.
+  Gate consequence @1440/1294: the whole team-grid region reflows (cards
+  406.7 wide at the gutter vs live's 320 at x=200; v rhythm 660 → 510/row)
+  and the section shrinks ~450px, so every region below it on our-team
+  shifts up — expected fails vs the ref, listed in the round report.
+- [deviation] card box grows — thread 986a647b-badc-4ecc-9bd5-4292bba404ca
+  (our-team board 7944efa6 pin #3: "The box needs to grow, or this type needs
+  to get smaller so it doesn't rag like this." Taking the box-grows arm).
+  Live fixes the card box per tier (the hard-won four-value ladder,
+  beachfront.css:6530-6536 / :6538-6540 / ≤991 :8183-8187 / ≤479 :9271-9276
+  = 320x480 / 512x768 / 384x576 / 303x384) and pins `.team-grid-beach`
+  absolutely over the bottom 30% (:6564-6569), so a two-line name pushes READ
+  MORE under the banner (probed before: rm→banner −18 @1440 grid+slider MH,
+  −30.8 @390 grid MH). Now every ladder height is a MIN-height, the card is a
+  flex column, the banner is in flow at the px the 30% resolves to
+  (115.2 grid / 129.6 slider ≤479, 172.8 xs, 230.4 md, 144 lg) with mt-auto,
+  and the content column keeps pb-[10px]/lg:pb-5 so READ MORE stays clear. A
+  card whose content fits renders at exactly the live height; only overflow
+  cards grow. Gate consequence: grown MH cards shift our-team @390 below-rows
+  and (with the row-stretch from pin #2's flex grid) can move @1440 rows.
+- [deviation] bio = 3-line clamp of the real bio — thread
+  4dd560d2-3dad-4240-b5bb-3a5d64a6cedd (yfv board 4b8d52d2 pin #5: "Ideally,
+  the truncated text is three lines visually and then stops… I want it
+  visually to be three lines every time, and then it gets cut off somewhere
+  in the third line."). Live clips the AUTHORED `person.teaser` at height
+  7.5ch (`.m-2.team-teaser`, beachfront.css:3770-3773 → 75px at the fixed
+  16px card font), and the authored "..." cut points rag (before @1440,
+  our-team card 1: a 33px orphan third line). Now `line-clamp-3` over
+  `person.body` (teaser only as fallback for a person with no bio) — the
+  ellipsis lands mid-line-3, box 75→72px. CONTENT deviation from the
+  reference on both pages: 9 of 11 teasers are bio prefixes (visible diff =
+  line 3's tail + ellipsis position), 2 differ outright.
+- [deviation] yfv slider gap halved — same thread 4dd560d2 ("less space in
+  between the two. Like 50% less. || Then the containers get bigger."). Our
+  A2 cells carried the live-derived 43.33px lg margin each side → 86.7px gap
+  @1440 (probed = the reference; live's JS track shows 51.3 @1294 where our
+  uniform CSS showed 86.7 — pre-existing A2 note). Now lg:mx-[21.67px], cell
+  itemWidth 383.34 (= 340 + 2×21.67), gap 43.3. The A2 trackPadStart
+  compensation (LEDGER A2, commit c075d8c) moves IN THE SAME commit:
+  calc(max(60px, 50% − 640px) − 21.67px) keeps card 1 on the h2's gutter.
+  "The containers get bigger" is satisfied by pin #2's box growth + pin #2
+  (our-team) card widening; slider card width stays live's 340 — flag for
+  the resolve reply if Tim meant the slider card itself.
+- [consequence] yfv `.team-slider-holder` lg 16rem height → min-height —
+  live's fixed 640px viewport (beachfront.css:6654-6659) would clip a grown
+  card, so lg is h-auto/min-h-[640px], and the slider card's lg mb-5 (live
+  `.m-2`'s .5rem, which the 640 holder clipped invisibly — see the 2026-08
+  holder note in the slice) is dropped so the auto height still equals 640
+  when nothing grows. ≤991 keeps live's fixed heights: probed slack 24/72/96
+  (sm/xs/md) absorbs every measured growth case.
+- ACK note: this round re-moves yfv "Dr. Robert Quan" @1440, whose A2
+  deviation value is still ACK-pending — unavoidable, pin #5 targets the same
+  slider. The pending A2 value is superseded by this round's, same board.
+
+Strikes before the round: clear on both pages (no failing region stalled 3+
+runs). Home check after: the team-circles rail (A1 943b602) probed byte-stable
+— cell 1 x=80, 200px cells, 40px gap @1440; the `team` variation branch has no
+diff hunks this round.
+Gate round: markupc (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), out-markupc-our-team / out-markupc-yfv, baselines
+markupa1-our-team / markupa2-yfv. Movement confined to the pinned regions:
+our-team DRQ 3.9→37.2 @1440 (Δh 17.5% — the grid reflow + the section
+shrinking ~450px) and 5.0→23.7 @390 (Δh 0.7% — MH's card +37.8 and the bio
+text swap); yfv DRQ 16.2→27.2 @1440 (Δh 5.1% — gap halving + MH card 515,
+holder 640→675; supersedes the ACK-pending A2 value, same slider). Three
+sub-threshold ripples stay PASS: yfv "Office Tour" 3.2→4.2 @1440 (cards 2+
+moved left; their overhanging circles sit in that region's band), yfv DRQ
+3.1→4.8 @390 and 1.5→1.6 @834 + our-team DRQ 2.4→2.6 @834 (clamped-bio
+text). Every other row is value-stable to 0.1pp, including the WTLM footer
+floors at yfv (12.8/12.0) and our-team @834/1440 (12.0/7.3); one drift on the
+already-ACK'd our-team @390 WTLM floor, 12.9→13.4 (map-region noise on the
+page that grew 37.8px — no mask, no threshold change, left as the same
+floor). All three deviation regions left OPEN awaiting operator ACK.
+
+## MARKUP ROUND D — the team-member detail template (2026-08-10, feat/markup-round-2026-08)
+
+Four pins on /team-members/<slug> (boards ad8322a7 team-member detail +
+7944efa6 our-team). Gate page `team` runs the REAL route
+(/team-members/dr-robert-quan) — there is no /dev/match twin for the detail
+templates — and `svc` is gated as the shared-component control (DetailHero /
+DetailBody / animateIn are shared with the services + questions templates).
+Strikes before the round: clear on team and svc.
+
+- [deviation] per-person hero — threads b7a00984-7a22-4830-ab3a-1fe1b636497e
+  (team-member board pin #1: "This should be the same image on their small
+  thumbnail module.") + 17e321d9-3717-4a6a-810f-d9be03e60de2 (our-team board
+  pin #4: "The beach image should be the background hero image. Conceptually,
+  each staff member picked their favorite beach…") — ONE fix. Live's webflow
+  template gives EVERY member hero the same shared beach photo (the hard-coded
+  /images/team-member-hero.jpg copy of it); now the hero is the person's own
+  gallery[0] — the SAME image as their /our-team card banner (person docs
+  carry the seeded gallery in Prismic; verified images.prismic.io URLs on the
+  real /our-team, e.g. Quan→bali, Stacey→cabo-lalo) — with the shared photo as
+  fallback for a person with no gallery. The dev/match our-team twin only
+  patches EMPTY galleries, so real route and twin read identical gallery[0].
+  Gate consequence @all: the team hero region ("top"/"Dentist" band) diffs vs
+  the ref per person — expected deviation rows. Caveat for the resolve reply:
+  stacey/enrique's cabo-lalo gallery image carries the our-team card's
+  portrait crop (rect 674x900), so as a 1440-wide hero it upscales soft; if
+  Tim wants a sharper hero the gallery asset needs an uncropped/wider crop in
+  Prismic, not a render change.
+- [deviation] 700px measure cap — thread b42973fe-6f2a-43d2-ac43-87c8187d9a7e
+  (pin #3: "This text width is way too long. I want this to be 70% width ||
+  Or maybe a max width of 700 pixels, and then as the screen size gets
+  smaller, it starts to rag."). Taking the 700px arm (the || alternative
+  supersedes the 70% first thought). Live has no cap below the 1440 container
+  — the bio measured 1280px wide @1440, 1194 @1354, 738 @834. Now
+  max-w-[700px] on the team DetailBody call ONLY; services keeps its
+  live-derived `w-full md:w-4/5` and questions its `max-w-[1024px]` — Tim
+  pinned the team page; flag extending the cap to the other detail bodies in
+  the resolve reply.
+- [deviation] title→body gap halved to the button's ladder — thread
+  25b788a1-ecb1-436e-bd80-293ad0f277f4 (pin #4: "Half as much vertical space
+  between the job title and the body text. Should be consistent between the
+  button and the body text as well."). Live's role line is
+  `h4.text-color-primary-dark.mt-8.mb-4`, `.mb-4` = `margin-bottom:1rem`
+  (beachfront.css:3985-3988) = 24/32/40 on the stepped root — the value the
+  template carried. Now the body takes the `.mt-2` half-rem ladder the Back
+  to Team button already cites (`margin-top:.5rem`, beachfront.css:3901-3903)
+  = 12/16/20: title→body 40→20 @1440 (halved) AND equal to body→button 20 —
+  both clauses of the pin in one value. Team detail only.
+- [fix] name-reveal fail-safe — thread 738ad46b-0be6-4d92-a1c0-73a53e4c298e
+  (pin #2, the DETERMINATE half: "Sometimes this name shows up and sometimes
+  it doesn't."). Probed: with IntersectionObserver stubbed inert, the hero
+  name settles at opacity 0 FOREVER (it even fades out from first paint,
+  since applyHidden's transition is already attached) — the only mechanism
+  that can hide it, matching Tim's intermittent experience in MarkUp's
+  embed. animateIn gains an opt-in viewport-mode `failSafe` (timer that
+  forces the revealed state; cleared only after the normal reveal actually
+  executes, so a throttled-rAF reveal is also covered) + a guard that reveals
+  in place when IntersectionObserver is missing entirely. DetailHero's label
+  block opts in at 1500ms; no other call site changes. Not a geometry change
+  — settled state is byte-identical (opacity 1, translateY 0). The ALIGNMENT
+  half of the pin ("never aligned correctly") is needs-Tim — the name was NOT
+  moved.
+
+Gate round: markupd (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), out-markupd-team / out-markupd-svc, against a fresh
+pre-change baseline markupd0 (same pages, same settings, run this round).
+Movement confined to the pinned region: team "Dentist" (the role+bio band)
+0.0→6.1 @1440 (Δh 2.8%→39.4% — the 700px measure wraps the bio into more
+lines, outweighing the halved title gap: cand Back-to-Team anchor 920→1050),
+0.4→9.9 @834 (Δh 12.6%) and 6.0→13.0 @390 (dE 3.6→9.6 — the body width is
+unchanged at 390, the −12px title-gap shift misaligns the band's text vs
+ref). Sub-threshold ripples on team "top" only (1.1→2.5 @1440, 1.2→1.4 @834,
+3.1→2.5 @390): the per-person bali hero vs the ref's shared beach reads
+close in tone, so the pin-1 deviation never crosses threshold. WTLM footer
+floors byte-stable on team (12.9 @390 / 12.0 @834 / 7.3-PASS @1440). svc
+control: EVERY row identical to its markupd0 baseline — including the
+pre-existing vw1440 "What to expect" Δh=5.1% (mm=0.0) fail and the WTLM
+floors 12.9/12.0 — so the shared DetailHero / DetailBody / animateIn changes
+are visually inert outside the team template. No mask, no threshold change.
+The three team "Dentist" rows left OPEN awaiting operator ACK.
+
+## MARKUP ROUND E — three home one-offs (2026-08-10, feat/markup-round-2026-08)
+
+- [deviation] steps-band circle centers on the headline block — thread
+  badfa786-0b08-4dce-8431-cacaa688f627 (pin #6: "Ideally, this circle image
+  is horizontally center-aligned to the headline on the left, so it needs to
+  come down."). The reference TOP-ALIGNS its two `._w-half` columns (50%,
+  `beachfront.css:2867-2871`; photo column pads pt 20 / pb 40 at the 40px
+  root) — probed on beachfront-dentistry.webflow.io: circle center vs the
+  headline+subhead block center is +7.5px @1440 but **-89px @1294** (the
+  120px h2 wraps 3→4 lines and the block grows past the circle). Ours
+  matched live to 0.1px at both widths before the fix. Now the row is
+  `lg:items-center` and the circle column carries `lg:pt-0 lg:pb-10`
+  (pb − pt = 40px = the subtitle's trailing mb-10, cancelling the block's
+  half-margin bias), so the flex-centered circle lands exactly on the
+  headline+subhead block center at ANY lg width, whichever column is taller
+  (probed after: -0.1px @1440, 0.0px @1294). Sub-lg stacked pads untouched —
+  probe deltas @834/@390 byte-identical before/after. Tim said "the
+  headline"; block-center is the chosen reading — vs the h2 alone the circle
+  now sits +42.5px lower, offer the h2-only variant in the resolve reply.
+  SectionGrid steps: `src/lib/slices/SectionGrid/index.svelte` (row + image
+  column). Expected gate movement: home "Your Path to Oral Health" only.
+- [deviation] navigation flash white, not black — thread
+  65939802-f1e8-496e-b282-6e82730d7b83 (pin #12: "it goes black and then
+  loads the next page. Is there any way you can go white on the next page,
+  or even the Beachfront blue…"). The black was never a probed live rule —
+  `TransitionOverlay.svelte:14`'s `bg-black` default is starter-template
+  chrome from the Initial commit (63a7b3d). Sole usage
+  `src/routes/+layout.svelte` now passes an explicit class with `bg-white`;
+  the component default is untouched (PreNavTransition, also bg-black by
+  default, is unused outside its tests). The overlay mounts only between
+  beforeNavigate/afterNavigate, so first paint over the hero video is
+  unaffected. Tim offered white OR brand blue — white chosen; the swap is
+  one class at the usage site. Not a gated surface (overlay never shows on
+  direct page loads).
+- [deviation] favicon.ico regenerated with real alpha — thread
+  784b9a3f-3479-4e4c-9b5f-5df9f40c9323 (pin #13: "The favicon looks like it
+  has white corners around the circle Beachfront logo, versus a PNG with a
+  transparent background."). The shipped ico WAS live's own (Webflow
+  logo=blue.ico, `src/app.html:5-7`): single 32px BMP entry, corners probed
+  OPAQUE white 255,255,255,255. static/favicon.png is NOT a substitute — it
+  is the starter's white-on-transparent placeholder (top opaque colors
+  221/221/221 and 255/255/255), wrong branding, left unlinked (and behind a
+  1y immutable Netlify header, so its URL must not be repurposed).
+  Regenerated static/favicon.ico from static/apple-touch-icon.png (live's
+  own webclip: 256px RGBA, corners alpha 0, body #009CCD) as 32+16
+  PNG-in-ICO entries via the repo's sharp devDep — no new dependencies; all
+  four corners now alpha 0. Tim's offered PNG not needed. Caveat for the
+  resolve reply: in the webclip the tooth glyph is a transparent CUTOUT
+  (the asset has no white pixels), so the tab background shows through the
+  tooth; if Tim wants a white tooth inside the circle his PNG is needed
+  after all. Also fixed: `+layout.svelte` JSON-LD `logo` pointed at
+  /favicon.svg, a file that never existed in static/ — now
+  /apple-touch-icon.png (256px, meets Google's >=112px logo guidance).
+  Not a gated surface (browser chrome, not page pixels).
+
+Gate round: markupe (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), out-markupe-home, against out-markupb-home (the
+last home run, 2026-08-11 00:02; rounds C/D gated team/svc only and their
+ledger recorded svc as a byte-identical control, so markupb is a valid home
+baseline). Movement confined to the pinned region: home "Your Path to Oral
+Health" 1.0→1.8 @1440 (dE 0.8→1.2, Δh 1.6% unchanged — the circle drops
+~26px to the block center; PASS with margin). Its @834 (1.6/0.9/1.1) and
+@390 (6.2/3.7/1.8) rows byte-identical — the stacked layout was not
+touched. Every other row on home identical to baseline, including the three
+pre-existing ACK-pending FAILs at exactly their stalled values: WTLM 13.4
+@390 / 12.0 @834, OdT @834 10.9 (33 runs flat), Beyond the Smile @390
+Δh 5.8 (26 runs flat). No mask, no threshold change, anchors identical.
+
+## MARKUP ROUND F — every Book CTA becomes Request (2026-08-11, feat/markup-round-2026-08)
+
+Thread 5980c9d7-6212-4c78-930d-5a1b3a969ac6 (board 4b8d52d2, pin #3), Tim:
+"Everywhere that says 'book an appointment', it needs to say 'request
+appointment' … This is how it was on the old site."
+
+- DEVIATION (site-wide, deliberate): the REF (beachfront-dentistry.webflow.io)
+  itself says "Book" on every one of these instances — Tim's "how it was on
+  the old site" is only half-true (the reference's desktop nav pill and its
+  request-form modal DO say "Request appointment"; every band/menu/info-band
+  button says "Book"). The pin outranks the reference on wording, so each
+  instance maps Book→Request keeping its own article shape ("Book an
+  Appointment"→"Request an Appointment", "Book Appointment"→"Request
+  Appointment"). Instances (rendered text):
+  - beachfront-pages.js ctaHero cta_label (closing band, seeded on ALL 5 nav
+    pages): "Request Appointment"
+  - beachfront-pages.js home "Your Path" steps grid: cta_label + step-01
+    item_heading → "Request an Appointment"
+  - beachfront-pages.js yfv FirstVisitToc book_label → "Request an
+    Appointment" (this label now deviates from the REF twice over: spelling —
+    REF has the "Apointment" typo — and wording)
+  - beachfront-pages.js yfv ExamTimeline book_label → "Request Appointment"
+  - CtaBand.svelte default ctaLabel (all detail routes: team-members/[slug],
+    services/[slug], questions/[slug]) → "Request Appointment"
+  - Nav.svelte hamburger-menu CTA → "Request an Appointment" (menu is closed
+    at capture, so no gated pixels move)
+  - contact-us/+page.svelte info-band button + closing CtaBand → "Request
+    Appointment"
+    Already correct before this round: desktop nav pill ("Request Appointment",
+    Nav.svelte) and the AppointmentModal ("Request an appointment" /
+    "Request Appointment" submit).
+- GATE DEFINITION CHANGE (forced, contact only): gate.sh's contact info-band
+  anchor WAS the literal button text "Book Appointment". Anchors must resolve
+  on BOTH pages (prefix match on rendered text) and the REF keeps "Book"
+  while the candidate now says "Request", so no button-label anchor can
+  resolve on both. First try "CONTACT (310) 378-9241" resolved on the
+  candidate only (ANCHOR_UNRESOLVED @1440): the ref band reuses adjacent
+  `.footer-contact-*` divs whose textContent concatenates with NO whitespace
+  ("CONTACT(310) 378-9241…"), so a spaced CONTACT-phone anchor can never
+  prefix-match it. Re-anchored to "OFFICE HOURS" — the ref's header div is
+  "OFFICE HOURS" and norm() collapses the nbsp, so it is a clean element
+  prefix on both pages, first occurrence in document order on both (the
+  footer's OFFICE HOURS block comes later). Consequences: the region label in
+  reports/strike history changes (old "Book Appointment" history for contact
+  ends), and the renamed button + the CONTACT column now sit in the region
+  ABOVE the anchor ("top"), so the expected text-swap diff for contact lands
+  in "top" instead of the info-band row. Threshold 0.10, matrix 1440/834/390,
+  no masks — unchanged.
+- EXPECTED MOVED ROWS: every page's closing-band region ("Ready for great
+  dental health") swaps ~7ch of button text vs the REF's "Book Appointment";
+  home "Your Path to Oral Health" additionally swaps the grid CTA + step-01
+  heading (3 chars longer, may rewrap at 390); yfv's TOC and First Exam
+  regions swap one outline-button label each; contact's "top" region swaps
+  the info-band button. Documented per-row in the round F gate results below
+  at the moment they are measured.
+- PRISMIC: the five changed fixture strings live in the seeded `page` docs, so
+  the fixture edit alone would fork the twins from the real routes. Re-seeded
+  via the ONE owner of the `page` type, scripts/seed-pages.mjs (PUT replaces
+  whole documents; models unchanged this round, assertModelsInSync guards).
+  Writes land in the unpublished Migration release — the real site keeps
+  saying "Book" until the operator publishes the release in Prismic.
+
+Gate round: markupf (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), ALL NINE pages (every page's closing band swaps
+button text, so nothing was sampled). Result: every row on every page is
+byte-identical to its page's latest baseline (markupd for team/svc, w4 for
+qa, markupe for home, markupc for yfv/our-team, markupa1 for services,
+markupb for atd) EXCEPT the regions the pin touches:
+
+- "Ready for great dental health" (all 9 pages): +0.0 to +0.1pp from the
+  Book→Request swap, PASS everywhere with margin (worst 7.1 @834, a
+  pre-existing level).
+- home "Your Path to Oral Health": @1440 1.8→2.0 PASS, @834 1.6→1.8 PASS,
+  @390 6.2→4.7 PASS — the longer "Request an Appointment" wraps CLOSER to
+  the ref's own line breaks at 390, so the swap improved the region.
+- yfv "We want you to feel comfortable" (contains the TOC button): @390
+  1.1→1.3 / @834 0.8→1.0 PASS; @1440 2.0→2.1 with its pre-existing
+  ACK-pending Δh 15.1 FAIL unchanged. The ExamTimeline button swap is <0.1pp
+  inside "To be a long term health partner" (unchanged at 2.6/1.0/2.7, PASS).
+- contact: region relabelled per the anchor change above; "top" (now holds
+  the swapped button) 1.5→1.3 @1440 / 4.3→2.6 @390 PASS. NEW region "OFFICE
+  HOURS": 9.6 @834 PASS, 5.8 @390 PASS, **10.5 @1440 FAIL — FLOOR CANDIDATE,
+  operator's call**: the diff image (fail-vw1440-OFFICE_HOURS.png) shows the
+  candidate's Google-map iframe painting blank/differently at capture plus
+  minor hours-column jitter; the same absolute mismatch scored 8.5 PASS on
+  every stable prior run under the old wider "Book Appointment" region
+  (which included the button strip in the denominator). Re-run (markupf2)
+  reproduced 10.5/9.6/5.8 exactly — deterministic capture behaviour of the
+  live embed, not flicker, and no text/geometry change of ours is inside the
+  red area. Same mechanism as the ACK-pending WTLM map rows. NOT
+  reclassified, NOT masked, threshold untouched.
+  All pre-existing ACK-pending FAILs sit at exactly their stalled values:
+  team Dentist 13.0/9.9/6.1, home OdT @834 10.9, home+atd Beyond the Smile
+  (@390 Δh 5.8; atd 61.7/60.5/66.9), yfv+our-team Dr. Robert Quan (27.2 /
+  37.2+23.7), yfv WWYTFC @1440 Δh 15.1, svc What-to-expect @1440 Δh 5.1, and
+  the WTLM footer-map rows (12.0-13.4) on all nine pages.
+
+## OPERATOR ACK — 2026-08-11, markup round floors accepted
+
+Tucker, in conversation ("floor is fine"), ACKs the markup-round deviation
+floors and the OFFICE HOURS floor candidate presented at the round checkpoint:
+
+- atd "Beyond the Smile" ×3 (61.7/60.5/66.9) — 30px grid rhythm, thread b7be52f2
+- home "Beyond the Smile" @390 Δh 5.8 — 40px button gap, thread ce17fba0
+- our-team "Dr. Robert Quan" @1440 37.2 / @390 23.7 — gutter+30×30+box growth,
+  threads 338f6e07 / 986a647b
+- yfv "Dr. Robert Quan" @1440 27.2 — card onto gutter + halved gap,
+  threads e23604c9 / 4dd560d2
+- team "Dentist" ×3 (6.1/9.9/13.0) — 700px measure + halved gaps,
+  threads b42973fe / 25b788a1
+- contact "OFFICE HOURS" @1440 10.5 — map-embed capture behaviour under the
+  post-Round-F anchor; accepted as a floor.
+
+Still open (not covered by this ACK): home "Our dental team in Redondo" @834
+10.9 — the pre-existing 33-run stall predating the markup round; needs a new
+model or an explicit acceptance of its own.
+
+Prismic migration release for the Round F wording (5 page docs) reported
+in flight by the operator at the same checkpoint.
+
+## MARKUP ROUND G1 — the wave loses its flat spot (2026-08-11, feat/markup-round-2026-08)
+
+- PIN: thread 7dd0c2f2 (our-team board 7944efa6, pin #1), "Flat spot in the
+  curve". The flaw is the REFERENCE'S OWN: live's injected SVG
+  (matching/spec/detail-svc.html:123) draws the crest with one cubic
+  (+250.45,-0.39, controls y=-2.14/-3.15) whose middle dwells within 3px of
+  its peak for ~194px of screen at 1440 (|dy/dx|<0.10 for 312px). Operator
+  directive in conversation: where the original site itself has the flaw,
+  follow Tim's instruction over the reference — a DELIBERATE SITE-WIDE
+  deviation, pre-ACK'd.
+- DEVIATION (by design): src/lib/components/WaveDivider.svelte's middle cubic
+  is replaced by four G1-continuous cubics rolling crest(553,2) →
+  dip(631,18.5) → crest(707,6.5) across the same span. Junction points
+  (493.39,14.58)/(743.84,14.19) and their tangents (-0.203/+0.210), the
+  flanks, viewBox, fill mechanics (V0 H0 V27.35 + 600.21 arc) and the crest
+  reach (min y 2.00 vs live's 1.61) are unchanged, so every A-round seam fix
+  holds. Flatness after: crest dwell 77px (was 194), |dy/dx|<0.10 span 51px
+  (was 312), <0.05 span 27px (was 158), <0.02 span 11px (was 63) — the
+  remaining spans straddle true extrema, as a sine's would.
+- SCOPE: WaveDivider renders on every page (Hero ×2, SectionGrid, DetailHero,
+  SubpageHero, Footer arc) — the REF keeps the flat curve, so every wave-seam
+  region on all nine pages may move against it. Those rows are EXPECTED and
+  covered by the operator's pre-ACK; they are listed per-row in the markupg1
+  gate results below at the moment they are measured. Anything that moves
+  OUTSIDE a wave region is a regression, not a deviation.
+- Threshold 0.10, matrix 1440/834/390, no masks — unchanged.
+
+Gate round: markupg1 (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), ALL NINE pages (the footer arc is on every page, so
+nothing was sampled). Measured moved rows — every one a wave-seam region,
+every one PASS→PASS, worst delta +0.4pp, all pre-ACK'd per the operator
+directive above:
+
+- "top" (hero seam; SubpageHero/DetailHero/Hero wave): team 2.5→2.7 / 1.4→1.6
+  / 2.5→2.7; svc 0.6→0.8 / 0.5→0.7 / 3.1→3.2; qa 2.3→2.4 / 2.1→2.2 /
+  2.7→2.8; home 6.0→6.2 / 3.6→3.8 / 7.3→7.4; yfv 0.1→0.4 / 1.2→1.4 /
+  0.7→0.9; our-team 0.2→0.3 / 0.4→0.5 (@390 seam lands in "Our"); services
+  1.7→1.9 / 2.0→2.2 / 4.5→4.7; atd 0.2→0.5 / 0.3→0.5 / 0.7→0.9; contact
+  1.3→1.5 / 0.5→0.7 / 2.6→2.7 (order 1440/834/390 where three moved).
+- our-team "Our" (hero seam continues below the split anchor): 0.0→0.2 @1440,
+  2.5→2.9 @834, 4.6→4.9 @390.
+- "Ready for great [dental health]" (closing CTA band — the footer arc's
+  crest pokes up into it): all nine pages, +0.2 to +0.4pp, e.g. home
+  0.5→0.8/6.7→6.9/2.4→2.8; worst absolute 7.1→7.3 @834 (team/svc/qa/
+  contact), PASS with margin.
+- home "Your Path to Oral Health" @1440 2.0→2.1 (SectionGrid mirror wave,
+  steps→services seam); @834/@390 moved <0.05pp.
+
+Every row NOT listed is byte-identical to its markupf baseline, including
+the "Want to learn more" footer-map rows and every ACK'd floor at its exact
+stalled value: team Dentist 13.0/9.9/6.1, home OdT @834 10.9, home BtS @390
+Δh 5.8, atd BtS 61.7/60.5/66.9, our-team DRQ 37.2/23.7, yfv DRQ 27.2, yfv
+WWYTFC @1440 Δh 15.1, svc What-to-expect @1440 Δh 5.1, contact OFFICE HOURS
+@1440 10.5. Per-page exit=1 is those floors, nothing new.
+
+### G1b amendment — the roll was a bump; one crest now (2026-08-11)
+
+OPERATOR FEEDBACK on the G1 shape, verbatim: "for the shape, you're adding a
+little bump instead of following the same consistent wave shape." Numerically
+he is right: the wave's own rhythm is trough@321 → crest@620 → trough@1106
+(half-wavelengths 299/486 viewBox px), and G1's crest–dip–crest inserted
+extrema 74-80px apart — a 4-6× shorter local wavelength, i.e. an extra
+oscillation, not the wave continuing.
+
+NEW SHAPE (replaces G1's four cubics): ONE crest, the wave's own wavelength,
+fuller and rounder than live's flat lid. Two G1-continuous cubics through the
+same span — peak (615,0.6) vs live's (620,1.61), tight tangent-matched
+controls (0.18·dx at the peak, dx/3 at the junctions), junctions
+(493.39,14.58)/(743.84,14.19) and tangents (-0.203/+0.210) unchanged.
+
+- Wavelength: crest@614 between troughs @321/@1106 → half-waves 293/492,
+  inside the flanks' own 299/486 rhythm (G1's inserted pair: 80/74). No
+  extrema added.
+- Flatness vs live (screen px @1440): peak dwell-within-3px 194→156,
+  |dy/dx|<0.05 span 158→112, <0.02 span 63→23, and the crest reaches 1px
+  higher (min y 0.6 vs 1.61 of the 120 viewBox) — a fuller arc whose top
+  turns continuously instead of live's near-straight lid (live's controls
+  at y=-2.14/-3.15 run its mid-section as a line). Honest bound: a single
+  roll with these fixed junction tangents cannot dwell much less — a true
+  sine of this wavelength/amplitude dwells ~185px — so the numbers held are
+  "no added extrema AND dwell/slope spans at-or-below live's", not G1's
+  two-crest spans (77/26/11), which bought their sharpness with the bump.
+
+Gate round: markupg1b (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), ALL NINE pages, baselines = each page's latest run
+(markupg4 for home/yfv, markupg3 for atd, markupg1 for the other six).
+Moved rows — same wave-seam set as G1, all PASS→PASS, and every delta now
+NEGATIVE (the single crest sits closer to the ref's own crest than the G1
+roll did; most rows return to their exact pre-G1 markupf values):
+
+- "top": team 2.7→2.5 / 1.6→1.4 / 2.7→2.5; svc 0.8→0.6 / 0.7→0.5 / 3.2→3.1;
+  qa 2.4→2.3 / 2.2→2.1 / 2.8→2.7; home 6.2→6.0 / 3.8→3.6 / 7.4→7.3; yfv
+  0.4→0.1 / 1.4→1.2 / 0.9→0.7; our-team 0.3→0.2 / 0.5→0.4 (@390 in "Our");
+  services 1.9→1.7 / 2.2→2.0 / 4.7→4.5; atd 0.5→0.2 / 0.5→0.3 / 0.9→0.7;
+  contact 1.5→1.3 / 0.7→0.5 / 2.7→2.6 (order 1440/834/390).
+- our-team "Our": 0.2→0.0 @1440, 2.9→2.5 @834, 4.9→4.7 @390.
+- "Ready for great [dental health]": all nine pages, −0.2 to −0.4pp (e.g.
+  home 0.8→0.5/6.9→6.7/2.8→2.4; worst absolute 7.3→7.1 @834).
+- home "Your Path to Oral Health" @1440 2.1→2.0 (SectionGrid mirror seam).
+
+Every other row byte-identical to its baseline; every ACK'd floor at its
+exact stalled value (list above), no new FAILs — per-page exit=1 is the
+floors, nothing else.
+
+## MARKUP ROUND G2 — the open Q&A card stops growing (2026-08-11, feat/markup-round-2026-08)
+
+DEVIATION BY DESIGN — designer override of a live-match, interaction state
+only. MarkUp thread 3d255366-5bb2-4cb1-9a90-439d49ef63ef (home board, pin #9,
+second half — the first half, reveal + Read More padding, shipped ce0c59d +
+1d5641e): Tim: "the box expands but I don't think it needs to since the
+headline disappears. Thoughts?" Applied to BOTH QuestionList variations per
+atd pin bd8c37b0-2e1c-4dc2-a466-8073e204d90c ("same comments as the
+homepage"). Operator directive 2026-08-11: follow Tim's instruction over the
+live behavior. Both pins already resolved on MarkUp — silent refinement, no
+MarkUp action.
+
+THE LIVE RULES OVERRIDDEN (each named, per rule 1 — the freeze deliberately
+does NOT reproduce them):
+
+- `.qa-text.m-2.active { height: 8rem; transition: height .2s }`
+  beachfront.css:7303 — the teaser box's own expand.
+- `.qa-label.active { margin-top: -2rem }` beachfront.css:7236 — the bar
+  riding up above the card. The bar now stays put as the always-visible
+  disclosure toggle; consequently `.qa-image.active`'s 0 0 25px 25px radius
+  (:7330-ff) is also moot and the media radius is static.
+- `.qa-block.active { margin-top: 2rem }` beachfront.css:7210 plus the ≤479
+  re-height (:9454, measured 288→384) — the card's own drop/growth.
+
+NEW CONTRACT: an open card keeps its collapsed footprint (288/320/400 at
+base/md/lg, top edge unmoved, neighbours still); the disappearing headline +
+in-place bar fund the answer's room: expanded `.qa-text` = card − label =
+240 (xs..767) / 256 (md) / 320 (lg), Round B pb 12/16/20 held.
+
+TIM'S PREMISE VERIFIED, NOT ASSUMED (probe 2026-08-11, every card: 6 home
+teaser + 40 atd numbered × 1440/834/390, panels measured un-transformed,
+fonts settled; need = answer + Read More + pb, room = card − label):
+
+- teaser need 243/212/243 vs room 320/256/240 → @390 SHORT 3px on two
+  cards (do-teeth-turn-yellow-as-you-age, tooth-broke-off — the same 231px
+  panels Round B measured).
+- numbered need 243/236/219 vs room 320/256/240 → fits everywhere (wider
+  box: mx-4% vs w-4/5).
+- off-matrix 650 band check: worst need 195 (home) / 171 (atd) vs room 240 →
+  fits, so the xs..767 band freezes outright.
+  ONE MINIMAL-GROWTH EXCEPTION, viewport-level: the <480 teaser card grows
+  288→291 on open (+3px, the minimum clearing 243; followers shift exactly
+  those 3px — reported, not hidden). Everything else is frozen outright.
+  CONSEQUENCE for numbered base: its old carve-out (no pb, 96px of pill room
+  funded by the 288→384 card growth) dies with the growth — it now takes pb-3
+  like the teaser, and its pill sits 12px above the card bottom (was 96px).
+  Padding is invisible collapsed, so the anchor-cut element's collapsed
+  geometry is untouched at every width.
+
+POST-CHANGE PROOF (probe + tests/interaction/qa-expand.spec.ts, which now
+asserts THIS contract, sweeping every card on both pages × the matrix):
+topShift 0 everywhere (was 48/64/80); height Δ 0 everywhere except home@390
++3 (was +96); pill offsets 20/16/12 both variants all viewports; box
+scrollHeight == clientHeight (clip zero) for all 46 cards × 3 viewports;
+neighbour stillness exact (0 / +3 as declared); footprint restores exactly on
+close. 7/7 playwright tests green.
+
+Gate round: markupg2 (threshold 0.1, maxHeightDelta 0.05, matrix
+1440/834/390, mask [], neutralizeMedia false), pages home + atd as
+no-regression — the freeze is interaction-state, invisible to static
+captures, and the logs prove it: every measured row BYTE-IDENTICAL to
+markupg1 on both pages (diff of out-markupg2-_.log vs out-markupg1-_.log,
+tag lines excluded, empty). Per-page exit=1 is the pre-ACK'd floors at their
+exact stalled values (home OdT @834 10.9, home BtS @390 Δh 5.8, atd BtS
+61.7/60.5/66.9, footer-map rows) — untouched, per the do-not-disturb list.
+
+## MARKUP ROUND G3 — the floating doctor stops hopping (2026-08-11, feat/markup-round-2026-08)
+
+DEVIATION BY DESIGN — designer override of a live-match, interaction state
+only. MarkUp thread a7c2e0d0-5e13-4cfd-bb17-a21ecee7b188 (home board, pin 7):
+Tim: "I like the user experience of 'Ask The Doctor' and the [floating
+Doctor image] of the original site. I do not like the jumping from question
+to question." Operator directive 2026-08-11: follow Tim over the live
+behavior — keep the floating handwriting+headshot pair, remove the discrete
+per-question hops.
+
+THE LIVE BEHAVIOR OVERRIDDEN (named per rule 1, quoting the record that was
+in floatAlong.ts's own header): "the ask-the-doctor handwriting + doctor
+headshot pair slides down the question column as the visitor scrolls,
+gliding to the BOTTOM-MOST FULLY VISIBLE question. Movement is quantized per
+question — the transform only changes when the target index changes — and
+the glide itself is CSS (the node's own transition, live's anchor rule:
+transform 1s cubic-bezier(0.19,1,0.22,1); set in the markup, not here)."
+Sources: floating-doc.js (live ships the class with its instantiation
+commented out on home — SPEC.md:2031 — so the operator's spec was already
+the authority for running it at all) and `.ask-the-doctor-handwriting-anchor
+{ transition: transform 1s cubic-bezier(.19,1,.22,1) }` beachfront.css:7670.
+The 1s hop transition is deleted from the pair's class list in
+QuestionList/index.svelte — JS owns the motion frame-by-frame now, so a CSS
+transition would only fight it.
+
+NEW CONTRACT (floatAlong.ts): position is a CONTINUOUS function of scroll.
+The viewport bottom (the same edge that decided "fully visible" before) is
+interpolated piecewise-linearly between consecutive item BOTTOMS onto the
+items' offsetTop ladder — the pair passes through every position the old
+code hopped between and everything in between, clamped to [item 0, last
+item] so it never leaves the column. A ~150ms-time-constant rAF follow keeps
+the float soft; target continuous in scroll + follow continuous in time = no
+input can produce a step. Scroll-0 leaves the node's style untouched
+(byte-identical static captures); reduced-motion stays a complete no-op
+(pair pinned statically at rest — the pre-existing behavior, kept); below
+1024px the float stays inert (mobile pair rests in flow, kept). floatAlong
+has exactly one consumer (QuestionList teaser variation, home only — atd's
+numbered variation has no pair, and live's own atd FloatingDoctor is dead
+code per SPEC.md D.4).
+
+PROOF (probe @1440, 93 samples at 25px scroll increments, entrance reveals
+pre-fired): BEFORE inline-target plateaus 0/420/840/1260/1680/2100 with a
+420px jump inside one 25px step (5 steps >60px); AFTER max per-step delta
+25.2px — proportional (slope ~1.0), 0 steps >60px, 0 monotone violations,
+clamp past column exactly 2100 = colTravel. Scroll-0 unchanged to the pixel
+(pair rect top 4508.84375 / left 420, transform none, before AND after).
+Open-card-mid-scroll lurch 0.0px (G2's frozen cards keep every item offset).
+tests/interaction/float-drift.spec.ts now asserts this contract (5/5 green:
+scroll-0 untouched, continuity bound 60px + monotone + column-bounded +
+exact clamp, no open-card lurch, reduced-motion static, atd pair-free);
+floatAlong.test.ts pins the mapping + the no-step follow (10/10).
+Probe-methodology note: animateIn's one-shot reveals sit ON the `.qa-item`s,
+so an unswept page's card rects move on their own for ~1s as each reveals —
+sweeps must fire the reveals first or they measure reveal motion on top of
+the drift (this cost one false 80px reading).
+
+Gate round: markupg3 (threshold 0.1, maxHeightDelta 0.05, matrix
+1440/834/390, mask [], neutralizeMedia false), pages home + atd as
+no-regression — the drift is interaction-state, invisible to static
+captures, and the logs prove it: every measured row BYTE-IDENTICAL to
+markupg2 on both pages (diff of out-markupg3-_.log vs out-markupg2-_.log,
+tag lines excluded, empty). Per-page exit=1 is the pre-ACK'd floors at their
+exact stalled values (home OdT @834 10.9, home BtS @390 Δh 5.8, atd BtS
+61.7/60.5/66.9, footer-map rows) — untouched, per the do-not-disturb list.
+
+## MARKUP ROUND G4 — the review box becomes the mask (2026-08-11, feat/markup-round-2026-08)
+
+DEVIATION BY DESIGN — designer override of a live-match, interaction state
+only. MarkUp thread 29e4fcac-8dee-4cfe-a3f5-4ef9e4c79524 (home board, pin 5):
+Tim: "the light blue background stays the same. When you click left or
+right, the content, all except for the overlapping logo, slides out as if
+this light blue background was a mask. Then the overlapping logo, either
+just dissolves or does a dissolve / slides down to go out, and then a
+dissolve / slide up to appear. Right now, it's a little bit weird that all
+the content goes behind the words and the arrow and just randomly disappears
+at a certain point." Tim marked it nice-to-have; operator directive: follow
+his instructions. Of his two logo variants the SIMPLER is implemented —
+plain cross-dissolve ("just dissolves"); the slide-down/up variant is
+offered in the pin's resolve reply.
+
+THE LIVE BEHAVIOR OVERRIDDEN (named per rule 1): `.big-review-slider`
+`transition: transform 2s cubic-bezier(.19,1,.22,1)` (beachfront.css:
+7563-7572, SPEC.md:1678) translates the WHOLE `.big-review` card — pale-blue
+box, quote, reviewer row AND the overhanging `.social-logo-big-review`
+badge — across the 600px holder viewport, which is exactly the "randomly
+disappears" Tim describes. Our pre-G4 port reproduced it faithfully on the
+shared Slider (full-content-width viewport, worse clip edge than live's).
+
+THE G4 MECHANISM (src/lib/slices/Carousel/index.svelte, review variation
+only — `photos` and every other Slider consumer untouched, Slider.svelte
+itself untouched): the pale-blue card is static chrome; its padding moved
+onto the track cells so an overflow-hidden rounded-[25px] mask fills the
+card and clips the sliding quote/author track at the card's own border box
+(rounded corners included); the five badge anchors stack on the card layer
+(NOT the track) in identical rects and cross-dissolve (active opacity-100,
+rest opacity-0 + pointer-events-none + inert). The badge genuinely varies —
+seeded reviews are 3 Yelp + 2 Google — so the dissolve is observable on the
+3→4 and 5→1(wrap) steps and degrades to a visually-static badge when
+adjacent sources match. Slide timing keeps live's 2s expo rule verbatim;
+the dissolve runs the same 2000ms with ease-in-out because the expo curve
+front-loads opacity and reads as a pop, not a dissolve. Carousel semantics
+preserved 1:1 (region role, arrow assets/labels/positions, wrap-around,
+ArrowLeft/Right, swipe, aria-live position, hidden-slide inert);
+reduced-motion falls to an instant swap via app.css:490-497's global reset.
+
+RESTING RENDER UNCHANGED, measured: card/badge/arrow/region rects identical
+to pre-G4 at 390/834/1440 on home and at 390 on your-first-visit (all
+five cards measure equal heights at every gated width — 262/320/400 — so
+the uniform mask box is the same box the gate always saw). yfv team slider
+(shared Slider) probe identical before/after: first-card x 58.3 w 383.3,
+gap 0.1, arrows x 0/1403.6, next-step -383.34px.
+
+PROOF (probe @1440, timed samples after a Next click): card rect frozen at
+{420,272,600x400} through 0/503/1029/1503ms and settle; track glides
+-456.0 → -580.1 → -597.9 → exactly -600 (one card width); elementFromPoint
+15px outside both card edges never hits track content at any sample; badge
+wrapper rects frozen at {910,612,80x80} while opacities cross 1/0 →
+0.872/0.128 → 0.296/0.704 → 0.066/0.934 → 0/1; five Next clicks wrap to a
+byte-identical section screenshot; under reduced-motion emulation the track
+reads exactly -600 and badges 0/1 at 105ms after the click.
+tests/interaction/review-mask.spec.ts pins the contract (4/4 green:
+scroll-rest untransformed, mid-flight card+badge stillness + no outside
+paint + monotone glide + dissolve crossing, pixel-identical wrap cycle,
+instant reduced-motion swap); review.test.ts adds the structural contract
+(card outside the track, mask overflow-hidden, badges off-track dissolve-
+only, figure/figcaption semantics kept per slide, keyboard wrap).
+
+Gate round: markupg4 (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), pages home + yfv as no-regression — the redesign is
+interaction-state, invisible to static captures. Comparison baselines:
+out-markupg3-home (this branch's previous round) and out-g4base-yfv (freshly
+captured at the pre-G4 working tree, since yfv's last round predates G2/G3).
+
+## MARKUP ROUND H1 — the divider becomes a real sine (2026-08-11, feat/markup-round-2026-08)
+
+OPERATOR DIRECTIVE, verbatim: "rewiggling is fine, I want a real sine wave
+even if it means we add some height to the page. I'm no longer concerned
+about matching the original webflow." That withdraws the matching constraint
+for this element entirely — the G1b shape (single crest inside live's own
+asymmetric swoosh) is superseded, and every wave-seam mismatch against the
+webflow reference is ACK'd BY DIRECTIVE, the same mechanism as the existing
+deviation floors.
+
+THE SHAPE: src/lib/components/WaveDivider.svelte now draws
+y = 60 − 32·sin(2π·3x/1200) — a genuine sine, three full periods across the
+1200 viewBox, uniform amplitude 32 (crest 28 / trough 92). Chosen from a
+3-candidate sheet (n=2 A=40 / n=3 A=32 / n=4 A=24, scratchpad sheet-h1.png):
+n=4 turns scalloped at 390, n=2 reads as one more broad swoosh; n=3 lands
+~2.25 visible periods at 1440 (λ≈639px screen) and stays graceful at 390.
+Constructed as 4 cubic Hermite segments per period (exact quarter-period
+knots + tangents, dx/3 handles; max deviation from the true sine 0.35px —
+visually exact). Integer periods make y(0)=y(1200), so the mirrored mount is
+seamless. HEIGHT: amplitude 32 fits the existing 120 viewBox with 28px
+margins, so the offered height growth was NOT needed — heightClass ladders
+(72/96/120, footer 96/128/160), the 133%/169% widths, the V0 H0 close and
+every A-round overlap-seam offset are untouched. Consequence: zero layout
+shift (every Δh in the gate is byte-identical) and seams verified watertight
+in all six mounts (Hero ×2, SectionGrid mirror, DetailHero, SubpageHero,
+Footer arc) at 1440/1294/834/390 — scratchpad wave-compare-h1.png.
+
+Gate round: markuph1 (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), ALL NINE pages, baselines = markupg1b everywhere.
+Moved rows — wave-seam regions only, all ACK'd by the directive above:
+
+- "top" (hero seam): team 2.5→6.7 / 1.4→4.7 / 2.5→7.0; svc 0.6→2.9 /
+  0.5→2.8 / 3.1→4.6; qa 2.3→4.8 / 2.1→3.8 / 2.7→4.6; home 6.0→9.6 /
+  3.6→7.0 / **7.3→10.1 FAIL @390 — the one row the sine pushes over
+  threshold; ACK'd by directive, not masked, threshold untouched**; yfv
+  0.1→5.3 / 1.2→4.4 / 0.7→5.0; our-team 0.2→6.8 / 0.4→5.4 / 1.2→5.9;
+  services 1.7→5.6 / 2.0→5.7 / 4.5→7.4; atd 0.2→4.9 / 0.3→3.9 / 0.7→4.6;
+  contact 1.3→5.9 / 0.5→4.2 / 2.6→5.3 (order 1440/834/390).
+- "Ready for great [dental health]" (footer arc): all nine pages, to 3.9-4.0
+  @1440 / 9.6-10.0 @834 (PASS at the line) / 6.9-7.5 @390.
+- our-team "Our": 0.0→0.2 / 2.5→3.0 / 4.7→5.1.
+- home "Your Path to Oral Health" (SectionGrid mirror): 2.0→4.0 / 1.8→3.2 /
+  4.7→5.7.
+
+Every other row byte-identical to markupg1b, every pre-existing ACK'd floor
+at its exact stalled value (team Dentist 13.0/9.9/6.1, home OdT @834 10.9,
+home BtS @390 Δh 5.8, atd BtS 61.7/60.5/66.9, our-team DRQ 37.2/23.7, yfv
+DRQ 27.2, yfv WWYTFC @1440 Δh 15.1, svc What-to-expect @1440 Δh 5.1, contact
+OFFICE HOURS @1440 10.5, WTLM map rows 12.0-13.4) — per-page exit=1 is the
+floors plus the one ACK'd home row, nothing else.
+
+## MARKUP ROUND H2 — the hero label and the menu join the content gutter (2026-08-11, feat/markup-round-2026-08)
+
+The two remaining designer pins, decoded by the operator. Tucker, on thread
+738ad46b-2b6d-4392-bc58-73e67df1e07e (team board ad8322a7 pin #2, Tim: the
+name "never aligned correctly"): the complaint means "horizontal alignment to
+the content width" — "and the menu is too" extends the same decode to thread
+bac4decb-8db3-43c9-b52c-7e06eb179f28 (team pin #5, Tim's capture: Make
+Payment below the fold with no scroll). Standing directive from H1 still in
+force, verbatim: "I'm no longer concerned about matching the original
+webflow" — so every reference disagreement below is ACK'd BY DIRECTIVE, not
+awaiting one.
+
+FIX 1 — DetailHero label (team name h1 / svc + qa crumbs, one shared
+component): the old lg:left-20 was a 1440-only sample of the gutter. The
+label now rides the SHARED content-gutter ladder (the same geometry as
+Nav.svelte's band: 20px @<768, 48px 768–991, max(60px, 50% − 640px) ≥992 —
+80 @1440, 60 @1294). Probed before/after on all three templates at
+1440/1354/1294/834/390: before x = 80/80/80/48/20 (adrift 20px across the
+entire 992–1439 band); after x = 80/60/60/48/20 — on the gutter at every
+width. The gate never saw this defect because its matrix (1440/834/390)
+samples exactly the three widths where left-20 happened to agree.
+
+FIX 2 — nav menu overlay: the links column leaves its absolute top-[10%]
+box (the structural detachment behind Tim's below-the-fold capture) and
+lives in NORMAL FLOW inside the scrolling dialog, left-aligned on the same
+gutter ladder (mx-auto max-w-[1400px] px-5/md:px-12/lg:px-[60px]). The
+overlay's logo/X band now mirrors the closed bar's exact px/py ladder too,
+so the chrome doesn't jump on open. Rhythm preserved: the per-link
+mt-5/mb-2.5 + gap-2.5 (a 40px slot, 90px pitch at lg) became gap-10 — the
+identical 40px slot, minus the first link's top margin, which is what keeps
+the whole menu on one screen at 1354×930 (Tim's capture size: content bottom
+924 ≤ 930, no scroll). Scroll contract probed: 1280×700 and 390×660 scroll
+to the last item fully visible; the fly transition now comes from
+$lib/transitions (the repo's own rule) so reduced-motion users get an
+instant menu. DEVIATION from live's centered column — left-aligned per the
+directive above; live's webflow modal centers its links. ACK'd by directive.
+
+Mechanical check: tests/interaction/nav-menu.spec.ts — column on the gutter
+at 1440/834/390, normal-flow + overflow-y-auto structure pinned, scroll
+contract at both short viewports, no-scroll at 1354×930, and the DetailHero
+label pinned at 1440/1354/1294/834/390 (the off-matrix widths the pixel gate
+can never guard).
+
+Gate round: markuph2 (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), pages team/svc/qa + home as no-regression. Moved
+rows: exactly ONE — qa "top" @1440 4.8→4.7 (with the capture scrollbar the
+formula lands the crumb at live's own 72.5px where the fixed 80px sat 7.5px
+wide; an improvement, PASS either side). team/svc/home logs byte-identical
+to markuph1 after tag-strip; every ACK'd floor at its exact stalled value
+(team Dentist 13.0/9.9/6.1, home OdT @834 10.9, home top @390 10.1, home
+BtS @390 Δh 5.8, svc What-to-expect @1440 Δh 5.1, WTLM map rows 12.0-13.4)
+— per-page exit=1 is the floors, nothing else. The menu is closed in every
+gate capture; its geometry is guarded by the interaction suite above.
+
+CORRECTION (2026-08-11, same day): the left-alignment of the menu LINKS was
+our misreading of the decode. Operator, verbatim: "nav should still have
+links centered like before." The column's horizontal presentation is
+restored to centered (items-center, full-width column — matching the
+pre-H2 centering, which also matches live's webflow modal, so the
+deviation-by-directive noted above for left-alignment is WITHDRAWN).
+Everything structural from Fix 2 stands: normal flow inside the scrolling
+dialog, the gap-10 rhythm (90px pitch at lg), the scroll contract (last
+item reachable at 1280×700 / 390×660, scroll-free at 1354×930), the
+overlay chrome mirroring the closed bar's band, and the reduced-motion fly.
+Fix 1 (DetailHero label on the content gutter) is NOT affected.
+tests/interaction/nav-menu.spec.ts now asserts centered links instead of
+on-gutter links; structure/scroll/label tests unchanged. Gate round
+markuph3 (threshold 0.1, matrix 1440/834/390, mask [], neutralizeMedia
+false) on home as no-regression — the menu is closed at capture.
+
+## MARKUP ROUND H4 — the wave lands level and lets go of the text (2026-08-11, feat/markup-round-2026-08)
+
+- PIN: thread 7dd0c2f2 (our-team board 7944efa6), the same thread H1 answered.
+  TWO operator corrections, verbatim:
+  (1) "sine should be only up/down on each page landing at the same height"
+  (2) "wave should never touch the text"
+  Standing directive still in force, verbatim: "I'm no longer concerned about
+  matching the original webflow." Every wave row that moves against the REF in
+  this round is therefore ACK'd BY DIRECTIVE, not a failure. Rows that are NOT
+  wave rows moving would still be regressions; none did (see gate results).
+
+- CORRECTION 1 — the ends. H1's path was a true sine, but the SVG was stretched
+  to 133% of an `overflow-hidden` box (169% in the footer), so only the leading
+  1/1.33 (1/1.69) of the viewBox was ever on screen: 2.26 visible periods, not 3. The wave entered at its mid-line and left on a crest. MEASURED right-end
+  minus left-end y, page coordinates, BEFORE (every one of the 19 mounts on the
+  9 gate pages, at 1440/1294/834/390):
+
+      mount                     1440     1294     834      390
+      Hero / SubpageHero        −31.98   −31.98   −25.59   −19.20
+      DetailHero                −31.98   −31.98   −25.59   −19.20
+      SectionGrid (mirror)      +31.98   +31.98   +25.59   +19.20
+      Footer arc (169%)         +42.10   +42.10   +33.68   +25.18
+
+  i.e. exactly one full amplitude of net rise or fall across every divider on
+  the site. AFTER, same 76 measurements: |Δ| ≤ 0.01px, worst case 0.01px, and
+  the visible period count is 2.0 at every mount and every width.
+
+  The fix is structural, not a tuned number (src/lib/components/WaveDivider.svelte):
+  · the `width` PROP IS GONE. The SVG is now `calc(100% + 1.3px)` of its clip
+  box, hard-coded — the rendered width IS the viewBox width, so nothing can
+  be cropped mid-period. Footer.svelte's `width="169%"` override is removed.
+  · TWO whole periods: y = 60 − 32·cos(πx/300), knots at x=0/300/600/900/1200
+  (28/92/28/92/28), 4 cubic Hermite segments per period, max deviation from
+  the true cosine 0.35px (same fidelity as H1's sine fit).
+  · COSINE, not sine, so dy/dx = 0 at BOTH ends. The 1.3px hairline-seam
+  overhang therefore costs a second-order error: computed |Δy| ≤ 0.037px
+  across every width × box height, versus 0.36–0.80px for the sine phase.
+  Level ends are a property of the curve, not of any mount's arithmetic.
+  Visible wavelength barely moves — 0.44W → 0.50W on the section waves, 0.56W →
+  0.50W in the footer — so the divider keeps its character. Side effect, noted
+  rather than hidden: the path is now symmetric about x=600, so SectionGrid's
+  `mirror` (rotateY 180) is a visual no-op. The prop and class are KEPT because
+  they are part of the services-band DOM the gates measure.
+
+- CORRECTION 2 — the text. METRIC, stated so it can be argued with: clearance is
+  the distance from a glyph box (Range.getClientRects on the text node, so real
+  line boxes, not element boxes) to the wave's VISIBLE CURVED EDGE, measured
+  over that glyph's own x-range, with the SVG's CTM applied so the stretch, the
+  clip and the rotate-180/-scale-x-100 are all folded in. The flat fill between
+  that edge and the box's own edge is excluded because it is by construction the
+  same colour as the band it seams into (that is what `fill` is for). THRESHOLD
+  8px: the site's smallest spacing step (Tailwind `2`), and 8× the worst
+  antialiasing/rounding error of the stretched SVG edge, so it stays a gap the
+  eye can see at any DPR. Both numbers are reported below — the strict
+  painted-extent figure too, so nothing is hidden behind the choice of metric.
+
+  BEFORE: 64 of 299 sampled text rows overlapped the wave; min clearance
+  −49.31px (team "Dr. Robert Quan" @1294). Worst per mount:
+
+      mount / page                  1440     1294     834      390
+      Hero group-photo (yfv)        −12.0    −12.0    −30.0    −27.2
+      SubpageHero subpage (svc,atd) −10.5    −18.8    −24.9    −27.3
+      SubpageHero meet (our-team)   −42.9    −46.5    −32.0    −26.2
+      SubpageHero contact           −42.0    −42.0    −36.6    −16.2
+      DetailHero (team/svc/qa)      −44.5    −49.3    −22.6    −25.0
+      Footer arc (FIJI ISLANDS)     −14.0    −1.4     −24.0    +10.0
+      Hero full-bleed (home)        +20.9    +20.6    +34.0    +68.3
+      SectionGrid (home)           +134.0   +134.0    +81.4    +52.8
+
+  AFTER: 0 of 299 rows below 8px; min clearance 17.4px (contact hero @834).
+  Worst per mount:
+
+      mount / page                  1440     1294     834      390
+      Hero group-photo (yfv)         28.0     28.0     26.4     20.8
+      SubpageHero subpage (svc,atd)  28.0     28.0     19.4     17.8
+      SubpageHero meet (our-team)    28.0     28.0     18.4     17.8
+      SubpageHero contact            28.0     28.0     17.4     21.8
+      DetailHero (team/svc/qa)       28.0     29.0     23.4     17.8
+      Footer arc                     70.0     67.0     52.9     49.8
+      Hero full-bleed (home)         20.9     20.6     58.6     68.3
+      SectionGrid (home)            134.0    134.0     81.4     53.1
+
+  THE RULE, one line: no glyph sits inside a divider's box. Every flipped mount
+  now takes the divider's OWN height ladder as its bottom offset — 72/96/120,
+  the literal `heightClass` — which is 30% more room than the crest strictly
+  needs (the crest reaches 76.67% of the box) and is the version anyone can
+  check by eye. Sites changed:
+  · Hero/index.svelte group-photo heading: bottom-[24px]/lg:bottom-20 →
+  bottom-[72px] md:bottom-[96px] lg:bottom-[120px]
+  · SubpageHero heading block: all THREE live ladders (subpage bottom:2%+mb:5%,
+  meet .75rem, contact 1rem) → the same 72/96/120. DEVIATION from live.
+  · DetailHero label: bottom-[10%] (a fraction of the band, tracking nothing)
+  → 72/96/120. DEVIATION from live.
+  · SubpageHero's first subheading loses `-mt-[10px]` ("nudges up 10px into
+  the wave, matching live") — the only text on the site inside a divider box
+  from BELOW. Strict overlap was −10.0/−14.0; edge margin 6.8px @390, under
+  the 8px bar. DEVIATION from live. Costs our-team 10px of height, all of it
+  inside the hero's own `top` region — the ONLY height any page gained.
+  · CtaBand's FIJI caption: bottom-[20%]/lg:bottom-[31%] are fractions of the
+  PHOTO, but the thing to clear is the FOOTER's wave, and this section's
+  `-mb-[10%]` (a percentage of WIDTH) drags the footer up over the photo by
+  39/83/144px @390/834/1440 — so no percentage of the photo's height could
+  ever track it. Now bottom:calc(10vw + 128px) at md and calc(10vw + 160px)
+  at lg — the footer wave's own box heights — which holds the clearance
+  constant across a whole band instead of drifting.
+  ≤767 is deliberately UNTOUCHED — see the open item below.
+  Every hero offset is an ABSOLUTE box, so none of them adds page height.
+
+  RESIDUAL, disclosed: one row is still negative under the STRICT painted-extent
+  metric — our-team "Our" @834, −4.0px. That is the h2's font ascender box (72px
+  face in an 80px line box) reaching 4px over the seam into the flat white fill;
+  the ink is nowhere near, and against the wave's visible edge the same row
+  clears by 18.4px. Not chased: tuning to a font's ascender against a fill that
+  is the same white as the page behind it would be tuning to the metric.
+
+- OPEN ITEM, not caused by this round and not fixed by it: at ≤767 the FIJI
+  caption is rendered but invisible — the CtaBand's `-mb-[10%]` puts it 80px
+  BELOW the footer's top at 390, buried under the footer, opacity 0 (its reveal
+  never fires). The wave does not touch it because nothing paints it. Fixing it
+  would reveal content at 390 that no pin asked for; flagged for the operator.
+
+- SEAMS (correction 3, watertight): pixel-sampled the two rows straddling every
+  divider's flat edge, full width, all 19 mounts × 4 widths, on the pre-change
+  and post-change builds. The hairline signal is BYTE-IDENTICAL before and
+  after: worst 116/255 at home/1440/services x=977, 75 at home/1294 x=962, 70 at
+  team/834 x=773, 95 at team/390 x=264 — all four are content crossing the seam
+  (the big-teal-tooth badge, the headshot), present at the same x with the same
+  value on both builds. No new gap, and none of the A-round overlap mechanics
+  (heights, the V0 H0 close, the absolute footer overlay) was touched.
+
+Mechanical checks (both corrections, because a path-string test cannot see
+either): tests/interaction/wave-divider.spec.ts — 16 tests, the 4 routes that
+between them mount every caller (Hero ×2, SectionGrid, SubpageHero, DetailHero,
+Footer) × 1440/1294/834/390, asserting per mount |endDelta| ≤ 1px, exactly 2
+visible periods, and ≥8px clearance to the curved edge, all measured through
+getScreenCTM on the live DOM after a scroll sweep (an unrevealed heading is
+opacity 0 and would otherwise hide the collision the test exists to catch).
+1294 is in the matrix deliberately: the pixel gate never sees it, and it is
+where the footer arc's end delta was worst relative to the copy around it.
+src/lib/components/WaveDivider.test.ts adds three unit pins — width is
+`calc(100% + 1.3px)` (any overflow factor reintroduces the H1 defect), y(0) =
+y(1200), and the knots are the 28/92 alternation of two whole periods.
+tests/interaction/nav-menu.spec.ts stopped selecting the DetailHero label by
+`[class*="bottom-[10%]"]` — a spacing change silently broke a test about
+HORIZONTAL alignment — and now uses a `data-detail-label` hook.
+
+Gate round: markuph4 (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), all nine pages; baselines markuph3 for home, markuph2
+for team/svc/qa, markuph1 for yfv/our-team/services/atd/contact. 48 rows moved,
+EVERY ONE of them a wave row — `top` (the hero band and its divider), `Ready for
+great [dental health]` (the CtaBand photo the footer arc overlays, and the moved
+caption), home's `Your Path to Oral Health` (the SectionGrid band's top wave
+seam falls inside it: y≈3667 at 1440 against the region's 2585→3937, and
+likewise at 834 and 390) and home's `Want to learn more` @390 13.4→13.3 (the
+ACK'd map-noise floor, improving by 0.1). NOTHING outside a wave region moved:
+every other row is byte-identical to its baseline.
+· Hero regions vs the REF, PASS throughout, worse because the heading is now
+20-60px off live's position by design: atd 4.9→7.2/3.9→5.4/4.6→7.5
+(1440/834/390), yfv 5.3→7.9/-/5.0→7.6, contact 5.9→7.8/4.2→5.1/5.3→6.7,
+our-team 6.8→8.2/5.4→6.0/5.9→7.7, services 5.6→6.7/5.7→6.5/7.4→8.9.
+· our-team `top` gains Δh 2.2%/2.0%/2.8% — that is the 10px from the dropped
+-mt, and it is the ONLY Δh any page gained. Every other Δh in the round is
+at its baseline value, which is the proof that the hero moves added no page
+height.
+· FOUR rows crossed the line, all the same row on different pages: `Ready for
+    great` @834 10.0 → 10.1 on contact/qa/svc/team. The same region moved
++0.2 (9.6→9.8) on home/yfv/atd/services/our-team; those four were sitting
+exactly ON 10.0. ACK'd by directive — this region is the footer arc's.
+· One row IMPROVED past an ACK'd floor: home `top` @390 10.1 → 9.8, FAIL →
+PASS. Recorded because a floor moved, even upward. It is a wave row.
+· Every other ACK'd floor is at its EXACT value: team Dentist 13.0/9.9/6.1,
+home OdT @834 10.9, home BtS @390 Δh 5.8, svc What-to-expect @1440 Δh 5.1,
+atd BtS 61.7/60.5/66.9, our-team DRQ 37.2/23.7, yfv DRQ 27.2, yfv WWYTFC
+@1440 Δh 15.1, contact OFFICE HOURS @1440 10.5, WTLM map rows 12.0-13.4.
+Per-page exit=1 is those floors, nothing else.
+
+Evidence in the scratchpad (02eae5da…/scratchpad): before.json / before2.json /
+after.json / after2.json (the 76-mount end-height + clearance measurements both
+ways), detail-before.txt (collision provenance), 76 before + 76 after crops in
+shots-before/ and shots-after/, and the composite sheets SHEET-h4-1440.png,
+SHEET-h4-1294.png, SHEET-h4-834.png, SHEET-h4-390.png.
