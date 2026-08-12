@@ -25,28 +25,26 @@ const pages = [
 ];
 
 /**
- * The ONE known-failing rule, recorded rather than suppressed.
+ * There is no longer a known-failing rule. Every page must come back clean.
  *
- * Every color-contrast node this suite finds is the same pair: live's brand
- * cyan `#129ecc` on its own pale band `#e7f5fa` — 2.77:1 against the 3:1 large
- * text threshold, so it misses WCAG 2.1 AA (1.4.3) by 0.23. It is the exact
- * defect already ledgered for the footer's "Want to learn more?" heading, where
- * the operator ACKed swapping in the AA-safe `--primary-deep`; this is the same
- * swap on a much larger surface (all four service-block titles, all eleven team
- * names, two /your-first-visit headings), so it is a brand-colour decision and
- * is awaiting one — see matching/LEDGER.md.
+ * This used to carry a carve-out for one pair — live's brand cyan `#129ecc` on
+ * its own pale band `#e7f5fa`, 2.78:1 against the 3:1 large-text threshold —
+ * recorded rather than suppressed because changing it was a brand decision only
+ * the operator could make. That decision was made: the 19 nodes (11 team names
+ * on /our-team, 4 on /your-first-visit, 4 service-block titles, and the sticky
+ * registration-forms heading) now take the AA-safe `--primary-deep`, 4.58:1 on
+ * that band.
  *
- * This is deliberately NOT a blanket exclusion. The colour pair is asserted, so
- * a contrast failure anywhere with any OTHER pair fails the run, and the rule
- * list is asserted per page, so any new rule fails it too. When the colour is
- * decided, delete this constant and the suite tightens to zero automatically.
+ * The root cause is worth knowing, because it will recur: `.h-primary` opts a
+ * heading into the brand cyan on the reasoning that cyan is AA-safe at >=24px.
+ * That is a fact about cyan ON WHITE (3.09:1). Applied over the pale band it is
+ * false. Heading colour on this site tracks its ground — see the block in
+ * app.css — and the opt-in was the one place that forgot to.
+ *
+ * The carve-out was designed to disappear exactly like this: it asserted the
+ * pair rather than excluding the rule, so no second defect could hide behind
+ * it, and the rule list was asserted per page so a new rule failed the run.
  */
-const KNOWN_CONTRAST_PAIR = { fg: "#129ecc", bg: "#e7f5fa" };
-const KNOWN_RULES: Record<string, string[]> = {
-  "/your-first-visit": ["color-contrast"],
-  "/our-team": ["color-contrast"],
-  "/services": ["color-contrast"],
-};
 
 for (const { path, name } of pages) {
   test(`${name} has no axe violations`, async ({ page }) => {
@@ -68,19 +66,19 @@ for (const { path, name } of pages) {
       .exclude("iframe[src*='youtube-nocookie.com']")
       .analyze();
 
-    // Every contrast failure must be the one known colour pair. A different
-    // pair means a NEW defect hiding behind the known one.
-    const unexpectedPairs = results.violations
-      .filter((v) => v.id === "color-contrast")
-      .flatMap((v) => v.nodes)
-      .map((n) => n.any[0]?.data as { fgColor?: string; bgColor?: string })
-      .filter(
-        (d) =>
-          d?.fgColor !== KNOWN_CONTRAST_PAIR.fg ||
-          d?.bgColor !== KNOWN_CONTRAST_PAIR.bg,
-      )
-      .map((d) => `${d?.fgColor} on ${d?.bgColor}`);
-    expect(unexpectedPairs, `unexpected contrast pair on ${path}`).toEqual([]);
+    // Contrast failures are named by their colour pair, not just counted — a
+    // red run should say "#129ecc on #e7f5fa", which is the thing you go and
+    // fix, rather than "1 violation".
+    const failingPairs = [
+      ...new Set(
+        results.violations
+          .filter((v) => v.id === "color-contrast")
+          .flatMap((v) => v.nodes)
+          .map((n) => n.any[0]?.data as { fgColor?: string; bgColor?: string })
+          .map((d) => `${d?.fgColor} on ${d?.bgColor}`),
+      ),
+    ];
+    expect(failingPairs, `failing contrast pairs on ${path}`).toEqual([]);
 
     // Name the rule and the element in the failure, so a red run says what to
     // fix instead of printing an axe object graph.
@@ -94,8 +92,6 @@ for (const { path, name } of pages) {
             .join("\n    ")}`,
       )
       .join("\n");
-    expect(rules, `axe violations on ${path}\n${detail}`).toEqual(
-      KNOWN_RULES[path] ?? [],
-    );
+    expect(rules, `axe violations on ${path}\n${detail}`).toEqual([]);
   });
 }

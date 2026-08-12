@@ -290,8 +290,15 @@
            covers it, so pointing at the name still shows a pointer and still
            navigates, and the heading is no longer wrapped in a link that
            duplicated its two siblings for AT and the keyboard. -->
+      <!-- `-deep`, not live's brand cyan. The cyan opt-in is only AA-safe on
+           WHITE (3.09:1, which clears the 3.0 large-text bar); this name sits
+           on the card's own #e7f5fa, where the same colour is 2.78:1 and fails.
+           15 of the site's 19 failing nodes were this one line — 11 team names
+           on /our-team and 4 on /your-first-visit. #0e7799 here is 4.58:1,
+           which clears the body threshold too. Operator-ACKed brand deviation;
+           see app.css's `.h-primary` block for the general rule. -->
       <h5
-        class="font-slab text-[30px] leading-[40px] font-light text-[#129ecc]"
+        class="font-slab text-primary-deep text-[30px] leading-[40px] font-light"
       >
         {name}
       </h5>

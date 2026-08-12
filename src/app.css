@@ -264,7 +264,17 @@ main :where(h1, h2, h3) {
    not for small headings (blux `txt-role` bands, dev fixtures), which stay on
    the AA-safe -deep default above. So primary is opt-in via `.h-primary`, added
    only to the genuinely large headings (30–140px here). Unlayered + a class
-   selector so it outranks both Tailwind utilities and the -deep default. */
+   selector so it outranks both Tailwind utilities and the -deep default.
+
+   THE OPT-IN IS ALSO GROUND-DEPENDENT, and that half was missing. "AA-safe at
+   ≥24px" is a statement about #129ecc ON WHITE. On the site's pale band
+   (#e7f5fa — the team card, the service block) the same colour is 2.78:1 and
+   fails the very threshold this rule invokes to justify itself. That is not
+   hypothetical: it was every colour-contrast violation the a11y suite could
+   find, 19 nodes across three pages, carved out as a known pair for weeks.
+   Before adding `.h-primary`/`.h-primary-lg` to anything, check what the
+   heading actually sits on. On the pale band the answer is: don't — let it
+   fall through to the -deep default above (4.58:1 there). */
 .h-primary,
 .h-primary :where(h1, h2, h3) {
   color: var(--color-primary);

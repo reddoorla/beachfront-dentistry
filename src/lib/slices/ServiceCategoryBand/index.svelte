@@ -143,11 +143,21 @@
             class="pointer-events-none absolute -top-[30px] right-9 z-10 size-[60px] md:-top-10 md:right-12 md:size-20 lg:-top-[50px] lg:right-[60px] lg:size-[100px]"
           />
 
-          <!-- Top 60%: heading (light cyan slab) + intro (slate), left-aligned. -->
+          <!-- Top 60%: heading (brand slab) + intro (slate), left-aligned.
+
+               No `h-primary-lg` here, deliberately — do not "restore" it as a
+               fidelity fix. That class opts a heading into live's brand cyan on
+               the grounds that cyan is AA-safe at >=24px, and it is: 3.09:1 ON
+               WHITE. This heading's ground is the card's own #e7f5fa (:134),
+               where the same colour measures 2.78:1 and misses the 3.0
+               large-text threshold. The opt-in was reasoned about against one
+               background and applied on another. Without it the heading falls
+               through to app.css's `main :where(h1,h2,h3)` default, which is
+               `--color-primary-deep` — 4.58:1 on this card. Operator-ACKed. -->
           <div class="h-[60%] text-left">
             <div class="mx-[18px] mt-12 md:mx-6 md:mt-16 lg:mx-[30px] lg:mt-20">
               <div
-                class="h-primary-lg mb-6 md:mb-8 lg:mb-10 [&_h3]:font-slab [&_h3]:text-[21px] [&_h3]:leading-[26px] [&_h3]:font-light lg:[&_h3]:text-[40px] lg:[&_h3]:leading-[50px]"
+                class="mb-6 md:mb-8 lg:mb-10 [&_h3]:font-slab [&_h3]:text-[21px] [&_h3]:leading-[26px] [&_h3]:font-light lg:[&_h3]:text-[40px] lg:[&_h3]:leading-[50px]"
               >
                 <PrismicRichText field={(cat.heading ?? []) as RichTextField} />
               </div>

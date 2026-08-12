@@ -218,8 +218,15 @@
           <div
             class="exam-content-holder flex min-w-0 flex-col items-start md:block"
           >
+            <!-- `-deep` here, brand cyan on the six steps above — and that is
+                 the system working, not an inconsistency. The step titles sit
+                 on WHITE, where #129ecc is 3.09:1 and clears the 3.0 large-text
+                 bar. THIS one sits inside the box's own #e7f5fa (:215), where
+                 the identical colour is 2.78:1 and fails. Heading colour tracks
+                 the ground on this site by design (see app.css's `.h-primary`
+                 block); the defect was that the opt-in ignored the ground. -->
             <h5
-              class="font-slab my-2.5 text-[30px] leading-[40px] font-light text-[#129ecc]"
+              class="font-slab text-primary-deep my-2.5 text-[30px] leading-[40px] font-light"
             >
               {asText(regStep.title as RichTextField)}
             </h5>
