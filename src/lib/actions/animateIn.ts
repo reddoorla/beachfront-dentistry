@@ -1,3 +1,5 @@
+import { reducedMotion } from "$lib/transitions";
+
 /** Live's Webflow scroll-reveal, read off the reference (2026-08-02): each
  *  element rises `--reveal-travel` (96px mobile / 160px desktop — live's 4rem
  *  in its responsive root) over 1s on the shared expo-out curve, with no
@@ -85,27 +87,56 @@ function reveal(node: HTMLElement) {
 }
 
 export function animateIn(node: HTMLElement, param?: AnimateInParam) {
-  if (
-    typeof window !== "undefined" &&
-    window.matchMedia &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  ) {
-    return { update() {}, destroy() {} };
-  }
-
   const cfg = resolveConfig(param);
   let observer: IntersectionObserver | undefined;
   let failSafeTimer: ReturnType<typeof setTimeout> | undefined;
+  let reduced = false;
+  let hidden = false;
+
+  const hide = () => {
+    hidden = true;
+    applyHidden(node, cfg);
+  };
+  const show = () => {
+    hidden = false;
+    reveal(node);
+  };
+
+  // Reduced motion is watched, not sampled, so turning the OS setting on mid-
+  // session stops the reveals where the reader is instead of on their next
+  // reload. It only ever moves in the SAFE direction: whatever is hidden is
+  // revealed and the machinery torn down. Re-applying the hidden state on a
+  // switch would strand content at opacity 0 with nothing left running to
+  // un-hide it — the exact failure `failSafe` exists to catch.
+  const unwatch = reducedMotion.subscribe((value) => {
+    reduced = value;
+    if (!value) return;
+    if (failSafeTimer !== undefined) clearTimeout(failSafeTimer);
+    observer?.disconnect();
+    // `hidden` is false on the first, synchronous call, so an element that was
+    // never touched keeps its untouched inline styles — as before, the action
+    // is a complete no-op when the preference is already on.
+    if (hidden) show();
+  });
+
+  if (reduced) {
+    return {
+      update() {},
+      destroy() {
+        unwatch();
+      },
+    };
+  }
 
   if (cfg.mode === "triggered") {
     if (cfg.trigger) {
-      applyHidden(node, cfg);
-      reveal(node);
+      hide();
+      show();
     } else {
-      applyHidden(node, cfg);
+      hide();
     }
   } else {
-    applyHidden(node, cfg);
+    hide();
     // Explicit index-based stagger (grids/columns) overrides the default
     // horizontal-position heuristic (which only sequences a left-to-right row).
     const delay =
@@ -121,8 +152,13 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
     // style writes land in one synchronous frame, so the element is simply
     // visible (no transition), which beats invisible forever.
     if (typeof IntersectionObserver === "undefined") {
-      reveal(node);
-      return { update() {}, destroy() {} };
+      show();
+      return {
+        update() {},
+        destroy() {
+          unwatch();
+        },
+      };
     }
 
     observer = new IntersectionObserver(
@@ -135,7 +171,7 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
           // reveals actually play (live animates them on load too).
           requestAnimationFrame(() =>
             requestAnimationFrame(() => {
-              reveal(node);
+              show();
               // Only clear once the reveal has actually executed — an rAF
               // throttled to a stop (background iframe) after the observer
               // fired still needs the fail-safe below to run.
@@ -155,7 +191,7 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
     if (cfg.failSafe !== null) {
       failSafeTimer = setTimeout(() => {
         observer?.disconnect();
-        reveal(node);
+        show();
       }, cfg.failSafe);
     }
   }
@@ -165,13 +201,17 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
     update(next?: AnimateInParam) {
       if (cfg.mode !== "triggered") return;
       const nextCfg = resolveConfig(next);
-      if (nextCfg.trigger) {
-        reveal(node);
+      // Under reduced motion the element must never go back to hidden: the
+      // watcher above has already torn everything down, so nothing would be
+      // left to reveal it again.
+      if (nextCfg.trigger || reduced) {
+        show();
       } else {
-        applyHidden(node, cfg);
+        hide();
       }
     },
     destroy() {
+      unwatch();
       if (failSafeTimer !== undefined) clearTimeout(failSafeTimer);
       observer?.disconnect();
     },

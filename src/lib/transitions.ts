@@ -18,13 +18,82 @@ import type {
 //
 // Checked per transition run (not at module load), so an OS-level toggle takes
 // effect on the next open/close. `matchMedia` is guarded for SSR and jsdom.
+
+const REDUCE_QUERY = "(prefers-reduced-motion: reduce)";
+
+type Subscriber = (value: boolean) => void;
+
+const subscribers = new Set<Subscriber>();
+
+// ONE MediaQueryList for the whole app, created on first use and reused. The
+// site used to consult the preference five ways — this module per transition
+// run, Slider with its own listener, and a once-at-mount sample in animateIn,
+// floatAlong and ScreenWidthMedia — so switching Reduce Motion on mid-session
+// stopped the carousel but left the scroll reveals and the floating doctor
+// running until a reload. Everything that can should read the store below.
+let factory: typeof window.matchMedia | null = null;
+let list: MediaQueryList | null = null;
+
+function onChange(event: MediaQueryListEvent) {
+  // Copy first: a subscriber may unsubscribe itself while being notified
+  // (animateIn tears itself down the moment the preference turns on).
+  for (const run of [...subscribers]) run(event.matches);
+}
+
+/** The live MediaQueryList, or null where there is no `matchMedia` at all (SSR,
+ *  and jsdom before a test stubs one). Re-created when `window.matchMedia`
+ *  itself is swapped, which is exactly what the tests do between cases — the
+ *  listener follows the current implementation instead of pinning the first
+ *  one it ever saw. */
+function queryList(): MediaQueryList | null {
+  if (
+    typeof window === "undefined" ||
+    typeof window.matchMedia !== "function"
+  ) {
+    list?.removeEventListener?.("change", onChange);
+    factory = null;
+    list = null;
+    return null;
+  }
+  if (list && factory === window.matchMedia) return list;
+  list?.removeEventListener?.("change", onChange);
+  factory = window.matchMedia;
+  list = window.matchMedia(REDUCE_QUERY);
+  // Optional-called: ancient Safari has only the deprecated addListener, and
+  // the jsdom stubs in some tests omit it entirely. Losing the listener costs
+  // reactivity, never correctness — every read below still hits `.matches`.
+  list.addEventListener?.("change", onChange);
+  return list;
+}
+
 /** Live reduced-motion query, exported for components whose BEHAVIOR (not just
  *  animation) changes under reduced motion — e.g. PreNavTransition skips its
- *  artificial pre-navigation delay entirely. */
+ *  artificial pre-navigation delay entirely. Deliberately asks `matchMedia`
+ *  fresh rather than reading the cached list above: callers of this function
+ *  are one-shot (a transition about to run), and a fresh ask is what makes it
+ *  correct in any environment where the list is a stub rather than a live
+ *  object. Prefer the `reducedMotion` store wherever the caller lives long
+ *  enough to react to a change instead of re-asking. */
 export const prefersReducedMotion = (): boolean =>
   typeof window !== "undefined" &&
   typeof window.matchMedia === "function" &&
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  window.matchMedia(REDUCE_QUERY).matches;
+
+/** The same preference as a Svelte store, so long-lived consumers (actions,
+ *  components) update when the OS setting is toggled mid-session instead of
+ *  waiting for a reload. Standard store contract — `$reducedMotion` in a
+ *  component, `.subscribe()` in an action. SSR-safe: with no `matchMedia` it
+ *  emits `false` once and never again. */
+export const reducedMotion = {
+  subscribe(run: Subscriber): () => void {
+    queryList();
+    subscribers.add(run);
+    run(prefersReducedMotion());
+    return () => {
+      subscribers.delete(run);
+    };
+  },
+};
 
 /** What a transition collapses to under reduced motion: zero-length AND
  *  style-free. Zeroing the duration is NOT sufficient on its own — Svelte
