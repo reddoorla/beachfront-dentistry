@@ -421,6 +421,39 @@ describe("Nav — hamburgerOnly ships no permanently-hidden controls", () => {
   });
 });
 
+// The overlay's two pills take the shared language's WHITE colourway: on the
+// #129ecc menu wash a translucent cyan fill composites to nothing, so the fill
+// is the brand deep blue (white label 5.10:1 held, measured on the rendered
+// pixels; the old `hover:opacity-60` took it to 1.9:1).
+describe("Nav — the menu pills speak the shared hover language", () => {
+  it("fill + border + press, and no opacity fade", async () => {
+    const { getByLabelText, getByRole } = render(Nav, {
+      items: beachfrontItems,
+      logo: beachfrontLogo,
+      hamburgerOnly: true,
+    });
+    await fireEvent.click(getByLabelText("Open menu"));
+    await frame();
+
+    const dialog = getByRole("dialog");
+    for (const label of ["Request an Appointment", "Make a Payment"]) {
+      const pill = Array.from(dialog.querySelectorAll("a")).find(
+        (a) => a.textContent?.trim() === label,
+      ) as HTMLAnchorElement;
+      expect(pill, label).toBeTruthy();
+      expect(pill.className).toContain("hover:bg-[#0e7799]");
+      expect(pill.className).toContain("active:translate-y-px");
+      expect(pill.className).toContain("ease-[var(--transition-out-expo)]");
+      // `translate`, not `transform` — Tailwind v4 compiles the utility to the
+      // independent property, and `transform` is what the row's own `fly`
+      // intro drives, so the two must not name the same channel.
+      expect(pill.className).toContain("translate]");
+      expect(pill.className).not.toContain("transform]");
+      expect(pill.className).not.toMatch(/opacity/);
+    }
+  });
+});
+
 // One hover treatment for the brand mark, identical in both menu states. It
 // used to compound the anchor's 0.60 with the img's 0.50 to an effective 0.30
 // closed, while the same img rule was dead in the overlay (no `group` on its

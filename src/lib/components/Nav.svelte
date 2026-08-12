@@ -5,6 +5,7 @@
   import { trapFocus } from "$lib/actions/trapFocus";
   import { fade, fly } from "$lib/transitions";
   import { PHONE, MODENTO_URL } from "$lib/site";
+  import { pillClass } from "$lib/components/OutlineButton.svelte";
   import type { NavItem } from "$lib/blux/site-config";
 
   interface NavLink {
@@ -598,7 +599,9 @@
           href="#appointment"
           onclick={closeMenu}
           in:fly|global={linkIn(menuLeafItems.length + 2)}
-          class="font-slab px-[1em] py-[1.3em] leading-[0] inline-flex items-center rounded-lg border border-white text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 lg:text-[25px]"
+          class="{pillClass(
+            'white',
+          )} px-[1em] py-[1.3em] leading-[0] text-[15px] lg:text-[25px]"
           >Request an Appointment</a
         >
         <a
@@ -607,7 +610,9 @@
           rel="noopener"
           onclick={closeMenu}
           in:fly|global={linkIn(menuLeafItems.length + 3)}
-          class="font-slab px-[1em] py-[1.3em] leading-[0] inline-flex items-center rounded-lg border border-white text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 lg:text-[25px]"
+          class="{pillClass(
+            'white',
+          )} px-[1em] py-[1.3em] leading-[0] text-[15px] lg:text-[25px]"
           >Make a Payment</a
         >
       </nav>

@@ -2,6 +2,7 @@
   import HeroBackgroundImage from "$lib/components/HeroBackgroundImage.svelte";
   import ReadReviewsExpander from "$lib/components/ReadReviewsExpander.svelte";
   import RichTextBody from "$lib/components/RichTextBody.svelte";
+  import { pillClass } from "$lib/components/OutlineButton.svelte";
   import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
   import { PrismicLink, PrismicRichText } from "@prismicio/svelte";
   import type { ImageField, LinkField, RichTextField } from "@prismicio/client";
@@ -91,11 +92,17 @@
   >
     {#if ctaLabel && ctaLink}
       <!-- Live's `.button.text-color-primary-dark`: 25px museo-slab in a 67px
-           pill, and the hover is opacity .6 + a translucent cyan fill (the
-           border/text colours do NOT change). -->
+           pill. The hover/press language is the shared one — see
+           OutlineButton.svelte's module block for the colourways and their
+           measured contrast. This band's pill stays a `<PrismicLink>` rather
+           than an `<OutlineButton>` because its href is an editor-settable
+           field whose external values need the target/rel PrismicLink resolves
+           and the component does not model. -->
       <PrismicLink
         field={ctaLink}
-        class="closing-cta-button font-slab px-[1em] py-[1.3em] leading-[0] focus-visible:ring-primary-deep inline-flex items-center rounded-lg border border-[#365b6d] text-[14px] font-light text-[#365b6d] transition-[background-color] hover:bg-[#129ecc4a] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:text-[20px] lg:text-[25px]"
+        class="closing-cta-button {pillClass(
+          'teal',
+        )} px-[1em] py-[1.3em] leading-[0] text-[14px] xs:text-[15px] md:text-[20px] lg:text-[25px]"
       >
         {ctaLabel}
       </PrismicLink>

@@ -237,6 +237,30 @@ describe("Footer", () => {
     );
   });
 
+  // The payment pill is one of the four sites that cannot literally BE an
+  // <OutlineButton> (it needs linkAttrs' target/rel and its own column
+  // margins), so this pins that it still takes the shared language rather than
+  // drifting back into a hand-authored copy. Asserted as a class contract, not
+  // a computed style: jsdom applies no Tailwind, and a headless browser can
+  // report a running transition frozen at its start value.
+  it("the payment pill speaks the shared hover/press language, with no opacity fade", () => {
+    const { getByRole } = render(Footer, {
+      props: { columns: beachfrontColumns },
+    });
+    const cls = getByRole("link", { name: "Make a Payment" }).className;
+
+    expect(cls).toContain("hover:bg-[#129ecc4a]");
+    expect(cls).toContain("hover:border-[#129ecc]");
+    expect(cls).toContain("active:translate-y-px");
+    expect(cls).toContain("ease-[var(--transition-out-expo)]");
+    // Tailwind v4 compiles `translate-y-px` to the independent `translate`
+    // property; a transition list naming `transform` would animate nothing.
+    expect(cls).toContain("translate]");
+    expect(cls).not.toContain("transform]");
+    // The defect this replaced: fading the label made it harder to read.
+    expect(cls).not.toMatch(/opacity/);
+  });
+
   it("renders a wave divider at the footer's top edge", () => {
     const { container } = render(Footer, {
       props: { columns: beachfrontColumns },

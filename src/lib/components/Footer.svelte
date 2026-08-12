@@ -2,6 +2,7 @@
   import BrandIcon from "./BrandIcon.svelte";
   import WaveDivider from "./WaveDivider.svelte";
   import MapEmbed from "./MapEmbed.svelte";
+  import { pillClass } from "./OutlineButton.svelte";
   import type {
     FooterSocial,
     FooterItem,
@@ -139,9 +140,16 @@
              mt = live's last-link → button gap (48/41/37) minus the link row's
              own bottom margin (6/8/10). mb closes the gap to the next stacked
              block: live puts 60px there at mobile and the grid supplies 24. -->
+        <!-- Hover/press is the shared pill language (OutlineButton.svelte's
+             module block carries the colourways and their measured contrast).
+             It stays a hand-authored <a> rather than an <OutlineButton> for its
+             `linkAttrs` target/rel — Modento is external — and its own column
+             margins. -->
         <a
           {...linkAttrs(item.href)}
-          class="font-slab px-[1em] py-[1.3em] leading-[0] focus-visible:ring-primary-deep mt-[42px] mb-[36px] inline-flex w-fit items-center rounded-lg border border-[#365b6d] text-[14px] font-light whitespace-nowrap text-[#365b6d] transition-[background-color] hover:bg-[#129ecc4a] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:mt-[33px] md:mb-0 md:text-[20px] lg:mt-[27px] lg:text-[25px]"
+          class="{pillClass(
+            'teal',
+          )} px-[1em] py-[1.3em] leading-[0] mt-[42px] mb-[36px] w-fit text-[14px] whitespace-nowrap xs:text-[15px] md:mt-[33px] md:mb-0 md:text-[20px] lg:mt-[27px] lg:text-[25px]"
           >{item.text}</a
         >
       {:else if item.href}
