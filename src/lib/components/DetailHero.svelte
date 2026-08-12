@@ -82,7 +82,14 @@
     <!-- `data-detail-label` is the interaction suite's handle on this block.
          It used to select on `[class*="bottom-[10%]"]`, which meant a spacing
          change (H4's) silently broke a test about HORIZONTAL alignment. -->
+    <!-- This one already had a failSafe — it is the element MarkUp thread
+         738ad46b pin #2 was about, the team-member name that intermittently
+         never appeared. It now also carries `data-reveal`, which is what stops
+         the name being painted and then yanked. Its 1500ms stays: this is the
+         known-flaky target, so it gets the tighter deadline rather than the
+         2500ms shared preset. -->
     <div
+      data-reveal
       data-detail-label
       class="absolute bottom-[72px] left-5 z-10 md:bottom-[96px] md:left-12 lg:bottom-[120px] lg:left-[max(60px,calc(50%-640px))]"
       use:animateIn={{ ...LIVE_REVEAL, failSafe: 1500 }}

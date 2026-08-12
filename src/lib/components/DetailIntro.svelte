@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
+  import { animateIn, ABOVE_FOLD_REVEAL } from "$lib/actions/animateIn";
 
   // Live's `.service-page-title-subtitle-section` / question `.headings-section`
   // (identical treatment): a big cyan museo-slab-thin title on the left, then a
@@ -32,8 +32,9 @@
       class="font-slab font-thin {titleSize === 'xl'
         ? 'text-[56px] leading-[70px] md:text-[72px] md:leading-[80px] lg:text-[140px] lg:leading-[168px]'
         : 'pt-[20px] text-[50px] leading-[60px] md:text-[100px] md:leading-[120px] lg:text-[100px] lg:leading-[120px]'}"
+      data-reveal
       style="color:#129ecc"
-      use:animateIn={LIVE_REVEAL}
+      use:animateIn={ABOVE_FOLD_REVEAL}
     >
       {title}
     </h1>
@@ -42,8 +43,9 @@
            (right-indented ~⅓ at desktop), 30px below the title box. -->
       <p
         class="font-slab mt-[30px] text-[20px] leading-[30px] font-light md:ml-[33%] md:w-[66%] lg:max-w-[845px] lg:text-[30px] lg:leading-[45px]"
+        data-reveal
         style="color:#129ecc"
-        use:animateIn={LIVE_REVEAL}
+        use:animateIn={ABOVE_FOLD_REVEAL}
       >
         {lede}
       </p>

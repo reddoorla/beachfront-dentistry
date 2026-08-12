@@ -5,7 +5,7 @@
     type RichTextField,
     type LinkField,
   } from "@prismicio/client";
-  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
+  import { animateIn, ABOVE_FOLD_REVEAL } from "$lib/actions/animateIn";
   import OutlineButton from "$lib/components/OutlineButton.svelte";
 
   // your-first-visit `.fv-toc-section`: a 2-col opener. LEFT = an intro
@@ -106,9 +106,13 @@
          COLUMN at ≤991 (`:8004-8006`). Its `my-6` (`:3834-3837`, 60/48/36)
          collapses out of the padding-less `.content-width`, so it does not
          change the section's border box — which is this region's anchor. -->
+    <!-- /your-first-visit's first content block, comfortably inside the first
+         viewport (measured top=600 @1440) — server-rendered hidden state, same
+         as the hero above it. -->
     <div
+      data-reveal
       class="flex flex-col justify-between lg:flex-row lg:items-start"
-      use:animateIn={LIVE_REVEAL}
+      use:animateIn={ABOVE_FOLD_REVEAL}
     >
       <!-- LEFT is only the lede — `p.text-body-large._w-half.max-w-490px.slab`:
            50% wide capped at 490 (`:2869`, `:7775-7777`), 100% at ≤991

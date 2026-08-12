@@ -245,11 +245,16 @@
     <div
       class="my-12 grid grid-cols-1 gap-[30px] md:my-16 md:grid-cols-2 lg:my-20"
     >
-      {#each sortedDocs as doc (doc.uid)}
+      {#each sortedDocs as doc, i (doc.uid)}
+        <!-- `i < 2` is measured, not a round number: two cards sit inside the
+             first viewport on /ask-the-doctor at BOTH widths — one column at
+             390 stacks two into 900px, and the md 2-column grid puts two side
+             by side. The other 38 cards stay JS-hidden. -->
         <QuestionCard
           {doc}
           number={canonicalNumber.get(doc.uid) ?? null}
           teaser={teaserText(doc)}
+          firstFold={i < 2}
         />
       {/each}
     </div>

@@ -1,7 +1,7 @@
 <script lang="ts">
   import HeroBackgroundImage from "$lib/components/HeroBackgroundImage.svelte";
   import WaveDivider from "$lib/components/WaveDivider.svelte";
-  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
+  import { animateIn, ABOVE_FOLD_REVEAL } from "$lib/actions/animateIn";
   import {
     asText,
     type ImageField,
@@ -187,7 +187,8 @@
       : headingStyle === 'meet'
         ? 'left-0 w-full'
         : 'left-[10%] w-4/5 lg:left-0 lg:w-full'}"
-    use:animateIn={LIVE_REVEAL}
+    data-reveal
+    use:animateIn={ABOVE_FOLD_REVEAL}
   >
     <!-- Inline white: the unlayered global `main h1–h3` primary-colour rule
          outranks a `text-white` utility (same trap as the QA card title), so
@@ -239,7 +240,14 @@
        headings (dark-teal #365B6D, same 56/70 → 140/168 scale as the band
        heading) over the cyan slab intro (#129ECC). Colours forced inline for
        the same reason as the band heading (global `main h1–h3` primary rule). -->
-  <section class="w-full bg-white px-5 text-center" use:animateIn={LIVE_REVEAL}>
+  <!-- Above the fold on /our-team at both 390 and 1440 (measured: it is the
+       second reveal target inside the first viewport there), so it takes the
+       server-rendered hidden state too. -->
+  <section
+    data-reveal
+    class="w-full bg-white px-5 text-center"
+    use:animateIn={ABOVE_FOLD_REVEAL}
+  >
     {#each subheadings ?? [] as line (line)}
       <!-- The first heading used to carry `-mt-[10px]` — "nudges up 10px into
            the wave, matching live". Round H4 removed it: it was the only text

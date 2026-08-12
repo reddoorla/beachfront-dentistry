@@ -6,7 +6,7 @@
   import OutlineButton from "$lib/components/OutlineButton.svelte";
   import CtaBand from "$lib/components/CtaBand.svelte";
   import { CTA_BEACH } from "$lib/cta-beach";
-  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
+  import { animateIn, ABOVE_FOLD_REVEAL } from "$lib/actions/animateIn";
   import type { ImageField } from "@prismicio/client";
   import type { PageData } from "./$types";
 
@@ -50,9 +50,12 @@
        so one left value replaces the old right-4 / right-13% pair.
        No white ring: live's rule has no border — the photo fills the circle.
        `object-position: 50% 0%` anchors a headshot to the top of its crop. -->
+  <!-- The headshot rides the hero seam and is the second thing in the first
+       viewport (measured top=191 @390) — it flashed with the name beside it. -->
   <div
+    data-reveal
     class="absolute bottom-[-14px] left-[64.2%] z-20 size-[96px] overflow-hidden rounded-full xs:size-[144px] md:bottom-[-64px] md:size-[256px] lg:bottom-[-80px] lg:size-[320px]"
-    use:animateIn={LIVE_REVEAL}
+    use:animateIn={ABOVE_FOLD_REVEAL}
   >
     <PrismicImage
       field={data.doc.data.media}

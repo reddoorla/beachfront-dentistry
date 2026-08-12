@@ -15,7 +15,11 @@
     type LinkField,
     type RichTextField,
   } from "@prismicio/client";
-  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
+  import {
+    animateIn,
+    LIVE_REVEAL,
+    ABOVE_FOLD_REVEAL,
+  } from "$lib/actions/animateIn";
   import { pillClass } from "$lib/components/OutlineButton.svelte";
   import { SvelteSet } from "svelte/reactivity";
   import { viewport } from "$lib/stores/viewport.svelte";
@@ -419,9 +423,13 @@
            max-w-[640px] gave the RIGHT answer at 1440 and 390 and the wrong one
            across 768-991, where it let the heading run 640 wide on one line
            instead of wrapping to two at 369. -->
+      <!-- Home's first content heading, and the second reveal target inside the
+           first viewport at BOTH widths (measured top=850 @1440, 702 @390) —
+           so it takes the server-rendered hidden state like the hero above it. -->
       <div
+        data-reveal
         class="h-primary mb-9 [&_h2]:text-[28px] [&_h2]:leading-[38px] [&_h2]:text-wrap xs:mb-[72px] md:mt-8 md:mb-32 md:w-1/2 lg:mb-20 lg:[&_h2]:text-[60px] lg:[&_h2]:leading-[1.2]"
-        use:animateIn={REVEAL}
+        use:animateIn={ABOVE_FOLD_REVEAL}
       >
         <PrismicRichText field={slice.primary.heading} />
       </div>

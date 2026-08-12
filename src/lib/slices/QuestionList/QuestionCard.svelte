@@ -6,7 +6,11 @@
     type ImageField,
     type RichTextField,
   } from "@prismicio/client";
-  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
+  import {
+    animateIn,
+    LIVE_REVEAL,
+    ABOVE_FOLD_REVEAL,
+  } from "$lib/actions/animateIn";
   import { pillClass } from "$lib/components/OutlineButton.svelte";
 
   // The one true "Ask the Doctor" question card (live's `.qa-block`): a
@@ -30,6 +34,7 @@
     number,
     teaser,
     variant = "numbered",
+    firstFold = false,
   }: {
     doc: NewsArticleDoc;
     // null = a featured/hero card (home's first) — no circled number.
@@ -49,6 +54,12 @@
      *  the "Beyond the Smile" anchor, so getting it wrong misaligns every
      *  region below it on whichever page uses the other one. */
     variant?: "numbered" | "teaser";
+    /** True for the cards inside the first viewport on a cold entry. They take
+     *  the server-rendered hidden state (`data-reveal` + a failSafe) so they
+     *  are hidden before the first paint rather than yanked after hydration;
+     *  every card below the fold stays JS-hidden. Set by the parent, which is
+     *  the only thing that knows a card's position in the list. */
+    firstFold?: boolean;
   } = $props();
 
   const titleText = $derived(asText((doc.data.title ?? []) as RichTextField));
@@ -159,7 +170,16 @@
 
 <!-- Per-card reveal + floatAlong tracking target (`.qa-item`): live raises
      each `.qa-block` as IT enters. -->
-<div class="qa-item" use:animateIn={LIVE_REVEAL}>
+<!-- `firstFold` marks the cards that are inside the first viewport on
+     /ask-the-doctor (measured: two at 390 and at 1440). Only those get the
+     server-rendered hidden state — the other 38 stay JS-hidden, because below
+     the fold the flash is nearly unobservable and the trade is not worth
+     depending on JS for. -->
+<div
+  class="qa-item"
+  data-reveal={firstFold ? "" : undefined}
+  use:animateIn={firstFold ? ABOVE_FOLD_REVEAL : LIVE_REVEAL}
+>
   <!-- Not a link: live's .qa-block has no wrapping <a> — only "Read More"
        inside the revealed answer navigates. The WHOLE card is the toggle
        (live's .qa-block carries cursor:pointer); the header-bar <button> stays

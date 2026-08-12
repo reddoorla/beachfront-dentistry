@@ -6,7 +6,7 @@
   import WaveDivider from "$lib/components/WaveDivider.svelte";
   import SubpageHero from "$lib/components/SubpageHero.svelte";
   import { PrismicLink, PrismicRichText } from "@prismicio/svelte";
-  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
+  import { animateIn, ABOVE_FOLD_REVEAL } from "$lib/actions/animateIn";
   import { pillClass } from "$lib/components/OutlineButton.svelte";
   import {
     asText,
@@ -286,9 +286,14 @@
          crest's 76.67% of it, keeps the rule checkable by eye and leaves a
          measured 11.8/17.4/23px of daylight. The band's height is unchanged —
          this is an absolute box, so nothing below it moves. -->
+    <!-- `data-reveal` + ABOVE_FOLD_REVEAL: the home headline is the single
+         worst instance of the first-paint flash on the site — it is the first
+         thing painted and the first thing hydration hides. The pair is one
+         decision; see ABOVE_FOLD_REVEAL's doc before changing either half. -->
     <div
+      data-reveal
       class="absolute bottom-[72px] left-[5%] z-10 xs:left-[8%] md:bottom-[96px] md:left-12 lg:bottom-[120px] lg:left-[max(60px,calc(50%_-_640px))]"
-      use:animateIn={LIVE_REVEAL}
+      use:animateIn={ABOVE_FOLD_REVEAL}
     >
       <!-- Inline white: the global `main h1–h3` primary rule outranks text-white. -->
       <h1
@@ -375,8 +380,9 @@
            was wrapping "where you / are" a word earlier than live's plain
            fill ("where you are /"). -->
       <div
+        data-reveal
         class="max-w-3xl [&_h1]:text-wrap max-lg:[&_h1]:text-[28px] max-lg:[&_h1]:leading-[38px]"
-        use:animateIn={LIVE_REVEAL}
+        use:animateIn={ABOVE_FOLD_REVEAL}
       >
         {#if brandParts}
           <h1>

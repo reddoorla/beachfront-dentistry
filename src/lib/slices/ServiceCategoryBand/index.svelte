@@ -1,7 +1,11 @@
 <script lang="ts">
   import { PrismicRichText } from "@prismicio/svelte";
   import { asText, isFilled, type RichTextField } from "@prismicio/client";
-  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
+  import {
+    animateIn,
+    LIVE_REVEAL,
+    ABOVE_FOLD_REVEAL,
+  } from "$lib/actions/animateIn";
 
   // ServiceCategoryBandSlice isn't in the generated Prismic types yet — same
   // situation as QuestionList: brand-new slice, regenerating needs a wired
@@ -97,9 +101,16 @@
   >
     {#if isFilled.richText(slice.primary.intro)}
       <!-- `.we-offer-section`: centered cyan slab intro, capped ~620px. -->
+      <!-- /services' first content block, inside the first viewport at 1440
+           (measured top=507) — server-rendered hidden state, same as the
+           heroes. The service-block cards below it land at top=897, i.e. at
+           the fold rather than reliably inside it, so they keep the plain
+           JS-hidden reveal: 3px of margin is not a basis for making content
+           depend on JS. -->
       <div
+        data-reveal
         class="mx-auto my-8 max-w-[620px] text-center font-slab text-[20px] leading-[30px] font-light text-[#129ecc] lg:mb-10 lg:text-[30px] lg:leading-[45px] [&_p]:text-[20px] [&_p]:leading-[30px] [&_p]:lg:text-[30px] [&_p]:lg:leading-[45px]"
-        use:animateIn={LIVE_REVEAL}
+        use:animateIn={ABOVE_FOLD_REVEAL}
       >
         <PrismicRichText field={slice.primary.intro} />
       </div>

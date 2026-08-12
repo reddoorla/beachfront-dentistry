@@ -20,6 +20,41 @@ export const LIVE_REVEAL = {
   delayMax: 0,
 } as const;
 
+/** LIVE_REVEAL for a target that is ABOVE THE FOLD on a cold entry.
+ *
+ *  Use it together with a literal `data-reveal` attribute on the same element —
+ *  the two are one decision and neither works alone:
+ *
+ *    <div data-reveal use:animateIn={ABOVE_FOLD_REVEAL}>
+ *
+ *  `data-reveal` in the SERVER markup is what removes the flash. Without it the
+ *  element is painted in final position and then yanked to opacity 0 when
+ *  hydration runs the action, 150-850ms later, which reads as the page
+ *  breaking. app.css hides `[data-reveal]` with the same opacity and the same
+ *  `--reveal-travel`, so the hidden state exists at first paint and the
+ *  action's write is a byte-identical no-op. That equality is why this preset
+ *  must not override `translateY`: CSS would hide it at a different distance
+ *  than JS reveals it from.
+ *
+ *  `failSafe` is what makes shipping the attribute safe. An element hidden by
+ *  server markup depends on JS to ever appear, so a broken observer, a
+ *  throttled rAF, or a script error would leave it invisible rather than
+ *  merely unanimated. 2500ms is far past any real reveal (the transition is
+ *  750ms and above-fold targets intersect immediately) and far short of a
+ *  reader deciding the page is empty.
+ *
+ *  ONLY for above-fold targets. Do not reach for it as the default, and do not
+ *  fold `failSafe` into LIVE_REVEAL to save the spread — a blanket timer
+ *  pre-reveals below-fold content before it is scrolled to, which is the exact
+ *  failure the option's own doc warns about. Below the fold the flash is
+ *  nearly unobservable anyway (you would have to scroll within ~500ms of
+ *  load), so the trade — a certain flash for a possible invisible element —
+ *  only pays above it. */
+export const ABOVE_FOLD_REVEAL = {
+  ...LIVE_REVEAL,
+  failSafe: 2500,
+} as const;
+
 export type AnimateInOptions = {
   trigger?: boolean;
   duration?: number;
