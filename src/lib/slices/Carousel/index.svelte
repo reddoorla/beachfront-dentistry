@@ -1,5 +1,6 @@
 <script lang="ts">
   import { bandFor, type Presentation } from "$lib/blux/presentation";
+  import PrismicPhoto from "$lib/components/PrismicPhoto.svelte";
   import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
   import SectionBand from "$lib/blux/SectionBand.svelte";
   import CarouselFrames, {
@@ -471,9 +472,13 @@
                               class="mb-[10px] flex items-center gap-4 lg:mb-0 lg:gap-5"
                             >
                               {#if isFilled.image(item.reviewer_photo)}
-                                <PrismicImage
+                                <!-- The worst ratio measured anywhere on the
+                                     site: 12.0x. A fixed 72px avatar (120 at
+                                     lg) was pulling the 1440-wide candidate. -->
+                                <PrismicPhoto
                                   field={item.reviewer_photo}
                                   fallbackAlt=""
+                                  sizes="(min-width: 1024px) 120px, 72px"
                                   class="h-[72px] w-[72px] rounded-full object-cover lg:h-[120px] lg:w-[120px]"
                                 />
                               {/if}

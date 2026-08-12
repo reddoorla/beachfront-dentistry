@@ -1,5 +1,7 @@
 <script lang="ts">
-  import { PrismicImage, PrismicRichText } from "@prismicio/svelte";
+  import { PrismicRichText } from "@prismicio/svelte";
+  import { imgix, srcset } from "$lib/utils/image";
+  import PrismicPhoto from "$lib/components/PrismicPhoto.svelte";
   import {
     asText,
     type Content,
@@ -144,8 +146,10 @@
 {#snippet card(doc: CollectionDoc)}
   <article>
     {#if doc.data.media?.url}
-      <PrismicImage
+      <!-- Generic fleet collection card (not used by beachfront's own pages); a conservative hint still beats the 100vw default. -->
+      <PrismicPhoto
         field={doc.data.media as unknown as ImageField}
+        sizes="(min-width: 1024px) 400px, 100vw"
         class="mb-3 h-auto w-full rounded"
       />
     {/if}
@@ -176,9 +180,13 @@
        keeps its pointer/keyboard behaviour untouched. -->
   {#if doc.data.media?.url}
     <span class="group relative block">
-      <PrismicImage
+      <!-- `aspect-square w-full max-w-[12.5rem]`: capped at 200px, but only
+           reaches the cap once its column is that wide. Measured 120/160/200
+           at 390/834/1440. Overshoot before this line: 7.2x. -->
+      <PrismicPhoto
         field={doc.data.media as unknown as ImageField}
         fallbackAlt=""
+        sizes="(min-width: 1024px) 200px, (min-width: 768px) 160px, 120px"
         class="mx-auto aspect-square w-full max-w-[12.5rem] rounded-full object-cover object-top"
       />
       <span
@@ -287,9 +295,17 @@
       <div
         class="absolute top-0 left-1/2 z-10 block w-[120px] -translate-x-1/2 -translate-y-1/2 rounded-full xs:w-[240px] md:w-[320px] lg:w-[200px]"
       >
-        <PrismicImage
+        <!-- THE non-monotonic box, and the reason `sizes` here cannot be
+             derived from the breakpoints: the class says `md:size-[320px]
+             lg:size-[200px]`, so the tablet renders this LARGER than the
+             desktop. Measured 120 / 240 / 320 / 200 at 390 / 480 / 834 / 1440.
+             The audit proposed a flat `sizes="200px"` for these; that would
+             serve a 200px image into a 320px box at 834, and a 2x tablet
+             asking for 640px would get 200. Overshoot before this line: 7.2x. -->
+        <PrismicPhoto
           field={doc.data.media as unknown as ImageField}
           fallbackAlt=""
+          sizes="(min-width: 1024px) 200px, (min-width: 768px) 320px, (min-width: 480px) 240px, 120px"
           class="size-[120px] max-w-none rounded-full object-cover object-top xs:size-[240px] md:size-[320px] lg:size-[200px]"
         />
       </div>
@@ -388,8 +404,25 @@
            by mt-auto, so a fitting card renders exactly as before and an
            overflowing card grows past it. -->
       <div class="relative mt-auto">
+        <!-- A RAW <img> until now, so it had no srcset at all — not merely a
+             missing `sizes` — and shipped the full 900px source into a 302px
+             box (3.8x on /your-first-visit's narrower card). Routing it through
+             the imgix ladder is most of what this element needed.
+             Non-monotonic again, and by a wide margin: 512 at 834 against 407
+             (grid) / 340 (slider) at 1440, because the card is at its widest in
+             the stacked tablet layout. -->
+        <!-- NOT PrismicPhoto: `beach.image` is a narrow local `{url, alt}`
+             shape assembled by this slice, not a Prismic ImageField, so it has
+             no dimensions for PrismicImage to work from. The ladder is applied
+             directly instead — same imgix helpers, same result. -->
         <img
-          src={beach.image.url}
+          src={imgix(beach.image.url, { w: 512 })}
+          srcset={srcset(beach.image.url, [240, 302, 340, 407, 512, 1024])}
+          sizes={variant === "slider"
+            ? "(min-width: 1024px) 340px, (min-width: 768px) 512px, 240px"
+            : "(min-width: 1024px) 407px, (min-width: 768px) 512px, 302px"}
+          loading="lazy"
+          decoding="async"
           alt=""
           aria-hidden="true"
           class="{variant === 'slider'

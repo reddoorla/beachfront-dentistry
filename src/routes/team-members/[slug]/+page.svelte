@@ -1,6 +1,6 @@
 <script lang="ts">
   import { isFilled } from "@prismicio/client";
-  import { PrismicImage } from "@prismicio/svelte";
+  import PrismicPhoto from "$lib/components/PrismicPhoto.svelte";
   import DetailHero from "$lib/components/DetailHero.svelte";
   import DetailBody from "$lib/components/DetailBody.svelte";
   import OutlineButton from "$lib/components/OutlineButton.svelte";
@@ -57,8 +57,11 @@
     class="absolute bottom-[-14px] left-[64.2%] z-20 size-[96px] overflow-hidden rounded-full xs:size-[144px] md:bottom-[-64px] md:size-[256px] lg:bottom-[-80px] lg:size-[320px]"
     use:animateIn={ABOVE_FOLD_REVEAL}
   >
-    <PrismicImage
+    <!-- The circular headshot straddling the hero seam. Measured 96/256/320 at 390/834/1440 — overshoot 4.5x. eager: it is above the fold on every team-member page. -->
+    <PrismicPhoto
       field={data.doc.data.media}
+      sizes="(min-width: 1024px) 320px, (min-width: 768px) 256px, 96px"
+      loading="eager"
       class="h-full w-full object-cover object-top"
     />
   </div>

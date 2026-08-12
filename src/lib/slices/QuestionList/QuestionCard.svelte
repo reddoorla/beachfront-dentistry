@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { PrismicImage } from "@prismicio/svelte";
+  import PrismicPhoto from "$lib/components/PrismicPhoto.svelte";
   import {
     asText,
     isFilled,
@@ -221,9 +221,21 @@
          put, so the corners are always covered and the radius is static. -->
     <div class="absolute inset-0 overflow-hidden rounded-[25px]">
       {#if isFilled.image(doc.data.media)}
-        <PrismicImage
+        <!-- The single biggest image cost on the site: 39 of these render on
+             /ask-the-doctor, which measured 4,968KB of images at 1440 before
+             any scroll — more than the home page. Each was pulling a
+             2048-wide candidate for a 625px box (2.3x).
+             `sizes` is variant-dependent because the BOX is: the same card is
+             351/354/625 in the ask-the-doctor grid and 351/480/600 in home's
+             teaser column at 390/834/1440. One shared value would understate
+             one of them. -->
+        <PrismicPhoto
           field={doc.data.media}
           fallbackAlt=""
+          sizes={variant === "numbered"
+            ? "(min-width: 1024px) 625px, (min-width: 768px) 354px, 351px"
+            : "(min-width: 1024px) 600px, (min-width: 768px) 480px, 351px"}
+          loading={firstFold ? "eager" : "lazy"}
           class="absolute inset-0 h-full w-full object-cover object-center"
         />
       {:else}

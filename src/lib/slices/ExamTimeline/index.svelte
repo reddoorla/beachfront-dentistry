@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { PrismicImage, PrismicRichText } from "@prismicio/svelte";
+  import { PrismicRichText } from "@prismicio/svelte";
+  import PrismicPhoto from "$lib/components/PrismicPhoto.svelte";
   import {
     asText,
     isFilled,
@@ -178,9 +179,11 @@
            `.registration-forms-box`'s (beachfront.css:6693-6695). See
            LEDGER 2026-08-10 A2. -->
       {#if isFilled.image(p.image)}
-        <PrismicImage
+        <!-- 60% of the container at md+, full width below. Measured 351/443/768. -->
+        <PrismicPhoto
           field={p.image}
           fallbackAlt=""
+          sizes="(min-width: 1024px) 768px, (min-width: 768px) 443px, 351px"
           class="h-auto w-full rounded-[25px] md:w-[60%]"
         />
       {/if}

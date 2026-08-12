@@ -1,5 +1,6 @@
 <script lang="ts">
   import RichTextBody from "$lib/components/RichTextBody.svelte";
+  import PrismicPhoto from "$lib/components/PrismicPhoto.svelte";
   import ContentBand from "$lib/components/ContentBand.svelte";
   import WaveDivider from "$lib/components/WaveDivider.svelte";
   import {
@@ -321,9 +322,14 @@
         <div
           class="mx-auto w-full px-6 pt-3 pb-6 md:w-1/2 md:px-8 md:pt-4 md:pb-8 lg:w-1/2 lg:px-10 lg:pt-0 lg:pb-10"
         >
-          <PrismicImage
+          <!-- The big services circle: half the container at md+, full width
+               below. Measured 303/305/560 at 390/834/1440 — the 50% column at
+               834 lands almost exactly where the full-width phone does, which
+               is why both mid steps are ~305 rather than the viewport. -->
+          <PrismicPhoto
             field={primary.side_image}
             fallbackAlt=""
+            sizes="(min-width: 1024px) 560px, (min-width: 768px) 305px, 303px"
             class="aspect-square w-full rounded-full object-cover"
           />
         </div>
@@ -511,9 +517,13 @@
               class="relative h-[240px] overflow-hidden rounded-[25px] bg-[#e7f5fa] shadow-sm xs:h-[336px] md:h-[448px]"
               use:animateIn={REVEAL}
             >
-              <PrismicImage
+              <!-- The mobile "Finally…" card. Measured 351/480/600 at
+                   390/834/1440 — its column narrows at md, which is why the
+                   middle step is not simply the viewport. -->
+              <PrismicPhoto
                 field={item.item_media}
                 fallbackAlt=""
+                sizes="(min-width: 1024px) 600px, (min-width: 768px) 480px, 351px"
                 class="absolute inset-0 h-full w-full object-cover object-center"
               />
               <!-- Live's `.box-gradient` is BREAKPOINT-DEPENDENT (read from the
@@ -601,9 +611,14 @@
                 : ''}"
               use:animateIn={REVEAL}
             >
-              <PrismicImage
+              <!-- The desktop accordion card. Non-monotonic: 512 wide at 834
+                   in the stacked layout, 406 at 1440 once the 3-up grid takes
+                   over. A rising ladder would understate the tablet by 106px.
+                   Overshoot before this line: 3.5x. -->
+              <PrismicPhoto
                 field={item.item_media}
                 fallbackAlt=""
+                sizes="(min-width: 1024px) 406px, (min-width: 768px) 512px, 351px"
                 class="absolute inset-0 h-full w-full object-cover"
               />
               <div

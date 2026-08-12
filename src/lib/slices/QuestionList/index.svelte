@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { PrismicImage, PrismicRichText } from "@prismicio/svelte";
+  import { PrismicRichText } from "@prismicio/svelte";
+  import PrismicPhoto from "$lib/components/PrismicPhoto.svelte";
   import {
     asText,
     isFilled,
@@ -162,9 +163,11 @@
               class="ask-the-doctor-headshot absolute right-6 bottom-[12px] w-[120px] lg:top-0 lg:right-auto lg:bottom-auto lg:left-full lg:-ml-10 lg:w-[200px]"
               use:animateIn={LIVE_REVEAL}
             >
-              <PrismicImage
+              <!-- The doctor headshot beside home's question column. Measured 120/120/200 — overshoot 7.2x. -->
+              <PrismicPhoto
                 field={slice.primary.side_image}
                 fallbackAlt=""
+                sizes="(min-width: 1024px) 200px, 120px"
                 class="aspect-square w-full rounded-full object-cover object-top shadow-lg"
               />
             </div>
