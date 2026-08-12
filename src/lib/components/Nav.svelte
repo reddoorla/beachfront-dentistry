@@ -362,23 +362,22 @@
         </button>
       </div>
 
-      <!-- MarkUp round H2 (threads bac4decb…/team pin #5 and 738ad46b…/pin #2,
-           operator decode 2026-08-11): the column lives in NORMAL FLOW inside
-           the scrolling dialog — the absolute top-[10%] that let the links
-           detach from the dialog's scroll geometry (Tim's "Make Payment below
-           the fold, no scroll" capture) is gone, so overflow-y-auto above can
-           never miss it. It sits on the SHARED content gutter (identical
-           mx-auto/max-w/px ladder to the bar: 20px @<768, 48px 768–991,
-           60px + the 1400 cap ≥992 — x-80 @1440), left-aligned per "the menu
-           [aligns to the content width] too".
+      <!-- MarkUp round H2 (thread bac4decb…/team pin #5): the column lives in
+           NORMAL FLOW inside the scrolling dialog — the absolute top-[10%]
+           that let the links detach from the dialog's scroll geometry (Tim's
+           "Make Payment below the fold, no scroll" capture) is gone, so
+           overflow-y-auto above can never miss it. Horizontally the links
+           stay CENTERED — H2 briefly left-aligned them onto the content
+           gutter, and the operator corrected it same-day: "nav should still
+           have links centered like before" (LEDGER MARKUP ROUND H2).
            Rhythm: live's h3 links carried Webflow's 20px/10px block margins
            plus the container's 10px gap — a 40px slot, 90px pitch at the lg
            50px line-height. gap-10 IS that 40px slot, moved off the links so
            the column starts flush under the header band instead of re-adding
-           the first link's top margin (which is what kept everything on one
+           the first link's top margin (which is what keeps everything on one
            screen at 1354×930, Tim's capture size). -->
       <nav
-        class="mx-auto flex max-w-[1400px] flex-col items-start gap-10 px-5 md:px-12 lg:px-[60px]"
+        class="flex w-full flex-col items-center gap-10"
         aria-label="Menu links"
       >
         <a

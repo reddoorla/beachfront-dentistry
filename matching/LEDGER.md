@@ -3510,3 +3510,19 @@ to markuph1 after tag-strip; every ACK'd floor at its exact stalled value
 BtS @390 Δh 5.8, svc What-to-expect @1440 Δh 5.1, WTLM map rows 12.0-13.4)
 — per-page exit=1 is the floors, nothing else. The menu is closed in every
 gate capture; its geometry is guarded by the interaction suite above.
+
+CORRECTION (2026-08-11, same day): the left-alignment of the menu LINKS was
+our misreading of the decode. Operator, verbatim: "nav should still have
+links centered like before." The column's horizontal presentation is
+restored to centered (items-center, full-width column — matching the
+pre-H2 centering, which also matches live's webflow modal, so the
+deviation-by-directive noted above for left-alignment is WITHDRAWN).
+Everything structural from Fix 2 stands: normal flow inside the scrolling
+dialog, the gap-10 rhythm (90px pitch at lg), the scroll contract (last
+item reachable at 1280×700 / 390×660, scroll-free at 1354×930), the
+overlay chrome mirroring the closed bar's band, and the reduced-motion fly.
+Fix 1 (DetailHero label on the content gutter) is NOT affected.
+tests/interaction/nav-menu.spec.ts now asserts centered links instead of
+on-gutter links; structure/scroll/label tests unchanged. Gate round
+markuph3 (threshold 0.1, matrix 1440/834/390, mask [], neutralizeMedia
+false) on home as no-regression — the menu is closed at capture.

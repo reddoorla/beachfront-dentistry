@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
-// ROUND H2 CONTRACT — the menu overlay and the detail-hero label join the
-// shared content gutter, and the menu column lives in normal flow.
+// ROUND H2 CONTRACT — the detail-hero label joins the shared content gutter,
+// and the menu column lives in normal flow with its links centered.
 //
 // MarkUp thread bac4decb-8db3-43c9-b52c-7e06eb179f28 (team board pin #5):
 // Tim's capture showed the menu's last items (Make Payment) below the fold
@@ -10,8 +10,10 @@ import { test, expect } from "@playwright/test";
 // structurally detached from the scroll container, which is exactly the shape
 // of bug that regresses silently. Thread 738ad46b-2b6d-4392-bc58-73e67df1e07e
 // (pin #2): "never aligned correctly", operator decode 2026-08-11 — the
-// team-member hero name (and the menu column: "and the menu is too") align
-// "horizontal[ly] to the content width".
+// team-member hero name aligns "horizontal[ly] to the content width". The
+// menu LINKS stay horizontally centered (operator correction, same day:
+// "nav should still have links centered like before") — H2 changed the
+// column's STRUCTURE (normal flow), not its centered presentation.
 //
 // The shared content gutter (Nav.svelte's band, mx-auto max-w-[1400px] +
 // px ladder): 20px @<768, 48px 768–991, 60px @>=992 with the 1400px cap —
@@ -41,25 +43,26 @@ async function openMenu(page: import("@playwright/test").Page) {
   await page.evaluate(settle);
 }
 
-// --- menu column sits on the shared content gutter (two widths + mobile) ---
+// --- menu links are horizontally centered ("like before") ---
 for (const vp of [
   { width: 1440, height: 900 },
   { width: 834, height: 1000 },
   { width: 390, height: 844 },
 ]) {
-  test(`menu column left edge sits on the content gutter @${vp.width}`, async ({
+  test(`menu links are horizontally centered @${vp.width}`, async ({
     page,
   }) => {
     await page.setViewportSize(vp);
     await openMenu(page);
-    const xs = await page.evaluate(() => {
+    const centers = await page.evaluate(() => {
       const nav = document.querySelector('nav[aria-label="Menu links"]')!;
-      return [...nav.querySelectorAll("a")].map(
-        (a) => a.getBoundingClientRect().x,
-      );
+      return [...nav.querySelectorAll("a")].map((a) => {
+        const r = a.getBoundingClientRect();
+        return r.x + r.width / 2;
+      });
     });
-    expect(xs.length).toBeGreaterThan(0);
-    for (const x of xs) expect(Math.abs(x - gutter(vp.width))).toBeLessThan(1);
+    expect(centers.length).toBeGreaterThan(0);
+    for (const c of centers) expect(Math.abs(c - vp.width / 2)).toBeLessThan(1);
   });
 }
 
