@@ -118,6 +118,34 @@
    *  that cushion — so numbered now takes the base pb-3 like the teaser.
    *  Padding stays invisible collapsed (title absolute, answer translated
    *  out), so the anchor-cut element's collapsed geometry is still untouched. */
+  /** What the card transitions, and for how long.
+   *
+   *  It used to be `transition-[height,opacity] duration-[650ms]` carrying a
+   *  `hover:opacity-80`, which had two problems. Dimming a photo card to 80%
+   *  is the DISABLED idiom — on a card whose whole job is to invite a click it
+   *  says the opposite, and it dims the white headline the reader is mid-way
+   *  through. And it did so over 650ms because opacity shared the declaration
+   *  with the open/close height: the site's own norm for a pointer state is
+   *  150-200ms (a duration census across the six real pages counts 343
+   *  declarations at .15s), so on /ask-the-doctor's two-column grid you could
+   *  traverse three cards before the first finished fading.
+   *
+   *  Hover is ADDITIVE now — `hover:shadow-lg hover:ring-black/10` lifting the
+   *  card off the page (it already carries shadow-md + ring-black/5), plus the
+   *  label bar brightening one step under `group-hover` on the element below.
+   *  Both halves are the affordance, so neither may leave without the other.
+   *
+   *  `height` only belongs in the list for the teaser, and only because of the
+   *  ONE declared freeze exception (the <480 card's 288->291, see below) — the
+   *  other ~40 cards never change height, so they are out of the layout-
+   *  animating set entirely. Where it does apply it runs at the same 200ms as
+   *  the text box's own height ladder (:123-127) so the two move as one. */
+  const cardTransition = $derived(
+    variant === "teaser"
+      ? "transition-[height,box-shadow] duration-200 ease-out"
+      : "transition-shadow duration-200 ease-out",
+  );
+
   const textBoxClass = $derived(
     variant === "teaser"
       ? "absolute bottom-0 ml-6 w-4/5 pb-3 transition-[height] duration-200 ease-out motion-reduce:transition-none md:ml-8 md:pb-4 lg:ml-10 lg:pb-5 " +
@@ -160,7 +188,7 @@
     onkeydown={(e) => {
       if (e.key === "Escape" && expanded) toggle();
     }}
-    class="relative block cursor-pointer rounded-[25px] shadow-md ring-1 ring-black/5 transition-[height,opacity] duration-[650ms] ease-out hover:opacity-80 motion-reduce:transition-none {expanded &&
+    class="group relative block cursor-pointer rounded-[25px] shadow-md ring-1 ring-black/5 hover:shadow-lg hover:ring-black/10 motion-reduce:transition-none {cardTransition} {expanded &&
     variant === 'teaser'
       ? 'h-[291px] xs:h-[288px] md:h-[320px] lg:h-[400px]'
       : 'h-[288px] md:h-[320px] lg:h-[400px]'}"
@@ -219,14 +247,18 @@
          `.qa-label.active` (margin-top:-2rem — the bar riding up ABOVE the
          card) is deliberately not reproduced; the bar stays put as the
          always-visible disclosure toggle, and the answer takes only the room
-         below it. -->
+         below it.
+         It is also the half of the hover the eye is meant to land on: the bar
+         is the actual control, so it brightens one step (#e7f5fa -> #d9eef7)
+         under `group-hover` from the card while the card itself lifts on
+         shadow — see cardTransition above for what this replaced. -->
     <button
       type="button"
       aria-expanded={expanded}
       aria-controls={panelId}
       aria-label="{expanded ? 'Collapse' : 'Expand'}: {titleText}"
       onclick={toggle}
-      class="focus-visible:ring-primary-deep relative z-10 flex h-12 w-full cursor-pointer items-center justify-between rounded-t-[25px] bg-[#e7f5fa] px-5 focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden md:h-16 lg:h-20 lg:px-5"
+      class="focus-visible:ring-primary-deep relative z-10 flex h-12 w-full cursor-pointer items-center justify-between rounded-t-[25px] bg-[#e7f5fa] px-5 transition-colors duration-200 group-hover:bg-[#d9eef7] focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden motion-reduce:transition-none md:h-16 lg:h-20 lg:px-5"
     >
       {#if number !== null}
         <!-- Live's .qa-circle: an h6 in museo-slab BOLD 25px/30px, a

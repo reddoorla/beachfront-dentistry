@@ -271,6 +271,78 @@ for (const pg of PAGES) {
   }
 }
 
+// HOVER CONTRACT — the card invites, it does not dim (motion audit item 14,
+// 2026-08-12). `hover:opacity-80` rode in the same 650ms declaration as the
+// open/close height, so pointing at a card faded the photo, the cyan wash and
+// the white headline you were reading to 80% over two thirds of a second —
+// the DISABLED idiom, at four times the pointer speed this site uses
+// everywhere else. Hover is additive now: the card lifts (shadow-md -> lg,
+// ring 5% -> 10%) and the label bar — the actual control — brightens
+// #e7f5fa -> #d9eef7. Both halves are the affordance; `hover:opacity-80` was
+// previously the ONLY thing separating hover from rest, so if either half
+// goes the card is inert under the pointer and this test says so.
+const BAR_REST = "rgb(231, 245, 250)"; // #e7f5fa
+const BAR_HOVER = "rgb(217, 238, 247)"; // #d9eef7
+
+for (const pg of PAGES) {
+  test(`${pg.label}: hover lifts the card and brightens the bar — nothing dims`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(pg.path, { waitUntil: "networkidle" });
+    const card = page.locator(".qa-item > div").first();
+    await card.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(1000); // animateIn settles; hover is measured at rest
+
+    const read = () =>
+      card.evaluate((el) => {
+        const cs = getComputedStyle(el);
+        const bar = el.querySelector("button[aria-expanded]")!;
+        return {
+          opacity: cs.opacity,
+          shadow: cs.boxShadow,
+          props: cs.transitionProperty,
+          ms: parseFloat(cs.transitionDuration) * 1000,
+          bar: getComputedStyle(bar).backgroundColor,
+          barMs: parseFloat(getComputedStyle(bar).transitionDuration) * 1000,
+        };
+      });
+
+    await page.mouse.move(0, 0); // rest means rest
+    const rest = await read();
+    expect(rest.bar).toBe(BAR_REST);
+    // The card must not be able to fade at all — opacity is out of the list.
+    expect(rest.props).not.toContain("opacity");
+    // Pointer states run at pointer speed, not at open/close speed.
+    expect(rest.ms).toBeLessThanOrEqual(300);
+    expect(rest.barMs).toBeLessThanOrEqual(300);
+
+    // Re-aim inside the poll: this page still finishes settling around the
+    // 1s reveal (Chrome nudges the scroll position as the transforms land),
+    // and a hover aimed at a stale rect silently lands on nothing. Hovering
+    // per attempt makes the assertion about the CARD's response, not about
+    // catching the page at a quiet moment.
+    await expect
+      .poll(
+        async () => {
+          await card.hover();
+          const h = await read();
+          return {
+            bar: h.bar,
+            opacity: h.opacity,
+            lifted: h.shadow !== rest.shadow,
+          };
+        },
+        { timeout: 5000 },
+      )
+      .toEqual({
+        bar: BAR_HOVER, // the control brightens
+        opacity: "1", // it does NOT dim (this was 0.8)
+        lifted: true, // shadow-md + ring-5% -> shadow-lg + ring-10%
+      });
+  });
+}
+
 test("reduced motion: the answer is simply THERE on the next frame", async ({
   page,
 }) => {
