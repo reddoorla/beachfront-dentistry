@@ -70,7 +70,13 @@ const measure = () => {
     if (!el || el.closest("[aria-hidden='true']")) continue;
     const cs = getComputedStyle(el);
     if (cs.visibility === "hidden" || cs.display === "none") continue;
-    if (parseFloat(cs.opacity) === 0) continue;
+    // `checkVisibility`, not `cs.opacity`: the scroll reveal sets opacity on a
+    // WRAPPER, so a text node's immediate parent reads 1 while the text is
+    // invisible. Measuring it anyway meant the spec policed the boxes of
+    // hidden elements at their pre-reveal offset — which is how trimming the
+    // reveal travel (5d76b70) "broke" four passing cases without changing a
+    // single rendered pixel.
+    if (!el.checkVisibility({ opacityProperty: true })) continue;
     const range = document.createRange();
     range.selectNodeContents(n);
     for (const r of range.getClientRects()) {
@@ -174,11 +180,28 @@ for (const width of WIDTHS) {
       await page.evaluate(async () => {
         const step = 600;
         for (let y = 0; y < document.body.scrollHeight; y += step) {
-          scrollTo(0, y);
+          // `behavior: "instant"` is load-bearing: `html` sets
+          // `scroll-behavior: smooth`, so the plain `scrollTo(0, y)` this used
+          // to call animated instead of jumping and never got past ~122px of an
+          // 8000px page in its 30ms budget. The pass that exists to fire every
+          // reveal fired almost none of them.
+          scrollTo({ top: y, behavior: "instant" });
           await new Promise((r) => setTimeout(r, 30));
         }
-        scrollTo(0, 0);
-        await new Promise((r) => setTimeout(r, 250));
+        scrollTo({ top: 0, behavior: "instant" });
+        // Wait for the reveals themselves to land rather than guessing: a
+        // revealed element measured mid-transition is still displaced.
+        const settled = async () => {
+          for (let i = 0; i < 40; i++) {
+            const running = document
+              .getAnimations()
+              .filter((a) => a.playState === "running");
+            if (!running.length && !document.querySelector("[data-reveal]"))
+              return;
+            await new Promise((r) => requestAnimationFrame(() => r(null)));
+          }
+        };
+        await settled();
       });
 
       const mounts = await page.evaluate(measure);

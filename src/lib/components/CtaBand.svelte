@@ -199,12 +199,17 @@
              band; N is the footer wave's own box height (128/160), the same
              "clear the divider's box" rule the hero mounts take, so the
              clearance is constant (29.9px @md, 37.3px @lg) instead of drifting.
-             ≤767 is deliberately untouched: the label is not painted there at
-             all (the -10% overlap buries it under the footer, opacity 0 — a
-             separate, pre-existing defect that the wave does not cause and
-             this round does not fix). -->
+             ≤767 now takes the same rule (footer wave box = 96px there). H4
+             left it on `bottom-[20%]` believing the label was unpainted below
+             768; it is not — probed at 390/480/700 it renders at opacity 1
+             with its baseline 80.4/76.8/68.0px INSIDE the footer wave's box,
+             which is the "wave touching the text" this directive forbids. The
+             wave-divider spec could not see it because its scroll pass never
+             actually scrolled (`scroll-behavior: smooth` ate the jumps) and it
+             measured hidden elements' boxes; both are fixed in the same
+             commit, and the 8px-clearance assertion now covers 390. -->
         <p
-          class="absolute bottom-[20%] left-[5%] z-10 font-sans text-[10px] leading-[1.15] font-light text-white xs:left-[8%] xs:text-[15px] md:bottom-[calc(10vw_+_128px)] md:left-12 md:text-[20px] lg:bottom-[calc(10vw_+_160px)] lg:left-[max(60px,calc(50%_-_640px))] lg:text-[25px]"
+          class="absolute bottom-[calc(10vw_+_96px)] left-[5%] z-10 font-sans text-[10px] leading-[1.15] font-light text-white xs:left-[8%] xs:text-[15px] md:bottom-[calc(10vw_+_128px)] md:left-12 md:text-[20px] lg:bottom-[calc(10vw_+_160px)] lg:left-[max(60px,calc(50%_-_640px))] lg:text-[25px]"
           use:animateIn={LIVE_REVEAL}
         >
           {caption}
