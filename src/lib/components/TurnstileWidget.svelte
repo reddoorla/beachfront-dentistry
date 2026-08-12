@@ -52,6 +52,13 @@
 </script>
 
 {#if turnstileSiteKey}
-  <!-- Mount point; the effect above renders the widget into it explicitly. -->
-  <div class="cf-turnstile" bind:this={turnstileEl}></div>
+  <!-- Mount point; the effect above renders the widget into it explicitly.
+       `min-h-[65px]` reserves the iframe's box BEFORE api.js resolves. Without
+       it the widget appeared out of nothing at a moment nobody controls and
+       pushed everything below it — in the appointment form, the submit button —
+       down ~65px on every production open of the modal. Scoped inside this
+       `{#if}` on purpose: with no sitekey (dev, tests, the pixel gates) the
+       component still renders nothing at all, so the reserved space costs
+       exactly the environments that get a widget. -->
+  <div class="cf-turnstile min-h-[65px]" bind:this={turnstileEl}></div>
 {/if}

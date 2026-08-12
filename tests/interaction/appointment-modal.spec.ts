@@ -518,3 +518,82 @@ test('"Sending…" stays readable — full-strength button, AA label, aria-busy'
   expect(sending.opacity).toBe("1");
   expect(sending.ratio).toBeGreaterThanOrEqual(4.5);
 });
+
+test("a failure lands above the fields and barely moves the submit button", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await gotoContact(page);
+
+  await page.route("**/contact-us**", async (route) => {
+    if (route.request().method() !== "POST") return route.fallback();
+    await route.fulfill({
+      status: 502,
+      contentType: "application/json",
+      body: JSON.stringify({
+        type: "failure",
+        status: 502,
+        data: '[{"error":1},"We could not send that just now."]',
+      }),
+    });
+  });
+
+  await openModal(page);
+  await page.fill('dialog input[name="name"]', "Casey Patient");
+  await page.fill('dialog input[name="email"]', "casey@example.com");
+  await page.fill('dialog input[name="phone"]', "3103789241");
+
+  const before = await page.evaluate((sel) => {
+    const d = document.querySelector("dialog")!;
+    return {
+      submitY: document.querySelector(sel)!.getBoundingClientRect().y,
+      panelH: d.getBoundingClientRect().height,
+    };
+  }, SUBMIT);
+
+  await page.click(SUBMIT);
+  await page.waitForSelector('dialog [role="alert"]');
+  await page.waitForTimeout(450);
+
+  const after = await page.evaluate((sel) => {
+    const d = document.querySelector("dialog")!;
+    const alert = d.querySelector('[role="alert"]')!;
+    const firstField = d.querySelector('input[name="name"]')!;
+    const submit = document.querySelector(sel)!;
+    const scroller = d.querySelector(".overflow-y-auto") as HTMLElement;
+    const ar = alert.getBoundingClientRect();
+    const sr = scroller.getBoundingClientRect();
+    return {
+      submitY: submit.getBoundingClientRect().y,
+      panelH: d.getBoundingClientRect().height,
+      // DOCUMENT_POSITION_FOLLOWING === the field comes AFTER the alert.
+      alertPrecedesFields: !!(
+        alert.compareDocumentPosition(firstField) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+      ),
+      alertPrecedesSubmit: !!(
+        alert.compareDocumentPosition(submit) & Node.DOCUMENT_POSITION_FOLLOWING
+      ),
+      // …and it is inside the visible part of the panel's scroll container.
+      alertVisible: ar.top >= sr.top - 1 && ar.bottom <= sr.bottom + 1,
+    };
+  }, SUBMIT);
+
+  expect(after.alertPrecedesFields).toBe(true);
+  expect(after.alertPrecedesSubmit).toBe(true);
+  expect(after.alertVisible).toBe(true);
+
+  // THE CONTRACT, stated honestly. The panel grows by the alert's height; a
+  // CENTRED panel absorbs half of that growth upward, so the button below the
+  // insertion point moves by exactly half — probed 82px before this round
+  // (dialog pinned at y:0, so every pixel of growth went downward) and 41px
+  // after. Zero is not reachable while the dialog is centred: it would need
+  // the panel bottom-anchored, which contradicts the centring contract above.
+  const growth = after.panelH - before.panelH;
+  const moved = after.submitY - before.submitY;
+  expect(growth).toBeGreaterThan(0);
+  expect(Math.abs(moved - growth / 2)).toBeLessThanOrEqual(1);
+  // Half of an 82px insertion is 41; anything approaching the old number means
+  // the panel has stopped being centred.
+  expect(moved).toBeLessThan(growth * 0.75);
+});

@@ -5,6 +5,7 @@
   import TurnstileWidget from "$lib/components/TurnstileWidget.svelte";
   import { appointmentOpen } from "$lib/stores/appointment";
   import { PHONE } from "$lib/site";
+  import { fade, slide } from "$lib/transitions";
 
   /** Used when the server gave us no copy of its own — a thrown exception, a
    *  dropped connection, or a failure payload without an `error` string. */
@@ -27,6 +28,19 @@
   // appointment, that is a lost patient, silently.
   let errorMessage = $state("");
   let submitting = $state(false);
+
+  /** The failure alert. It lives above the fields now (see the markup), which
+   *  puts it at the top of the panel's own scroll container — on a short
+   *  viewport a failure could otherwise render entirely above the fold of that
+   *  inner div, i.e. silently. `block: "nearest"` only scrolls when it has to,
+   *  and `behavior: "auto"` keeps it off the global `scroll-behavior: smooth`
+   *  (app.css) so nothing races an animated scroll. Optional-called because
+   *  jsdom does not implement scrollIntoView. */
+  let alertEl = $state<HTMLElement | null>(null);
+  $effect(() => {
+    if (!errorMessage) return;
+    alertEl?.scrollIntoView?.({ block: "nearest", behavior: "auto" });
+  });
 
   /** Focused when the confirmation replaces the form. Without this, focus is
    *  left on a submit button that no longer exists, which sends it to <body>;
@@ -70,6 +84,43 @@
     </p>
   {:else}
     <h2 class="text-2xl">Request an appointment</h2>
+
+    <!-- ABOVE the fields, directly under the h2 — it used to sit between the
+         last field and the submit button, where rendering it moved the button's
+         top from 416 to 498. That 82px jump lands in the half-second after a
+         failed submit, with the pointer still over the button and about to
+         click again; the second click hit Turnstile, or nothing, and read as a
+         second failure. Up here the growth happens above everything the user is
+         aiming at, and (with the panel now centred rather than pinned at y:0)
+         the button's own displacement is halved on top of that.
+
+         role=alert so it is announced the moment it appears; the phone number
+         is the escape hatch when the form itself is the thing that is broken (a
+         500 means the ingest config is missing, and retrying cannot help).
+
+         `in:` only, no `out:` — an outgoing transition parks the node in the
+         DOM for a frame after `errorMessage` clears, which would make every
+         `queryByRole("alert")` null-assertion in AppointmentModal.test.ts a
+         race. Nothing is lost: the error leaving instantly is correct anyway.
+         Both wrappers come from $lib/transitions, whose wrappers collapse
+         duration AND delay under prefers-reduced-motion — svelte/transition's
+         own are WAAPI-driven and ignore app.css's reset entirely. -->
+    {#if errorMessage}
+      <div in:slide={{ duration: 200 }}>
+        <p
+          bind:this={alertEl}
+          role="alert"
+          in:fade={{ duration: 150 }}
+          class="mt-4 rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900"
+        >
+          {errorMessage}
+          <br />
+          You can also call us at
+          <a class="underline" href={PHONE.href}>{PHONE.display}</a>.
+        </p>
+      </div>
+    {/if}
+
     <form
       method="POST"
       action="/contact-us"
@@ -149,26 +200,12 @@
         bind:value={message}
       />
 
-      <!-- role=alert so a failure is announced the moment it appears; the
-           phone number is the escape hatch when the form itself is the thing
-           that is broken (a 500 means the ingest config is missing, and no
-           amount of retrying will help). -->
-      {#if errorMessage}
-        <p
-          role="alert"
-          class="rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900"
-        >
-          {errorMessage}
-          <br />
-          You can also call us at
-          <a class="underline" href={PHONE.href}>{PHONE.display}</a>.
-        </p>
-      {/if}
-
       <!-- Renders nothing until PUBLIC_TURNSTILE_SITE_KEY is set (so dev, tests
            and the pixel gates never see it). Mounted inside the form: Turnstile
            injects its hidden cf-turnstile-response input here, and the action's
-           createIngestAction forwards it as the verification token. -->
+           createIngestAction forwards it as the verification token. The widget
+           reserves its own ~65px box before the iframe arrives — see
+           TurnstileWidget.svelte. -->
       <TurnstileWidget />
 
       <!-- The last click in the booking flow, and it used to acknowledge

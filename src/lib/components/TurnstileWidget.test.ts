@@ -73,6 +73,33 @@ describe("TurnstileWidget", () => {
     expect(onToken).toHaveBeenCalledWith("tok-123");
   });
 
+  it("reserves the widget's box BEFORE the iframe arrives", async () => {
+    // The effect injects a ~65px iframe whenever api.js resolves — a moment
+    // nobody controls. Mounted in the appointment form, that dropped the
+    // submit button ~65px on every production open of the modal. The mount
+    // point must therefore already occupy the space the iframe will fill,
+    // while api.js is still pending.
+    mockEnv.env.PUBLIC_TURNSTILE_SITE_KEY = "site-key";
+    const api = stubTurnstile();
+    const { container } = render(TurnstileWidget);
+
+    // Synchronously after mount, before the effect's loadTurnstile().then has
+    // had a microtask to run: the box is already in the DOM and still empty.
+    // (Deliberately NOT the <script>-injection path — $lib/turnstile memoises
+    // its loader module-wide, so consuming that path here would starve the
+    // "unmounted while api.js was loading" test below.)
+    const mount = container.querySelector(".cf-turnstile") as HTMLElement;
+    expect(mount).not.toBeNull();
+    expect(api.render).not.toHaveBeenCalled();
+    expect(mount.children.length).toBe(0);
+    // jsdom resolves no Tailwind, so the class token is the assertable form
+    // here. That 65px is really reserved is measured in a browser instead —
+    // tests/interaction/appointment-modal.spec.ts.
+    expect(mount.className).toContain("min-h-[65px]");
+
+    await vi.waitFor(() => expect(api.render).toHaveBeenCalledTimes(1));
+  });
+
   it("resets the token and removes the widget on unmount", async () => {
     mockEnv.env.PUBLIC_TURNSTILE_SITE_KEY = "site-key";
     const api = stubTurnstile();

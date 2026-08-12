@@ -216,6 +216,28 @@ describe("AppointmentModal submit results", () => {
     expect(document.activeElement).toBe(screen.getByRole("status"));
   });
 
+  it("puts the failure alert ABOVE the fields, not between them and the button", async () => {
+    // The alert used to render between the last field and the submit button.
+    // Probed at 1440x900: that moved the button's top 416 → 498, an 82px jump
+    // in the half-second after a failure — with the pointer still over the
+    // button and about to click again. DOM order is the part a unit test can
+    // hold; the geometry is pinned in tests/interaction/appointment-modal.spec.ts.
+    const { dialog } = await openAndSubmit();
+    await finish({ type: "failure", status: 502, data: { error: "nope" } });
+
+    const alert = screen.getByRole("alert");
+    const nameField = dialog.querySelector('input[name="name"]')!;
+    const submit = dialog.querySelector('button[type="submit"]')!;
+
+    expect(
+      alert.compareDocumentPosition(nameField) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      alert.compareDocumentPosition(submit) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   it("marks the button aria-busy while the request is in flight", async () => {
     // `disabled` alone changes only the accessible name ("Sending…"), silently.
     const { dialog } = await openAndSubmit();
