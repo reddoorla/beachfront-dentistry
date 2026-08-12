@@ -169,9 +169,12 @@
   // instead of growing.
   //
   // TONE is per-ground, not per-control: the pill has to be visible against
-  // whatever sits behind the bar. Over a hero photo that is `--color-primary`
-  // (#129ecc); inside the open menu the ground already IS #129ecc, where a
-  // cyan pill would be invisible, so it steps to `--color-primary-deep`.
+  // whatever sits behind the bar. The rule is "whichever of the two brand tones
+  // the ground is NOT". Over a hero photo that is `--color-primary` (#129ecc);
+  // inside the open menu the ground IS `--color-primary-deep` since the wash
+  // was darkened for AA (see the dialog below), so the menu's copy takes
+  // `--color-primary`. Note this is the OPPOSITE assignment to the one that
+  // shipped before the wash changed — the rule did not move, the ground did.
   // Everything else about the two controls — geometry, timings, curve — is
   // shared, so they read as one control changing state.
   const ICON_BUTTON =
@@ -488,12 +491,29 @@
       {/each}
     </div>
   {:else}
-    <!-- Live's .dropdown-modal: a full-screen cyan wash (#129ecc @ 92%) over
-         the beach photo (its own asset), sliding down from the top. Links are
-         white museo-slab h3s (hover opacity .5) in a 60vh justify-between
-         column starting at 10% down; the phone rides the same style; the two
-         CTAs are the white-outlined .button.nav pills. Logo badge stays
-         top-left, live's own X icon top-right. -->
+    <!-- Live's .dropdown-modal: a full-screen wash over the beach photo (its
+         own asset), sliding down from the top. Links are white museo-slab h3s
+         in a column; the phone rides the same style; the two CTAs are the
+         white-outlined .button.nav pills. Logo badge stays top-left, live's
+         own X icon top-right.
+
+         DEVIATION from live, operator-ACKed: the wash is `--color-primary-deep`
+         (#0e7799), not live's brand cyan #129ecc. Measured on the real
+         composited pixels — the wash is only 92% opaque, so the effective
+         ground varies with the surf underneath and has to be read off the
+         rendered surface, not off this hex — every one of the nine white
+         things in here failed WCAG AA on the cyan: 2.85-2.96:1 at both 390 and
+         1440, against the 3.0 the 30/40px links need and the 4.5 the 15px
+         mobile pill labels need. Deep takes the same measurement to 4.46-4.65.
+         That is the WORST pixel under each link's whole box, padding included,
+         so it reads lower than what any actual glyph sits on — conservative in
+         the safe direction, and the 15px pill labels clear 4.5 by 0.02 on it.
+         The audit had reported this as a pill-only defect; it was the whole
+         menu.
+
+         Two things downstream are load-bearing on this hex, and both invert
+         when it changes — see the Close button's pill below and `white-deep`
+         in OutlineButton. A fill equal to the ground composites to nothing. -->
     <div
       id={MENU_ID}
       role="dialog"
@@ -502,7 +522,7 @@
       class="fixed inset-0 z-50 h-dvh w-screen overflow-y-auto {hamburgerOnly
         ? ''
         : 'lg:hidden'}"
-      style="background-color:#129ecc;background-image:linear-gradient(rgba(18,158,204,0.92), rgba(18,158,204,0.92)),url('/menu-beach.jpg');background-position:0 0,50%;background-size:auto,cover"
+      style="background-color:#0e7799;background-image:linear-gradient(rgba(14,119,153,0.92), rgba(14,119,153,0.92)),url('/menu-beach.jpg');background-position:0 0,50%;background-size:auto,cover"
       in:fade|global={{ duration: MENU_WASH_IN, easing: expoOut }}
       out:fade|global={{ duration: MENU_WASH_OUT, easing: cubicIn }}
       use:trapFocus={{ onEscape: closeMenu, restoreFocus: () => openButtonEl }}
@@ -526,8 +546,13 @@
              sideways in the frame the overlay mounts: the X used to be a flat
              w-10 in a justify-CENTER box, which at 390 grew the glyph 67% and
              moved it 10px inboard in one frame. Its press pill steps to
-             `--color-primary-deep`: the ground here IS #129ecc, where the bar's
-             `bg-primary` pill would be invisible. -->
+             `--color-primary`: the ground here IS `--color-primary-deep`, where
+             a deep pill composites to nothing. Before the wash was darkened
+             this read the other way round, and it is the same rule either way —
+             the pill takes whichever of the two brand tones the ground is not.
+             Measured on the rendered pixels: 1.56:1 at 390 and 1.65:1 at 1440
+             against the wash, where a deep-on-deep pill is 1.06:1 — i.e. no
+             press feedback at all, on the site's only navigation control. -->
         <button
           type="button"
           class="{ICON_BUTTON} justify-end"
@@ -538,7 +563,7 @@
           {...pressProps("close")}
         >
           <span class={ICON_GLYPH}>
-            <span aria-hidden="true" class="{ICON_PILL} bg-primary-deep"></span>
+            <span aria-hidden="true" class="{ICON_PILL} bg-primary"></span>
             <img
               src="/icons/menu-close-white.svg"
               alt=""
@@ -600,7 +625,7 @@
           onclick={closeMenu}
           in:fly|global={linkIn(menuLeafItems.length + 2)}
           class="{pillClass(
-            'white',
+            'white-deep',
           )} px-[1em] py-[1.3em] leading-[0] text-[15px] lg:text-[25px]"
           >Request an Appointment</a
         >
@@ -611,7 +636,7 @@
           onclick={closeMenu}
           in:fly|global={linkIn(menuLeafItems.length + 3)}
           class="{pillClass(
-            'white',
+            'white-deep',
           )} px-[1em] py-[1.3em] leading-[0] text-[15px] lg:text-[25px]"
           >Make a Payment</a
         >

@@ -28,6 +28,8 @@
   //         #0e7799 →     rest 5.10            hover 5.05  (ink darkens with
   //         #0b6180 held                                     the fill)
   //   white #ffffff ink   hover 5.10 on the opaque #0e7799 fill
+  //   white-deep    ink   rest 4.52 on the darkened menu wash (was 2.89)
+  //         #ffffff →     hover 5.10 (#0e7799 ink on the white fill)
   //
   // Two of those numbers are deliberate deviations, both forced by the same
   // arithmetic — the fill DARKENS the ground, so dark-ink-on-light-pill always
@@ -45,16 +47,28 @@
   //    whose hover was quietly weaker to buy contrast would reintroduce the
   //    "affordance you can't see" defect this change exists to remove.
   //
-  // The white colourway's fill is the brand DEEP blue, not the brand cyan: it
-  // is used on the menu wash, whose ground already IS #129ecc, where a
-  // translucent cyan fill composites to nothing. One rule, stated per ground —
-  // the fill is the brand colour that contrasts with what the pill sits on.
-  // Its REST contrast (2.83–3.61 depending on the beach photo under the 92%
-  // wash) is a pre-existing failure of the wash colour, not of this treatment,
-  // and is not fixable from the pill: see the report/LEDGER note.
+  // ONE rule decides both white colourways: the fill is whatever contrasts with
+  // the ground the pill sits on. There are two grounds, so there are two.
+  //
+  //  • `white` sits on PHOTOGRAPHY (the hero, a section card, a question card).
+  //    Its fill is the brand DEEP blue — a translucent cyan composites to
+  //    nothing over a bright beach — and white-on-#0e7799 is 5.10:1.
+  //  • `white-deep` sits on the MENU WASH. That wash used to be #129ecc, which
+  //    left every white thing on it failing AA (measured 2.85-2.96:1 across all
+  //    nine links at 390 and 1440 — the whole menu, not just the pills). The
+  //    operator ACKed darkening it to `--color-primary-deep`, so the ground now
+  //    IS #0e7799 and the `white` fill above would composite to nothing on it —
+  //    the same defect, one tone along. This colourway therefore INVERTS
+  //    instead: the fill is white and the ink steps to #0e7799. That is the
+  //    strongest available step on a deep ground and the only option that holds
+  //    4.5:1 at the 15px mobile size — an opaque #129ecc fill would read 3.09:1
+  //    under white and fail there.
+  //
+  // Do NOT collapse the two back into one. They differ because their grounds
+  // differ, and a shared fill is invisible on one of them by construction.
   // ---------------------------------------------------------------------------
 
-  export type PillVariant = "teal" | "cyan" | "white";
+  export type PillVariant = "teal" | "cyan" | "white" | "white-deep";
 
   /** Timing + press beat — identical for every colourway. */
   export const PILL_MOTION =
@@ -65,6 +79,8 @@
     cyan: "border-[#0e7799] text-[#0e7799] hover:border-[#129ecc] hover:bg-[#129ecc4a] hover:text-[#0b6180] focus-visible:ring-primary-deep",
     white:
       "border-white text-white hover:bg-[#0e7799] focus-visible:ring-white focus-visible:ring-offset-primary-deep",
+    "white-deep":
+      "border-white text-white hover:bg-white hover:text-[#0e7799] focus-visible:ring-white focus-visible:ring-offset-primary-deep",
   };
 
   /** Shape + focus mechanics every pill shares, colourway-independent. */

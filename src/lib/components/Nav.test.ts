@@ -421,10 +421,18 @@ describe("Nav — hamburgerOnly ships no permanently-hidden controls", () => {
   });
 });
 
-// The overlay's two pills take the shared language's WHITE colourway: on the
-// #129ecc menu wash a translucent cyan fill composites to nothing, so the fill
-// is the brand deep blue (white label 5.10:1 held, measured on the rendered
-// pixels; the old `hover:opacity-60` took it to 1.9:1).
+// The overlay's two pills take the shared language's `white-deep` colourway,
+// which INVERTS on hover — a white fill with #0e7799 ink — rather than filling
+// with the deep blue the plain `white` colourway uses.
+//
+// That is forced by the ground, not a preference. The wash was darkened to
+// `--color-primary-deep` so its white text could reach AA (it measured
+// 2.85-2.96:1 on the old brand cyan, across all nine links); a `#0e7799` fill
+// on a `#0e7799` ground is 1.06:1, i.e. the hover would do nothing visible.
+// Inverting is also the only option that holds 4.5:1 under the 15px mobile
+// label — an opaque #129ecc fill reads 3.09:1 under white and fails there.
+// tests/a11y/menu-wash-contrast.spec.ts measures all of this on the composited
+// pixels; this test just pins the classes that carry it.
 describe("Nav — the menu pills speak the shared hover language", () => {
   it("fill + border + press, and no opacity fade", async () => {
     const { getByLabelText, getByRole } = render(Nav, {
@@ -441,7 +449,13 @@ describe("Nav — the menu pills speak the shared hover language", () => {
         (a) => a.textContent?.trim() === label,
       ) as HTMLAnchorElement;
       expect(pill, label).toBeTruthy();
-      expect(pill.className).toContain("hover:bg-[#0e7799]");
+      // The inversion, both halves. The ink swap is not decoration: white-on-
+      // white would be the fill going on and the label going out.
+      expect(pill.className).toContain("hover:bg-white");
+      expect(pill.className).toContain("hover:text-[#0e7799]");
+      // and specifically NOT the plain `white` colourway's fill, which is the
+      // ground here and would composite to nothing.
+      expect(pill.className).not.toContain("hover:bg-[#0e7799]");
       expect(pill.className).toContain("active:translate-y-px");
       expect(pill.className).toContain("ease-[var(--transition-out-expo)]");
       // `translate`, not `transform` — Tailwind v4 compiles the utility to the
