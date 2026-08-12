@@ -380,16 +380,46 @@ main :where(h1, h2, h3) strong,
 }
 
 @layer base {
-  /* Live's Webflow reveal travel: elements rise 4rem of ITS responsive root
-     (24px mobile → 40px desktop rem) = 96px / 160px. Our root stays 16px, so
-     the travel ships as a breakpoint-stepped var, consumed by animateIn's
-     LIVE_REVEAL preset. */
+  /* How far a scroll-revealed element rises, consumed by animateIn's
+     LIVE_REVEAL preset. This used to transcribe live's Webflow travel (4rem of
+     ITS responsive root = 96px mobile / 160px desktop). That was too far to
+     ship: animateIn's observer watches the TRANSFORMED box with `threshold: 0`
+     and no rootMargin, so an element cannot begin revealing until its resting
+     top is already one full travel inside the viewport — at 1440x720 a row
+     laid out at y=660 was drawn at y=820, below the fold, at opacity 0. The
+     bottom fifth of a laptop screen was a dead band. 56/72 keeps the rise
+     legible and shrinks that band to something a scroll crosses immediately. */
   :root {
-    --reveal-travel: 96px;
+    --reveal-travel: 56px;
   }
   @media (min-width: 1024px) {
     :root {
-      --reveal-travel: 160px;
+      --reveal-travel: 72px;
+    }
+  }
+
+  /* The reveal's hidden state, in CSS, so it exists at FIRST PAINT.
+     animateIn can only hide its targets from JS at hydration, which is
+     150ms-850ms after the browser has already painted them: the hero headline
+     appeared in final position, sat there, then dropped `--reveal-travel` and
+     vanished before floating back. Reading as a broken page load.
+     The no-JS contract lives in app.html: a <noscript><style> there forces
+     these two properties back with !important, so a browser that will never run
+     the reveal never hides anything. Read that comment before changing either
+     half — it records why the guard is a noscript style and not the inline
+     `html.js` class script the audit proposed (CSP drops the script on
+     server-rendered routes).
+     `[data-reveal]` is written by animateIn while an element is hidden and
+     removed the moment it reveals; server-rendered markup can carry it too, and
+     must for a given element to be covered at first paint. Inline styles from
+     applyHidden are byte-identical to these declarations, so hydration is a
+     no-op re-write rather than a visible state change. An element whose SSR
+     markup carries `data-reveal` depends on JS to ever appear — pair it with
+     animateIn's `failSafe` option, which is what that option is for. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-reveal] {
+      opacity: 0;
+      transform: translateY(var(--reveal-travel));
     }
   }
 

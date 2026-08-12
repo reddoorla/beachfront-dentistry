@@ -1,12 +1,21 @@
 import { reducedMotion } from "$lib/transitions";
 
-/** Live's Webflow scroll-reveal, read off the reference (2026-08-02): each
- *  element rises `--reveal-travel` (96px mobile / 160px desktop — live's 4rem
- *  in its responsive root) over 1s on the shared expo-out curve, with no
- *  x-position stagger — same-row elements land together, exactly like the
- *  Webflow ix2 triggers. Spread into per-element `use:animateIn` calls. */
+/** The site's standard scroll reveal: an element rises `--reveal-travel` on the
+ *  shared expo-out curve, with no x-position stagger — same-row elements land
+ *  together. Spread into per-element `use:animateIn` calls.
+ *
+ *  These are OUR numbers, not a transcription of anything. They started as
+ *  live's Webflow values (96/160px over 1000ms) and were cut back once the
+ *  reveal was measured rather than copied: the travel decides how far INSIDE
+ *  the viewport an element must be laid out before the observer will fire on
+ *  its transformed box, and 160px turned the bottom fifth of a 720px-tall
+ *  laptop viewport into a band where laid-out content was never painted. The
+ *  duration went with it — on this curve opacity is already at 0.94 by 425ms,
+ *  so the last 40% of a 1000ms reveal was a tail nobody could see. Do not
+ *  "restore" the old numbers as a fidelity fix; the pixel-matching program is
+ *  over and these were changed on purpose. */
 export const LIVE_REVEAL = {
-  duration: 1000,
+  duration: 750,
   translateY: "var(--reveal-travel)",
   delayMax: 0,
 } as const;
@@ -72,6 +81,16 @@ function resolveConfig(param: AnimateInParam): ResolvedConfig {
 }
 
 function applyHidden(node: HTMLElement, cfg: ResolvedConfig) {
+  // The attribute is the declarative twin of the two style writes below:
+  // app.css hides `[data-reveal]` under `prefers-reduced-motion: no-preference`
+  // with the same opacity and the same travel, so markup that ships the
+  // attribute from the server is already hidden at FIRST PAINT and this call
+  // re-writes byte-identical values instead of yanking a painted element out
+  // from under the reader. (Only true for LIVE_REVEAL, which reads the same
+  // `--reveal-travel` var: a call site passing its own `translateY` must not
+  // put `data-reveal` in its server-rendered markup, because CSS would hide it
+  // at a different distance than JS reveals it from.)
+  node.setAttribute("data-reveal", "");
   node.style.opacity = "0";
   node.style.transform = `translateY(${cfg.translateY})`;
   // --transition-out-expo = cubic-bezier(0.19,1,0.22,1) — the exact curve
@@ -82,6 +101,9 @@ function applyHidden(node: HTMLElement, cfg: ResolvedConfig) {
 }
 
 function reveal(node: HTMLElement) {
+  // Drop the marker before the styles: nothing may be able to describe this
+  // element as hidden once it is on its way to visible.
+  node.removeAttribute("data-reveal");
   node.style.opacity = "1";
   node.style.transform = "translateY(0)";
 }
@@ -115,8 +137,10 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
     observer?.disconnect();
     // `hidden` is false on the first, synchronous call, so an element that was
     // never touched keeps its untouched inline styles — as before, the action
-    // is a complete no-op when the preference is already on.
-    if (hidden) show();
+    // is a complete no-op when the preference is already on. The attribute test
+    // catches server-rendered `data-reveal`, whose CSS hidden state does not
+    // apply under reduce but whose marker should not linger either.
+    if (hidden || node.hasAttribute("data-reveal")) show();
   });
 
   if (reduced) {
