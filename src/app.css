@@ -498,6 +498,22 @@ main :where(h1, h2, h3) strong,
     }
   }
 
+  /* Keyboard focus floor (WCAG 2.4.7). Focus styling on this site is opt-in
+     per component — ~35 elements carry the teal `focus-visible:ring-2` and
+     everything else fell back to Chrome's 1px UA hairline, which is invisible
+     on the dark nav and the photo heroes. This is the base every interactive
+     element gets for free.
+     `:where()` contributes ZERO specificity, so the whole selector weighs
+     (0,1,0) — one pseudo-class — and every authored `focus-visible:ring-*` /
+     `focus-visible:outline-hidden` utility still wins on two counts: higher
+     specificity AND Tailwind emitting utilities into a later cascade layer
+     than `base`. Form controls are deliberately absent: Field.svelte styles
+     its own inputs. */
+  :where(a, button, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 2px solid var(--color-primary-deep);
+    outline-offset: 2px;
+  }
+
   a,
   button {
     cursor: pointer;
