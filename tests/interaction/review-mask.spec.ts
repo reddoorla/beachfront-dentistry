@@ -136,19 +136,44 @@ test("Next: the card is the mask — content glides inside it, card and badge fr
   await gotoReviews(page);
   const rest = await state(page);
 
-  const t0 = Date.now();
   await page.click(NEXT);
-  const sampleAt = async (ms: number) => {
-    const wait = ms - (Date.now() - t0);
-    if (wait > 0) await page.waitForTimeout(wait);
+
+  // Mid-flight samples are SCRUBBED, not raced. Sampling by wall clock
+  // ("read at 300ms") assumes the transition has progressed as far as the
+  // clock says, which is false whenever the machine is busy: under a full
+  // parallel suite the read can land after the 2s glide already settled,
+  // and a settled `tx` fails the strictly-between assertion below. So pause
+  // the CSSTransitions the click created and set their currentTime — the
+  // browser then reports exactly the frame we asked for, on any hardware.
+  // The transitions exist only once the click's style change is recalculated,
+  // so wait for them rather than assuming they are already running.
+  await page.waitForFunction(
+    (sel) =>
+      (document.querySelector(sel) as Element).getAnimations({ subtree: true })
+        .length > 0,
+    SECTION,
+  );
+  const scrubTo = async (fraction: number) => {
+    await page.evaluate(
+      ([sel, f]) => {
+        const section = document.querySelector(sel as string)!;
+        for (const anim of section.getAnimations({ subtree: true })) {
+          const duration = anim.effect?.getComputedTiming().duration;
+          if (typeof duration !== "number" || duration === 0) continue;
+          anim.pause();
+          anim.currentTime = (f as number) * duration;
+        }
+      },
+      [SECTION, fraction] as const,
+    );
     return state(page);
   };
 
-  // Mid-flight (~15% / ~40% of the 2000ms glide): the track transform is
-  // strictly between the endpoints while everything static holds still.
-  const a = await sampleAt(300);
-  const b = await sampleAt(800);
-  const c = await sampleAt(1400);
+  // 15% / 40% / 70% of the glide: the track transform is strictly between
+  // the endpoints while everything static holds still.
+  const a = await scrubTo(0.15);
+  const b = await scrubTo(0.4);
+  const c = await scrubTo(0.7);
   for (const s of [a, b, c]) expectStill(s, rest);
   for (const s of [a, b]) {
     expect(s.tx).toBeLessThan(0);
@@ -157,7 +182,14 @@ test("Next: the card is the mask — content glides inside it, card and badge fr
   // The glide is monotone toward exactly one card width…
   expect(b.tx).toBeLessThanOrEqual(a.tx);
   expect(c.tx).toBeLessThanOrEqual(b.tx);
-  await sampleAt(2400);
+  // Let the paused transitions run to their end and commit — `finish()` puts
+  // each at its end frame without waiting out the remaining wall-clock time.
+  await page.evaluate((sel) => {
+    for (const anim of document
+      .querySelector(sel)!
+      .getAnimations({ subtree: true }))
+      anim.finish();
+  }, SECTION);
   const settled = await state(page);
   expectStill(settled, rest);
   expect(settled.tx).toBe(-rest.card.w);
