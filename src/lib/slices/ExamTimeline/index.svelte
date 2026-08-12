@@ -274,8 +274,23 @@
                (`:8818-8826`) goes back to auto height with padding-bottom and
                padding-x 1rem; <=479 (`:9343-9347`) zeroes the top padding and
                halves the sides. -->
+          <!-- Only row 1 revealed before this; the six steps themselves never
+               animated, which is the section where sequence matters most — a
+               stepwise "what happens at your first visit" explainer.
+               A plain per-element reveal, NOT `stagger`. The audit filed these
+               under "horizontal rows", but this is a vertical column: animateIn
+               writes `transitionDelay` once at mount and counts it from each
+               element's OWN trigger, so on a stack step 6 would sit invisible
+               for 350ms after the reader had already scrolled it into view.
+               Stacked steps get their sequence from the scroll itself — each
+               rises as it arrives — which is the effect the stagger was
+               reaching for, without the delay.
+               The sticky registration-forms box below is deliberately NOT a
+               target: a transform changes its containing block and breaks the
+               pin. -->
           <div
             class="exam-step flex px-3 pt-0 pb-6 xs:px-6 xs:pt-6 md:h-80 md:px-0 md:pt-8 md:pb-0 lg:h-auto lg:pt-10"
+            use:animateIn={LIVE_REVEAL}
           >
             {@render badge(step.number ?? "", step.minutes)}
             {@render stepContent(step, i === 0)}

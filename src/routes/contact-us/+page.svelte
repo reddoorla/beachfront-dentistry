@@ -3,6 +3,7 @@
   import CtaBand from "$lib/components/CtaBand.svelte";
   import MapEmbed from "$lib/components/MapEmbed.svelte";
   import { pillClass } from "$lib/components/OutlineButton.svelte";
+  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
   import { ADDRESS, HOURS, PHONE } from "$lib/site";
   import type { ImageField, RichTextField } from "@prismicio/client";
 
@@ -64,17 +65,27 @@
 >
   <!-- Live `.button.text-color-primary-dark`, wired to the global appointment
        modal via the #appointment anchor (same handler the CTAs use). -->
+  <!-- This page had NO scroll reveal at all — it imported animateIn nowhere,
+       leaving a 1167px dead run covering this whole info section, sandwiched
+       between a hero that reveals and a CTA band that reveals. Reveal coverage
+       here was the lowest on the site (17% at 390, 29% at 1440).
+       Three targets, not one, so the block arrives in reading order: the
+       action, then the details, then the map. -->
   <a
     href="#appointment"
     class="{pillClass(
       'teal',
     )} mb-[60px] px-[1em] py-[1.3em] text-[14px] leading-[0] xs:text-[15px] md:mb-0 md:text-[20px] lg:text-[25px]"
+    use:animateIn={LIVE_REVEAL}
   >
     Request Appointment
   </a>
 
   <!-- CONTACT + OFFICE HOURS: side-by-side on desktop, stacked on mobile. -->
-  <div class="mt-9 flex flex-col md:mt-12 md:flex-row lg:mt-[60px]">
+  <div
+    class="mt-9 flex flex-col md:mt-12 md:flex-row lg:mt-[60px]"
+    use:animateIn={LIVE_REVEAL}
+  >
     <div class="mb-6 md:mr-16 md:mb-8 lg:mr-20 lg:mb-10">
       <h2
         class="font-slab text-[16px] leading-[32px] font-medium text-[#365b6d] uppercase lg:text-[20px] lg:leading-[40px]"
@@ -116,7 +127,14 @@
        `max-w-[512px]` equals 40% at 1440 and nowhere else — at 834 it left the
        map 512 wide inside live's 738, which is 226x400px of the region wrong
        and most of its 18.8%. -->
-  <div class="mt-9 w-full md:mt-12 lg:mt-[60px] lg:w-2/5">
+  <!-- The reveal goes on the WRAPPER, never on MapEmbed's iframe: the map is
+       one of the two heaviest paint regions on the site, and animating a
+       composited third-party iframe is a real cost on a low-end phone for no
+       visual gain the wrapper does not already give. -->
+  <div
+    class="mt-9 w-full md:mt-12 lg:mt-[60px] lg:w-2/5"
+    use:animateIn={LIVE_REVEAL}
+  >
     <MapEmbed />
   </div>
 </section>

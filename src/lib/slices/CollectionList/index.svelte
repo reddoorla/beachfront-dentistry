@@ -202,7 +202,11 @@
   {/if}
 {/snippet}
 
-{#snippet personCard(doc: CollectionDoc, variant: "grid" | "slider" = "grid")}
+{#snippet personCard(
+  doc: CollectionDoc,
+  variant: "grid" | "slider" = "grid",
+  index = 0,
+)}
   <!-- live `.team-list-item` (320×480 / 303×384, bg #E7F5FA, radius 20): a
        circular headshot straddling the top edge, then name (cyan slab) / role
        (teal sans caps) / bio teaser (teal, 3-line clamp) / READ MORE, with the
@@ -255,7 +259,19 @@
        leaving the margin here put our card box 160/256/96px below the box the
        reference draws, which is where page-diff cuts the "Dr. Robert Quan"
        region. -->
+  <!-- The 11 person cards had NO reveal at all — /our-team's primary content,
+       on the page a nervous patient scrolls slowest, arriving with no entrance
+       while the band above and the CTA below both rose. Coverage there was 10%
+       at 390 and 30% at 1440.
+       `index % 3` is load-bearing, not decoration. animateIn gives each element
+       its OWN observer and writes `transitionDelay` once at mount, so the delay
+       counts from THAT element's trigger, not the group's. Across a row every
+       card triggers in the same frame and the delay sequences them; down a
+       column it would leave card 4 sitting invisible for 210ms AFTER it had
+       already entered the viewport. Modulo the 3-up row resets the ramp per
+       row, so no card ever waits longer than two steps. -->
   <article
+    use:animateIn={{ ...LIVE_REVEAL, stagger: 70, index: index % 3 }}
     class="team-list-item group relative mx-6 mb-6 flex flex-col rounded-[20px] bg-[#e7f5fa] xs:min-h-[576px] xs:w-[384px] md:mx-8 md:mb-8 md:min-h-[768px] md:w-[512px] lg:min-h-[480px] {href
       ? CARD_AFFORDANCE
       : ''} {variant === 'slider'
@@ -616,8 +632,8 @@
     data-slice-variation={slice.variation}
     class="team-grid-section mx-auto flex w-full max-w-[1400px] flex-wrap justify-center px-5 md:px-12 lg:gap-[30px] lg:px-[60px] lg:pt-40"
   >
-    {#each docs as doc (doc.uid)}
-      {@render personCard(doc)}
+    {#each docs as doc, i (doc.uid)}
+      {@render personCard(doc, "grid", i)}
     {/each}
   </section>
 {:else}

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { bandFor, type Presentation } from "$lib/blux/presentation";
+  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
   import SectionBand from "$lib/blux/SectionBand.svelte";
   import CarouselFrames, {
     type CarouselFrame,
@@ -185,9 +186,15 @@
            level-1 heading competing with the page title, so the announced level
            is corrected without touching the tag or a single pixel — same
            technique as RichTextHeading.svelte:24 and SubpageHero's ariaLevel. -->
+      <!-- The Office Tour block had zero reveal targets across 1492px. The
+           heading is the target; the image TRACK deliberately is not — it is
+           one of the two heaviest paint regions on the site, and putting a
+           transform on it would composite the whole strip for no gain the
+           heading does not already give. -->
       <h1
         class="font-slab h-primary mb-[10px] text-[28px] leading-[38px] font-light lg:text-[60px] lg:leading-[72px]"
         aria-level="2"
+        use:animateIn={LIVE_REVEAL}
       >
         {trackLabel}
       </h1>

@@ -333,7 +333,21 @@
       class="flex flex-col gap-10 text-center md:flex-row md:justify-between md:gap-0"
     >
       {#each items as item, i (item)}
-        <li class="md:w-[30%] md:min-w-0" use:animateIn={REVEAL}>
+        <!-- The home trio used to land on ONE frame — `LIVE_REVEAL.delayMax`
+             is 0, so the position heuristic computes 0ms for everything and
+             three cards arrive as a slab, which reads as a trigger firing
+             rather than as a page laid out deliberately.
+             Staggered, not gated on the breakpoint: this `<ol>` is a row at md+
+             (where the stagger sequences correctly, all three triggering in the
+             same frame) and a COLUMN below it, where item 3 waits 140ms after
+             entering the viewport. With three items that penalty is well inside
+             the 750ms transition and never reads as stuck — the audit's warning
+             about vertical stagger is about long lists, where it would be 420ms
+             and would. -->
+        <li
+          class="md:w-[30%] md:min-w-0"
+          use:animateIn={{ ...REVEAL, stagger: 70, index: i }}
+        >
           <!-- Live's STEP label is an h6: museo-SLAB 400, 1.28px tracking,
                slate #365b6d at BOTH breakpoints — 12px/15px mobile, 24px/30px
                desktop (the small sans eyebrow was an invention; census caught

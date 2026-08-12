@@ -3,6 +3,7 @@
   import WaveDivider from "./WaveDivider.svelte";
   import MapEmbed from "./MapEmbed.svelte";
   import { pillClass } from "./OutlineButton.svelte";
+  import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
   import type {
     FooterSocial,
     FooterItem,
@@ -218,7 +219,19 @@
   <div
     class="mx-auto max-w-[1400px] px-[5%] pt-3 pb-6 xs:px-[8%] md:px-12 lg:px-[60px] lg:pt-5 lg:pb-12"
   >
-    <div>
+    <!-- The footer had NO reveal on any page — a 702px dead block closing all
+         six of them, which is why every page's coverage number ended low
+         regardless of what happened above.
+         `translateY: 24px`, not the shared `--reveal-travel` (56/72): the
+         footer is the LAST thing on the page, so a full-height rise reads as a
+         second page-load starting rather than as the end arriving. A short lift
+         is the whole intent.
+         Because the travel is custom this element must never carry a
+         server-rendered `data-reveal` — app.css would hide it at
+         `--reveal-travel` while JS reveals it from 24px. See ABOVE_FOLD_REVEAL.
+         The reveal goes on this wrapper and not on the map iframe below it,
+         which is one of the two heaviest paint regions on the site. -->
+    <div use:animateIn={{ ...LIVE_REVEAL, translateY: "24px" }}>
       {#if heading}
         <!-- Live: 16px/40 mobile, 30px/40 desktop, weight 100, museo-slab, 10px
              below. Colour is the one deliberate deviation — live paints this
