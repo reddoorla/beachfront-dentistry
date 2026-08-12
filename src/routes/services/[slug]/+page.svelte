@@ -5,9 +5,7 @@
   import DetailBody from "$lib/components/DetailBody.svelte";
   import OutlineButton from "$lib/components/OutlineButton.svelte";
   import CtaBand from "$lib/components/CtaBand.svelte";
-  import { CTA_BEACH } from "$lib/cta-beach";
   import { splitLede } from "./lede";
-  import type { ImageField } from "@prismicio/client";
   import type { PageData } from "./$types";
 
   // Matches live `/services/<uid>`: a shared reception-photo hero with a
@@ -24,19 +22,14 @@
   // Live's service hero is the service's OWN image (an <img> over the `.hero
   // .reception` band — e.g. dental-exams shows "running-into-our-golden-years",
   // implants show the implant diagram). doc.data.media is the Prismic-migrated
-  // version (imgix url — clears the app CSP directly). The shared reception
-  // photo is only the base that shows through when a service has no media, so
-  // it's served from /static (CSP) as the fallback, matching live.
-  const heroReception: ImageField = {
-    url: "/images/service-hero.jpg",
-    alt: null,
-    copyright: null,
-    dimensions: { width: 1600, height: 1067 },
-    id: "service-hero",
-    edit: { x: 0, y: 0, zoom: 1, background: "transparent" },
-  };
+  // version. The shared reception photo is only the base that shows through
+  // when a service has no media; it now comes from the `settings` singleton
+  // rather than /static, so the fallback rides the same imgix ladder the
+  // service's own image always did. See $lib/site-settings.
   const heroImage = $derived(
-    isFilled.image(data.doc.data.media) ? data.doc.data.media : heroReception,
+    isFilled.image(data.doc.data.media)
+      ? data.doc.data.media
+      : data.siteImages.serviceHero,
   );
   const crumb = $derived(
     `Services${data.category ? ` / ${data.category}` : ""}`,
@@ -107,4 +100,4 @@
   />
 </div>
 
-<CtaBand backgroundImage={CTA_BEACH} caption="FIJI ISLANDS" />
+<CtaBand backgroundImage={data.siteImages.ctaBeach} caption="FIJI ISLANDS" />

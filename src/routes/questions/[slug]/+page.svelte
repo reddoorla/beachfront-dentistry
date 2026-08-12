@@ -4,7 +4,6 @@
   import DetailBody from "$lib/components/DetailBody.svelte";
   import OutlineButton from "$lib/components/OutlineButton.svelte";
   import CtaBand from "$lib/components/CtaBand.svelte";
-  import { CTA_BEACH } from "$lib/cta-beach";
   import { splitLede } from "$lib/detail-lede";
   import type { PageData } from "./$types";
 
@@ -58,4 +57,4 @@
   />
 </div>
 
-<CtaBand backgroundImage={CTA_BEACH} caption="FIJI ISLANDS" />
+<CtaBand backgroundImage={data.siteImages.ctaBeach} caption="FIJI ISLANDS" />

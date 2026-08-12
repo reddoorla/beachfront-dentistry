@@ -5,9 +5,7 @@
   import DetailBody from "$lib/components/DetailBody.svelte";
   import OutlineButton from "$lib/components/OutlineButton.svelte";
   import CtaBand from "$lib/components/CtaBand.svelte";
-  import { CTA_BEACH } from "$lib/cta-beach";
   import { animateIn, ABOVE_FOLD_REVEAL } from "$lib/actions/animateIn";
-  import type { ImageField } from "@prismicio/client";
   import type { PageData } from "./$types";
 
   // Matches live `/team-members/<uid>`: a beach-photo hero band with the NAME
@@ -22,17 +20,11 @@
   // the same image on their small thumbnail module.") +
   // 17e321d9-3717-4a6a-810f-d9be03e60de2 (our-team pin #4, each member's
   // favorite beach as the hero): the hero is now the person's own gallery[0]
-  // (data.heroImage, Prismic-hosted — CSP-fine), and this shared photo is the
-  // FALLBACK for a person with no gallery. Served from /static so it clears
-  // the app CSP (img-src is Prismic-only) — the real asset, not a redraw.
-  const heroBeach: ImageField = {
-    url: "/images/team-member-hero.jpg",
-    alt: null,
-    copyright: null,
-    dimensions: { width: 1600, height: 900 },
-    id: "team-member-hero",
-    edit: { x: 0, y: 0, zoom: 1, background: "transparent" },
-  };
+  // (data.heroImage), and this shared photo is the FALLBACK for a person with
+  // no gallery. Both are Prismic-hosted now — the fallback used to be a
+  // /static file, which is why it was the one of the two that skipped the
+  // imgix ladder. See $lib/site-settings.
+  const heroBeach = $derived(data.siteImages.teamMemberHero);
 
   const hasHeadshot = $derived(isFilled.image(data.doc.data.media));
 </script>
@@ -127,4 +119,4 @@
   />
 </section>
 
-<CtaBand backgroundImage={CTA_BEACH} caption="FIJI ISLANDS" />
+<CtaBand backgroundImage={data.siteImages.ctaBeach} caption="FIJI ISLANDS" />

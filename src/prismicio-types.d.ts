@@ -971,6 +971,68 @@ export type ProjectDocument<Lang extends string = string> =
     Lang
   >;
 
+interface SettingsDocumentData {
+  /**
+   * Closing CTA photo (the beach under "Ready for great dental health?") field in *Site Settings*
+   *
+   * - **Field Type**: Image
+   * - **Placeholder**: *None*
+   * - **API ID Path**: settings.cta_beach
+   * - **Tab**: Shared photos
+   * - **Documentation**: https://prismic.io/docs/fields/image
+   */
+  cta_beach: prismic.ImageField<never>;
+
+  /**
+   * Contact page hero field in *Site Settings*
+   *
+   * - **Field Type**: Image
+   * - **Placeholder**: *None*
+   * - **API ID Path**: settings.contact_hero
+   * - **Tab**: Shared photos
+   * - **Documentation**: https://prismic.io/docs/fields/image
+   */
+  contact_hero: prismic.ImageField<never>;
+
+  /**
+   * Service page hero — shown when a service has no image of its own field in *Site Settings*
+   *
+   * - **Field Type**: Image
+   * - **Placeholder**: *None*
+   * - **API ID Path**: settings.service_hero
+   * - **Tab**: Shared photos
+   * - **Documentation**: https://prismic.io/docs/fields/image
+   */
+  service_hero: prismic.ImageField<never>;
+
+  /**
+   * Team member hero — shown when a person has no favorite beach field in *Site Settings*
+   *
+   * - **Field Type**: Image
+   * - **Placeholder**: *None*
+   * - **API ID Path**: settings.team_member_hero
+   * - **Tab**: Shared photos
+   * - **Documentation**: https://prismic.io/docs/fields/image
+   */
+  team_member_hero: prismic.ImageField<never>;
+}
+
+/**
+ * Site Settings document from Prismic
+ *
+ * - **API ID**: `settings`
+ * - **Repeatable**: `false`
+ * - **Documentation**: https://prismic.io/docs/content-modeling
+ *
+ * @typeParam Lang - Language API ID of the document.
+ */
+export type SettingsDocument<Lang extends string = string> =
+  prismic.PrismicDocumentWithoutUID<
+    Simplify<SettingsDocumentData>,
+    "settings",
+    Lang
+  >;
+
 export type AllDocumentTypes =
   | CollectionItemDocument
   | EventDocument
@@ -978,7 +1040,8 @@ export type AllDocumentTypes =
   | PageDocument
   | PersonDocument
   | ProductDocument
-  | ProjectDocument;
+  | ProjectDocument
+  | SettingsDocument;
 
 /**
  * Item in *Accordion → Default → Primary → items*
@@ -4733,6 +4796,8 @@ declare module "@prismicio/client" {
       ProjectDocument,
       ProjectDocumentData,
       ProjectDocumentDataGalleryItem,
+      SettingsDocument,
+      SettingsDocumentData,
       AllDocumentTypes,
       AccordionSlice,
       AccordionSliceDefaultPrimaryItemsItem,

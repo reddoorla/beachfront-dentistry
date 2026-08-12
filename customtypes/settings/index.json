@@ -1,0 +1,43 @@
+{
+  "id": "settings",
+  "label": "Site Settings",
+  "format": "custom",
+  "repeatable": false,
+  "status": true,
+  "json": {
+    "Shared photos": {
+      "cta_beach": {
+        "type": "Image",
+        "config": {
+          "label": "Closing CTA photo (the beach under \"Ready for great dental health?\")",
+          "constraint": {},
+          "thumbnails": []
+        }
+      },
+      "contact_hero": {
+        "type": "Image",
+        "config": {
+          "label": "Contact page hero",
+          "constraint": {},
+          "thumbnails": []
+        }
+      },
+      "service_hero": {
+        "type": "Image",
+        "config": {
+          "label": "Service page hero — shown when a service has no image of its own",
+          "constraint": {},
+          "thumbnails": []
+        }
+      },
+      "team_member_hero": {
+        "type": "Image",
+        "config": {
+          "label": "Team member hero — shown when a person has no favorite beach",
+          "constraint": {},
+          "thumbnails": []
+        }
+      }
+    }
+  }
+}

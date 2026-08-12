@@ -38,7 +38,11 @@
     body?: RichTextField;
     ctaLabel?: string | null;
     ctaLink?: LinkField;
-    backgroundImage?: ImageField;
+    /** `null` is a real state, not just an omission: the detail routes read
+     *  this off the `settings` singleton, which degrades to null rather than
+     *  taking every page down when the document is unreachable. Same shape as
+     *  DetailHero/SubpageHero, which already accepted it. */
+    backgroundImage?: ImageField | null;
     /** Small location label over the photo (the live "FIJI ISLANDS" whimsy).
      * Only rendered when a background photo is present. */
     caption?: string;
@@ -155,7 +159,7 @@
     <div
       class="relative isolate min-h-[70vw] w-full overflow-hidden md:min-h-[640px] lg:min-h-[800px]"
     >
-      <HeroBackgroundImage image={backgroundImage} preload={false} />
+      <HeroBackgroundImage image={backgroundImage ?? {}} preload={false} />
       <!-- White for the top ~18% fading to clear by ~60%, so the heading above
            dissolves into the beach and the CTAs read on white (fade into FIJI). -->
       <div
