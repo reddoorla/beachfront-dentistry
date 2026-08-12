@@ -115,11 +115,16 @@
         class="hidden"
       />
 
+      <!-- autofocus: the modal must open ONTO the first thing to fill in.
+           Without it the native dialog-focusing steps take the first focusable
+           child, which is Modal's ✕ — the booking flow's keyboard path started
+           on the exit. Exactly one field carries it. -->
       <Field
         name="name"
         label="Name"
         autocomplete="name"
         required
+        autofocus
         bind:value={name}
       />
       <Field

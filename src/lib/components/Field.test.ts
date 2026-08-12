@@ -48,6 +48,27 @@ describe("Field", () => {
     expect(alert.textContent).toBe("Required");
   });
 
+  // Modal.svelte finds its initial-focus target by `[autofocus]`; without one
+  // a dialog opens on its own ✕. Opt-in, and off by default so no page ever
+  // grabs focus on load by accident.
+  it("carries no autofocus attribute unless asked", () => {
+    const { getByLabelText } = render(Field, { name: "email", label: "Email" });
+    expect(
+      (getByLabelText("Email") as HTMLInputElement).hasAttribute("autofocus"),
+    ).toBe(false);
+  });
+
+  it("marks the control as the dialog's focus target when autofocus is set", () => {
+    const { getByLabelText } = render(Field, {
+      name: "name",
+      label: "Name",
+      autofocus: true,
+    });
+    expect(
+      (getByLabelText("Name") as HTMLInputElement).hasAttribute("autofocus"),
+    ).toBe(true);
+  });
+
   it("renders a textarea when type=textarea", () => {
     const { getByLabelText } = render(Field, {
       name: "msg",

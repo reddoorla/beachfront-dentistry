@@ -1,4 +1,5 @@
 import { render, screen, cleanup, act } from "@testing-library/svelte";
+import { tick } from "svelte";
 import { get } from "svelte/store";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { appointmentOpen } from "$lib/stores/appointment";
@@ -78,6 +79,20 @@ describe("AppointmentModal", () => {
     expect(dialog.getAttribute("aria-label")).toMatch(/appointment/i);
     expect(dialog.querySelector("form")?.getAttribute("action")).toBe(
       "/contact-us",
+    );
+  });
+
+  it("opens onto the Name field, not the ✕", async () => {
+    // Modal's ✕ is first in the DOM, so without the autofocus marker the
+    // spec's dialog-focusing steps land there: the keyboard path to booking
+    // an appointment used to start on the exit.
+    render(AppointmentModal);
+    appointmentOpen.set(true);
+    const dialog = await screen.findByRole("dialog");
+    await tick();
+    await tick();
+    expect(document.activeElement).toBe(
+      dialog.querySelector('input[name="name"]'),
     );
   });
 

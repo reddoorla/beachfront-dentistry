@@ -26,6 +26,11 @@
     pattern?: string;
     inputmode?: HTMLInputAttributes["inputmode"];
     rows?: number;
+    /** Marks this control as the one a containing dialog should open onto.
+     *  Modal.svelte looks for `[autofocus]` after showModal(); without it the
+     *  native dialog-focusing steps land on the first focusable child, which
+     *  is the ✕ — the exit. Only ever set it on ONE field per dialog. */
+    autofocus?: boolean;
   }
 
   let {
@@ -43,6 +48,7 @@
     pattern,
     inputmode,
     rows = 4,
+    autofocus = false,
   }: Props = $props();
 
   const uid = $props.id();
@@ -55,6 +61,9 @@
       .filter(Boolean)
       .join(" ") || undefined,
   );
+
+  const controlClass =
+    "border-2 border-light rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary aria-invalid:border-red-600";
 </script>
 
 <div class="flex flex-col gap-1">
@@ -71,6 +80,7 @@
   {/if}
 
   {#if type === "textarea"}
+    <!-- svelte-ignore a11y_autofocus -->
     <textarea
       id={inputId}
       {name}
@@ -80,12 +90,13 @@
       {minlength}
       {maxlength}
       {autocomplete}
+      {autofocus}
       bind:value
       aria-describedby={describedBy}
       aria-invalid={error ? "true" : undefined}
-      class="border-2 border-light rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary aria-invalid:border-red-600"
-    ></textarea>
+      class={controlClass}></textarea>
   {:else}
+    <!-- svelte-ignore a11y_autofocus -->
     <input
       id={inputId}
       {type}
@@ -97,10 +108,11 @@
       {pattern}
       {autocomplete}
       {inputmode}
+      {autofocus}
       bind:value
       aria-describedby={describedBy}
       aria-invalid={error ? "true" : undefined}
-      class="border-2 border-light rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary aria-invalid:border-red-600"
+      class={controlClass}
     />
   {/if}
 
