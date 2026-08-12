@@ -200,9 +200,13 @@
         aria-hidden="true"
       ></div>
       <!-- Expanded-state wash: live's `.box-gradient-overlay.qa` fades to 1
-           when the card opens, deepening the cyan so white answer copy reads. -->
+           when the card opens, deepening the cyan so white answer copy reads.
+           450ms/ease-out is not a taste call — it is the answer panel's
+           timing (see the panel below); the wash exists to make that copy
+           readable, so a slower fade would leave the copy arriving over a
+           ground that is still lightening. -->
       <div
-        class="absolute inset-0 transition-opacity duration-[650ms] motion-reduce:transition-none {expanded
+        class="absolute inset-0 transition-opacity duration-[450ms] ease-out motion-reduce:transition-none {expanded
           ? 'opacity-100'
           : 'opacity-0'}"
         style="background:linear-gradient(rgba(0,0,0,0), rgba(16,137,177,0.78) 31%, rgba(18,158,204,0.9) 80%)"
@@ -267,7 +271,7 @@
       <!-- `.qa-question`: museo-SANS (not the base h3 slab), absolute inside
            `.qa-text`, `margin-bottom: .5rem` = 12 / 16 / 20. -->
       <h3
-        class="absolute inset-x-0 bottom-3 font-sans text-[1.25rem] leading-[30px] font-medium transition-opacity duration-300 motion-reduce:transition-none md:bottom-4 lg:bottom-5 lg:text-[1.875rem] {variant ===
+        class="absolute inset-x-0 bottom-3 font-sans text-[1.25rem] leading-[30px] font-medium transition-opacity duration-200 motion-reduce:transition-none md:bottom-4 lg:bottom-5 lg:text-[1.875rem] {variant ===
         'teaser'
           ? 'lg:leading-[45px]'
           : 'lg:leading-[40px]'} {expanded ? 'opacity-0' : 'opacity-100'}"
@@ -276,13 +280,30 @@
         {titleText}
       </h3>
       <!-- `.qa-answer`: excerpt + Read More, translated out of the `.qa-text`
-           box until opened. `inert` keeps the clipped link untabbable. -->
+           box until opened. `inert` keeps the clipped link untabbable.
+           The collapsed offset is the panel's OWN height plus the box's bottom
+           padding, not a magic number: percentages on `translate` resolve
+           against the element's border box, so 100% IS the panel whatever the
+           answer's length, and the pb-3/4/5 ladder on the box (:123-127) is
+           the only other gap between the panel's resting bottom edge and the
+           box's. The trailing +1px is deliberate — it parks the panel's top
+           one pixel BELOW the clip line so an under-travel leak still fails
+           tests/interaction/qa-expand.spec.ts's `top >= box.bottom - 1`.
+           This was a flat 400px, which started the panel ~537px below a 183px
+           journey: measured 237/246/238ms (home) and 253/253/260ms (atd) at
+           1440/834/390 before the answer's first pixel cleared the mask, so a
+           third of every open was a blank card. Exact travel over 450ms
+           ease-out puts that first pixel on screen within a frame of the
+           click. The wash below is retimed to the same 450 so the deepening
+           cyan tracks the copy it exists to make readable, and the title fade
+           to 200 so the headline is gone before the copy reaches it — the old
+           quarter-second of dead travel was what used to hide that overlap. -->
       <div
         id={panelId}
         inert={!expanded}
-        class="transition-transform duration-[650ms] motion-reduce:transition-none {expanded
+        class="transition-transform duration-[450ms] ease-out motion-reduce:transition-none {expanded
           ? 'translate-y-0'
-          : 'translate-y-[400px]'}"
+          : 'translate-y-[calc(100%+0.75rem+1px)] md:translate-y-[calc(100%+1rem+1px)] lg:translate-y-[calc(100%+1.25rem+1px)]'}"
       >
         <p
           class="text-[16px] leading-[24px] font-light text-white lg:text-[20px] lg:leading-[30px]"

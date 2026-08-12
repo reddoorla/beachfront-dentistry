@@ -162,6 +162,148 @@ for (const pg of PAGES) {
   }
 }
 
+// MOTION CONTRACT — the open starts on the click frame (motion audit item 1,
+// 2026-08-12). The panel used to be parked at a flat `translate-y-[400px]`
+// against a journey of ~183px, so it spent the first third of a 650ms open
+// crossing dead space BEHIND the clip mask: measured 237/246/238ms (home) and
+// 253/253/260ms (ask-the-doctor) at 1440/834/390 before the answer showed its
+// first pixel, i.e. click the "+" and the icon flips to "−" and then nothing
+// happens for a quarter second.
+//
+// The fix is arithmetic, not taste: the offset is the panel's own height
+// (translate percentages resolve against the border box) plus the box's pb
+// ladder, +1px so the resting top stays one pixel below the clip line and the
+// collapsed-state assertion further down cannot go vacuous. That makes the
+// dead travel a MEASURABLE quantity — this block asserts it directly (≤2px,
+// where 400px was the bug) and then confirms the perceptual consequence with
+// a wall-clock sample, because the arithmetic is only worth anything if the
+// first pixel really does arrive within a frame.
+//
+// These tests run with motion ON — they exist to measure the animation, and
+// the whole suite above runs reduced, so nothing else in the repo would
+// notice if the transition stopped animating altogether.
+const FIRST_PIXEL_MS = 100; // one frame in practice (12-24ms measured); the pre-fix number was 237-260
+const FULL_OPEN_MS = 600; // 450ms transition + slack; the pre-fix number was 671-685
+
+for (const pg of PAGES) {
+  for (const vp of VIEWPORTS) {
+    test(`${pg.label} @${vp.width}: the answer's first pixel clears the mask within a frame of the click`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await page.goto(pg.path, { waitUntil: "networkidle" });
+      await page.evaluate(() => document.fonts.ready);
+      const first = page.locator(".qa-item").first();
+      await first.scrollIntoViewIfNeeded();
+      // animateIn's own reveal transform moves the card; wait it out so the
+      // sampler below is watching the panel travel and nothing else.
+      await page.waitForTimeout(1000);
+
+      const m = await first.evaluate(async (item) => {
+        const outer = item.firstElementChild as HTMLElement;
+        const btn = outer.querySelector("button[aria-expanded]") as HTMLElement;
+        const panel = outer.querySelector('[id^="qa-panel-"]') as HTMLElement;
+        const box = panel.parentElement as HTMLElement;
+        const wash = [...outer.querySelectorAll<HTMLElement>("div")].find(
+          (d) => getComputedStyle(d).transitionProperty === "opacity",
+        )!;
+        const title = outer.querySelector("h3") as HTMLElement;
+        // How far the answer sits below the clip line at rest: this is the
+        // dead travel, in px, that no one can see being crossed.
+        const dead =
+          panel.getBoundingClientRect().top -
+          box.getBoundingClientRect().bottom;
+        const overhang = () =>
+          box.getBoundingClientRect().bottom -
+          panel.getBoundingClientRect().top;
+        const t0 = performance.now();
+        btn.click();
+        let firstPixel = -1;
+        let settled = -1;
+        let last: number | null = null;
+        let stable = 0;
+        await new Promise((resolve) => {
+          const tick = () => {
+            const now = performance.now() - t0;
+            const over = overhang();
+            if (firstPixel < 0 && over > 0.5) firstPixel = now;
+            if (last !== null && Math.abs(over - last) < 0.05) {
+              if (++stable >= 3 && settled < 0) settled = now;
+            } else stable = 0;
+            last = over;
+            if (settled >= 0 || now > 1600) return resolve(0);
+            requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        });
+        const ms = (el: Element) =>
+          parseFloat(getComputedStyle(el).transitionDuration) * 1000;
+        return {
+          dead: +dead.toFixed(1),
+          firstPixel: Math.round(firstPixel),
+          settled: Math.round(settled),
+          panelMs: ms(panel),
+          washMs: ms(wash),
+          titleMs: ms(title),
+        };
+      });
+
+      // 1. no dead travel: the answer rests AT the clip line, not behind it.
+      expect(
+        m.dead,
+        "px of unseen travel below the mask",
+      ).toBeGreaterThanOrEqual(0);
+      expect(m.dead, "px of unseen travel below the mask").toBeLessThanOrEqual(
+        2,
+      );
+      // 2. and therefore it is visible essentially on the click frame.
+      expect(m.firstPixel).toBeGreaterThanOrEqual(0);
+      expect(m.firstPixel).toBeLessThan(FIRST_PIXEL_MS);
+      // 3. the whole open still lands quickly.
+      expect(m.settled).toBeGreaterThan(0);
+      expect(m.settled).toBeLessThan(FULL_OPEN_MS);
+      // 4. the wash is the copy's ground — it must not lag the copy it exists
+      //    to make readable, and the headline must clear before the copy
+      //    arrives (the old dead zone hid that overlap for free).
+      expect(m.washMs).toBe(m.panelMs);
+      expect(m.titleMs).toBeLessThanOrEqual(m.panelMs);
+    });
+  }
+}
+
+test("reduced motion: the answer is simply THERE on the next frame", async ({
+  page,
+}) => {
+  // The counterpart to the block above: with motion off nothing may travel at
+  // all. Explicit emulateMedia — the config option never reached the page
+  // (see playwright.config.ts).
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/", { waitUntil: "networkidle" });
+  const first = page.locator(".qa-item").first();
+  await first.scrollIntoViewIfNeeded();
+
+  const m = await first.evaluate(async (item) => {
+    const outer = item.firstElementChild as HTMLElement;
+    const btn = outer.querySelector("button[aria-expanded]") as HTMLElement;
+    const panel = outer.querySelector('[id^="qa-panel-"]') as HTMLElement;
+    const box = panel.parentElement as HTMLElement;
+    btn.click();
+    await new Promise((r) => requestAnimationFrame(() => r(0)));
+    const durations = [panel, box, outer].map(
+      (el) => parseFloat(getComputedStyle(el).transitionDuration) * 1000,
+    );
+    return {
+      durations,
+      // one frame after the click the answer is fully inside the box
+      insideAfterOneFrame:
+        panel.getBoundingClientRect().bottom <=
+        box.getBoundingClientRect().bottom + 1,
+    };
+  });
+  expect(Math.max(...m.durations)).toBeLessThanOrEqual(1);
+  expect(m.insideAfterOneFrame).toBe(true);
+});
+
 test("collapsed card hides the answer and keeps it untabbable", async ({
   page,
 }) => {
