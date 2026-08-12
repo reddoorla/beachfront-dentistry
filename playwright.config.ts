@@ -1,10 +1,12 @@
 import { defineConfig } from "@playwright/test";
 import base from "@reddoorla/maintenance/configs/playwright-a11y";
 
-// Emulate reduced motion in tests: instant scrollIntoView (no long animated
-// smooth-scroll that flakes Playwright's actionability checks under parallel
-// load) and view transitions fall back to instant. Pairs with the
-// prefers-reduced-motion gate on scroll-behavior in src/app.css.
+// This file used to claim it emulated reduced motion suite-wide (for instant
+// scrollIntoView and instant view transitions, pairing with the
+// prefers-reduced-motion gate on scroll-behavior in src/app.css). It never
+// did — see the note in `use` below. Specs that need the preference emulate
+// it themselves; the intent above was never actually in force, so nothing
+// depends on it.
 //
 // R1.1 (health-gate): the central `smoke` audit (reddoor-maintenance
 // src/audits/smoke.ts) allocates a free port and passes it as
