@@ -98,12 +98,18 @@ for (const path of [TEAM_MEMBER, QUESTION]) {
     page,
   }) => {
     await page.goto(path, { waitUntil: "networkidle" });
-    // The CTA band is the last full-bleed photo on the page.
-    const bleed = (await photos(page)).filter((r) => r.w > 300);
-    expect(bleed.length, "the closing band renders its beach").toBeGreaterThan(
-      0,
-    );
-    expect(bleed[bleed.length - 1].src).toMatch(PRISMIC);
+    // Scoped to the band itself via `data-band="cta"`, NOT "the last full-bleed
+    // photo on the page". The loose version passed on both of these routes
+    // while the band was empty, because it fell through to the hero above —
+    // which is Prismic-hosted for reasons that have nothing to do with this
+    // change. A test that cannot fail is not a check.
+    const src = await page.evaluate(() => {
+      const band = document.querySelector('[data-band="cta"]');
+      const img = band?.querySelector("img");
+      return img ? img.currentSrc || img.src : null;
+    });
+    expect(src, "the closing band renders its beach").not.toBeNull();
+    expect(src!).toMatch(PRISMIC);
   });
 }
 
