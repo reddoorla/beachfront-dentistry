@@ -203,6 +203,77 @@ describe("CollectionList slice — tags line + detail-route links", () => {
   });
 });
 
+// The team row's name is a HOVER reveal, and Tailwind v4 wraps `group-hover:`
+// in `@media (hover: hover)` — so on a phone or a tablet the row that exists
+// to introduce the staff rendered eleven unlabelled faces. Probed at 390 with
+// touch emulation before the fix: `matchMedia("(hover: hover)")` false, badge
+// opacity 0 on all 11, before and after a tap.
+// These assert the CLASS CONTRACT, since jsdom evaluates no media queries;
+// the rendered proof is the 390 screenshot pair in the commit body.
+describe("CollectionList slice — the team row names a face without hover", () => {
+  const teamSlice = {
+    slice_type: "collection_list",
+    variation: "team",
+    primary: {
+      heading: [{ type: "heading2", text: "Meet Your Team", spans: [] }],
+      collection_type: "person",
+      max_items: 24,
+    },
+    items: [],
+  } as unknown as Content.CollectionListSlice;
+
+  const context = {
+    collections: {
+      person: [
+        {
+          uid: "stacey",
+          type: "person",
+          data: {
+            title: [{ type: "heading3", text: "Stacey", spans: [] }],
+            media: {
+              url: "https://img.example/stacey.jpg",
+              alt: "Stacey",
+              dimensions: { width: 800, height: 800 },
+            },
+          },
+        },
+      ],
+    },
+  } as never;
+
+  const render_ = () =>
+    render(CollectionList, { props: { slice: teamSlice, context } });
+
+  it("prints the name in a caption that touch devices can see", () => {
+    const { getByRole } = render_();
+    const link = getByRole("link", { name: "Stacey" });
+    const caption = [...link.querySelectorAll("span")].find((s) =>
+      s.className.includes("[@media(hover:none)]"),
+    );
+    expect(caption?.textContent?.trim()).toBe("Stacey");
+    // hidden where a pointer can hover (the design's reveal still owns that
+    // case), shown where it cannot — the Grid.svelte:169 idiom
+    expect(caption?.className).toContain("hidden");
+    expect(caption?.className).toContain("[@media(hover:none)]:block");
+    // and it is inside the link, so tapping the name navigates
+    expect(caption?.closest("a")).toBe(link);
+  });
+
+  it("keeps the cyan hover badge off the face on touch, not permanently over it", () => {
+    const { getByRole } = render_();
+    const badge = getByRole("link", { name: "Stacey" }).querySelector(
+      "span.absolute",
+    );
+    expect(badge?.className).toContain("opacity-0");
+    expect(badge?.className).toContain("group-hover:opacity-100");
+    expect(badge?.className).toContain("group-focus-visible:opacity-100");
+    // deliberately NOT `[@media(hover:none)]:opacity-100`: that one-class fix
+    // paints a 65% cyan disc over every face permanently (probed at 390), and
+    // this row's job is the faces. The caption above carries touch instead.
+    expect(badge?.className).not.toContain("[@media(hover:none)]:opacity-100");
+  });
+});
+
 // The roster order is an AUTHORED field (person.order), not Prismic's
 // document order. The card excerpt was authored too (person.teaser) until
 // MARKUP ROUND C: thread 4dd560d2-3dad-4240-b5bb-3a5d64a6cedd (yfv pin #5)

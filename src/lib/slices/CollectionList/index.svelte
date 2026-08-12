@@ -139,7 +139,18 @@
        fade; .rollover-name: museo-slab w700 white uppercase, centered —
        12px/15 mobile, 24px/30 desktop; measured 2026-08-02). The overlay also
        reveals on keyboard focus, and the wrapping link still carries the
-       accessible name for AT. -->
+       accessible name for AT.
+       A hover reveal is the whole name affordance, so on a device with no
+       hover the row introduced NOBODY — eleven unlabelled faces on every
+       phone and tablet (Tailwind v4 wraps `group-hover:` in
+       `@media (hover: hover)`, so the badge stayed at opacity 0 through a
+       tap). `[@media(hover:none)]:opacity-100` — Grid.svelte:169's idiom —
+       fixes that in one class, but it fixes it by painting a 65% cyan disc
+       over the face permanently: probed at 390 the name lands across the
+       eyes and every headshot reads as a blue silhouette, which defeats the
+       row's actual job. So touch gets a CAPTION under the circle instead:
+       face and name at once, which the hover badge can never do. The badge
+       keeps its pointer/keyboard behaviour untouched. -->
   {#if doc.data.media?.url}
     <span class="group relative block">
       <PrismicImage
@@ -153,6 +164,17 @@
       >
         {asText(doc.data.title as RichTextField)}
       </span>
+    </span>
+    <!-- aria-hidden: the wrapping link already carries this exact string as
+         its aria-label, so the caption is the VISIBLE half of a name AT
+         already gets (and WCAG 2.5.3 holds — accessible name === visible
+         text). #365b6d, not the card's cyan: cyan on white is 3.1:1 and this
+         is 12px bold, which is not large text. -->
+    <span
+      aria-hidden="true"
+      class="font-slab mt-3 hidden text-center text-[12px] leading-[15px] font-bold tracking-[1.28px] text-[#365b6d] uppercase lg:text-[16px] lg:leading-[20px] [@media(hover:none)]:block"
+    >
+      {asText(doc.data.title as RichTextField)}
     </span>
   {/if}
 {/snippet}
