@@ -179,8 +179,25 @@
              60px there, the gutter is 48), 8%/5% below (= live, and the
              missing xs tier was a 5%-vs-8% infidelity). See LEDGER
              2026-08-10. -->
+        <!-- Round H4, operator (MarkUp thread 7dd0c2f2): "wave should never
+             touch the text". `bottom-[20%]`/`lg:bottom-[31%]` are fractions of
+             the PHOTO, but the thing to clear is the footer's wave, which is
+             anchored to the footer's top — and the footer top is not the photo
+             bottom: this section's `-mb-[10%]` (a percentage of WIDTH) drags
+             the footer up over the photo by 39/83/144px at 390/834/1440. So a
+             percentage of the photo's height could never track it, and the
+             label sat under the arc: probed overlap −24.0 @834, −14.0 @1440,
+             −1.4 @1294. `calc(10vw + Npx)` undoes the overlap exactly, leaving
+             N px between the label and the footer's top at every width in the
+             band; N is the footer wave's own box height (128/160), the same
+             "clear the divider's box" rule the hero mounts take, so the
+             clearance is constant (29.9px @md, 37.3px @lg) instead of drifting.
+             ≤767 is deliberately untouched: the label is not painted there at
+             all (the -10% overlap buries it under the footer, opacity 0 — a
+             separate, pre-existing defect that the wave does not cause and
+             this round does not fix). -->
         <p
-          class="absolute bottom-[20%] left-[5%] z-10 font-sans text-[10px] leading-[1.15] font-light text-white xs:left-[8%] xs:text-[15px] md:left-12 md:text-[20px] lg:bottom-[31%] lg:left-[max(60px,calc(50%_-_640px))] lg:text-[25px]"
+          class="absolute bottom-[20%] left-[5%] z-10 font-sans text-[10px] leading-[1.15] font-light text-white xs:left-[8%] xs:text-[15px] md:bottom-[calc(10vw_+_128px)] md:left-12 md:text-[20px] lg:bottom-[calc(10vw_+_160px)] lg:left-[max(60px,calc(50%_-_640px))] lg:text-[25px]"
           use:animateIn={LIVE_REVEAL}
         >
           {caption}

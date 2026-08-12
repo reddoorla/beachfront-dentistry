@@ -3526,3 +3526,185 @@ tests/interaction/nav-menu.spec.ts now asserts centered links instead of
 on-gutter links; structure/scroll/label tests unchanged. Gate round
 markuph3 (threshold 0.1, matrix 1440/834/390, mask [], neutralizeMedia
 false) on home as no-regression — the menu is closed at capture.
+
+## MARKUP ROUND H4 — the wave lands level and lets go of the text (2026-08-11, feat/markup-round-2026-08)
+
+- PIN: thread 7dd0c2f2 (our-team board 7944efa6), the same thread H1 answered.
+  TWO operator corrections, verbatim:
+  (1) "sine should be only up/down on each page landing at the same height"
+  (2) "wave should never touch the text"
+  Standing directive still in force, verbatim: "I'm no longer concerned about
+  matching the original webflow." Every wave row that moves against the REF in
+  this round is therefore ACK'd BY DIRECTIVE, not a failure. Rows that are NOT
+  wave rows moving would still be regressions; none did (see gate results).
+
+- CORRECTION 1 — the ends. H1's path was a true sine, but the SVG was stretched
+  to 133% of an `overflow-hidden` box (169% in the footer), so only the leading
+  1/1.33 (1/1.69) of the viewBox was ever on screen: 2.26 visible periods, not 3. The wave entered at its mid-line and left on a crest. MEASURED right-end
+  minus left-end y, page coordinates, BEFORE (every one of the 19 mounts on the
+  9 gate pages, at 1440/1294/834/390):
+
+      mount                     1440     1294     834      390
+      Hero / SubpageHero        −31.98   −31.98   −25.59   −19.20
+      DetailHero                −31.98   −31.98   −25.59   −19.20
+      SectionGrid (mirror)      +31.98   +31.98   +25.59   +19.20
+      Footer arc (169%)         +42.10   +42.10   +33.68   +25.18
+
+  i.e. exactly one full amplitude of net rise or fall across every divider on
+  the site. AFTER, same 76 measurements: |Δ| ≤ 0.01px, worst case 0.01px, and
+  the visible period count is 2.0 at every mount and every width.
+
+  The fix is structural, not a tuned number (src/lib/components/WaveDivider.svelte):
+  · the `width` PROP IS GONE. The SVG is now `calc(100% + 1.3px)` of its clip
+  box, hard-coded — the rendered width IS the viewBox width, so nothing can
+  be cropped mid-period. Footer.svelte's `width="169%"` override is removed.
+  · TWO whole periods: y = 60 − 32·cos(πx/300), knots at x=0/300/600/900/1200
+  (28/92/28/92/28), 4 cubic Hermite segments per period, max deviation from
+  the true cosine 0.35px (same fidelity as H1's sine fit).
+  · COSINE, not sine, so dy/dx = 0 at BOTH ends. The 1.3px hairline-seam
+  overhang therefore costs a second-order error: computed |Δy| ≤ 0.037px
+  across every width × box height, versus 0.36–0.80px for the sine phase.
+  Level ends are a property of the curve, not of any mount's arithmetic.
+  Visible wavelength barely moves — 0.44W → 0.50W on the section waves, 0.56W →
+  0.50W in the footer — so the divider keeps its character. Side effect, noted
+  rather than hidden: the path is now symmetric about x=600, so SectionGrid's
+  `mirror` (rotateY 180) is a visual no-op. The prop and class are KEPT because
+  they are part of the services-band DOM the gates measure.
+
+- CORRECTION 2 — the text. METRIC, stated so it can be argued with: clearance is
+  the distance from a glyph box (Range.getClientRects on the text node, so real
+  line boxes, not element boxes) to the wave's VISIBLE CURVED EDGE, measured
+  over that glyph's own x-range, with the SVG's CTM applied so the stretch, the
+  clip and the rotate-180/-scale-x-100 are all folded in. The flat fill between
+  that edge and the box's own edge is excluded because it is by construction the
+  same colour as the band it seams into (that is what `fill` is for). THRESHOLD
+  8px: the site's smallest spacing step (Tailwind `2`), and 8× the worst
+  antialiasing/rounding error of the stretched SVG edge, so it stays a gap the
+  eye can see at any DPR. Both numbers are reported below — the strict
+  painted-extent figure too, so nothing is hidden behind the choice of metric.
+
+  BEFORE: 64 of 299 sampled text rows overlapped the wave; min clearance
+  −49.31px (team "Dr. Robert Quan" @1294). Worst per mount:
+
+      mount / page                  1440     1294     834      390
+      Hero group-photo (yfv)        −12.0    −12.0    −30.0    −27.2
+      SubpageHero subpage (svc,atd) −10.5    −18.8    −24.9    −27.3
+      SubpageHero meet (our-team)   −42.9    −46.5    −32.0    −26.2
+      SubpageHero contact           −42.0    −42.0    −36.6    −16.2
+      DetailHero (team/svc/qa)      −44.5    −49.3    −22.6    −25.0
+      Footer arc (FIJI ISLANDS)     −14.0    −1.4     −24.0    +10.0
+      Hero full-bleed (home)        +20.9    +20.6    +34.0    +68.3
+      SectionGrid (home)           +134.0   +134.0    +81.4    +52.8
+
+  AFTER: 0 of 299 rows below 8px; min clearance 17.4px (contact hero @834).
+  Worst per mount:
+
+      mount / page                  1440     1294     834      390
+      Hero group-photo (yfv)         28.0     28.0     26.4     20.8
+      SubpageHero subpage (svc,atd)  28.0     28.0     19.4     17.8
+      SubpageHero meet (our-team)    28.0     28.0     18.4     17.8
+      SubpageHero contact            28.0     28.0     17.4     21.8
+      DetailHero (team/svc/qa)       28.0     29.0     23.4     17.8
+      Footer arc                     70.0     67.0     52.9     49.8
+      Hero full-bleed (home)         20.9     20.6     58.6     68.3
+      SectionGrid (home)            134.0    134.0     81.4     53.1
+
+  THE RULE, one line: no glyph sits inside a divider's box. Every flipped mount
+  now takes the divider's OWN height ladder as its bottom offset — 72/96/120,
+  the literal `heightClass` — which is 30% more room than the crest strictly
+  needs (the crest reaches 76.67% of the box) and is the version anyone can
+  check by eye. Sites changed:
+  · Hero/index.svelte group-photo heading: bottom-[24px]/lg:bottom-20 →
+  bottom-[72px] md:bottom-[96px] lg:bottom-[120px]
+  · SubpageHero heading block: all THREE live ladders (subpage bottom:2%+mb:5%,
+  meet .75rem, contact 1rem) → the same 72/96/120. DEVIATION from live.
+  · DetailHero label: bottom-[10%] (a fraction of the band, tracking nothing)
+  → 72/96/120. DEVIATION from live.
+  · SubpageHero's first subheading loses `-mt-[10px]` ("nudges up 10px into
+  the wave, matching live") — the only text on the site inside a divider box
+  from BELOW. Strict overlap was −10.0/−14.0; edge margin 6.8px @390, under
+  the 8px bar. DEVIATION from live. Costs our-team 10px of height, all of it
+  inside the hero's own `top` region — the ONLY height any page gained.
+  · CtaBand's FIJI caption: bottom-[20%]/lg:bottom-[31%] are fractions of the
+  PHOTO, but the thing to clear is the FOOTER's wave, and this section's
+  `-mb-[10%]` (a percentage of WIDTH) drags the footer up over the photo by
+  39/83/144px @390/834/1440 — so no percentage of the photo's height could
+  ever track it. Now bottom:calc(10vw + 128px) at md and calc(10vw + 160px)
+  at lg — the footer wave's own box heights — which holds the clearance
+  constant across a whole band instead of drifting.
+  ≤767 is deliberately UNTOUCHED — see the open item below.
+  Every hero offset is an ABSOLUTE box, so none of them adds page height.
+
+  RESIDUAL, disclosed: one row is still negative under the STRICT painted-extent
+  metric — our-team "Our" @834, −4.0px. That is the h2's font ascender box (72px
+  face in an 80px line box) reaching 4px over the seam into the flat white fill;
+  the ink is nowhere near, and against the wave's visible edge the same row
+  clears by 18.4px. Not chased: tuning to a font's ascender against a fill that
+  is the same white as the page behind it would be tuning to the metric.
+
+- OPEN ITEM, not caused by this round and not fixed by it: at ≤767 the FIJI
+  caption is rendered but invisible — the CtaBand's `-mb-[10%]` puts it 80px
+  BELOW the footer's top at 390, buried under the footer, opacity 0 (its reveal
+  never fires). The wave does not touch it because nothing paints it. Fixing it
+  would reveal content at 390 that no pin asked for; flagged for the operator.
+
+- SEAMS (correction 3, watertight): pixel-sampled the two rows straddling every
+  divider's flat edge, full width, all 19 mounts × 4 widths, on the pre-change
+  and post-change builds. The hairline signal is BYTE-IDENTICAL before and
+  after: worst 116/255 at home/1440/services x=977, 75 at home/1294 x=962, 70 at
+  team/834 x=773, 95 at team/390 x=264 — all four are content crossing the seam
+  (the big-teal-tooth badge, the headshot), present at the same x with the same
+  value on both builds. No new gap, and none of the A-round overlap mechanics
+  (heights, the V0 H0 close, the absolute footer overlay) was touched.
+
+Mechanical checks (both corrections, because a path-string test cannot see
+either): tests/interaction/wave-divider.spec.ts — 16 tests, the 4 routes that
+between them mount every caller (Hero ×2, SectionGrid, SubpageHero, DetailHero,
+Footer) × 1440/1294/834/390, asserting per mount |endDelta| ≤ 1px, exactly 2
+visible periods, and ≥8px clearance to the curved edge, all measured through
+getScreenCTM on the live DOM after a scroll sweep (an unrevealed heading is
+opacity 0 and would otherwise hide the collision the test exists to catch).
+1294 is in the matrix deliberately: the pixel gate never sees it, and it is
+where the footer arc's end delta was worst relative to the copy around it.
+src/lib/components/WaveDivider.test.ts adds three unit pins — width is
+`calc(100% + 1.3px)` (any overflow factor reintroduces the H1 defect), y(0) =
+y(1200), and the knots are the 28/92 alternation of two whole periods.
+tests/interaction/nav-menu.spec.ts stopped selecting the DetailHero label by
+`[class*="bottom-[10%]"]` — a spacing change silently broke a test about
+HORIZONTAL alignment — and now uses a `data-detail-label` hook.
+
+Gate round: markuph4 (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false), all nine pages; baselines markuph3 for home, markuph2
+for team/svc/qa, markuph1 for yfv/our-team/services/atd/contact. 48 rows moved,
+EVERY ONE of them a wave row — `top` (the hero band and its divider), `Ready for
+great [dental health]` (the CtaBand photo the footer arc overlays, and the moved
+caption), home's `Your Path to Oral Health` (the SectionGrid band's top wave
+seam falls inside it: y≈3667 at 1440 against the region's 2585→3937, and
+likewise at 834 and 390) and home's `Want to learn more` @390 13.4→13.3 (the
+ACK'd map-noise floor, improving by 0.1). NOTHING outside a wave region moved:
+every other row is byte-identical to its baseline.
+· Hero regions vs the REF, PASS throughout, worse because the heading is now
+20-60px off live's position by design: atd 4.9→7.2/3.9→5.4/4.6→7.5
+(1440/834/390), yfv 5.3→7.9/-/5.0→7.6, contact 5.9→7.8/4.2→5.1/5.3→6.7,
+our-team 6.8→8.2/5.4→6.0/5.9→7.7, services 5.6→6.7/5.7→6.5/7.4→8.9.
+· our-team `top` gains Δh 2.2%/2.0%/2.8% — that is the 10px from the dropped
+-mt, and it is the ONLY Δh any page gained. Every other Δh in the round is
+at its baseline value, which is the proof that the hero moves added no page
+height.
+· FOUR rows crossed the line, all the same row on different pages: `Ready for
+    great` @834 10.0 → 10.1 on contact/qa/svc/team. The same region moved
++0.2 (9.6→9.8) on home/yfv/atd/services/our-team; those four were sitting
+exactly ON 10.0. ACK'd by directive — this region is the footer arc's.
+· One row IMPROVED past an ACK'd floor: home `top` @390 10.1 → 9.8, FAIL →
+PASS. Recorded because a floor moved, even upward. It is a wave row.
+· Every other ACK'd floor is at its EXACT value: team Dentist 13.0/9.9/6.1,
+home OdT @834 10.9, home BtS @390 Δh 5.8, svc What-to-expect @1440 Δh 5.1,
+atd BtS 61.7/60.5/66.9, our-team DRQ 37.2/23.7, yfv DRQ 27.2, yfv WWYTFC
+@1440 Δh 15.1, contact OFFICE HOURS @1440 10.5, WTLM map rows 12.0-13.4.
+Per-page exit=1 is those floors, nothing else.
+
+Evidence in the scratchpad (02eae5da…/scratchpad): before.json / before2.json /
+after.json / after2.json (the 76-mount end-height + clearance measurements both
+ways), detail-before.txt (collision provenance), 76 before + 76 after crops in
+shots-before/ and shots-after/, and the composite sheets SHEET-h4-1440.png,
+SHEET-h4-1294.png, SHEET-h4-834.png, SHEET-h4-390.png.

@@ -182,12 +182,15 @@
        too) — leaving it in flow at mobile ate the CtaBand's -39px overlap and
        pushed every footer line 39px below live's (the desktop version of the
        same bug cost 144px in an earlier round). -->
+  <!-- The 169% width override died in Round H4: an overflowing SVG is exactly
+       what left the arc entering at its mid-line and leaving on a trough
+       (+42.1px of net rise at 1440). WaveDivider now fixes the width at 100%
+       of its box; only the taller height ladder is still the footer's own. -->
   <div class="absolute inset-x-0 bottom-full">
     <WaveDivider
       fill={waveFill}
       flip
       heightClass="h-[96px] md:h-[128px] lg:h-[160px]"
-      width="169%"
     />
   </div>
 

@@ -276,8 +276,17 @@
          5% ≤479 (beachfront.css:9164-9167), 8% ≤767 (:8627-8630), 48px
          768-991 / max(60px, 50% − 640px) ≥992 (:5858-5867 against the
          stepped root). -->
+    <!-- Bottom offset = the wave divider's own box height ladder
+         (WaveDivider `heightClass`, 72/96/120). Operator, MarkUp thread
+         7dd0c2f2: "wave should never touch the text" — at bottom-[24px] /
+         lg:bottom-20 this heading sat INSIDE the divider box and the white
+         crest ran straight through it (probed −27.2px @390, −30.0 @834,
+         −12.0 @1440 of overlap). Clearing the whole box, rather than just the
+         crest's 76.67% of it, keeps the rule checkable by eye and leaves a
+         measured 11.8/17.4/23px of daylight. The band's height is unchanged —
+         this is an absolute box, so nothing below it moves. -->
     <div
-      class="absolute bottom-[24px] left-[5%] z-10 xs:left-[8%] md:left-12 lg:bottom-20 lg:left-[max(60px,calc(50%_-_640px))]"
+      class="absolute bottom-[72px] left-[5%] z-10 xs:left-[8%] md:bottom-[96px] md:left-12 lg:bottom-[120px] lg:left-[max(60px,calc(50%_-_640px))]"
       use:animateIn={LIVE_REVEAL}
     >
       <!-- Inline white: the global `main h1–h3` primary rule outranks text-white. -->

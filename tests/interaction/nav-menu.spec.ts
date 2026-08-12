@@ -157,7 +157,7 @@ for (const w of [1440, 1354, 1294, 834, 390]) {
     });
     await page.evaluate(() => document.fonts.ready);
     const x = await page.evaluate(() => {
-      const el = document.querySelector('[class*="bottom-[10%]"]');
+      const el = document.querySelector("[data-detail-label]");
       return el ? el.getBoundingClientRect().x : null;
     });
     expect(x).not.toBeNull();
