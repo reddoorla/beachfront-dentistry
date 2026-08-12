@@ -216,6 +216,20 @@ describe("AppointmentModal submit results", () => {
     expect(document.activeElement).toBe(screen.getByRole("status"));
   });
 
+  it("marks the button aria-busy while the request is in flight", async () => {
+    // `disabled` alone changes only the accessible name ("Sending…"), silently.
+    const { dialog } = await openAndSubmit();
+    const button = dialog.querySelector(
+      'button[type="submit"]',
+    ) as HTMLButtonElement;
+
+    expect(button.getAttribute("aria-busy")).toBe("true");
+    expect(button.textContent?.trim()).toBe("Sending…");
+
+    await finish({ type: "failure", status: 502, data: { error: "nope" } });
+    expect(button.getAttribute("aria-busy")).toBe("false");
+  });
+
   it("clears a previous error when the modal is reopened", async () => {
     await openAndSubmit();
     await finish({ type: "failure", status: 502, data: { error: "nope" } });

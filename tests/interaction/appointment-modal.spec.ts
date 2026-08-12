@@ -27,6 +27,7 @@ import type { Page } from "@playwright/test";
 // ===========================================================================
 
 const DIALOG = "dialog[open]";
+const SUBMIT = 'dialog button[type="submit"]';
 
 /** Click the info band's own "Request Appointment" — a real user path through
  *  the layout's delegated `a[href="#appointment"]` handler, not a store poke.
@@ -393,4 +394,127 @@ test("forced-colors: the focus ring survives (outline-hidden, not outline-none)"
   // forced colours the box-shadow ring is dropped by the engine, so this
   // outline is the ONLY focus affordance left — which is the whole point.
   expect(outline.style).not.toBe("none");
+});
+
+// ---------------------------------------------------------------------------
+// B + D — the submit button
+// ---------------------------------------------------------------------------
+
+test("the submit button acknowledges hover, press and focus", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await gotoContact(page);
+  await openModal(page);
+
+  const resting = await page.evaluate((sel) => {
+    const cs = getComputedStyle(document.querySelector(sel)!);
+    return {
+      bg: cs.backgroundColor,
+      transitionProperty: cs.transitionProperty,
+      transitionDuration: cs.transitionDuration,
+    };
+  }, SUBMIT);
+  // Probed before the fix: 0s, and hover === rest.
+  expect(resting.transitionDuration).toBe("0.15s");
+  expect(resting.transitionProperty).toContain("background-color");
+  expect(resting.transitionProperty).toContain("transform");
+
+  await page.hover(SUBMIT);
+  await page.waitForTimeout(250);
+  const hovered = await page.evaluate(
+    (sel) => getComputedStyle(document.querySelector(sel)!).backgroundColor,
+    SUBMIT,
+  );
+  expect(hovered).not.toBe(resting.bg);
+
+  // Hover must DARKEN. The audit proposed `hover:bg-primary` (#129ecc), which
+  // would have taken the white label to 3.09:1 — hovering the button would
+  // have broken AA. Assert the direction, not just the difference.
+  const ratios = await page.evaluate(
+    ([rest, hover, contrastSrc]) => {
+      const contrast = eval(contrastSrc) as (a: string, b: string) => number;
+      return {
+        rest: contrast("rgb(255,255,255)", rest),
+        hover: contrast("rgb(255,255,255)", hover),
+      };
+    },
+    [resting.bg, hovered, CONTRAST_FN] as const,
+  );
+  expect(ratios.hover).toBeGreaterThanOrEqual(ratios.rest);
+  expect(ratios.hover).toBeGreaterThanOrEqual(4.5);
+
+  // Keyboard users get a ring of the button's own. It has to arrive by TAB:
+  // `:focus-visible` deliberately does not match a programmatic `.focus()` on
+  // a button, so an el.focus() probe would report "no ring" on a button that
+  // has one.
+  await page.focus('dialog input[name="message"]');
+  await page.keyboard.press("Tab");
+  await page.waitForTimeout(250);
+  const focused = await page.evaluate((sel) => {
+    const b = document.querySelector<HTMLElement>(sel)!;
+    return {
+      isActive: document.activeElement === b,
+      shadow: getComputedStyle(b).boxShadow,
+    };
+  }, SUBMIT);
+  expect(focused.isActive).toBe(true);
+  expect(focused.shadow).not.toBe("none");
+});
+
+test('"Sending…" stays readable — full-strength button, AA label, aria-busy', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await gotoContact(page);
+
+  // Hold the POST open so the in-flight state can actually be measured.
+  await page.route("**/contact-us**", async (route) => {
+    if (route.request().method() !== "POST") return route.fallback();
+    await new Promise((r) => setTimeout(r, 2500));
+    await route.fulfill({
+      status: 502,
+      contentType: "application/json",
+      body: JSON.stringify({
+        type: "failure",
+        status: 502,
+        data: '[{"error":1},"We could not send that just now."]',
+      }),
+    });
+  });
+
+  await openModal(page);
+  await page.fill('dialog input[name="name"]', "Casey Patient");
+  await page.fill('dialog input[name="email"]', "casey@example.com");
+  await page.fill('dialog input[name="phone"]', "3103789241");
+  await page.click(SUBMIT, { noWaitAfter: true });
+  await page.waitForTimeout(500);
+
+  const sending = await page.evaluate(
+    ([sel, contrastSrc]) => {
+      const contrast = eval(contrastSrc) as (a: string, b: string) => number;
+      const b = document.querySelector<HTMLButtonElement>(sel)!;
+      const cs = getComputedStyle(b);
+      return {
+        label: b.textContent?.trim(),
+        ariaBusy: b.getAttribute("aria-busy"),
+        disabled: b.disabled,
+        opacity: cs.opacity,
+        ratio: contrast(cs.color, cs.backgroundColor),
+      };
+    },
+    [SUBMIT, CONTRAST_FN] as const,
+  );
+
+  expect(sending.label).toBe("Sending…");
+  // The state change has to reach a screen reader, not just mutate the name.
+  expect(sending.ariaBusy).toBe("true");
+  // AppointmentModal.test.ts pins the `disabled` attribute; only its STYLING
+  // changed.
+  expect(sending.disabled).toBe(true);
+  // `disabled:opacity-60` composited the label to 1.78:1 against the faded
+  // button — the least readable state on the site, at the exact moment the
+  // user is waiting and deciding whether to click again.
+  expect(sending.opacity).toBe("1");
+  expect(sending.ratio).toBeGreaterThanOrEqual(4.5);
 });

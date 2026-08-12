@@ -171,10 +171,27 @@
            createIngestAction forwards it as the verification token. -->
       <TurnstileWidget />
 
+      <!-- The last click in the booking flow, and it used to acknowledge
+           nothing: probed transition-duration 0s, and the hovered background
+           byte-identical to the resting one.
+           - hover is a DARKENED deep (#0e7799 × 0.8), not the audit's
+             `hover:bg-primary`: #129ecc puts the white label at 3.09:1, i.e.
+             hovering the button would have broken AA. #0b5f7a is 7.16:1.
+           - `disabled:opacity-60` is gone. It composited the label to 1.78:1
+             against the faded button, making "Sending…" the least readable
+             state on the site at the exact moment someone is waiting on it and
+             deciding whether to click again. The sending state now keeps the
+             background and the label at full strength (5.10:1) and signals
+             itself with a static inset ring + cursor — no keyframes, because
+             the reduced-motion reset pins animations to 1e-05s and any spinner
+             would freeze on frame one.
+           - aria-busy so the state change reaches a screen reader instead of
+             only the accessible name silently mutating. -->
       <button
         type="submit"
         disabled={submitting}
-        class="w-full rounded bg-primary-deep px-6 py-3 text-white disabled:cursor-not-allowed disabled:opacity-60"
+        aria-busy={submitting}
+        class="w-full rounded bg-primary-deep px-6 py-3 text-white transition-[background-color,transform] duration-150 hover:bg-[#0b5f7a] active:translate-y-px focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-wait disabled:hover:bg-primary-deep disabled:active:translate-y-0 aria-busy:ring-2 aria-busy:ring-inset aria-busy:ring-white/40"
       >
         {submitting ? "Sending…" : "Request Appointment"}
       </button>
