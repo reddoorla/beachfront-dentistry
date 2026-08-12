@@ -130,11 +130,21 @@ test("content still ends visible when the observer never fires", async ({
   });
   await page.goto("/", { waitUntil: "networkidle" });
 
-  const opacity = await page.evaluate(
-    () =>
-      getComputedStyle(document.querySelector("h1")!.parentElement!).opacity,
-  );
-  expect(opacity).toBe("1");
+  // "Ends visible" is a statement about where hydration LEAVES the element, so
+  // wait for hydration rather than racing it: `networkidle` can land before the
+  // action has run, and a CSS-hidden element read in that window is hidden for
+  // a reason that has nothing to do with the fallback under test.
+  await expect
+    .poll(
+      () =>
+        page.evaluate(
+          () =>
+            getComputedStyle(document.querySelector("h1")!.parentElement!)
+              .opacity,
+        ),
+      { message: "the reveal fallback never showed the element" },
+    )
+    .toBe("1");
   expect(await page.locator("[data-reveal]").count()).toBe(0);
   await page.unrouteAll({ behavior: "ignoreErrors" });
 });
@@ -146,16 +156,25 @@ test("under reduced motion nothing is ever hidden, marked or not", async ({
   await markHeroReveal(page);
   await page.goto("/", { waitUntil: "networkidle" });
 
-  const state = await page.evaluate(() => {
-    const el = document.querySelector("h1")!.parentElement!;
-    return {
-      opacity: getComputedStyle(el).opacity,
-      marked: el.hasAttribute("data-reveal"),
-    };
-  });
-  expect(state.opacity).toBe("1");
-  // The CSS hidden state sits inside `no-preference`, and animateIn strips the
-  // marker rather than leaving a stale one behind.
-  expect(state.marked).toBe(false);
+  // The CSS hidden state sits inside `no-preference`, so the element is
+  // visible from the first frame whatever the markup says; the marker is
+  // stripped by animateIn, so that half waits for hydration.
+  expect(
+    await page.evaluate(
+      () =>
+        getComputedStyle(document.querySelector("h1")!.parentElement!).opacity,
+    ),
+  ).toBe("1");
+  await expect
+    .poll(
+      () =>
+        page.evaluate(() =>
+          document
+            .querySelector("h1")!
+            .parentElement!.hasAttribute("data-reveal"),
+        ),
+      { message: "a server-rendered marker was left behind under reduce" },
+    )
+    .toBe(false);
   await page.unrouteAll({ behavior: "ignoreErrors" });
 });
