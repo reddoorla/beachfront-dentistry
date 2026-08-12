@@ -53,6 +53,26 @@ async function gotoContact(page: Page) {
   await page.goto("/contact-us", { waitUntil: "networkidle" });
   await page.evaluate(() => document.fonts.ready);
 }
+
+/** WCAG 2.x relative luminance + contrast, run in-page against COMPUTED
+ *  colours, so the numbers are what the engine actually paints rather than
+ *  what the class list implies. */
+const CONTRAST_FN = `
+  (function () {
+    const parse = (c) => {
+      const m = c.match(/[\\d.]+/g).map(Number);
+      return [m[0], m[1], m[2]];
+    };
+    const lin = (c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+    const L = (rgb) => 0.2126 * lin(rgb[0]) + 0.7152 * lin(rgb[1]) + 0.0722 * lin(rgb[2]);
+    return function contrast(a, b) {
+      const la = L(parse(a)), lb = L(parse(b));
+      const hi = Math.max(la, lb), lo = Math.min(la, lb);
+      return (hi + 0.05) / (lo + 0.05);
+    };
+  })()
+`;
+
 // ---------------------------------------------------------------------------
 // A — centring
 // ---------------------------------------------------------------------------
@@ -271,4 +291,106 @@ test("prefers-reduced-motion: both the panel and the scrim collapse to nothing",
   // Collapsed, not disabled: the modal is fully painted once open.
   expect(collapsed.opacity).toBe(1);
   expect(collapsed.backdrop).toBe("rgba(0, 0, 0, 0.5)");
+});
+
+// ---------------------------------------------------------------------------
+// C — the fields
+// ---------------------------------------------------------------------------
+
+test("a resting field border is visible against the white card (≥3:1)", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await gotoContact(page);
+  await openModal(page);
+  // Nothing on screen in a focus state, so this is the RESTING border.
+  await page.evaluate(() => (document.activeElement as HTMLElement)?.blur());
+  await page.waitForTimeout(250);
+
+  const measured = await page.evaluate((contrastSrc) => {
+    const contrast = eval(contrastSrc) as (a: string, b: string) => number;
+    const d = document.querySelector("dialog")!;
+    const field = d.querySelector<HTMLElement>('input[name="email"]')!;
+    const card =
+      d.querySelector<HTMLElement>(".bg-white") ?? field.parentElement!;
+    const border = getComputedStyle(field).borderTopColor;
+    const bg = getComputedStyle(card).backgroundColor;
+    return { border, bg, ratio: contrast(border, bg) };
+  }, CONTRAST_FN);
+
+  // `--color-light` (#fafafa) measured 1.04:1 here — the inputs were invisible
+  // boxes on white. 3:1 is the WCAG 1.4.11 non-text minimum.
+  expect(measured.ratio).toBeGreaterThanOrEqual(3);
+});
+
+test("focusing a field steps the border and the ring in together, over 150ms", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await gotoContact(page);
+  await openModal(page);
+
+  const before = await page.evaluate(() => {
+    const cs = getComputedStyle(
+      document
+        .querySelector("dialog")!
+        .querySelector<HTMLInputElement>('input[name="email"]')!,
+    );
+    return {
+      border: cs.borderTopColor,
+      transitionProperty: cs.transitionProperty,
+      transitionDuration: cs.transitionDuration,
+    };
+  });
+
+  await page.focus('dialog input[name="email"]');
+  // The 150ms ramp is the feature; read the landed value, not frame 0.
+  await page.waitForTimeout(300);
+
+  const s = await page.evaluate(() => {
+    const cs = getComputedStyle(
+      document
+        .querySelector("dialog")!
+        .querySelector<HTMLInputElement>('input[name="email"]')!,
+    );
+    return { afterBorder: cs.borderTopColor, afterShadow: cs.boxShadow };
+  });
+  const combined = { before, ...s };
+
+  // Probed before the fix: transition-duration 0s, and nothing about the
+  // border changed on focus — the ring popped in with no ramp.
+  expect(combined.before.transitionProperty).toContain("border-color");
+  expect(combined.before.transitionProperty).toContain("box-shadow");
+  expect(combined.before.transitionDuration).toBe("0.15s");
+  expect(combined.afterBorder).not.toBe(combined.before.border);
+  // --color-primary-deep, 5.10:1 on white. Plain --color-primary is 3.09:1,
+  // i.e. it clears the non-text bar by 0.09 with nothing left for the ring's
+  // own antialiasing.
+  expect(combined.afterBorder).toBe("rgb(14, 119, 153)");
+  expect(combined.afterShadow).toContain("rgb(14, 119, 153)");
+});
+
+test("forced-colors: the focus ring survives (outline-hidden, not outline-none)", async ({
+  page,
+}) => {
+  await page.emulateMedia({ forcedColors: "active" });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await gotoContact(page);
+  await openModal(page);
+
+  const outline = await page.evaluate(() => {
+    const field = document
+      .querySelector("dialog")!
+      .querySelector<HTMLInputElement>('input[name="email"]')!;
+    field.focus();
+    const cs = getComputedStyle(field);
+    return { style: cs.outlineStyle, width: cs.outlineWidth };
+  });
+
+  // Tailwind v4's `outline-none` resolves to `outline-style: none` and takes
+  // the forced-colors fallback with it; `outline-hidden` keeps a 2px
+  // transparent outline that the forced-colors palette repaints. Under
+  // forced colours the box-shadow ring is dropped by the engine, so this
+  // outline is the ONLY focus affordance left — which is the whole point.
+  expect(outline.style).not.toBe("none");
 });

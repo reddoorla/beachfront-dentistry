@@ -69,6 +69,18 @@ describe("Field", () => {
     ).toBe(true);
   });
 
+  it("gives the input and the textarea the SAME classes", () => {
+    // They carried two copy-pasted class lists, which is exactly how a fix
+    // lands on one control and not the other — the #fafafa border this round
+    // replaced had to be changed in two places.
+    const input = render(Field, { name: "a", label: "A" });
+    const inputClass = input.getByLabelText("A").getAttribute("class");
+    input.unmount();
+
+    const area = render(Field, { name: "b", label: "B", type: "textarea" });
+    expect(area.getByLabelText("B").getAttribute("class")).toBe(inputClass);
+  });
+
   it("renders a textarea when type=textarea", () => {
     const { getByLabelText } = render(Field, {
       name: "msg",

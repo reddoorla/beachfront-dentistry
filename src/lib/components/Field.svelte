@@ -62,8 +62,29 @@
       .join(" ") || undefined,
   );
 
+  // One string, two controls: the input and the textarea had the same class
+  // list copy-pasted, which is exactly how a fix lands on one and not the
+  // other. Kept as a literal so Tailwind's source scan still sees every class.
+  //
+  // `border-secondary/75` replaces `border-light`: --color-light is #fafafa,
+  // measured 1.04:1 against the white modal card — the four inputs were
+  // effectively invisible boxes and a patient had to hunt for where to type.
+  // /75 composites to rgb(134,145,156) = 3.21:1 on white, the lightest step of
+  // --color-secondary that clears the 3:1 non-text minimum. (The audit's
+  // suggested `border-secondary/30` computes to 1.51:1 — it would not have
+  // fixed the defect.)
+  //
+  // Focus uses -deep, not plain primary: #129ecc is 3.09:1 on white, i.e. it
+  // clears 3:1 by 0.09 with no margin for the ring's own antialiasing;
+  // #0e7799 is 5.10:1. Border and ring share one 150ms ramp so the field reads
+  // as waking up rather than erroring; `outline-hidden` (NOT `outline-none`,
+  // which in Tailwind v4 resolves to `outline-style:none`) keeps the
+  // forced-colors fallback outline the rest of the repo gets.
   const controlClass =
-    "border-2 border-light rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary aria-invalid:border-red-600";
+    "border-2 border-secondary/75 rounded px-3 py-2 " +
+    "transition-[border-color,box-shadow] duration-150 ease-out motion-reduce:transition-none " +
+    "focus:outline-hidden focus:border-primary-deep focus:ring-2 focus:ring-primary-deep " +
+    "aria-invalid:border-red-600";
 </script>
 
 <div class="flex flex-col gap-1">
