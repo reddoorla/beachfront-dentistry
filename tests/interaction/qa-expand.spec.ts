@@ -284,6 +284,30 @@ for (const pg of PAGES) {
 const BAR_REST = "rgb(231, 245, 250)"; // #e7f5fa
 const BAR_HOVER = "rgb(217, 238, 247)"; // #d9eef7
 
+/** Wait until an element has actually stopped moving — animateIn's reveal
+ *  runs 1s, and Chrome nudges the scroll position as those transforms land,
+ *  so a fixed sleep is a guess that gets worse under parallel load. Two
+ *  identical rects 250ms apart is the fact the pointer tests actually need:
+ *  a hover or a positioned click aimed at a stale rect lands on empty page
+ *  and reads as "the card ignored me". */
+async function stillness(
+  locator: import("@playwright/test").Locator,
+): Promise<void> {
+  let prev = "";
+  await expect
+    .poll(
+      async () => {
+        const box = await locator.boundingBox();
+        const key = box ? `${Math.round(box.x)},${Math.round(box.y)}` : "";
+        const same = key !== "" && key === prev;
+        prev = key;
+        return same;
+      },
+      { timeout: 15000, intervals: [250] },
+    )
+    .toBe(true);
+}
+
 for (const pg of PAGES) {
   test(`${pg.label}: hover lifts the card and brightens the bar — nothing dims`, async ({
     page,
@@ -292,7 +316,7 @@ for (const pg of PAGES) {
     await page.goto(pg.path, { waitUntil: "networkidle" });
     const card = page.locator(".qa-item > div").first();
     await card.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(1000); // animateIn settles; hover is measured at rest
+    await stillness(card); // hover is measured at rest, so wait for rest
 
     const read = () =>
       card.evaluate((el) => {
@@ -405,3 +429,73 @@ test("collapsed card hides the answer and keeps it untabbable", async ({
   expect(hidden.inert).toBe(true);
   expect(hidden.answerBelowBox).toBe(true);
 });
+
+// ONE GESTURE PER PAGE — the "Finally…" cards (SectionGrid's `cards` layout)
+// sit a screen above these Q&A cards on the home page and are their visual
+// twin: pale #e7f5fa bar, "+", cyan wash on open. They used to behave
+// oppositely — probed at 1440, the card was 406x280 with `cursor: auto` and
+// only its 80px bar toggled, so a click on the photo left aria-expanded
+// "false" across 71% of the surface, silently. A patient who learns the
+// gesture on one family and tries it on the other should not conclude the
+// page is broken.
+//
+// This lives in the Q&A card's spec on purpose: the contract is that the two
+// families behave the SAME, and the guard the SectionGrid card now uses is
+// copied from QuestionCard. Splitting them into separate files is how they
+// drift apart again. SectionGrid's structural disclosure contract (aria,
+// inert, the guard against double-firing) is unit-tested in
+// src/lib/slices/SectionGrid/SectionGrid.test.ts; this is the rendered half.
+//
+// 390 is absent by design: below 768 the card has no toggle at all — its copy
+// is already showing (SectionGrid/index.svelte `isMobile` branch).
+const FINALLY_CARD = "[data-grid-columns] > div:has(button[aria-expanded])";
+
+for (const width of [1440, 834]) {
+  test(`the "Finally…" cards toggle from anywhere and light up under the pointer @${width}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/", { waitUntil: "networkidle" });
+    const card = page.locator(FINALLY_CARD).first();
+    await card.scrollIntoViewIfNeeded();
+    await stillness(card); // the 1s reveal, and then the page holds still
+    const toggle = card.locator("button[aria-expanded]");
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+
+    // 1. the surface advertises itself
+    expect(await card.evaluate((el) => getComputedStyle(el).cursor)).toBe(
+      "pointer",
+    );
+
+    // 2. and acknowledges the pointer anywhere on it (re-aimed per attempt,
+    //    same reason as the Q&A hover above)
+    await expect
+      .poll(
+        async () => {
+          await card.hover();
+          return card.evaluate(
+            (el) =>
+              getComputedStyle(el.querySelector("button[aria-expanded]")!)
+                .backgroundColor,
+          );
+        },
+        { timeout: 5000 },
+      )
+      .toBe(BAR_HOVER);
+
+    // 3. a click on the PHOTO opens it — the part that was inert before.
+    //    Aimed below the (inert) copy panel at the card's top and above the
+    //    bar at its bottom, so this is bare photo.
+    const box = (await card.boundingBox())!;
+    await card.click({ position: { x: 40, y: box.height - 100 } });
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+
+    // 4. the bar still toggles exactly ONCE: the wrapper handler must not
+    //    double-fire through it, or these two clicks would land back where
+    //    they started.
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  });
+}

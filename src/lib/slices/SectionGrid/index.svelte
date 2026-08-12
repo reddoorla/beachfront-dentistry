@@ -535,8 +535,38 @@
                  box) — while the label bar stays put. -->
             <!-- 14rem tall across 768–991 (448 at that band's 32px root), 7rem
                  at >=992 (280 at 40). -->
+            <!-- The WHOLE card toggles, not just its 80px bar. This card is
+                 the Q&A card's visual twin on the same page — pale bar, "+",
+                 cyan wash, one open — and that one has toggled from anywhere
+                 since it shipped (QuestionCard.svelte:156-159). Probed at
+                 1440: 406x280 with `cursor: auto`, and a click dispatched on
+                 the photo left `aria-expanded="false"`, so 71% of the surface
+                 was silently inert. A patient who learns the gesture on one
+                 family and tries it on the other should not be told the page
+                 is broken. The guard is copied verbatim rather than
+                 reimplemented: the bar's own <button>, and any link the body
+                 copy carries, must not double-fire through the wrapper. The
+                 <button> stays the semantic disclosure — same tab stop, same
+                 ARIA, keyboard path unchanged; this is a pointer convenience.
+                 The mobile card (isMobile branch above) deliberately has no
+                 toggle at all — its copy is already showing — so this is the
+                 desktop/tablet structure only. -->
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div
-              class="relative h-[448px] overflow-hidden rounded-[25px] bg-[#e7f5fa] shadow-sm lg:h-[280px]"
+              onclick={expandable
+                ? (e: MouseEvent) => {
+                    if ((e.target as HTMLElement).closest("a, button")) return;
+                    toggleCard(i);
+                  }
+                : undefined}
+              onkeydown={expandable
+                ? (e: KeyboardEvent) => {
+                    if (e.key === "Escape" && open) toggleCard(i);
+                  }
+                : undefined}
+              class="group relative h-[448px] overflow-hidden rounded-[25px] bg-[#e7f5fa] shadow-sm lg:h-[280px] {expandable
+                ? 'cursor-pointer'
+                : ''}"
               use:animateIn={REVEAL}
             >
               <PrismicImage
@@ -571,12 +601,20 @@
                 >
                   <RichTextBody field={item.item_body} />
                 </div>
+                <!-- The bar is what the eye tracks, so it is what acknowledges
+                     the pointer: one step brighter (#e7f5fa -> #d9eef7) under
+                     `group-hover` from the card, in 200ms. It had no hover
+                     rule at all and computed `transition: all / 0s`, so
+                     nothing on this card moved until the cursor reached the
+                     "+". Same colour and timing as the Q&A card's bar
+                     (QuestionCard.svelte) — the two families brighten
+                     identically on purpose. -->
                 <button
                   type="button"
                   aria-expanded={open}
                   aria-controls={panelId}
                   onclick={() => toggleCard(i)}
-                  class="focus-visible:ring-primary-deep absolute inset-x-0 bottom-0 flex h-16 cursor-pointer items-center justify-between gap-4 bg-[#e7f5fa] px-4 text-left focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden lg:h-20 lg:px-5"
+                  class="focus-visible:ring-primary-deep absolute inset-x-0 bottom-0 flex h-16 cursor-pointer items-center justify-between gap-4 bg-[#e7f5fa] px-4 text-left transition-colors duration-200 group-hover:bg-[#d9eef7] focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden motion-reduce:transition-none lg:h-20 lg:px-5"
                 >
                   <span
                     class="font-slab text-[30px] leading-[45px] font-bold text-[#365b6d]"

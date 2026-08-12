@@ -70,6 +70,60 @@ describe("SectionGrid slice", () => {
     expect((panel as HTMLElement).inert).toBe(false);
   });
 
+  it("toggles from anywhere on the card, without double-firing through the bar or a link", async () => {
+    // The card is the Q&A card's twin on the home page (pale bar, "+", cyan
+    // wash) and used to toggle ONLY from its 80px bar, so ~71% of the surface
+    // was silently inert while the card beside it toggled from anywhere. The
+    // wrapper handler is QuestionCard's, guard and all — which means the two
+    // ways it can go wrong are (a) not firing from the photo and (b) firing
+    // TWICE when the click lands on the bar's own button or on a link in the
+    // body copy, leaving the card exactly as it was.
+    const linked = {
+      ...slice,
+      items: [
+        {
+          ...slice.items[0],
+          item_body: [
+            {
+              type: "paragraph",
+              text: "Heated pool.",
+              spans: [
+                {
+                  start: 0,
+                  end: 6,
+                  type: "hyperlink",
+                  data: { link_type: "Web", url: "https://example.com" },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    } as unknown as Content.SectionGridSlice;
+    const { container } = render(SectionGrid, { props: { slice: linked } });
+    const toggle = container.querySelector("button[aria-expanded]")!;
+    const card = toggle.closest("div[class*='rounded-[25px]']")!;
+
+    // the photo/wash surface, i.e. the card itself
+    await fireEvent.click(card);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+
+    // the bar's own button: one toggle, not two
+    await fireEvent.click(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+
+    // a link inside the body copy navigates and does NOT toggle
+    await fireEvent.click(card);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    const link = container.querySelector("a[href='https://example.com']")!;
+    await fireEvent.click(link);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+
+    // Escape closes, as on the Q&A card
+    await fireEvent.keyDown(card, { key: "Escape" });
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+  });
+
   it("reflects the column count on the grid container", () => {
     const { container } = render(SectionGrid, { props: { slice } });
     const grid = container.querySelector("[data-grid-columns='3']");
