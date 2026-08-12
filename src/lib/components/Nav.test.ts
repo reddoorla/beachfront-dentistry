@@ -176,10 +176,11 @@ describe("Nav — mobile menu", () => {
 
   it("desktop dropdown is a disclosure: aria-expanded toggles, Escape closes", async () => {
     const { container } = render(Nav, { items: itemsWithDropdown });
-    // The desktop dropdown toggle carries aria-controls (the mobile menu isn't
-    // open, so it's the only such button).
+    // Scoped to the dropdown's own id prefix: the menu trigger carries
+    // aria-controls too (it points at the overlay — see the aria-state suite
+    // below), so a bare `button[aria-controls]` no longer names one button.
     const toggle = container.querySelector(
-      "button[aria-controls]",
+      'button[aria-controls^="nav-dropdown-"]',
     ) as HTMLButtonElement;
     expect(toggle).toBeTruthy();
     // No misleading aria-haspopup (the popup is a list of links, not a menu).
@@ -303,6 +304,152 @@ describe("Nav — beachfront chrome (siteConfig items + phone/payment CTAs)", ()
       "https://app.modento.io/beachfront-dentistry",
     );
     expect(payment?.getAttribute("target")).toBe("_blank");
+  });
+});
+
+// The menu trigger unmounts while the overlay is open and the overlay renders
+// its own Close in the same slot, so no single element can carry a flipping
+// aria-expanded. Both buttons carry the pair instead, pointing at the dialog's
+// id — which is what makes `[aria-controls="nav-menu"]` a stable handle whose
+// aria-expanded reads false → true across the swap.
+describe("Nav — the trigger announces the menu's state", () => {
+  const MENU_ID = "nav-menu";
+  const stateButton = (container: HTMLElement | Document) =>
+    (container as HTMLElement).querySelector(
+      `button[aria-controls="${MENU_ID}"]`,
+    ) as HTMLButtonElement;
+
+  for (const [mode, props] of [
+    ["site-config items", { items }],
+    ["page-data navLinks", { navLinks }],
+  ] as const) {
+    it(`(${mode}) aria-expanded flips false → true and aria-controls names the dialog`, async () => {
+      const { getByLabelText, getByRole } = render(Nav, props);
+
+      const trigger = getByLabelText("Open menu");
+      expect(trigger.getAttribute("aria-controls")).toBe(MENU_ID);
+      expect(trigger.getAttribute("aria-expanded")).toBe("false");
+
+      await fireEvent.click(trigger);
+      await frame();
+
+      // The id the trigger pointed at is the dialog that actually mounted.
+      const dialog = getByRole("dialog");
+      expect(dialog.id).toBe(MENU_ID);
+
+      // Same handle, now the Close button, now expanded.
+      const open = stateButton(document.body);
+      expect(open.getAttribute("aria-label")).toBe("Close menu");
+      expect(open.getAttribute("aria-expanded")).toBe("true");
+
+      await fireEvent.click(open);
+      await frame();
+      await frame();
+      expect(stateButton(document.body).getAttribute("aria-expanded")).toBe(
+        "false",
+      );
+    });
+  }
+});
+
+// A tap that looks like nothing happened gets tapped again. `:active` alone is
+// not enough — probed with a real dispatched touchStart, Chromium never matched
+// it — so the press state is driven by pointer events and surfaced as
+// `data-pressed`, which the pill/glyph classes key off.
+describe("Nav — the trigger acknowledges a press", () => {
+  it("sets data-pressed on pointerdown and clears it on every release path", async () => {
+    const { getByLabelText } = render(Nav, {
+      items,
+      hamburgerOnly: true,
+    });
+    const trigger = getByLabelText("Open menu");
+    expect(trigger.hasAttribute("data-pressed")).toBe(false);
+
+    for (const release of [
+      "pointerUp",
+      "pointerCancel",
+      "pointerLeave",
+      "blur",
+    ] as const) {
+      await fireEvent.pointerDown(trigger);
+      expect(trigger.hasAttribute("data-pressed")).toBe(true);
+      await fireEvent[release](trigger);
+      expect(trigger.hasAttribute("data-pressed")).toBe(false);
+    }
+  });
+
+  it("presses the Close button independently of the trigger", async () => {
+    const { getByLabelText } = render(Nav, { items, hamburgerOnly: true });
+    await fireEvent.click(getByLabelText("Open menu"));
+    await frame();
+
+    const close = getByLabelText("Close menu");
+    await fireEvent.pointerDown(close);
+    expect(close.hasAttribute("data-pressed")).toBe(true);
+    await fireEvent.pointerUp(close);
+    expect(close.hasAttribute("data-pressed")).toBe(false);
+  });
+});
+
+// `hamburgerOnly` collapses the bar to logo + trigger at every breakpoint. The
+// inline link list and the phone/CTA cluster used to render anyway under a bare
+// `hidden` with no `lg:flex` to un-hide them — eight controls that were
+// display:none on every page, forever. They must not be in the DOM at all.
+describe("Nav — hamburgerOnly ships no permanently-hidden controls", () => {
+  const barLinks = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll("nav a")).map((a) =>
+      a.getAttribute("href"),
+    );
+
+  it("renders only the logo link beside the trigger", () => {
+    const { container } = render(Nav, {
+      items: beachfrontItems,
+      logo: beachfrontLogo,
+      hamburgerOnly: true,
+    });
+    expect(barLinks(container)).toEqual(["/"]);
+    expect(container.querySelectorAll("nav button")).toHaveLength(1);
+  });
+
+  it("still renders the fleet default chrome when hamburgerOnly is off", () => {
+    const { container } = render(Nav, {
+      items: beachfrontItems,
+      logo: beachfrontLogo,
+    });
+    // logo + 5 items + phone + 2 CTAs
+    expect(barLinks(container)).toHaveLength(9);
+  });
+});
+
+// One hover treatment for the brand mark, identical in both menu states. It
+// used to compound the anchor's 0.60 with the img's 0.50 to an effective 0.30
+// closed, while the same img rule was dead in the overlay (no `group` on its
+// anchor) so the open-menu logo hovered to 0.60 — the same control behaving
+// differently by menu state.
+describe("Nav — the logo has one hover treatment", () => {
+  it("closed and open logo links carry the same classes, and neither img fades", async () => {
+    const { getByLabelText, getByAltText, getByRole } = render(Nav, {
+      items: beachfrontItems,
+      logo: beachfrontLogo,
+      hamburgerOnly: true,
+    });
+
+    const closedImg = getByAltText("Home") as HTMLImageElement;
+    const closedLink = closedImg.closest("a") as HTMLAnchorElement;
+    expect(closedImg.className).not.toMatch(/opacity/);
+    expect(closedLink.className).toContain("hover:opacity-85");
+
+    await fireEvent.click(getByLabelText("Open menu"));
+    await frame();
+
+    const openImg = getByRole("dialog").querySelector(
+      "img[alt='Home']",
+    ) as HTMLImageElement;
+    const openLink = openImg.closest("a") as HTMLAnchorElement;
+    expect(openImg.className).not.toMatch(/opacity/);
+    expect(openLink.className).toBe(
+      closedLink.className.replace(/ ?text-lg font-bold$/, ""),
+    );
   });
 });
 
