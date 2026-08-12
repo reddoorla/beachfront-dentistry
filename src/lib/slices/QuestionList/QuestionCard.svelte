@@ -7,6 +7,7 @@
     type RichTextField,
   } from "@prismicio/client";
   import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
+  import { pillClass } from "$lib/components/OutlineButton.svelte";
 
   // The one true "Ask the Doctor" question card (live's `.qa-block`): a
   // fixed-height photo card with a pale header bar (circled number + "+"), the
@@ -344,7 +345,9 @@
         </p>
         <a
           href="/questions/{doc.uid}"
-          class="font-slab px-[1em] py-[1.3em] leading-[0] mt-[46px] inline-flex items-center rounded-lg border border-white text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:mt-[36px] lg:text-[25px]"
+          class="{pillClass(
+            'white',
+          )} mt-[46px] px-[1em] py-[1.3em] text-[15px] leading-[0] md:text-[20px] lg:mt-[36px] lg:text-[25px]"
         >
           Read More
         </a>

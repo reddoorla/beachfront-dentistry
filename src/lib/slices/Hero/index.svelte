@@ -7,6 +7,7 @@
   import SubpageHero from "$lib/components/SubpageHero.svelte";
   import { PrismicLink, PrismicRichText } from "@prismicio/svelte";
   import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
+  import { pillClass } from "$lib/components/OutlineButton.svelte";
   import {
     asText,
     type Content,
@@ -403,7 +404,9 @@
              positions it on mobile. Hover is live's .button hover. -->
         <PrismicLink
           field={slice.primary.cta_link}
-          class="focus-visible:ring-offset-dark inline-flex shrink-0 items-center rounded-lg border border-white font-slab px-[1em] py-[1.3em] leading-[0] text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:absolute lg:right-[max(60px,calc(50%_-_640px))] lg:bottom-40 lg:text-[25px]"
+          class="{pillClass(
+            'white',
+          )} focus-visible:ring-offset-dark shrink-0 px-[1em] py-[1.3em] text-[15px] leading-[0] md:text-[20px] lg:absolute lg:right-[max(60px,calc(50%_-_640px))] lg:bottom-40 lg:text-[25px]"
         >
           {slice.primary.cta_label}
         </PrismicLink>

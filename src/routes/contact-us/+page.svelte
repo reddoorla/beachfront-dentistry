@@ -2,6 +2,7 @@
   import SubpageHero from "$lib/components/SubpageHero.svelte";
   import CtaBand from "$lib/components/CtaBand.svelte";
   import MapEmbed from "$lib/components/MapEmbed.svelte";
+  import { pillClass } from "$lib/components/OutlineButton.svelte";
   import { ADDRESS, HOURS, PHONE } from "$lib/site";
   import type { ImageField, RichTextField } from "@prismicio/client";
 
@@ -65,7 +66,9 @@
        modal via the #appointment anchor (same handler the CTAs use). -->
   <a
     href="#appointment"
-    class="font-slab focus-visible:ring-primary-deep inline-flex items-center rounded-lg border border-[#365b6d] px-[1em] py-[1.3em] text-[14px] leading-[0] font-light text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden mb-[60px] xs:text-[15px] md:mb-0 md:text-[20px] lg:text-[25px]"
+    class="{pillClass(
+      'teal',
+    )} mb-[60px] px-[1em] py-[1.3em] text-[14px] leading-[0] xs:text-[15px] md:mb-0 md:text-[20px] lg:text-[25px]"
   >
     Request Appointment
   </a>

@@ -16,6 +16,7 @@
     type RichTextField,
   } from "@prismicio/client";
   import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
+  import { pillClass } from "$lib/components/OutlineButton.svelte";
   import { SvelteSet } from "svelte/reactivity";
   import { viewport } from "$lib/stores/viewport.svelte";
   import { onMount } from "svelte";
@@ -200,7 +201,9 @@
           <div use:animateIn={REVEAL}>
             <PrismicLink
               field={primary.cta_link}
-              class="focus-visible:ring-offset-primary font-slab px-[1em] py-[1.3em] leading-[0] inline-flex items-center rounded-lg border border-white text-[15px] font-light text-white transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-hidden md:text-[20px] lg:text-[25px]"
+              class="{pillClass(
+                'white',
+              )} focus-visible:ring-offset-primary px-[1em] py-[1.3em] text-[15px] leading-[0] md:text-[20px] lg:text-[25px]"
             >
               {primary.cta_label}
             </PrismicLink>
@@ -213,9 +216,14 @@
         {#each items as item (item)}
           {@const label = asText(item.item_heading)}
           <li use:animateIn={REVEAL}>
+            <!-- Hover moves the row toward where it goes instead of dimming it:
+                 fading a link to 80% is the disabled idiom, and these rows are
+                 this section's only navigation. `translate` (not `transform`) is
+                 the property Tailwind v4 compiles `translate-x-*` to, so that is
+                 what transitions. -->
             <PrismicLink
               field={item.item_link}
-              class="group flex items-center gap-4 rounded-lg transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent focus-visible:outline-hidden lg:gap-10"
+              class="group flex items-center gap-4 rounded-lg transition-[translate] duration-200 ease-out hover:translate-x-1 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent focus-visible:outline-hidden motion-reduce:transition-none lg:gap-10"
             >
               <!-- Live tooth icons are 60px on mobile (100px on desktop); labels
                    stay one line (mobile ~20px). -->
@@ -356,7 +364,9 @@
       <div class="mt-12 text-center md:mt-16 lg:mt-20" use:animateIn={REVEAL}>
         <PrismicLink
           field={primary.cta_link}
-          class="font-slab focus-visible:ring-primary-deep inline-flex items-center rounded-lg border border-[#365b6d] px-[1em] py-[1.3em] text-[14px] leading-[0] font-light text-[#365b6d] transition-[opacity,background-color] hover:bg-[#129ecc4a] hover:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden xs:text-[15px] md:text-[20px] lg:text-[25px]"
+          class="{pillClass(
+            'teal',
+          )} px-[1em] py-[1.3em] text-[14px] leading-[0] xs:text-[15px] md:text-[20px] lg:text-[25px]"
         >
           {primary.cta_label}
         </PrismicLink>
