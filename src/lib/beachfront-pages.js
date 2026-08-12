@@ -79,13 +79,18 @@ export const IMG = {
 
 // Each team member's favorite beach — the `.team-grid-beach` banner + white
 // `.team-beach-name` caption at the bottom of live's /our-team person cards.
-// Live person docs carry this in a `gallery` group (image + caption); the
-// blux-migrated Prismic person docs DON'T yet (gallery is empty on all 11), so
-// this is the verbatim capture off live. Two consumers read it:
-//   - the dev matching route enriches each person doc's gallery from here so the
-//     /our-team gate can verify the full card (banner box + caption), and
-//   - it's the source for the production seed follow-up that will populate
-//     person.gallery for real (5 unique beach photos live in static/beaches/).
+// Live person docs carry this in a `gallery` group (image + caption), and the
+// blux-migrated Prismic person docs now do too: this was the verbatim capture
+// off live that seeded them, and all 11 galleries are filled.
+//
+// ONE consumer is left — scripts/seed-entity-content.mjs. It no longer supplies
+// image BYTES (the five JPEGs moved into Prismic and out of static/beaches/);
+// `img` survives purely as the asset library's dedup key, which is the
+// filename. The dev matching route used to read this too, to preview the card
+// before the seed ran; that fill guarded on an empty gallery, so publishing the
+// seed made it unreachable and it has been removed rather than left pointing at
+// deleted files.
+//
 // Keyed by person uid; captions are UPPERCASE on live via CSS (stored as shown).
 export const PERSON_BEACHES = {
   "dr-robert-quan": { img: "/beaches/bali.jpg", caption: "BALI" },
