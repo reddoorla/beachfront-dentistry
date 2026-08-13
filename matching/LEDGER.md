@@ -3852,3 +3852,27 @@ box, so below 352px the row re-enters the box while staying ≥19px clear of the
 ink (floor asserted at 8px). That is only harmless because the
 `pointer-events-none` above holds, which is why the spec asserts both together
 rather than either alone.
+
+### Same round — `strikes.mjs` was failing OPEN on six of nine pages
+
+Not a geometry item; a defect in the check that enforces rule 3.
+
+`strikes.mjs` derived its page name from the ref URL (`pageOf`, line 32-35)
+while `gate.sh` and `next.mjs` key on the gate page KEY. Those agree only where
+the key equals the path — `home`, `our-team`, `services`. For the other six the
+documented round protocol ("`node matching/strikes.mjs <page>`" with the key you
+just passed to `gate.sh`) matched no run at all, and an empty match printed
+`strikes: clear — no failing region has stalled` and exited 0.
+
+So rule 3 was being enforced on 10 of 33 stalled regions. `yfv`, `contact`,
+`atd`, `svc`, `qa` and `team` each reported clear while holding 4 / 2 / 3 / 5 /
+4 / 5 stalled regions respectively — 23 hidden. Every one of them had been
+flat for 16+ runs.
+
+Fixed two ways: the filter now accepts EITHER vocabulary (the key is recovered
+from the run dir exactly as `next.mjs` does it), and a name that matches no run
+now exits 2 with the known-page list instead of reporting clear. A check whose
+job is to stop work may not fail open.
+
+Confirmed after the fix: home 5, yfv 4, our-team 4, services 1, contact 2,
+atd 3, svc 5, qa 4, team 5 = 33, which reconciles with the unfiltered run.
