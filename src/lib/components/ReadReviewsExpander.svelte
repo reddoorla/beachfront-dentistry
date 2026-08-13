@@ -6,7 +6,30 @@
    * three review destinations (Google / Facebook / Yelp) beneath — opacity
    * 2s on the expo curve, exactly live's .socials-container. Used twice
    * (under the review slider and in the closing CTA band), like live. */
-  let { class: className = "" }: { class?: string } = $props();
+  /** Which way the socials row discloses.
+   *
+   * `below` is live's own behaviour (`.socials-container.active{bottom:-120%}`,
+   * beachfront.css:7553-7556) and is right wherever there is room underneath.
+   *
+   * `above-sm` flips it upward under 768. The CTA-band mount needs it: below
+   * ~560px the downward row lands inside the footer wave's box and the logos
+   * are painted over by it — measured on /contact-us, the row overlaps the
+   * wave box by 115/97/48px at 360/390/480 while clearing it by 124-162px at
+   * 767/834/1440. THE REFERENCE HAS THE SAME DEFECT (probed at 390 on
+   * beachfront-dentistry.webflow.io: all three logo centres hit-test to the
+   * wave's own svg, and only a sliver of the Google mark clears it), so there
+   * is no live rule to copy here and this is a deliberate deviation — see
+   * matching/LEDGER.md 2026-08-13.
+   *
+   * Upward is the only option that costs the CLOSED page nothing: the row is
+   * `absolute` and `opacity-0`+`inert` when shut, so nothing in the flow or the
+   * painted output moves at any width. The paint-order alternatives were
+   * measured and rejected — lifting the band over the footer takes the beach
+   * photo with it and the wave stops dipping into it. */
+  let {
+    class: className = "",
+    placement = "below",
+  }: { class?: string; placement?: "below" | "above-sm" } = $props();
 
   let open = $state(false);
   const rowId = $props.id();
@@ -52,9 +75,10 @@
   <div
     id={rowId}
     inert={!open}
-    class="absolute top-full left-1/2 mt-[24px] flex w-[264px] -translate-x-1/2 justify-between transition-opacity duration-[2000ms] ease-[cubic-bezier(0.19,1,0.22,1)] motion-reduce:transition-none lg:mt-[41px] lg:w-[440px] {open
-      ? 'opacity-100'
-      : 'opacity-0'}"
+    class="absolute left-1/2 flex w-[264px] -translate-x-1/2 justify-between transition-opacity duration-[2000ms] ease-[cubic-bezier(0.19,1,0.22,1)] motion-reduce:transition-none lg:w-[440px] {placement ===
+    'above-sm'
+      ? 'bottom-full mb-2 md:top-full md:bottom-auto md:mt-[24px] md:mb-0 lg:mt-[41px]'
+      : 'top-full mt-[24px] lg:mt-[41px]'} {open ? 'opacity-100' : 'opacity-0'}"
   >
     {#each REVIEW_DESTINATIONS as dest (dest.label)}
       <a
@@ -64,7 +88,16 @@
         aria-label="Read our reviews on {dest.label}"
         class="transition-opacity hover:opacity-60 focus-visible:ring-2 focus-visible:ring-primary-deep focus-visible:ring-offset-2 focus-visible:outline-hidden"
       >
-        <img src={dest.icon} alt="" class="w-12 lg:w-20" />
+        <!-- Live sizes these on the ANCHOR: `._w-8{width:2rem}`
+             (beachfront.css:3463-3465) against the stepped root is 80/64/48,
+             and `._w-8.clickable.su-w-6-portrait{width:1.5rem}` (:9034-9036)
+             takes it to 36 at ≤479. The captured markup carries all three
+             classes (matching/spec/index.html, contact-us.html). A flat
+             `w-12 lg:w-20` therefore rendered 48 where live renders 36 (≤479)
+             and 48 where live renders 64 (768-991) — a standing infidelity the
+             pixel gate cannot see, because this row is only ever painted in the
+             OPEN state and the gate never opens it. -->
+        <img src={dest.icon} alt="" class="w-9 xs:w-12 md:w-16 lg:w-20" />
       </a>
     {/each}
   </div>

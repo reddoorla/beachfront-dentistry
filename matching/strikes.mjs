@@ -52,11 +52,24 @@ for (const dir of readdirSync(ROOT).filter((d) => d.startsWith("out-"))) {
 }
 runs.sort((a, b) => a.at.localeCompare(b.at));
 
+// The gate page KEY, recovered from the run dir the way next.mjs does it
+// (out-<TAG>-<page>, split on the first hyphen — the tag is hyphen-free by
+// gate.sh's own preflight). `pageOf` derives its name from the ref URL instead,
+// so the two disagree on every page whose key is not its path: yfv, contact,
+// atd, svc, qa, team. Accept EITHER, because the round protocol in CLAUDE.md
+// tells you to run `strikes.mjs <page>` with the same key you just passed to
+// gate.sh — and until 2026-08-13 that silently matched nothing.
+const keyOf = (dir) => /^out-[^-]+-(.+)$/.exec(dir)?.[1] ?? null;
+
 // key -> chronological list of {dir, at, mm, pass, masked}
 const history = new Map();
+const seenNames = new Set();
 for (const run of runs) {
   const page = pageOf(run.meta.ref);
-  if (only && page !== only) continue;
+  const gateKey = keyOf(run.dir);
+  seenNames.add(page);
+  if (gateKey) seenNames.add(gateKey);
+  if (only && page !== only && gateKey !== only) continue;
   for (const r of run.regions) {
     // A DECLARED FLOOR is flat by definition — reporting it as stalled is noise
     // that hides a real stall. It stays in the LEDGER; it does not belong here.
@@ -76,6 +89,18 @@ for (const run of runs) {
         run.meta.maskPhotos,
     });
   }
+}
+
+// A name that matches no run must NOT report "clear". This check exists to stop
+// work on a stalled region, so failing open is the one thing it may never do —
+// a typo'd or wrong-vocabulary page silently greened rule 3 for six of the nine
+// pages. Fail loud instead, and say what the vocabulary is.
+if (only && history.size === 0) {
+  console.error(
+    `strikes: "${only}" matches no gate run — refusing to report "clear".\n` +
+      `         known pages: ${[...seenNames].sort().join(", ")}`,
+  );
+  process.exit(2);
 }
 
 const stuck = [];

@@ -3708,3 +3708,171 @@ after.json / after2.json (the 76-mount end-height + clearance measurements both
 ways), detail-before.txt (collision provenance), 76 before + 76 after crops in
 shots-before/ and shots-after/, and the composite sheets SHEET-h4-1440.png,
 SHEET-h4-1294.png, SHEET-h4-834.png, SHEET-h4-390.png.
+
+---
+
+## 2026-08-13 — mobileux (mobile UX pass)
+
+Operator: "do a mobile pass of the site … some general ux failures". Findings
+were measured across 9 routes at 390/360/430; four were acted on. Two of them
+are DELIBERATE DEVIATIONS from live and are recorded here as such.
+
+**Not deviations** (they move us TOWARD the reference, and are cited to it):
+· Review chevrons were a flat 30×33 at every width, pinned `mx-6` INSIDE the
+card, printing over the quote at 390/360 — 551px² of overlap on "The staff was
+excellent". Live's `.big-review-arrow-*` is `width:.75rem`
+(beachfront.css:7594-7600, :7614-7620) = 18/24/30 against the stepped root,
+and `left/right:-.75rem` at ≤479 (:9517-9526) parks them OUTSIDE the holder.
+Probed on the REF: arrow x=2..20 against a card at x=27 (25px clear) @390,
+x=24 @480, x=84 @600, x=168 @767, x=360 @1440. Ours now lands on those same
+numbers, 0 overlap at all six widths.
+· The 480–767 tier of `.review-slider-holder-viewport{width:15rem}`
+(:7586-7592) was MISSING — the ladder was keyed at 768, so that whole band
+kept the ≤479 fill-the-wrapper behaviour and the card ran 427px wide at 480
+against live's 360. CLAUDE.md's standing root-font trap, found because the
+arrows-on-text defect would not resolve there. Fixed to live: 60..420 @480,
+120..480 @600. Neither width is in the gate matrix.
+
+**Deviation 1 — /services no longer scrolls sideways below 375px.**
+`.service-grid.my-8{grid-template-columns:16rem 1fr}` (:6153-6160) is a 384px
+track and `.service-block{width:13rem}` (:9210-9213) a 312px card, so
+`justify-items-center` offsets the card 36px and its right edge lands at
+gutter+348. That fits 390 (368) and 375 (367) and NOT 360 (366 > 360):
+/services was the one page on the site that scrolled sideways on a 360px phone.
+Live overflows there too, so the fix is a deviation — keyed to `max-[374px]`,
+strictly BELOW every width the gate samples. Verified: 390/834/1440 card boxes
+unchanged, and 320/360/375 now all fit.
+
+**Deviation 2 — services sub-link rows 19.25px → 24px at ≤767.**
+`.services-links` is `font-size:7px` (:9219-9222) with `line-height:2.75em`
+(:6222-6230) = a 19.25px row, and that row IS the whole tap target (no padding,
+no overlay). It fails WCAG 2.2 AA 2.5.8 and fails the spacing exception too —
+at a 19.25px pitch the 24px circles on adjacent links overlap. Only this band
+is short (2.75em already gives 24.75 at md, 38.5 at lg). THE TYPE SIZE IS
+UNTOUCHED; only the pitch moves, inside a `.service-block` whose height is
+fixed at 408px, so the card box the gate cuts on does not move. Cost, measured:
+services @390 "Cosmetic Dentistry" 0.4 → 1.5, "General Dentistry" 0.9 → 1.4 —
+against a 10.0 threshold. No region changed state.
+
+**Not a deviation, no geometry:** the two Google Maps on /contact-us (live has
+two `w-widget-map` widgets too, so BOTH stay) shared one accessible name.
+Live's map iframes are `aria-hidden="true" tabindex="-1"`; ours are focusable,
+so identical titles were two indistinguishable tab stops (WCAG 4.1.2). Titles
+are now distinct. Attribute-only.
+
+**Rejected after measuring** — recorded so they are not re-opened:
+· Team-card "Read More" reads 113×21.6 and looks like an AA failure. It is not:
+`after:inset-0` makes the whole card the target — hit-tested 25/25 across a
+302×384 card.
+· The 7px footer boilerplate and the 7px services labels are live's own rules,
+not ours.
+· The "544px void" in the mobile footer was a lazy map iframe caught mid-load
+by the screenshot, not a layout defect. The map loads (58 responses).
+
+Gate round: mobileux (threshold 0.1, matrix 1440/834/390, mask [],
+neutralizeMedia false) on home/yfv/services/our-team/contact.
+
+**The aggregate score fell 117/153 → 109/153 and NONE of it is this round.**
+`next.mjs` compares against the last run per page, which was markuph4 on
+2026-08-11 19:42 — and two changes merged to main after it without a re-gate:
+8c4c536 (the photographs moved to Prismic/imgix, 2026-08-12 17:38) and 7458f43
+(the wave divider went from two cosine periods to ONE sine period, 2026-08-12
+19:56). The drifted rows are exactly `top` and `Ready for great dental health`
+on EVERY page — the two regions that contain a wave (the hero's bottom edge and
+the footer arc dipping into the CTA beach), which is the same signature the
+markuph4 entry above records for the previous wave round.
+Proven, not inferred: the source changes were stashed and the gate re-run on
+identical code the same afternoon (tag `basetoday`). our-team scored 9/15 and
+contact 8/12 — matching this round's numbers row for row, to the decimal.
+Baseline-today vs this round, over the five gated pages: **67/93 → 67/93, no
+region changed state**, the only movement being the two services rows above
+(+1.1, +0.5) and contact @834 OFFICE HOURS improving 0.3.
+Four rows crossed 10.0 between markuph4 and today on unchanged code: `Ready for
+great dental health` @834 (9.8 → 11.1) and `top` @1440 (8.2 → 11.0) among them.
+Those belong to the one-period wave directive, which outranks live by operator
+instruction — they need an ACK or a floor, and that is the operator's call, not
+this round's. Flagged, not reclassified.
+
+---
+
+## 2026-08-13 — "Read Reviews" opens under the footer wave (deviation)
+
+**Reported by the operator:** "when opened the logos sit underneath the wave in
+the footer." Confirmed on every route that mounts the closing CTA band, at
+every phone width. Two independent defects, one symptom.
+
+**Deviation from live — the disclosure direction.** Live's
+`.socials-container.active { bottom: -120% }` (`beachfront.css:7553-7556`)
+hangs the row BELOW its label. In the CTA band that lands it on the footer,
+whose wave is also absolutely positioned; both are `z-index:auto`, so CSS 2.1
+Appendix E step 8 paints them in tree order and the footer, being the later
+sibling, covers the logos. Overlap of the wave's box measured on /contact-us:
+115 / 97 / 48px at 360 / 390 / 480; clears by 124-162px at 767 / 834 / 1440.
+
+**Live has the same defect** — probed at 390 on beachfront-dentistry.webflow.io,
+all three logo centres hit-test to the wave's own `<svg>` and only a sliver of
+the Google mark clears it. There is no live rule to copy, so this is a
+deliberate deviation rather than a fidelity fix, and is logged as one.
+
+Shipped: `placement="above-sm"` on the CTA-band mount only — it discloses
+upward below 768 and keeps live's downward direction from 768 up. The
+review-slider mount is unchanged (it has room). Chosen because it is the only
+option that costs the CLOSED page nothing: the row is `absolute` +
+`opacity-0` + `inert` when shut, so no gate region can move at any width.
+Lifting the band over the footer and `isolation:isolate` were both built and
+measured, and both take the beach photo with them so the wave stops dipping
+into it — rejected. Recorded in SPEC.md §4.4a.
+
+**Not a deviation — the tap-swallowing strip.** The footer wave's WRAPPER had
+no `pointer-events-none`; only the `<svg>` inside it did. That left a
+full-width 96px strip intercepting taps: at 360, **0%** of the "Read Reviews"
+button was hittable and the control could not be opened at all (37% at 390).
+Straight bug, no live rule involved.
+
+**Not a deviation — the icon ladder.** The row's icons were a flat
+`w-12 lg:w-20` (48/80). Live sizes them on the anchor: `._w-8 { width: 2rem }`
+(`beachfront.css:3463-3465`) against the stepped root is 80/64/48, and
+`._w-8.clickable.su-w-6-portrait { width: 1.5rem }` (`beachfront.css:9034-9036`)
+takes it to 36 at ≤479. The captured markup carries all three classes
+(`matching/spec/index.html`, `contact-us.html`). Ours therefore rendered 48
+where live renders 36 (≤479) and 48 where live renders 64 (768-991) — a
+standing infidelity now corrected. Invisible to every gate for the same reason
+as the rest of this entry.
+
+**Why no gate caught any of it:** the pixel matrix screenshots the page as
+loaded, and this row is `opacity:0` until a click. The OPEN state has never
+been gated. `tests/interaction/mobile-ux.spec.ts` now covers it — 5 routes ×
+6 widths (320-767), asserting tappability, paint order at each logo centre,
+and clearance to the wave's PAINTED arc.
+
+**Clearance is measured against the painted arc, not the box** — the same way
+`tests/interaction/wave-divider.spec.ts` samples it, via
+`getPointAtLength`/`getScreenCTM`. The arc's crest only reaches ~77% of the
+box, so below 352px the row re-enters the box while staying ≥19px clear of the
+ink (floor asserted at 8px). That is only harmless because the
+`pointer-events-none` above holds, which is why the spec asserts both together
+rather than either alone.
+
+### Same round — `strikes.mjs` was failing OPEN on six of nine pages
+
+Not a geometry item; a defect in the check that enforces rule 3.
+
+`strikes.mjs` derived its page name from the ref URL (`pageOf`, line 32-35)
+while `gate.sh` and `next.mjs` key on the gate page KEY. Those agree only where
+the key equals the path — `home`, `our-team`, `services`. For the other six the
+documented round protocol ("`node matching/strikes.mjs <page>`" with the key you
+just passed to `gate.sh`) matched no run at all, and an empty match printed
+`strikes: clear — no failing region has stalled` and exited 0.
+
+So rule 3 was being enforced on 10 of 33 stalled regions. `yfv`, `contact`,
+`atd`, `svc`, `qa` and `team` each reported clear while holding 4 / 2 / 3 / 5 /
+4 / 5 stalled regions respectively — 23 hidden. Every one of them had been
+flat for 16+ runs.
+
+Fixed two ways: the filter now accepts EITHER vocabulary (the key is recovered
+from the run dir exactly as `next.mjs` does it), and a name that matches no run
+now exits 2 with the known-page list instead of reporting clear. A check whose
+job is to stop work may not fail open.
+
+Confirmed after the fix: home 5, yfv 4, our-team 4, services 1, contact 2,
+atd 3, svc 5, qa 4, team 5 = 33, which reconciles with the unfiltered run.

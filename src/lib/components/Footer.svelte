@@ -195,7 +195,17 @@
        what left the arc entering at its mid-line and leaving on a trough
        (+42.1px of net rise at 1440). WaveDivider now fixes the width at 100%
        of its box; only the taller height ladder is still the footer's own. -->
-  <div class="absolute inset-x-0 bottom-full">
+  <!-- `pointer-events-none` on the WRAPPER, not just the svg.
+       WaveDivider's own root already carries it, which is exactly why this was
+       invisible: `elementFromPoint` kept returning this div, and the arc looked
+       innocent. It is a full-width 96/128/160px strip floating above the footer
+       on every route, and it was swallowing taps meant for the band above.
+       Measured on /contact-us before the fix: of the "Read Reviews" button's
+       own box, 0% was hittable at 360 and 37% (14px of 39px) at 390 — the
+       control could not be opened at all on a 360px phone. 100% at 834/1440,
+       which is why it never showed up on a desktop. A decorative, aria-hidden
+       divider must never absorb a pointer. No paint change. -->
+  <div class="pointer-events-none absolute inset-x-0 bottom-full">
     <WaveDivider
       fill={waveFill}
       flip
@@ -289,7 +299,13 @@
             <div
               class="w-full md:col-span-2 md:row-start-2 lg:col-span-1 lg:row-start-auto"
             >
-              <MapEmbed query={mapQuery} />
+              <!-- Distinct from any map the PAGE mounts (/contact-us has its
+                   own): two frames sharing one accessible name is two
+                   indistinguishable tab stops. See MapEmbed's `title` prop. -->
+              <MapEmbed
+                query={mapQuery}
+                title="Map to Beachfront Dentistry — site footer"
+              />
             </div>
           {/if}
         </div>

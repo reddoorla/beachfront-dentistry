@@ -87,7 +87,24 @@ describe("contact-us page", () => {
 
   it("renders the map embed with its accessible title", () => {
     const { getByTitle } = renderPage();
-    expect(getByTitle("Map to Beachfront Dentistry")).toBeTruthy();
+    expect(getByTitle("Map to Beachfront Dentistry — Contact")).toBeTruthy();
+  });
+
+  // This page is the only one that mounts TWO maps — its own plus the footer's
+  // — which is live's composition (two `w-widget-map` widgets in
+  // matching/spec/contact-us.html) and stays. Live gets away with it because
+  // its map iframes are `aria-hidden="true" tabindex="-1"`; ours are focusable
+  // and named, so identical titles would be two tab stops a screen-reader user
+  // cannot tell apart (WCAG 4.1.2). The page renders without the layout here,
+  // so the footer's frame is not in this tree — what this pins is that the
+  // page's own map does NOT use the shared default that the footer keeps.
+  it("does not reuse MapEmbed's default title, which the footer's map holds", () => {
+    const { container } = renderPage();
+    const titles = [...container.querySelectorAll("iframe")].map((f) =>
+      f.getAttribute("title"),
+    );
+    expect(titles).not.toContain("Map to Beachfront Dentistry");
+    expect(titles.length).toBe(1);
   });
 
   it("funnels the appointment form through the global modal (#appointment), no body form", () => {

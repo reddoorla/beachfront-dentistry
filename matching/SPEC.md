@@ -617,6 +617,43 @@ Social icons: `._w-8 { width: 2rem }` `beachfront.css:3463-3465` → 80/64/48;
 ≤479 `._w-8.clickable.su-w-6-portrait { width: 1.5rem }` `beachfront.css:9034-9036`
 → 36px at 390.
 
+##### 4.4a Paint order against the footer wave — the one deviation here
+
+Everything above is the OPEN state, which **no gate has ever seen**: the pixel
+matrix screenshots the page as loaded, and this row is `opacity:0` until a
+click. That blind spot hid two defects at once, so record what the geometry
+actually is rather than trusting the ladder.
+
+The row is `position:absolute` and, per `.socials-container.active
+{ bottom:-120% }` `beachfront.css:7553-7556`, hangs BELOW its label. In the
+closing CTA band that puts it over the footer, whose wave divider is itself
+absolutely positioned at `bottom-full`. Both are positioned with
+`z-index:auto`, so CSS 2.1 Appendix E step 8 paints them in TREE ORDER and the
+footer — the later sibling — wins. Measured on `/contact-us`, the row overlaps
+the wave's box by **115 / 97 / 48px** at 360 / 390 / 480 and clears it by
+**124–162px** at 767 / 834 / 1440.
+
+**The reference has this defect too.** Probed at 390 on
+`beachfront-dentistry.webflow.io`, all three logo centres hit-test to the
+wave's own `<svg>` and only a sliver of the Google mark clears it. There is
+therefore no live rule to copy, and the fix is a deliberate deviation — see
+`matching/LEDGER.md` 2026-08-13.
+
+What ships instead: the CTA-band mount discloses UPWARD below 768
+(`placement="above-sm"`), while the review-slider mount keeps live's downward
+direction because it has room. Upward is the only option that costs the CLOSED
+page nothing — the row is `absolute` + `opacity-0` + `inert` when shut, so no
+gate region can move at any width. The paint-order alternatives (lifting the
+band over the footer, `isolation:isolate`) were both measured and rejected:
+they take the beach photo with them and the wave stops dipping into it.
+
+Separately, the wave's WRAPPER carried no `pointer-events-none` — only the
+`<svg>` inside it did — so a full-width 96px strip swallowed taps. At 360 that
+left **0%** of the "Read Reviews" button hittable and the control could not be
+opened at all; 37% at 390. Box overlap is only harmless while that holds, which
+is why `tests/interaction/mobile-ux.spec.ts` asserts tappability and clearance
+together rather than either alone.
+
 #### 4.5 `.cta-beach-label` — "FIJI ISLANDS"
 
 `beachfront.css:6372-6379`: `color:#fff; font-size:25px; line-height:1.15em;

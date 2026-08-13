@@ -4,10 +4,20 @@
   // wantsMapsCsp). Only https://www.google.com needs to be in frame-src.
   interface Props {
     query?: string;
+    /** Accessible name for the frame. /contact-us mounts TWO of these — its
+     * own map plus the footer's, which is live's composition (two
+     * `w-widget-map` widgets in matching/spec/contact-us.html) and stays. But
+     * live's map iframes are `aria-hidden="true" tabindex="-1"`, so its
+     * duplicates are invisible to assistive tech, while ours are focusable and
+     * named: two tab stops called "Map to Beachfront Dentistry" with no way to
+     * tell them apart (WCAG 4.1.2). Callers that can collide pass a
+     * distinguishing name; the default serves every single-map page. */
+    title?: string;
   }
 
   let {
     query = "Beachfront Dentistry, 1706 S Elena Ave, Redondo Beach, CA",
+    title = "Map to Beachfront Dentistry",
   }: Props = $props();
 
   let frame: HTMLIFrameElement | undefined = $state();
@@ -61,7 +71,7 @@
        South Bay area view, not the street-level default the embed opens at. -->
   <iframe
     bind:this={frame}
-    title="Map to Beachfront Dentistry"
+    {title}
     src={"https://www.google.com/maps?q=" +
       encodeURIComponent(query) +
       "&z=12&output=embed"}

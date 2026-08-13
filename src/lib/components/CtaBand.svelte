@@ -113,7 +113,11 @@
     {/if}
     <!-- Live's "Read Reviews" expander — discloses the Google/Facebook/Yelp
          row (same block as under the review slider). -->
-    <ReadReviewsExpander class="mb-20 lg:mb-24" />
+    <!-- `above-sm`, opted in HERE and not in the component's default, because
+         this is the only mount that sits above the footer wave. The carousel's
+         mount (Carousel/index.svelte) opens downward into open page and was
+         measured clean at 360/390/834/1440 — it must keep live's direction. -->
+    <ReadReviewsExpander class="mb-20 lg:mb-24" placement="above-sm" />
   </div>
 {/snippet}
 
