@@ -1,11 +1,14 @@
 import { expect, test } from "@playwright/test";
 
 /**
- * MARKUP ROUND H4 — the two operator corrections on the wave divider, as
- * checks rather than promises (MarkUp thread 7dd0c2f2):
+ * The operator corrections on the wave divider, as checks rather than promises
+ * (MarkUp thread 7dd0c2f2, plus one direct instruction since):
  *
  *   1. "sine should be only up/down on each page landing at the same height"
  *   2. "wave should never touch the text"
+ *   3. 2026-08-13: "I want a single up and then down, coming back to neutral
+ *      on both side, should be the same on any screen size" — one crest, one
+ *      trough, both ends on the mid-line, at every viewport.
  *
  * Both are properties of the RENDERED divider, so neither can be guarded by a
  * unit test on the path string: correction 1 broke because the SVG was 133%
@@ -37,16 +40,24 @@ const MIN_CLEARANCE = 8;
 
 /** Ends must land level. The tolerance is 1px rather than 0 because the
  * `calc(100% + 1.3px)` hairline-seam overhang samples the curve just past
- * x=1200; the cosine phase makes that a second-order error (measured ≤0.04px
- * at every width and box height), so 1px is ~25x the real budget and still
- * catches any return of an overflow factor, whose signature is a delta of one
- * full amplitude (19-43px). */
+ * x=1200.
+ *
+ * That budget got tighter on 2026-08-13 and the number is worth writing down.
+ * Under the two-period cosine both ends sat on an extremum, where dy/dx = 0,
+ * so the overhang was a second-order error: ≤0.04px. The operator asked for
+ * ends at NEUTRAL ("coming back to neutral on both side"), and neutral is
+ * where the sine is steepest, so the same 1.3px now costs 0.181px @1440,
+ * 0.202 @1294, 0.250 @834 and 0.401 @390 — computed from the path, and the
+ * reason this constant is not tightened to match. 1px still leaves 2.5x
+ * headroom at the worst width while catching the failure it exists for: an
+ * overflow factor cropping the wave mid-period, whose signature is a delta of
+ * one full amplitude (19-43px). */
 const MAX_END_DELTA = 1;
 
 type Mount = {
   mount: string;
   endDelta: number;
-  periods: number;
+  turns: number;
   worstClearance: number;
   worstText: string;
 };
@@ -120,13 +131,40 @@ const measure = () => {
     const ys = pts.map((p) => p.y);
     const lo = Math.min(...ys);
     const hi = Math.max(...ys);
-    const mid = (lo + hi) / 2;
-    let crossings = 0;
-    let prev: number | null = null;
+
+    // TURNING POINTS, not mid-line crossings.
+    //
+    // Crossings were the right metric while the wave began and ended on a
+    // crest. It is the wrong one now that both ends sit exactly ON the
+    // mid-line: whether an endpoint counts as a crossing then turns on which
+    // side of a strict `>` a floating-point sample lands, so the same wave
+    // scores 1 period or 0.5 depending on rounding. Turning points ask the
+    // question the operator actually asked — "a single up and then down" is
+    // one crest and one trough — and no sample sits near the threshold.
+    //
+    // The deadband ignores antialiasing wobble on the stretched SVG edge while
+    // staying far below a real extremum (amplitude is 19-43px in practice).
+    const dead = Math.max(1, (hi - lo) * 0.15);
+    let turns = 0;
+    let dir = 0;
+    let ext = pts[0].y;
     for (const p of pts) {
-      const side = p.y > mid ? 1 : -1;
-      if (prev !== null && side !== prev) crossings++;
-      prev = side;
+      if (dir === 0) {
+        if (Math.abs(p.y - ext) > dead) {
+          dir = Math.sign(p.y - ext);
+          ext = p.y;
+        }
+        continue;
+      }
+      if (Math.sign(p.y - ext) === dir) {
+        ext = p.y;
+        continue;
+      }
+      if (Math.abs(p.y - ext) > dead) {
+        turns++;
+        dir = -dir;
+        ext = p.y;
+      }
     }
 
     let worstClearance = Infinity;
@@ -158,7 +196,7 @@ const measure = () => {
         (svg.closest("[data-detail-label]") && "DetailHero") ||
         "hero",
       endDelta: R(pts[pts.length - 1].y - pts[0].y),
-      periods: R(crossings / 2),
+      turns,
       worstClearance: Number.isFinite(worstClearance) ? R(worstClearance) : 999,
       worstText,
     });
@@ -215,9 +253,11 @@ for (const width of WIDTHS) {
         expect(Math.abs(m.endDelta), `${where}: end delta`).toBeLessThanOrEqual(
           MAX_END_DELTA,
         );
-        // a whole number of periods across the RENDERED width is what makes
-        // that true for any mount, at any width, rather than by luck
-        expect(m.periods, `${where}: whole periods on screen`).toBe(2);
+        // ONE period across the RENDERED width is what makes that true for any
+        // mount at any width rather than by luck — and "a single up and then
+        // down" is exactly one crest plus one trough. Two turns, everywhere.
+        // The two-period wave this replaced scored 4 here.
+        expect(m.turns, `${where}: turning points on screen`).toBe(2);
         // 2. "wave should never touch the text"
         expect(
           m.worstClearance,

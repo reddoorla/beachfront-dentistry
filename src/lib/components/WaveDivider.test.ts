@@ -39,36 +39,44 @@ describe("WaveDivider", () => {
     expect(width).toMatch(/width:\s*calc\(100%\s*\+\s*1\.3px\)/);
   });
 
+  /** On-curve points: the M, then the 6th number of every cubic. */
+  const knotsOf = (d: string) => [
+    Number(d.match(/^M[\d.]+,([\d.]+)/)![1]),
+    ...[...d.matchAll(/C[\d.]+,[\d.]+,[\d.]+,[\d.]+,[\d.]+,([\d.]+)/g)].map(
+      (m) => Number(m[1]),
+    ),
+  ];
+  const pathD = () =>
+    render(WaveDivider).container.querySelector("path")!.getAttribute("d")!;
+
   it("starts and ends the wave at the same height", () => {
-    const d = render(WaveDivider)
-      .container.querySelector("path")!
-      .getAttribute("d")!;
+    const d = pathD();
     const start = d.match(/^M0,([\d.]+)/)![1];
     // the last knot before the V0 H0 Z close
     const end = d.match(/,([\d.]+)V0H0Z$/)![1];
     expect(Number(end)).toBe(Number(start));
   });
 
-  it("carries a whole number of periods with level, flat ends", () => {
-    const d = render(WaveDivider)
-      .container.querySelector("path")!
-      .getAttribute("d")!;
-    // y = 60 − 32·cos(πx/300): extrema every 300 units, so the knots alternate
-    // 28, 60, 92, 60, 28 … and both ends sit on an extremum (28). Ends with
-    // zero slope are what make the calc() hairline overhang a second-order
-    // error instead of a visible step.
-    // on-curve points only: the M, then the 6th number of every cubic
-    const knots = [
-      Number(d.match(/^M[\d.]+,([\d.]+)/)![1]),
-      ...[...d.matchAll(/C[\d.]+,[\d.]+,[\d.]+,[\d.]+,[\d.]+,([\d.]+)/g)].map(
-        (m) => Number(m[1]),
-      ),
-    ];
-    expect(knots[0]).toBe(28);
-    expect(knots.at(-1)).toBe(28);
-    expect(new Set(knots).size).toBe(3); // 28 / 60 / 92 only
-    // 2 full periods = 4 turning points strictly inside plus the two ends
-    const extrema = knots.filter((y) => y === 28 || y === 92);
-    expect(extrema).toEqual([28, 92, 28, 92, 28]);
+  it("starts and ends at NEUTRAL, not on a crest", () => {
+    // Operator, 2026-08-13: "coming back to neutral on both side". The previous
+    // two-period cosine entered and left on a crest (y=28) — level with itself,
+    // but a full amplitude off the mid-line, which is what made the seam read as
+    // a wave sliced mid-stroke rather than one that resolves.
+    const knots = knotsOf(pathD());
+    expect(knots[0]).toBe(60); // 60 = the mid-line of the 0..120 viewBox
+    expect(knots.at(-1)).toBe(60);
+  });
+
+  it("is a SINGLE up and then down — one crest, one trough", () => {
+    // y = 60 − 32·sin(πx/600) over 0..1200: neutral, crest at 300, neutral at
+    // 600, trough at 900, neutral. Exactly two turning points. Counting them off
+    // the knots is what stops a future edit quietly restoring a second period.
+    const knots = knotsOf(pathD());
+    expect(knots).toEqual([60, 28, 60, 92, 60]);
+
+    const turns = knots
+      .slice(1, -1)
+      .filter((y, i) => (y - knots[i]) * (knots[i + 2] - y) < 0);
+    expect(turns, "one crest and one trough, nothing else").toEqual([28, 92]);
   });
 });
