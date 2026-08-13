@@ -133,9 +133,13 @@
              — Tim: "I do not like the jumping from question to question."
              The hop transition is gone from this class list because JS now
              owns the motion frame-by-frame; see floatAlong.ts for the full
-             override record. Live x-geometry at 1440: handwriting's right
-             edge 10px left of the column, headshot overlapping 40px INTO the
-             column's right edge. -->
+             override record. SECOND DIRECTIVE (2026-08-13): the tracked end
+             is now the TOP fully visible question, not the bottom one, so the
+             pair rides beside the question being read — measured on /: level
+             with the top-most fully visible card at all six scroll stops,
+             headshot 96px below the viewport top. Live x-geometry at 1440:
+             handwriting's right edge 10px left of the column, headshot
+             overlapping 40px INTO the column's right edge. -->
         <!-- MOBILE (measured live @390): the pair rests IN PLACE above the
              first card, right-aligned — 120px headshot 24px from the content's
              right edge with its bottom 12px above the card, the 120×70

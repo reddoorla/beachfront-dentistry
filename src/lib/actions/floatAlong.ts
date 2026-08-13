@@ -20,16 +20,22 @@ export type FloatAlongOptions = {
  *  transform 1s cubic-bezier(.19,1,.22,1) }`, beachfront.css:7670). Those
  *  per-question hops are exactly the "jumping" the pin rejects.
  *
- *  WHAT RUNS NOW: the same anchor semantics, made continuous. The viewport's
- *  bottom edge is the tracking line (the same edge that decided "fully
- *  visible" before); its position between consecutive item BOTTOMS is
- *  interpolated piecewise-linearly onto the items' offsetTop ladder, so the
- *  pair passes through every position the old code hopped between and every
- *  position in between. Clamped to [item 0, last item] — the pair never
- *  leaves the column. A short critically-damped follow (rAF, ~150ms time
- *  constant) keeps the float soft without reintroducing a step: the target
- *  is continuous in scroll, the follow is continuous in time, so there is no
- *  input for which the position can jump.
+ *  WHAT RUNS NOW: continuous, and anchored to the TOP fully visible question.
+ *  The viewport's TOP edge is the tracking line; its position between
+ *  consecutive item TOPS is interpolated piecewise-linearly onto the items'
+ *  offsetTop ladder, so the pair passes through every position the old code
+ *  hopped between and every position in between. Clamped to [item 0, last
+ *  item] — the pair never leaves the column. A short critically-damped follow
+ *  (rAF, ~150ms time constant) keeps the float soft without reintroducing a
+ *  step: the target is continuous in scroll, the follow is continuous in time,
+ *  so there is no input for which the position can jump.
+ *
+ *  Which END is tracked is the second operator directive on this behaviour
+ *  (2026-08-13): "make the doctor anchor to the top fully visible question
+ *  rather than the bottom one". Until then the line was the viewport BOTTOM
+ *  over item bottoms — live's own choice of end, kept when the motion was made
+ *  continuous. The pair now sits beside the question the reader is actually
+ *  on, roughly one card higher up the column.
  *
  *  Decoration only — gated off entirely (no listeners, no transform ever
  *  written) for reduced-motion users, who get the pair statically at its
@@ -57,29 +63,42 @@ export function floatAlong(
   const desktop = window.matchMedia("(min-width: 1024px)");
 
   // Continuous scroll→offset mapping. Piecewise-linear over the items'
-  // viewport-bottom crossings: when the viewport bottom sits between
-  // bottom(item i) and bottom(item i+1), the offset interpolates between
-  // those items' offsetTop distances from item 0 (the pair's authored rest —
-  // all items share the node's positioned ancestor, so offsetTop deltas are
-  // exactly the travel). Clamped to 0 before the column and to the last
-  // item's offset past it. Monotone in scroll by construction: item bottoms
-  // and offsetTops are both non-decreasing down the column.
+  // viewport-TOP crossings: when the viewport top sits between top(item i) and
+  // top(item i+1), the offset interpolates between those items' offsetTop
+  // distances from item 0 (the pair's authored rest — all items share the
+  // node's positioned ancestor, so offsetTop deltas are exactly the travel).
+  // Clamped to 0 before the column and to the last item's offset past it.
+  // Monotone in scroll by construction: item tops and offsetTops are both
+  // non-decreasing down the column.
+  //
+  // TOP, not bottom — operator directive 2026-08-13: "make the doctor anchor
+  // to the top fully visible question rather than the bottom one". The tracked
+  // question is the first one not yet cut off by the top of the viewport, so
+  // at t=0 of each segment the pair sits beside the card whose top has just
+  // reached the viewport top — the reader's current question, rather than the
+  // last one to have fully entered from below. It rides ~one card higher in
+  // the column than it used to (cards are 400px on a 420px pitch).
+  //
+  // The viewport top is a legitimate line on this page: home's nav is the
+  // hamburger-only branch (`position: absolute`, Nav.svelte:257-259), so it
+  // scrolls away rather than overlaying y=0. A page that put a FIXED nav over
+  // this column would need the line moved down to the nav's bottom edge; the
+  // pair's own `lg:top-[100px]` rest offset is not enough clearance for one.
   const targetOffset = (): number => {
     const items = [...parent.querySelectorAll<HTMLElement>(itemSelector)];
     if (items.length === 0) return 0;
     const first = items[0];
     const last = items[items.length - 1];
-    const bottoms = items.map((el) => el.getBoundingClientRect().bottom);
-    const line = window.innerHeight;
-    if (bottoms[0] >= line) return 0;
-    if (bottoms[bottoms.length - 1] <= line) {
+    const tops = items.map((el) => el.getBoundingClientRect().top);
+    const line = 0;
+    if (tops[0] >= line) return 0;
+    if (tops[tops.length - 1] <= line) {
       return last.offsetTop - first.offsetTop;
     }
     let i = 0;
-    while (i + 1 < bottoms.length && bottoms[i + 1] <= line) i++;
-    const span = bottoms[i + 1] - bottoms[i];
-    const t =
-      span > 0 ? Math.min(Math.max((line - bottoms[i]) / span, 0), 1) : 1;
+    while (i + 1 < tops.length && tops[i + 1] <= line) i++;
+    const span = tops[i + 1] - tops[i];
+    const t = span > 0 ? Math.min(Math.max((line - tops[i]) / span, 0), 1) : 1;
     const a = items[i].offsetTop - first.offsetTop;
     const b = items[i + 1].offsetTop - first.offsetTop;
     return a + (b - a) * t;

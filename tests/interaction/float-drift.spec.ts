@@ -12,9 +12,13 @@ import { test, expect, type Page } from "@playwright/test";
 // { transition: transform 1s cubic-bezier(.19,1,.22,1) }`
 // (beachfront.css:7670) — a step function of scroll: the probed BEFORE showed
 // 420px jumps inside a single 25px scroll step. floatAlong now maps scroll to
-// position piecewise-linearly over the items' viewport-bottom crossings with
-// a short rAF follow, so position is a continuous function of scroll. This
-// suite pins that contract:
+// position piecewise-linearly with a short rAF follow, so position is a
+// continuous function of scroll.
+//
+// WHICH END — operator directive 2026-08-13: "anchor to the top fully visible
+// question rather than the bottom one". The crossings are the items' VIEWPORT
+// TOP crossings; the pair rides beside the question the reader is on, about
+// one card higher than before. This suite pins that contract:
 //   1. scroll 0: the pair's authored rest state is untouched (no transform) —
 //      the static gate captures depend on it byte-for-byte;
 //   2. continuity: sampled every 25px of scroll down the column, the settled
@@ -116,12 +120,16 @@ test("the drift is a continuous, monotone, column-bounded function of scroll", a
       ".ask-the-doctor-headshot",
     )!.parentElement!;
     const items = [...pair.parentElement!.querySelectorAll(".qa-item")];
-    const bot = (el: Element) => el.getBoundingClientRect().bottom + scrollY;
+    // The tracking line is the viewport TOP over item TOPS (operator directive
+    // 2026-08-13), so the drift window runs from just before the first item's
+    // top reaches y=0 to just after the last item's does. Sweeping the OLD
+    // bottom-edge window would now sample mostly clamped rest at one end.
+    const topOf = (el: Element) => el.getBoundingClientRect().top + scrollY;
     const first = items[0] as HTMLElement;
     const last = items[items.length - 1] as HTMLElement;
     return {
-      start: Math.max(0, Math.round(bot(first) - innerHeight - 50)),
-      end: Math.round(bot(last) - innerHeight + 50),
+      start: Math.max(0, Math.round(topOf(first) - 50)),
+      end: Math.round(topOf(last) + 50),
       colTravel: last.offsetTop - first.offsetTop,
     };
   });
