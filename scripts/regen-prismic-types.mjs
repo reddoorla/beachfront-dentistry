@@ -37,25 +37,58 @@ const require = createRequire(import.meta.url);
 /**
  * Load @slicemachine/manager's CommonJS build.
  *
- * Two wrinkles, both load-bearing. It is not a direct dependency — it arrives
- * under slice-machine-ui — so the pnpm store is searched when the plain resolve
- * misses. And it must be the .cjs build: the ESM one directory-imports
- * @prismicio/types-internal/lib/customtypes, which Node refuses
- * (ERR_UNSUPPORTED_DIR_IMPORT).
+ * It must be the .cjs build: the ESM one directory-imports
+ * @prismicio/types-internal/lib/customtypes, which Node refuses outright with
+ * ERR_UNSUPPORTED_DIR_IMPORT.
+ *
+ * Finding it takes three attempts because it is not a direct dependency — it
+ * ships under slice-machine-ui — and the pnpm store can hold more than one
+ * copy. The order below is deliberate; see the comment on step 2, which is the
+ * one that keeps this script and the Slice Machine UI generating types with the
+ * same generator.
  */
 function loadManager() {
+  // 1. hoisted, if this ever becomes a direct dependency.
   try {
     return require("@slicemachine/manager/dist/index.cjs");
   } catch {
-    /* not hoisted — fall through to the store */
+    /* fall through */
   }
+
+  // 2. THE ONE THAT MATTERS: resolve it the way slice-machine-ui does.
+  //
+  // The store can hold several versions at once — a lock-file refresh on
+  // 2026-08-13 left @slicemachine+manager@0.27.4 and @0.27.5 side by side while
+  // slice-machine-ui resolved 0.27.5. Scanning the store and taking the first
+  // hit picked 0.27.4, so this script would have generated types with a
+  // different generator than the UI writes them with, and the difference would
+  // have surfaced as a mystery diff rather than an error. Resolving THROUGH the
+  // real consumer means the two can never disagree.
+  try {
+    const fromUi = createRequire(
+      require.resolve("slice-machine-ui/package.json"),
+    );
+    return require(fromUi.resolve("@slicemachine/manager/dist/index.cjs"));
+  } catch {
+    /* fall through */
+  }
+
+  // 3. last resort — scan the store, but take the HIGHEST version, never the
+  //    first one readdir happens to return.
   const store = join(ROOT, "node_modules", ".pnpm");
   if (!existsSync(store))
     throw new Error("node_modules/.pnpm not found — run `pnpm install` first.");
-  const dir = readdirSync(store).find((d) =>
-    d.startsWith("@slicemachine+manager@"),
-  );
-  if (!dir)
+  const dirs = readdirSync(store)
+    .filter((d) => d.startsWith("@slicemachine+manager@"))
+    .sort((a, b) => {
+      const v = (s) =>
+        (s.split("@")[2] ?? "").split("_")[0].split(".").map(Number);
+      const [x, y] = [v(a), v(b)];
+      for (let i = 0; i < 3; i++)
+        if ((x[i] ?? 0) !== (y[i] ?? 0)) return (y[i] ?? 0) - (x[i] ?? 0);
+      return 0;
+    });
+  if (!dirs.length)
     throw new Error(
       "@slicemachine/manager is not installed. It ships with slice-machine-ui;\n" +
         "run `pnpm install` and try again.",
@@ -63,7 +96,7 @@ function loadManager() {
   return require(
     join(
       store,
-      dir,
+      dirs[0],
       "node_modules",
       "@slicemachine",
       "manager",
