@@ -299,6 +299,185 @@ test.describe("interactive targets meet WCAG 2.2 AA 2.5.8 (24x24)", () => {
 
 // ---------------------------------------------------------------------------
 
+/**
+ * "Read Reviews", opened, on a phone.
+ *
+ * Two defects, one region. The disclosed row hangs BELOW its label
+ * (`.socials-container.active{bottom:-120%}`, beachfront.css:7553-7556), and in
+ * the closing CTA band that lands it inside the footer wave's box below ~560px:
+ * measured on /contact-us the row overlapped the wave box by 115/97/48px at
+ * 360/390/480 and the footer painted over all three logos, so opening the
+ * disclosure looked like a no-op. Separately, the wave's WRAPPER carried no
+ * `pointer-events-none` — only the svg inside it did — so a full-width 96px
+ * strip was eating taps: 0% of the "Read Reviews" button was hittable at 360.
+ *
+ * The reference has the first defect too (probed at 390 on
+ * beachfront-dentistry.webflow.io: every logo centre hit-tests to the wave's
+ * own svg), so this is a deliberate deviation — see matching/LEDGER.md.
+ *
+ * 320 and 346 are in the matrix on purpose: 320 is WCAG 1.4.10's normative
+ * width, and ~346 is where the photo box stops tracking 70vw and pins to its
+ * content height, which is the worst point in the band.
+ */
+test.describe("Read Reviews opens clear of the footer wave", () => {
+  const ROUTES = [
+    "/contact-us",
+    "/",
+    "/our-team",
+    "/team-members/dr-robert-quan",
+    "/services/teeth-whitening",
+  ];
+  /** The operator's rule for this divider — "the wave should never touch the
+   *  text" (MarkUp 7dd0c2f2) — measured against the PAINTED arc, the same way
+   *  tests/interaction/wave-divider.spec.ts samples it. Clearance to the wave's
+   *  BOX is deliberately not the metric: the arc's crest only reaches ~77% of
+   *  the box, and below 352px the row does re-enter the box while staying well
+   *  clear of the ink. What makes that harmless is the `pointer-events-none`
+   *  asserted below — without it, box overlap steals taps. */
+  const MIN_ARC_CLEARANCE = 8;
+
+  for (const route of ROUTES) {
+    for (const width of [320, 346, 360, 390, 480, 767]) {
+      test(`${route} @${width}`, async ({ page }) => {
+        await page.setViewportSize({ width, height: 900 });
+        // The row crossfades over 2s (live's curve). Reduced motion trips the
+        // component's own `motion-reduce:transition-none`, so the disclosed
+        // state is readable at once instead of after a blind 2.4s sleep — and
+        // `opacity` is asserted below, so the shortcut is self-checking.
+        await page.emulateMedia({ reducedMotion: "reduce" });
+        await page.goto(route);
+        await page.evaluate(() => document.fonts.ready);
+        await page.evaluate(async () => {
+          for (let y = 0; y < document.body.scrollHeight; y += 400) {
+            scrollTo({ top: y, behavior: "instant" });
+            await new Promise((r) => setTimeout(r, 40));
+          }
+        });
+
+        const res = await page.evaluate(async () => {
+          // the LAST expander on the page is the closing CTA band's
+          const b = [...document.querySelectorAll("button")]
+            .filter((x) => /read reviews/i.test(x.textContent || ""))
+            .pop();
+          if (!b) return { none: true } as const;
+
+          // `elementFromPoint` is viewport-relative and answers null outside
+          // it, so an off-screen control reads as 0% tappable whatever the CSS
+          // says. Scroll first, and report `inView` so the sweep below can
+          // never be believed on an untested box.
+          b.scrollIntoView({ block: "center", behavior: "instant" });
+          await new Promise((r) => requestAnimationFrame(() => r(null)));
+
+          // (1) the control itself must be tappable across its whole box
+          const br0 = b.getBoundingClientRect();
+          const inView =
+            br0.top >= 0 &&
+            br0.bottom <= innerHeight &&
+            br0.left >= 0 &&
+            br0.right <= innerWidth;
+          let live = 0,
+            tot = 0;
+          for (let x = br0.left + 2; x < br0.right - 2; x += 4)
+            for (let y = br0.top + 1; y < br0.bottom - 1; y += 2) {
+              tot++;
+              const el = document.elementFromPoint(x, y);
+              if (el === b || b.contains(el)) live++;
+            }
+          const tappablePct = Math.round((100 * live) / Math.max(tot, 1));
+
+          // A click lands before hydration attaches the handler as a silent
+          // no-op — on the dev server that race is live often enough to move
+          // between runs. Poll the control's own `aria-expanded` instead of
+          // sleeping, and only click while it still reads closed, so a handler
+          // that attaches mid-loop can't be toggled straight back shut.
+          const deadline = performance.now() + 5000;
+          while (performance.now() < deadline) {
+            if (b.getAttribute("aria-expanded") === "true") break;
+            b.click();
+            await new Promise((r) => setTimeout(r, 100));
+          }
+          b.scrollIntoView({ block: "center", behavior: "instant" });
+          await new Promise((r) => setTimeout(r, 150));
+
+          const row =
+            b.parentElement!.querySelector("[id]:not(button)") ??
+            b.parentElement!.lastElementChild!;
+          const rr = row.getBoundingClientRect();
+
+          // (2) every logo must actually be the thing painted at its centre
+          const imgs = [...row.querySelectorAll("img")];
+          const painted = imgs.map((img) => {
+            const q = img.getBoundingClientRect();
+            const el = document.elementFromPoint(
+              q.left + q.width / 2,
+              q.top + q.height / 2,
+            );
+            if (!el) return "null";
+            if (el === img || img.contains(el)) return "LOGO";
+            return el.closest("footer") ? "FOOTER" : el.tagName.toLowerCase();
+          });
+
+          // (3) clearance to the footer wave's painted curve, under the row
+          const svg = document.querySelector<SVGSVGElement>(
+            "footer svg[viewBox='0 0 1200 120']",
+          )!;
+          const path = svg.querySelector("path")!;
+          const m = svg.getScreenCTM()!;
+          const total = path.getTotalLength();
+          let minY = Infinity;
+          for (let i = 0; i <= 800; i++) {
+            const p = path.getPointAtLength((total * i) / 800);
+            if (p.y <= 0.01) continue;
+            const q = new DOMPoint(p.x, p.y).matrixTransform(m);
+            if (q.x >= rr.left - 1 && q.x <= rr.right + 1)
+              minY = Math.min(minY, q.y);
+          }
+
+          return {
+            none: false,
+            inView,
+            opacity: getComputedStyle(row).opacity,
+            tappablePct,
+            painted,
+            clearanceToArc: Number.isFinite(minY)
+              ? Math.round(minY - rr.bottom)
+              : null,
+            overflowX: document.documentElement.scrollWidth > innerWidth,
+          };
+        });
+
+        expect(res.none, `${route} mounts a Read Reviews expander`).toBe(false);
+        if (res.none) return;
+        // guards on the two measurements above, not findings in themselves:
+        // hit-testing off-viewport reads 0%, and a row still mid-crossfade
+        // would put the logos nowhere.
+        expect(
+          res.inView,
+          `${route} @${width}: button is on-screen, so the sweep is meaningful`,
+        ).toBe(true);
+        expect(
+          res.opacity,
+          `${route} @${width}: the row finished disclosing`,
+        ).toBe("1");
+        expect(
+          res.tappablePct,
+          `${route} @${width}: % of the Read Reviews button that receives a tap`,
+        ).toBe(100);
+        for (const p of res.painted)
+          expect(p, `${route} @${width}: what paints over a logo`).toBe("LOGO");
+        if (res.clearanceToArc !== null)
+          expect(
+            res.clearanceToArc,
+            `${route} @${width}: logo row to the wave's painted arc`,
+          ).toBeGreaterThanOrEqual(MIN_ARC_CLEARANCE);
+        expect(res.overflowX, `${route} @${width}: sideways scroll`).toBe(
+          false,
+        );
+      });
+    }
+  }
+});
+
 test("the two maps on /contact-us have distinct accessible names", async ({
   page,
 }) => {
