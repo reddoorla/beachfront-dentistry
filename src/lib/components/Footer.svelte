@@ -289,7 +289,13 @@
             <div
               class="w-full md:col-span-2 md:row-start-2 lg:col-span-1 lg:row-start-auto"
             >
-              <MapEmbed query={mapQuery} />
+              <!-- Distinct from any map the PAGE mounts (/contact-us has its
+                   own): two frames sharing one accessible name is two
+                   indistinguishable tab stops. See MapEmbed's `title` prop. -->
+              <MapEmbed
+                query={mapQuery}
+                title="Map to Beachfront Dentistry — site footer"
+              />
             </div>
           {/if}
         </div>

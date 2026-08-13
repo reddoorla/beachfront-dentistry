@@ -147,12 +147,27 @@
   );
 </script>
 
-<!-- Live's review-slider arrow assets (big-review-arrow-left/right, 30×33). -->
+<!-- Live's review-slider arrow assets (big-review-arrow-left/right).
+     `.big-review-arrow-left`/`-right` are `width:.75rem`
+     (beachfront.css:7594-7600 and :7614-7620) — and .75rem is THREE sizes
+     against live's stepped root (24/32/40px), so the asset is 18px ≤767,
+     24px 768-991 and 30px ≥992. We had hard-coded the ≥992 value at every
+     width, which is how a 30px chevron ended up on a 390px phone. The
+     33:30 height ratio is the SVG's own aspect, and reproduces live's
+     measured 18×20 / 24×26 / 30×33 boxes. -->
 {#snippet reviewArrowLeft()}
-  <img src="/icons/review-arrow-left.svg" alt="" class="h-[33px] w-[30px]" />
+  <img
+    src="/icons/review-arrow-left.svg"
+    alt=""
+    class="h-[20px] w-[18px] md:h-[26px] md:w-[24px] lg:h-[33px] lg:w-[30px]"
+  />
 {/snippet}
 {#snippet reviewArrowRight()}
-  <img src="/icons/review-arrow-right.svg" alt="" class="h-[33px] w-[30px]" />
+  <img
+    src="/icons/review-arrow-right.svg"
+    alt=""
+    class="h-[20px] w-[18px] md:h-[26px] md:w-[24px] lg:h-[33px] lg:w-[30px]"
+  />
 {/snippet}
 
 {#if isFullbleedTour}
@@ -434,8 +449,22 @@
                      with plain flex-col; no reverse anywhere. justify-between
                      + the fixed tablet/desktop heights open the gap live
                      shows between the two blocks. -->
+                <!-- `.review-slider-holder-viewport{width:15rem}`
+                     (beachfront.css:7586-7592) is the card's box, and 15rem is
+                     THREE widths against live's stepped root: 360px ≤767,
+                     480px 768-991, 600px ≥992. Only ≤479 escapes it, where
+                     `width:96%` takes over (:9512-9515) and the card fills its
+                     7px-padded wrapper.
+                     The 480-767 tier was missing — the ladder was keyed at 768,
+                     so the whole band kept the ≤479 fill-the-wrapper behaviour
+                     and the card ran 427px wide at 480 against live's 360. That
+                     is CLAUDE.md's standing root-font trap, and it is also what
+                     dragged the prev/next chevrons onto the quote in that band:
+                     probed against the reference, `xs:max-w-[360px]` puts the
+                     card at 60..420 @480 and 120..480 @600, matching live to
+                     the pixel. -->
                 <div
-                  class="relative mx-auto mb-12 max-w-[600px] rounded-[25px] bg-[#e7f5fa] text-left xs:mb-0 md:h-[320px] md:max-w-[480px] lg:h-[400px] lg:max-w-[600px]"
+                  class="relative mx-auto mb-12 max-w-[600px] rounded-[25px] bg-[#e7f5fa] text-left xs:mb-0 xs:max-w-[360px] md:h-[320px] md:max-w-[480px] lg:h-[400px] lg:max-w-[600px]"
                 >
                   <div class="h-full w-full overflow-hidden rounded-[25px]">
                     <div
@@ -549,20 +578,53 @@
                    Slider's side-arrow buttons + the review arrowClass gave
                    them, so the arrows land on the same pixels. Arrows are
                    live's own left-arrow/right-arrow SVGs. -->
+              <!-- The flat `mx-6` inset put both chevrons INSIDE the review
+                   card on phones, printed straight over the quote — measured
+                   at 390 and 360 on / and /your-first-visit, 551px² of overlap
+                   on "The staff was excellent. Front desk team". Live never
+                   does this: at ≤479 `.big-review-arrow-left{left:-.75rem}` /
+                   `-right{right:-.75rem}` (beachfront.css:9517-9526) park the
+                   arrows OUTSIDE the holder — probed on the reference at 390
+                   they sit at x=2..20 against a card starting at x=27, i.e.
+                   25px of clearance, and 24px at 360.
+                   Across 480-767 live positions them off the PAGE CENTRE, not
+                   the holder: `.big-review-arrow-right{right:-9rem}` (:7594)
+                   against a 360px centred card, which is 216px at that band's
+                   24px root — probed on the reference the left chevron lands
+                   at x=24/84/168 for 480/600/767, i.e. a constant 36px clear
+                   of the quote. `calc(50%-216px)` reproduces all three within
+                   a pixel. At ≥768 the inset is left alone: live's own
+                   desktop rules put the arrows well outside the 480/600px card
+                   there (48px clearance at 834, 60px at 1440), and so does
+                   ours — the defect is a mobile-band defect only, so the two
+                   gated desktop widths keep the geometry they already pass. -->
+              <!-- Matching live's `.75rem` asset shrinks the chevron to 18×20
+                   on phones, which is BELOW WCAG 2.2 AA 2.5.8's 24×24, so the
+                   hit area is restored with a `::before` — an absolutely
+                   positioned pseudo-element adds no layout box, so live's
+                   geometry above is untouched to the pixel.
+                   It is anchored to the button's OUTER edge and grows inward,
+                   not centred: a centred 44px box on the right chevron (whose
+                   right edge sits 1px off the viewport at 390) pushed
+                   scrollWidth to 402 and gave the home page the very sideways
+                   scroll this round removed from /services. Growing inward
+                   costs nothing — the card behind it holds no other control. -->
               <button
                 type="button"
+                data-review-arrow="prev"
                 onclick={reviewPrev}
                 onkeydown={reviewKeydown}
-                class="text-primary hover:bg-primary/10 focus-visible:ring-primary-deep absolute top-1/2 left-0 z-10 mx-6 -mt-16 flex -translate-y-1/2 items-center justify-center rounded-full transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                class="text-primary hover:bg-primary/10 focus-visible:ring-primary-deep absolute top-1/2 -left-[18px] z-10 -mt-16 flex -translate-y-1/2 items-center justify-center rounded-full transition-colors duration-200 before:absolute before:top-1/2 before:left-0 before:h-11 before:w-8 before:-translate-y-1/2 before:content-[''] xs:left-[calc(50%-216px)] md:left-0 md:mx-6 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
                 aria-label="Previous slide"
               >
                 {@render reviewArrowLeft()}
               </button>
               <button
                 type="button"
+                data-review-arrow="next"
                 onclick={reviewNext}
                 onkeydown={reviewKeydown}
-                class="text-primary hover:bg-primary/10 focus-visible:ring-primary-deep absolute top-1/2 right-0 z-10 mx-6 -mt-16 flex -translate-y-1/2 items-center justify-center rounded-full transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                class="text-primary hover:bg-primary/10 focus-visible:ring-primary-deep absolute top-1/2 -right-[18px] z-10 -mt-16 flex -translate-y-1/2 items-center justify-center rounded-full transition-colors duration-200 before:absolute before:top-1/2 before:right-0 before:h-11 before:w-8 before:-translate-y-1/2 before:content-[''] xs:right-[calc(50%-216px)] md:right-0 md:mx-6 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
                 aria-label="Next slide"
               >
                 {@render reviewArrowRight()}

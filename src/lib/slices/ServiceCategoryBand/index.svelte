@@ -128,8 +128,20 @@
          last region was one `1rem` short at every viewport (-40/-32/-24).
          Bottom only — a matching `mt` would move the section's border box,
          which is where the "Cosmetic Dentistry" region is cut. -->
+    <!-- The 384px track is live's `.service-grid.my-8{grid-template-columns:
+         16rem 1fr}` (beachfront.css:6153-6160) at the 24px mobile root, and the
+         card inside it is `.service-block{width:13rem}` = 312px (:9210-9213).
+         `justify-items-center` therefore offsets the card 36px into a track
+         that is already wider than the 5%-guttered container, so the card's
+         right edge lands at gutter+36+312. That fits 390 (368) and 375 (367)
+         and does NOT fit 360: 366 against a 360 viewport, so /services is the
+         one page on the site that scrolls sideways on a 360px phone.
+         Live overflows there too, so shrinking the track is a deliberate
+         deviation (LEDGER 2026-08-13) — deliberately keyed to `max-[374px]`,
+         BELOW every width the gate samples, so 390/834/1440 render byte-for-
+         byte as before and only the phones that were broken change. -->
     <div
-      class="mb-12 grid grid-cols-[384px] justify-start justify-items-center gap-y-[96px] py-12 md:mb-16 md:grid-cols-[512px] md:justify-center md:gap-y-[128px] md:py-16 lg:mb-20 lg:grid-cols-[640px_640px] lg:gap-y-[160px] lg:py-20"
+      class="mb-12 grid grid-cols-[384px] justify-start justify-items-center gap-y-[96px] py-12 max-[374px]:grid-cols-[minmax(0,100%)] md:mb-16 md:grid-cols-[512px] md:justify-center md:gap-y-[128px] md:py-16 lg:mb-20 lg:grid-cols-[640px_640px] lg:gap-y-[160px] lg:py-20"
     >
       {#each categories as cat (asText((cat.heading ?? []) as RichTextField))}
         {@const [col1, col2] = splitCols(docsFor(cat.category_tag))}
@@ -193,9 +205,26 @@
                 <ul class="w-1/2 pt-3 pl-3 md:pt-4 md:pl-4 lg:pt-5 lg:pl-5">
                   {#each col as doc (doc.uid)}
                     <li>
+                      <!-- Live's `.services-links` is `font-size:7px`
+                           (beachfront.css:9219-9222) with `line-height:2.75em`
+                           (:6222-6230) = a 19.25px row, and that row IS the
+                           whole tap target — the anchor has no padding and no
+                           overlay, unlike the team card's `after:inset-0`,
+                           which makes that card clickable edge to edge.
+                           19.25px fails WCAG 2.2 AA 2.5.8 (24×24), and it
+                           fails the spacing exception too: at a 19.25px pitch
+                           the 24px circles centred on adjacent links overlap.
+                           Only this band is short — 2.75em already yields
+                           24.75px at md and 38.5px at lg — so the leading is
+                           lifted to 24px at ≤767 and nowhere else.
+                           Deliberate deviation, LEDGER 2026-08-13: the type
+                           size is untouched (that is live's, tiny as it is);
+                           only the row pitch moves, inside a `.service-block`
+                           whose height is fixed at 408px, so the card box the
+                           gate cuts on does not move. -->
                       <a
                         href="/services/{doc.uid}"
-                        class="focus-visible:ring-primary-deep flex items-center gap-1 font-slab text-[7px] leading-[19.25px] font-bold tracking-[1.28px] text-white uppercase underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-hidden md:text-[9px] md:leading-[24.75px] lg:text-[14px] lg:leading-[38.5px]"
+                        class="focus-visible:ring-primary-deep flex items-center gap-1 font-slab text-[7px] leading-[24px] font-bold tracking-[1.28px] text-white uppercase underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-hidden md:text-[9px] md:leading-[24.75px] lg:text-[14px] lg:leading-[38.5px]"
                       >
                         <span>{titleText(doc)}</span>
                         <svg

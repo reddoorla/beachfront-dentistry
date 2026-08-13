@@ -124,7 +124,10 @@
     class="mt-9 w-full md:mt-12 lg:mt-[60px] lg:w-2/5"
     use:animateIn={LIVE_REVEAL}
   >
-    <MapEmbed />
+    <!-- Named, because the footer mounts a second map on this page and two
+         identically-named frames give a screen-reader user two tab stops it
+         cannot tell apart. See MapEmbed's `title` prop. -->
+    <MapEmbed title="Map to Beachfront Dentistry — Contact" />
   </div>
 </section>
 
