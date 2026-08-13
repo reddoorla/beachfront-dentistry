@@ -14,9 +14,10 @@
    * 993-1279, so the crest sat ~24px lower into the white on every page.
    *
    * WIDTH IS NOT A PROP (Round H4). The SVG is exactly as wide as its clip box,
-   * so the whole viewBox is on screen and the wave completes a whole number of
-   * periods across the RENDERED width. Any overflow factor reintroduces the
-   * defect H4 fixed — see the CLEARANCE/ENDS note on the <svg> below. */
+   * so the whole viewBox is on screen and the wave completes exactly ONE period
+   * across the RENDERED width, at every viewport. Any overflow factor crops it
+   * mid-period and reintroduces the defect H4 fixed — see the note on the <svg>
+   * below. */
   interface Props {
     fill?: string;
     /** Rotate the divider 180° — live's `.bot-wave` / shape-divider-bottom sit
@@ -29,9 +30,14 @@
     /** Mirror horizontally only (live's `.bot-wave.flip` = rotateY(180deg)):
      * the crest's higher side moves to the LEFT while the filled region stays
      * on top — the steps→services seam. Distinct from `flip`, whose rotate-180
-     * flips both axes. Since H4 the path is symmetric about its own centre, so
-     * this is a visual no-op; it is kept because the class is part of the
-     * services-band DOM the gates measure. */
+     * flips both axes.
+     *
+     * This is a REAL visual difference again. Under the two-period cosine it
+     * was a no-op, because that path was symmetric about its own centre. The
+     * single sine is ANTI-symmetric — f(1200−x) = 120 − f(x) — so mirroring
+     * swaps which half carries the crest and which carries the trough. Same
+     * wave, run backwards; both ends still sit at neutral, so it tiles into
+     * the seam identically. */
     mirror?: boolean;
     /** Responsive Tailwind height utilities (see the block comment for live's
      * 72/96/120 vs 96/128/160 rem ladders, stepping at 768 and 992). */
@@ -67,38 +73,50 @@
        So this is a GENUINE sinusoid, not live's asymmetric swoosh
        (matching/spec/detail-svc.html:123).
 
-       ENDS (Round H4, operator: "sine should be only up/down on each page
-       landing at the same height"). H1's path was y = 60 − 32·sin(2π·3x/1200)
-       inside an SVG stretched to 133% (169% in the footer) of a clip box that
-       is `overflow-hidden`. Only the leading 1/1.33 of the viewBox was ever on
-       screen, so the visible run was 2.26 periods, not 3: the wave entered at
-       the mid-line and left on a crest, a full amplitude higher. Measured
-       right-end minus left-end before the fix: −19.2px @390, −25.6 @834,
-       −32.0 @1440 on every hero/detail divider and +25.2/+33.7/+42.1 on the
-       169% footer arc. The wave was climbing across every divider on the site.
+       ONE PERIOD, NEUTRAL ENDS. Operator, 2026-08-13: "the wave svg has two
+       sine wave, I want a single up and then down, coming back to neutral on
+       both side, should be the same on any screen size." So:
 
-       The fix is structural, not a tuned number:
-         · the SVG is exactly as wide as its box (`calc(100% + 1.3px)`, the
-           1.3px being the shape-divider hairline insurance), so the RENDERED
-           width is the viewBox width and nothing is cropped mid-period;
-         · TWO whole periods across that width — y = 60 − 32·cos(πx/300);
-         · COSINE, not sine, so both ends sit on an extremum where dy/dx = 0.
-           The 1.3px of overhang is therefore a second-order error: the visible
-           right end differs from the left by ≤0.037px at every width and every
-           box height, versus 0.36–0.80px for the sine phase. Ends are level by
-           construction at every mount, at every viewport, with no per-mount
-           arithmetic to keep in sync.
-       The visible wavelength barely moves (0.44W→0.50W on the section waves,
-       0.56W→0.50W in the footer), so the divider keeps its character while
-       every mount now draws the same wave.
+           y = 60 − 32·sin(πx/600)      x ∈ [0, 1200]
 
-       Fitted with 4 cubic Hermite segments per period (exact quarter-period
-       knots + tangents, dx/3 handles; max deviation from the true cosine
-       0.35px). y(0) = y(1200) = 28 and the path is symmetric about x=600, so
-       both the mirrored services mount and the rotated ones tile seamlessly.
-       The V0 H0 close and the A-round overlap-seam mechanics (heights,
-       absolute footer overlay) are unchanged — the fill still hugs the full
-       top edge across the full box width, so every seam stays watertight. -->
+       — a single crest at x=300 (y=28), a single trough at x=900 (y=92), and
+       both ends ON the neutral mid-line, y(0) = y(1200) = 60. Exactly two
+       turning points across the divider, which is the literal reading of "a
+       single up and then down". The previous path was TWO periods of a cosine
+       and therefore entered and left on a crest, not at neutral.
+
+       "the same on any screen size" is structural, not a media query: the SVG
+       is exactly as wide as its box, so the RENDERED width IS the viewBox
+       width and preserveAspectRatio="none" stretches that one period to fit.
+       Every viewport shows the whole wave and nothing else — no cropping, no
+       varying period count. (The H1 defect was the opposite: an SVG stretched
+       to 133%, 169% in the footer, inside an `overflow-hidden` box, so only
+       the leading 1/1.33 of the viewBox was ever on screen and the visible run
+       was 2.26 periods rather than 3. Ends landed a full amplitude apart —
+       measured −19.2px @390, −25.6 @834, −32.0 @1440, and +25.2/+33.7/+42.1
+       on the footer arc. Any overflow factor brings that straight back.)
+
+       WHAT THE NEUTRAL ENDS COST, stated because it is a real regression and a
+       deliberate one. `calc(100% + 1.3px)` is shape-divider hairline
+       insurance, so the visible right edge samples the curve a hair past
+       x=1200. The old cosine phase put both ends on an extremum where
+       dy/dx = 0, making that a second-order error: ≤0.037px. Ends at neutral
+       are ends at MAXIMUM slope, so the same overhang now costs 0.181px @1440,
+       0.202 @1294, 0.250 @834, 0.401 @390 — worst case 40% of the 1px budget
+       the H4 check enforces, and still ~50x smaller than the amplitude-sized
+       delta that budget exists to catch. Sub-pixel at every width, and the
+       price of the shape that was actually asked for.
+
+       Fitted with 4 cubic Hermite segments (exact quarter-period knots +
+       tangents, dx/3 handles; max deviation from the true sine 0.344 units,
+       measured). The path is ANTI-symmetric about x=600 rather than symmetric
+       — a crest answered by a trough — so the mirrored services mount reads as
+       the same wave run backwards, which is what a single sine looks like
+       either way round. The V0 H0 close and the A-round overlap-seam mechanics
+       (heights, absolute footer overlay) are unchanged: the fill still hugs the
+       full top edge across the full box width, so every seam stays watertight
+       even though the fill now meets the ends at mid-height instead of near
+       the crest. -->
   <svg
     viewBox="0 0 1200 120"
     preserveAspectRatio="none"
@@ -106,7 +124,7 @@
     style="width: calc(100% + 1.3px)"
   >
     <path
-      d="M0,28C50,28,100,43.24,150,60C200,76.76,250,92,300,92C350,92,400,76.76,450,60C500,43.24,550,28,600,28C650,28,700,43.24,750,60C800,76.76,850,92,900,92C950,92,1000,76.76,1050,60C1100,43.24,1150,28,1200,28V0H0Z"
+      d="M0,60C100,43.24,200,28,300,28C400,28,500,43.24,600,60C700,76.76,800,92,900,92C1000,92,1100,76.76,1200,60V0H0Z"
       {fill}
     />
   </svg>
