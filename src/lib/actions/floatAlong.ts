@@ -3,39 +3,43 @@ export type FloatAlongOptions = {
   itemSelector: string;
 };
 
-/** The ask-the-doctor handwriting + doctor headshot pair drifts down the
- *  question column as the visitor scrolls — CONTINUOUSLY, as a function of
- *  scroll position, per MarkUp thread a7c2e0d0-5e13-4cfd-bb17-a21ecee7b188
- *  (home board, pin #7): "I like the user experience of 'Ask The Doctor' and
- *  the [floating Doctor image] of the original site. I do not like the
- *  jumping from question to question." Operator directive 2026-08-11: Tim's
- *  instruction outranks the live behaviour.
+/** The ask-the-doctor handwriting + doctor headshot pair rides down the
+ *  question column as the visitor scrolls, holding THE SAME PLACE ON EVERY
+ *  CARD: 100px below the top of the top-most fully visible question, travelling
+ *  with that card until the next one takes over.
  *
- *  THE LIVE BEHAVIOUR THIS OVERRIDES (kept in kind, changed in motion): live's
- *  floating-doc.js (live ships the class with its instantiation commented
- *  out, so the operator's spec was the authority) glided the pair to the
- *  BOTTOM-MOST FULLY VISIBLE question — movement quantized per question, the
- *  transform only changing when the target index changed, the glide itself
- *  CSS (live's anchor rule `.ask-the-doctor-handwriting-anchor { transition:
- *  transform 1s cubic-bezier(.19,1,.22,1) }`, beachfront.css:7670). Those
- *  per-question hops are exactly the "jumping" the pin rejects.
+ *  THREE OPERATOR DIRECTIVES SHAPED THIS — the third reverses part of the
+ *  first, so the whole record is here rather than in git archaeology:
  *
- *  WHAT RUNS NOW: continuous, and anchored to the TOP fully visible question.
- *  The viewport's TOP edge is the tracking line; its position between
- *  consecutive item TOPS is interpolated piecewise-linearly onto the items'
- *  offsetTop ladder, so the pair passes through every position the old code
- *  hopped between and every position in between. Clamped to [item 0, last
- *  item] — the pair never leaves the column. A short critically-damped follow
- *  (rAF, ~150ms time constant) keeps the float soft without reintroducing a
- *  step: the target is continuous in scroll, the follow is continuous in time,
- *  so there is no input for which the position can jump.
+ *  1. 2026-08-11 (MarkUp thread a7c2e0d0-5e13-4cfd-bb17-a21ecee7b188, home pin
+ *     #7) — "I like the user experience of 'Ask The Doctor' and the [floating
+ *     Doctor image] of the original site. I do not like the jumping from
+ *     question to question." Live's floating-doc.js quantized the pair per
+ *     question and glided it with `.ask-the-doctor-handwriting-anchor
+ *     { transition: transform 1s cubic-bezier(.19,1,.22,1) }`
+ *     (beachfront.css:7670); a 25px scroll step could move it 420px. The
+ *     answer then was to make position a CONTINUOUS function of scroll.
+ *  2. 2026-08-13 — "anchor to the top fully visible question rather than the
+ *     bottom one." Live tracked the bottom-most; that put the pair beside the
+ *     question BELOW the one being read.
+ *  3. 2026-08-13, after seeing (2) deployed — "it should sit in the same place
+ *     for each card." This is what reverses (1)'s mechanism. Continuous
+ *     interpolation pins the pair to a FIXED SCREEN POSITION and lets the cards
+ *     slide past it, so its offset within a card sweeps the card's whole height
+ *     and it spends most of the scroll straddling the gap between two cards.
+ *     Measured on the deployed builds: the old continuous mapping held y≈598
+ *     and the new one y≈98, and in BOTH the pair's offset relative to a card
+ *     swept ±190px. "The same place for each card" is only reachable by
+ *     quantizing — the pair must travel WITH a card, not through it.
  *
- *  Which END is tracked is the second operator directive on this behaviour
- *  (2026-08-13): "make the doctor anchor to the top fully visible question
- *  rather than the bottom one". Until then the line was the viewport BOTTOM
- *  over item bottoms — live's own choice of end, kept when the motion was made
- *  continuous. The pair now sits beside the question the reader is actually
- *  on, roughly one card higher up the column.
+ *  WHAT RUNS NOW: the target is quantized to the top-most fully visible item's
+ *  offset, so the pair is always exactly 100px below some card's top and never
+ *  between two. Clamped to [item 0, last item] — it never leaves the column.
+ *  The ~150ms critically-damped rAF follow is what keeps (1) honoured in
+ *  spirit: the target steps, but the RENDERED position is still continuous in
+ *  time, so the handover glides over ~4 frames instead of teleporting. It is
+ *  deliberately far shorter than live's 1s expo, which is what made the
+ *  original read as a jump.
  *
  *  Decoration only — gated off entirely (no listeners, no transform ever
  *  written) for reduced-motion users, who get the pair statically at its
@@ -62,46 +66,33 @@ export function floatAlong(
   // breakpoint parks the pair back at rest.
   const desktop = window.matchMedia("(min-width: 1024px)");
 
-  // Continuous scroll→offset mapping. Piecewise-linear over the items'
-  // viewport-TOP crossings: when the viewport top sits between top(item i) and
-  // top(item i+1), the offset interpolates between those items' offsetTop
-  // distances from item 0 (the pair's authored rest — all items share the
-  // node's positioned ancestor, so offsetTop deltas are exactly the travel).
-  // Clamped to 0 before the column and to the last item's offset past it.
-  // Monotone in scroll by construction: item tops and offsetTops are both
-  // non-decreasing down the column.
+  // QUANTIZED per question: the target is the top-most fully visible item's
+  // own offset from item 0 (all items share the node's positioned ancestor, so
+  // offsetTop deltas are exactly the travel). "Top-most fully visible" = the
+  // first item the viewport's top edge has not yet cut into. Between handovers
+  // the target is CONSTANT, so the pair travels with its card and stays a fixed
+  // 100px below that card's top — directive 3 above, and the property that
+  // continuous interpolation could not provide at any tracking line.
   //
-  // TOP, not bottom — operator directive 2026-08-13: "make the doctor anchor
-  // to the top fully visible question rather than the bottom one". The tracked
-  // question is the first one not yet cut off by the top of the viewport, so
-  // at t=0 of each segment the pair sits beside the card whose top has just
-  // reached the viewport top — the reader's current question, rather than the
-  // last one to have fully entered from below. It rides ~one card higher in
-  // the column than it used to (cards are 400px on a 420px pitch).
+  // Clamps fall out of the same rule: before the column item 0 is itself the
+  // top-most fully visible one (offset 0, the authored rest), and once every
+  // item's top is above the line there is no uncut item left, so it holds at
+  // the last one and never leaves the column. Monotone in scroll by
+  // construction — the index only ever advances as the page scrolls down.
   //
   // The viewport top is a legitimate line on this page: home's nav is the
   // hamburger-only branch (`position: absolute`, Nav.svelte:257-259), so it
   // scrolls away rather than overlaying y=0. A page that put a FIXED nav over
   // this column would need the line moved down to the nav's bottom edge; the
   // pair's own `lg:top-[100px]` rest offset is not enough clearance for one.
+  const LINE = 0;
   const targetOffset = (): number => {
     const items = [...parent.querySelectorAll<HTMLElement>(itemSelector)];
     if (items.length === 0) return 0;
     const first = items[0];
-    const last = items[items.length - 1];
-    const tops = items.map((el) => el.getBoundingClientRect().top);
-    const line = 0;
-    if (tops[0] >= line) return 0;
-    if (tops[tops.length - 1] <= line) {
-      return last.offsetTop - first.offsetTop;
-    }
-    let i = 0;
-    while (i + 1 < tops.length && tops[i + 1] <= line) i++;
-    const span = tops[i + 1] - tops[i];
-    const t = span > 0 ? Math.min(Math.max((line - tops[i]) / span, 0), 1) : 1;
-    const a = items[i].offsetTop - first.offsetTop;
-    const b = items[i + 1].offsetTop - first.offsetTop;
-    return a + (b - a) * t;
+    let idx = items.findIndex((el) => el.getBoundingClientRect().top >= LINE);
+    if (idx === -1) idx = items.length - 1; // whole column scrolled past
+    return items[idx].offsetTop - first.offsetTop;
   };
 
   let current = 0;

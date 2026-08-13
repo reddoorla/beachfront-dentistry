@@ -7,12 +7,16 @@ import { floatAlong } from "./floatAlong";
 // per-question to the bottom-most fully visible card; Tim: "I do not like the
 // jumping from question to question."
 //
-// WHICH END: operator directive 2026-08-13 — "anchor to the top fully visible
-// question rather than the bottom one". The mapping is piecewise-linear over
-// the items' viewport-TOP crossings; these tests pin the mapping's endpoints,
-// its interpolation, and the no-step property of the rAF follow. A regression
-// to the old bottom-edge line shows up here as a mapping that stays at rest
-// exactly where these expect travel (the two lines disagree by ~a viewport).
+// SUPERSEDED IN MECHANISM by directive 3 (2026-08-13, after the continuous
+// build was deployed): "it should sit in the same place for each card."
+// Continuous interpolation pins the pair to a fixed SCREEN position and lets
+// the cards slide past, so its offset within a card sweeps the card's whole
+// height. Only a quantized target travels WITH a card. The rAF follow is what
+// still honours pin #7 — the target steps, the rendered position does not.
+//
+// These tests pin: the quantized target (never between two cards), that it
+// holds across the whole scroll range a card owns, the clamps at both ends,
+// and that the follow renders the handover as intermediate frames.
 
 function mockMatchMedia(reducedMotion: boolean, desktop = true) {
   window.matchMedia = vi.fn().mockImplementation((query: string) => ({
@@ -167,15 +171,15 @@ describe("floatAlong — the continuous mapping", () => {
     expect(node.style.transform).toBe("");
   });
 
-  it("interpolates BETWEEN item tops — a mid-segment scroll yields a mid-segment position", () => {
+  it("QUANTIZES to a card — a mid-segment scroll still lands on a card's own offset", () => {
     mockMatchMedia(false);
     const { parent, node } = makeDom(3);
     const [a, b, c] = items(parent);
     // Item 0 is 368px past the viewport top and item 1 has not reached it yet
-    // (top=52), so the top-most fully visible question is partway from 0 to 1:
-    // t = (0-(-368))/(52-(-368)) = 368/420, mapped onto the offsetTop ladder
-    // 0→420 = 368px. The OLD quantized rule could only ever answer 0 or 420
-    // here — this fractional value is the continuity contract.
+    // (top=52), so item 1 is the top-most question the viewport top has not cut
+    // into: the target is item 1's own offset, 420 — NOT the 368 that the
+    // continuous mapping answered here. This is the "same place for each card"
+    // contract: the pair is never parked between two cards.
     a!.getBoundingClientRect = () => rect(-368, 32);
     b!.getBoundingClientRect = () => rect(52, 452);
     c!.getBoundingClientRect = () => rect(472, 872);
@@ -185,7 +189,32 @@ describe("floatAlong — the continuous mapping", () => {
 
     mount(node);
 
-    expect(node.style.transform).toBe("translateY(368px)");
+    expect(node.style.transform).toBe("translateY(420px)");
+  });
+
+  it("holds one card's offset across the whole scroll range that card owns", () => {
+    mockMatchMedia(false);
+    // Sweep the viewport top from just past item 0's top to just before item
+    // 1's. Every position in that range belongs to item 1, so the target must
+    // not move at all — the continuous mapping swept 0→420 across it.
+    const seen = new Set<string>();
+    for (const topOfA of [-1, -80, -200, -300, -419]) {
+      const { parent, node } = makeDom(3);
+      const [a, b, c] = items(parent);
+      a!.getBoundingClientRect = () => rect(topOfA, topOfA + 400);
+      b!.getBoundingClientRect = () => rect(topOfA + 420, topOfA + 820);
+      c!.getBoundingClientRect = () => rect(topOfA + 840, topOfA + 1240);
+      setOffsetTop(a!, 0);
+      setOffsetTop(b!, 420);
+      setOffsetTop(c!, 840);
+
+      mount(node);
+
+      seen.add(node.style.transform);
+      document.body.innerHTML = "";
+    }
+
+    expect([...seen]).toEqual(["translateY(420px)"]);
   });
 
   it("tracks the TOP fully visible question, not the bottom one", () => {

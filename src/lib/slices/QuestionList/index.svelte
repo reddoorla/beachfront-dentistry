@@ -122,24 +122,27 @@
         <!-- Live's .ask-the-doctor-handwriting-anchor: ONE anchor holds the
              hand-drawn "ask the doctor" annotation (real PNG asset, NOT a
              redrawn cursive font) AND the doctor headshot at the SAME height,
-             flanking the question column ~100px below the tracked card's top.
-             floatAlong drifts the whole pair CONTINUOUSLY with scroll down
-             the question column. DEVIATION (MarkUp thread
-             a7c2e0d0-5e13-4cfd-bb17-a21ecee7b188, home pin #7; operator
-             directive 2026-08-11: Tim over live): live's floating-doc.js
-             glided the pair per-question to the bottom-most fully visible
-             card via `.ask-the-doctor-handwriting-anchor { transition:
-             transform 1s cubic-bezier(.19,1,.22,1) }` (beachfront.css:7670)
-             — Tim: "I do not like the jumping from question to question."
-             The hop transition is gone from this class list because JS now
-             owns the motion frame-by-frame; see floatAlong.ts for the full
-             override record. SECOND DIRECTIVE (2026-08-13): the tracked end
-             is now the TOP fully visible question, not the bottom one, so the
-             pair rides beside the question being read — measured on /: level
-             with the top-most fully visible card at all six scroll stops,
-             headshot 96px below the viewport top. Live x-geometry at 1440:
-             handwriting's right edge 10px left of the column, headshot
-             overlapping 40px INTO the column's right edge. -->
+             flanking the question column exactly 100px below the tracked
+             card's top, and travelling WITH that card. floatAlong owns the
+             motion; see it for the full three-directive record. In short:
+             live's floating-doc.js quantized the pair per question to the
+             BOTTOM-most fully visible card, glided by
+             `.ask-the-doctor-handwriting-anchor { transition: transform 1s
+             cubic-bezier(.19,1,.22,1) }` (beachfront.css:7670). MarkUp thread
+             a7c2e0d0-5e13-4cfd-bb17-a21ecee7b188 (home pin #7, 2026-08-11)
+             rejected that as "jumping from question to question", so the
+             mapping went continuous; 2026-08-13 moved the tracked end to the
+             TOP fully visible question; and 2026-08-13 (again, after that
+             deployed) restored quantization, because a continuous mapping
+             pins the pair to a fixed SCREEN position and lets cards slide
+             past it — it straddled the gap between two cards for most of the
+             scroll. Measured on / after the fix: the headshot sits 100px
+             below its card's top at EVERY scroll position, riding from
+             y≈467 to y≈120 before handing over. The 1s hop transition stays
+             off this class list — the ~150ms rAF follow in floatAlong is what
+             glides the handover now. Live x-geometry at 1440: handwriting's
+             right edge 10px left of the column, headshot overlapping 40px
+             INTO the column's right edge. -->
         <!-- MOBILE (measured live @390): the pair rests IN PLACE above the
              first card, right-aligned — 120px headshot 24px from the content's
              right edge with its bottom 12px above the card, the 120×70
