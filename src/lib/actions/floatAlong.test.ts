@@ -5,9 +5,18 @@ import { floatAlong } from "./floatAlong";
 // a7c2e0d0-5e13-4cfd-bb17-a21ecee7b188 home pin #7, operator directive
 // 2026-08-11: Tim over live). Live's floating-doc.js hopped the pair
 // per-question to the bottom-most fully visible card; Tim: "I do not like the
-// jumping from question to question." The mapping is now piecewise-linear
-// over the items' viewport-bottom crossings — these tests pin the mapping's
-// endpoints, its interpolation, and the no-step property of the rAF follow.
+// jumping from question to question."
+//
+// SUPERSEDED IN MECHANISM by directive 3 (2026-08-13, after the continuous
+// build was deployed): "it should sit in the same place for each card."
+// Continuous interpolation pins the pair to a fixed SCREEN position and lets
+// the cards slide past, so its offset within a card sweeps the card's whole
+// height. Only a quantized target travels WITH a card. The rAF follow is what
+// still honours pin #7 — the target steps, the rendered position does not.
+//
+// These tests pin: the quantized target (never between two cards), that it
+// holds across the whole scroll range a card owns, the clamps at both ends,
+// and that the follow renders the handover as intermediate frames.
 
 function mockMatchMedia(reducedMotion: boolean, desktop = true) {
   window.matchMedia = vi.fn().mockImplementation((query: string) => ({
@@ -80,8 +89,11 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-// jsdom's viewport: the mapping's tracking line is window.innerHeight = 768.
-const VIEWPORT_BOTTOM = 768;
+// jsdom's viewport height. The mapping's tracking line is the viewport TOP
+// (y = 0), so this is only used to build plausible rects — no assertion below
+// depends on its value, which is the point: the line no longer moves with the
+// window's height.
+const VIEWPORT_H = 768;
 
 describe("floatAlong — prefers-reduced-motion: reduce", () => {
   it("attaches no scroll/resize listeners", () => {
@@ -143,14 +155,15 @@ describe("floatAlong — the continuous mapping", () => {
     expect(addSpy).toHaveBeenCalledWith("resize", expect.any(Function));
   });
 
-  it("leaves the authored style untouched while the column is below the tracking line", () => {
+  it("leaves the authored style untouched while the first question is still fully visible", () => {
     mockMatchMedia(false);
     const { parent, node } = makeDom(2);
     const [a, b] = items(parent);
-    // First item's bottom sits ON/below the viewport bottom: mapping is 0,
+    // The first item's TOP is still below the viewport top, so it is the
+    // top-most fully visible question and the pair is at rest: mapping is 0,
     // and the node keeps its server-rendered style byte-for-byte (the static
     // gate captures depend on exactly this).
-    a!.getBoundingClientRect = () => rect(400, VIEWPORT_BOTTOM);
+    a!.getBoundingClientRect = () => rect(400, VIEWPORT_H);
     b!.getBoundingClientRect = () => rect(790, 1180);
 
     mount(node);
@@ -158,24 +171,70 @@ describe("floatAlong — the continuous mapping", () => {
     expect(node.style.transform).toBe("");
   });
 
-  it("interpolates BETWEEN item bottoms — a mid-segment scroll yields a mid-segment position", () => {
+  it("QUANTIZES to a card — a mid-segment scroll still lands on a card's own offset", () => {
     mockMatchMedia(false);
     const { parent, node } = makeDom(3);
     const [a, b, c] = items(parent);
-    // Viewport bottom (768) sits between bottom(item0)=400 and
-    // bottom(item1)=820: t = (768-400)/(820-400) = 368/420, mapped onto the
-    // offsetTop ladder 0→420 = 368px. The OLD quantized rule could only ever
-    // answer 0 or 420 here — this fractional value is the round's point.
-    a!.getBoundingClientRect = () => rect(0, 400);
-    b!.getBoundingClientRect = () => rect(420, 820);
-    c!.getBoundingClientRect = () => rect(840, 1240);
+    // Item 0 is 368px past the viewport top and item 1 has not reached it yet
+    // (top=52), so item 1 is the top-most question the viewport top has not cut
+    // into: the target is item 1's own offset, 420 — NOT the 368 that the
+    // continuous mapping answered here. This is the "same place for each card"
+    // contract: the pair is never parked between two cards.
+    a!.getBoundingClientRect = () => rect(-368, 32);
+    b!.getBoundingClientRect = () => rect(52, 452);
+    c!.getBoundingClientRect = () => rect(472, 872);
     setOffsetTop(a!, 0);
     setOffsetTop(b!, 420);
     setOffsetTop(c!, 840);
 
     mount(node);
 
-    expect(node.style.transform).toBe("translateY(368px)");
+    expect(node.style.transform).toBe("translateY(420px)");
+  });
+
+  it("holds one card's offset across the whole scroll range that card owns", () => {
+    mockMatchMedia(false);
+    // Sweep the viewport top from just past item 0's top to just before item
+    // 1's. Every position in that range belongs to item 1, so the target must
+    // not move at all — the continuous mapping swept 0→420 across it.
+    const seen = new Set<string>();
+    for (const topOfA of [-1, -80, -200, -300, -419]) {
+      const { parent, node } = makeDom(3);
+      const [a, b, c] = items(parent);
+      a!.getBoundingClientRect = () => rect(topOfA, topOfA + 400);
+      b!.getBoundingClientRect = () => rect(topOfA + 420, topOfA + 820);
+      c!.getBoundingClientRect = () => rect(topOfA + 840, topOfA + 1240);
+      setOffsetTop(a!, 0);
+      setOffsetTop(b!, 420);
+      setOffsetTop(c!, 840);
+
+      mount(node);
+
+      seen.add(node.style.transform);
+      document.body.innerHTML = "";
+    }
+
+    expect([...seen]).toEqual(["translateY(420px)"]);
+  });
+
+  it("tracks the TOP fully visible question, not the bottom one", () => {
+    mockMatchMedia(false);
+    const { parent, node } = makeDom(3);
+    const [a, b, c] = items(parent);
+    // Item 0 has scrolled exactly off the top; item 1's top is ON the line, so
+    // item 1 is the top-most fully visible question and the pair sits beside
+    // it. Item 2 is also fully on screen and is the BOTTOM-most fully visible
+    // one — the old rule would have answered 840 for this same geometry.
+    a!.getBoundingClientRect = () => rect(-420, -20);
+    b!.getBoundingClientRect = () => rect(0, 400);
+    c!.getBoundingClientRect = () => rect(420, 820);
+    setOffsetTop(a!, 0);
+    setOffsetTop(b!, 420);
+    setOffsetTop(c!, 840);
+
+    mount(node);
+
+    expect(node.style.transform).toBe("translateY(420px)");
   });
 
   it("clamps to the last item's offset once the whole column is scrolled past (never leaves the column)", () => {
@@ -245,7 +304,7 @@ describe("floatAlong — the follow cannot step", () => {
       // Mount geometry: column below the tracking line → rest (0).
       let scrolled = false;
       a!.getBoundingClientRect = () =>
-        scrolled ? rect(-900, -500) : rect(400, VIEWPORT_BOTTOM);
+        scrolled ? rect(-900, -500) : rect(400, VIEWPORT_H);
       b!.getBoundingClientRect = () =>
         scrolled ? rect(-480, -80) : rect(790, 1180);
       c!.getBoundingClientRect = () =>

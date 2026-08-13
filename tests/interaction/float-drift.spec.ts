@@ -11,21 +11,34 @@ import { test, expect, type Page } from "@playwright/test";
 // fully visible card, glided by `.ask-the-doctor-handwriting-anchor
 // { transition: transform 1s cubic-bezier(.19,1,.22,1) }`
 // (beachfront.css:7670) — a step function of scroll: the probed BEFORE showed
-// 420px jumps inside a single 25px scroll step. floatAlong now maps scroll to
-// position piecewise-linearly over the items' viewport-bottom crossings with
-// a short rAF follow, so position is a continuous function of scroll. This
+// 420px jumps inside a single 25px scroll step.
+//
+// TWO LATER DIRECTIVES (both 2026-08-13) settled where it sits and how:
+// "anchor to the top fully visible question rather than the bottom one", then,
+// after that shipped, "it should sit in the same place for each card". The
+// second one is why the target is QUANTIZED again. Continuous interpolation
+// pins the pair to a fixed SCREEN position and lets the cards slide past it —
+// measured on the deployed builds, its offset within a card swept ±190px at
+// BOTH tracking lines, so it spent most of the scroll straddling a card gap.
+// Travelling with a card requires a target that does not move while that card
+// owns the viewport top.
+//
+// Pin #7 is still honoured by the rAF follow rather than by the mapping: the
+// target steps 420px, the RENDERED position crosses it over ~4 frames. This
 // suite pins that contract:
 //   1. scroll 0: the pair's authored rest state is untouched (no transform) —
 //      the static gate captures depend on it byte-for-byte;
-//   2. continuity: sampled every 25px of scroll down the column, the settled
-//      position is monotone and every per-step delta stays far below one
-//      card hop (bound 60px vs the old 420px), while total travel spans the
-//      column (the assertion cannot go vacuous);
-//   3. bounds: past the column the pair clamps exactly to the last item's
+//   2. quantized: every settled position down the column is exactly one of the
+//      items' offsets — never a value between two cards — and the set of them
+//      is monotone and covers the column (the assertion cannot go vacuous);
+//   3. smoothed: the handover is rendered as intermediate frames, not a
+//      teleport — sampling faster than the follow's settle catches the pair
+//      strictly between the two card offsets;
+//   4. bounds: past the column the pair clamps exactly to the last item's
 //      offset — it never leaves the column;
-//   4. opening a card mid-drift does not move the pair (G2's frozen cards
+//   5. opening a card mid-drift does not move the pair (G2's frozen cards
 //      keep every item offset, so the mapping's input never changes);
-//   5. prefers-reduced-motion: the pair is pinned statically at rest — no
+//   6. prefers-reduced-motion: the pair is pinned statically at rest — no
 //      listeners, no transform, no drift.
 //
 // The pair mounts ONLY on the home teaser: live's /ask-the-doctor page has no
@@ -86,10 +99,10 @@ test("scroll 0: the pair rests in its authored position, untransformed", async (
   expect(state!.computed).toBe("none");
 });
 
-test("the drift is a continuous, monotone, column-bounded function of scroll", async ({
+test("the pair holds one card's offset at a time, monotone and column-bounded", async ({
   page,
 }) => {
-  test.setTimeout(120_000);
+  test.setTimeout(180_000);
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await gotoHome(page);
 
@@ -116,16 +129,23 @@ test("the drift is a continuous, monotone, column-bounded function of scroll", a
       ".ask-the-doctor-headshot",
     )!.parentElement!;
     const items = [...pair.parentElement!.querySelectorAll(".qa-item")];
-    const bot = (el: Element) => el.getBoundingClientRect().bottom + scrollY;
+    // Handovers happen as each item's TOP crosses y=0, so the window runs from
+    // just before the first item's top reaches it to just after the last one's.
+    const topOf = (el: Element) => el.getBoundingClientRect().top + scrollY;
     const first = items[0] as HTMLElement;
     const last = items[items.length - 1] as HTMLElement;
     return {
-      start: Math.max(0, Math.round(bot(first) - innerHeight - 50)),
-      end: Math.round(bot(last) - innerHeight + 50),
+      start: Math.max(0, Math.round(topOf(first) - 50)),
+      end: Math.round(topOf(last) + 50),
       colTravel: last.offsetTop - first.offsetTop,
+      // the only offsets a quantized target may ever settle on
+      stops: (items as HTMLElement[]).map(
+        (el) => el.offsetTop - first.offsetTop,
+      ),
     };
   });
   expect(range.colTravel).toBeGreaterThan(500);
+  expect(range.stops.length).toBeGreaterThanOrEqual(4);
 
   // Settle fully at the sweep's first position: the reveal animations shift
   // the cards between load and first paint, so the mapping can already be
@@ -137,36 +157,47 @@ test("the drift is a continuous, monotone, column-bounded function of scroll", a
   );
   await settledTy(page);
 
-  // >=40 samples at a 25px scroll increment. 250ms per step: the follow has
-  // closed >80% of each 25px step's ~equal position delta by then, and
-  // because it only ever approaches the (monotone) target from behind, the
-  // sampled sequence stays monotone even before full settle.
-  const step = 25;
+  // Sampled at a 60px scroll increment — still seven samples per 420px card,
+  // so a target that moved WITHIN a card could not hide between them.
+  //
+  // 1500ms per sample, not the 600ms this first used: the follow is
+  // exponential with TAU=150ms, so at 600ms it is still exp(-4) = 1.8% short —
+  // on a 420px handover that is ~7px, and every mid-handover sample read 413
+  // instead of 420 and failed the grid check as if the TARGET were off-grid.
+  // 1500ms leaves exp(-10) ≈ 0.02px, far inside the ±1 tolerance. Each sample
+  // must be settled or this assertion is about the follow, not the mapping.
+  const step = 60;
   const samples: number[] = [];
   for (let y = range.start; y <= range.end; y += step) {
     await page.evaluate(
       (y) => window.scrollTo({ top: y, behavior: "instant" }),
       y,
     );
-    await page.waitForTimeout(250);
+    await page.waitForTimeout(1500);
     samples.push((await pairTy(page))!);
   }
-  expect(samples.length).toBeGreaterThanOrEqual(40);
+  expect(samples.length).toBeGreaterThanOrEqual(30);
 
-  let maxDelta = 0;
+  // Quantized: every settled position is one of the cards' own offsets. A
+  // continuous mapping fails this on the first mid-segment sample.
+  const offGrid = samples.filter(
+    (v) => !range.stops.some((s) => Math.abs(s - v) <= 1),
+  );
+  expect(
+    offGrid,
+    `settled positions off the card grid: ${offGrid.join(", ")}`,
+  ).toEqual([]);
+
   for (let i = 1; i < samples.length; i++) {
-    const d = samples[i]! - samples[i - 1]!;
     // monotone (never drifts back up while scrolling down)…
-    expect(d).toBeGreaterThanOrEqual(-0.5);
-    if (d > maxDelta) maxDelta = d;
+    expect(samples[i]! - samples[i - 1]!).toBeGreaterThanOrEqual(-0.5);
   }
-  // …continuous: no 25px of scroll ever moves the pair more than 60px — the
-  // old quantized glide answered 420px here (one full card hop).
-  expect(maxDelta).toBeLessThanOrEqual(60);
-  // …and the assertion is not vacuous: the pair really travelled the column.
+  // …the pair really travelled the column, so none of this is vacuous…
   const travelled = samples[samples.length - 1]! - samples[0]!;
   expect(travelled).toBeGreaterThan(range.colTravel * 0.8);
-  // …without ever leaving it.
+  // …it visited more than one card, i.e. handovers actually happened…
+  expect(new Set(samples).size).toBeGreaterThanOrEqual(3);
+  // …and it never left the column.
   expect(Math.max(...samples)).toBeLessThanOrEqual(range.colTravel + 0.5);
 
   // Past the column the pair clamps exactly to the last item's offset.
@@ -175,6 +206,62 @@ test("the drift is a continuous, monotone, column-bounded function of scroll", a
     range.end + 600,
   );
   expect(await settledTy(page)).toBe(range.colTravel);
+});
+
+test("the handover between cards is glided, not teleported", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await gotoHome(page);
+  await page.evaluate(async () => {
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    for (let y = 0; y <= document.body.scrollHeight; y += innerHeight / 2) {
+      window.scrollTo({ top: y, behavior: "instant" });
+      await sleep(60);
+    }
+    window.scrollTo({ top: 0, behavior: "instant" });
+  });
+  await page.waitForTimeout(1500);
+
+  // Park just BEFORE item 2's top reaches the line, and settle on item 2.
+  const marks = await page.evaluate(() => {
+    const items = [...document.querySelectorAll<HTMLElement>(".qa-item")];
+    const first = items[0]!;
+    return {
+      before: Math.round(items[2]!.getBoundingClientRect().top + scrollY) - 8,
+      after: Math.round(items[2]!.getBoundingClientRect().top + scrollY) + 8,
+      from: items[2]!.offsetTop - first.offsetTop,
+      to: items[3]!.offsetTop - first.offsetTop,
+    };
+  });
+  await page.evaluate(
+    (y) => window.scrollTo({ top: y, behavior: "instant" }),
+    marks.before,
+  );
+  expect(await settledTy(page)).toBe(marks.from);
+
+  // Cross the handover and sample FASTER than the follow settles. The target
+  // steps `from`→`to` instantly; the rendered position must not.
+  await page.evaluate(
+    (y) => window.scrollTo({ top: y, behavior: "instant" }),
+    marks.after,
+  );
+  const mid: number[] = [];
+  for (let i = 0; i < 12; i++) {
+    const v = await pairTy(page);
+    if (v !== null && v > marks.from + 1 && v < marks.to - 1) mid.push(v);
+    await page.waitForTimeout(20);
+  }
+
+  // At least one frame strictly between the two card offsets — that is the
+  // difference between this and live's instant transform swap. (Live's own
+  // glide was CSS over 1s; this one is the rAF follow over ~4 frames.)
+  expect(
+    mid.length,
+    `intermediate frames observed between ${marks.from} and ${marks.to}`,
+  ).toBeGreaterThan(0);
+  expect(await settledTy(page)).toBe(marks.to);
 });
 
 test("opening a card mid-drift does not move the pair", async ({ page }) => {
