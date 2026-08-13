@@ -5,7 +5,8 @@
   import { pillClass } from "$lib/components/OutlineButton.svelte";
   import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
   import { ADDRESS, HOURS, PHONE } from "$lib/site";
-  import type { ImageField, RichTextField } from "@prismicio/client";
+  import type { RichTextField } from "@prismicio/client";
+  import type { PageData } from "./$types";
 
   // Matches the live /contact-us: a left-aligned "Contact Us" photo hero, then
   // an info band (a Request-Appointment button + CONTACT/OFFICE-HOURS columns
@@ -16,34 +17,22 @@
   // form logic stays reachable exactly as before — just funnelled through the
   // modal, per the live design.
 
+  let { data }: { data: PageData } = $props();
+
   const heading: RichTextField = [
     { type: "heading2", text: "Contact Us", spans: [] },
   ];
-  // Static hero photo (live `.hero.contact` bg) — served from /static so it
-  // clears the app CSP (img-src is Prismic-only); the real office image, not
-  // a redraw.
-  const officePhoto: ImageField = {
-    url: "/images/contact-hero.jpg",
-    alt: null,
-    copyright: null,
-    dimensions: { width: 1200, height: 1600 },
-    id: "contact-hero",
-    edit: { x: 0, y: 0, zoom: 1, background: "transparent" },
-  };
-  // Closing CTA — match the beach composition the assembly pages get from
-  // ctaHero (heading over white fading into the FIJI beach). The beach is
-  // served from /static so it clears the app CSP on this hand-built route
-  // (the assembly pages resolve it through Prismic). Same "Request
-  // Appointment" label (MarkUp pin 5980c9d7 #3 — live says "Book") +
-  // #appointment target as the rest of the site.
-  const ctaBeach: ImageField = {
-    url: "/images/cta-beach.jpg",
-    alt: null,
-    copyright: null,
-    dimensions: { width: 1600, height: 1067 },
-    id: "cta-beach",
-    edit: { x: 0, y: 0, zoom: 1, background: "transparent" },
-  };
+  // The office photo (live `.hero.contact` bg) and the closing beach both come
+  // from the `settings` singleton now — see $lib/site-settings. They were
+  // hand-written ImageField literals pointing at /static, which cleared the CSP
+  // but also meant `srcset()` had no imgix ladder to build: this page shipped
+  // 971 KB of photography to a phone. The assembly pages already resolved their
+  // beach through Prismic; this route just stopped being the exception.
+  //
+  // Same "Request Appointment" label (MarkUp pin 5980c9d7 #3 — live says
+  // "Book") + #appointment target as the rest of the site.
+  const officePhoto = $derived(data.siteImages.contactHero);
+  const ctaBeach = $derived(data.siteImages.ctaBeach);
   const ctaHeading: RichTextField = [
     { type: "heading2", text: "Ready for \ngreat dental \nhealth?", spans: [] },
   ];

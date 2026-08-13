@@ -32,7 +32,7 @@
 // Token: read from reddoor-starter/.env (authorized), headers only, never
 // printed. Idempotent: re-running reuses assets and re-PUTs the same payload.
 // `--dry-run` prints what would be staged and writes nothing.
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { homedir } from "node:os";
 import { PERSON_BEACHES } from "../src/lib/beachfront-pages.js";
@@ -96,6 +96,14 @@ const staticDir = fileURLToPath(new URL("../static", import.meta.url));
 
 // Resolve each unique beach file → asset id, uploading the ones not already in
 // the library (alt = caption). Returns Map<localPath "/beaches/x.jpg", id>.
+//
+// The five JPEGs this once uploaded FROM are no longer in the repo: they are in
+// Prismic, every person document carries one, and keeping a second copy in git
+// was duplicating the CMS. The paths below are now just the library's dedup key
+// (the filename), so the normal path is "reused, 5". Uploading again only
+// happens on a repository that has never been seeded, which is also the only
+// case that needs the local files — hence the loud failure rather than a
+// silently image-less gallery.
 async function resolveBeachAssets() {
   const existing = await listExistingAssets();
   // one caption per file (a shared file always carries the same caption).
@@ -120,6 +128,13 @@ async function resolveBeachAssets() {
       uploaded++;
       continue;
     }
+    if (!existsSync(`${staticDir}${img}`))
+      throw new Error(
+        `${filename} is neither in the Prismic asset library nor at static${img}.\n` +
+          `  The beaches were moved into Prismic and deleted from the repo. Recover\n` +
+          `  the original with:  git show f08d052:static${img} > static${img}\n` +
+          `  re-run this script to upload it, then delete the file again.`,
+      );
     const buf = readFileSync(`${staticDir}${img}`);
     const form = new FormData();
     form.append("file", new Blob([buf], { type: "image/jpeg" }), filename);

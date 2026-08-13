@@ -40,13 +40,14 @@ The script:
 
 ## This repository's seed scripts
 
-Two scripts stage the Beachfront rebuild into a single unpublished Migration
+Three scripts stage the Beachfront rebuild into a single unpublished Migration
 release. They share [scripts/lib/prismic-migration.mjs](../scripts/lib/prismic-migration.mjs).
 
 | script                                                                | writes                                      | payload                                                                                |
 | --------------------------------------------------------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------- |
 | [scripts/seed-pages.mjs](../scripts/seed-pages.mjs)                   | the 5 `page` docs' slice assemblies         | [src/lib/beachfront-pages.js](../src/lib/beachfront-pages.js)                          |
 | [scripts/seed-entity-content.mjs](../scripts/seed-entity-content.mjs) | `person`, `news_article`, `collection_item` | [src/lib/beachfront-entities.js](../src/lib/beachfront-entities.js) + `PERSON_BEACHES` |
+| [scripts/seed-settings.mjs](../scripts/seed-settings.mjs)             | the `settings` singleton                    | four photographs, imported once from `static/images/`                                  |
 
 Run `node scripts/seed-entity-content.mjs --dry-run` first — it prints every
 document it would stage and writes nothing.
@@ -64,3 +65,20 @@ adding a new one beside it.
 
 Push custom-type changes to Prismic **before** running a script that fills new
 fields, or the values land on documents whose model has no home for them.
+
+### A staged document cannot be read back by anything
+
+The Migration API refuses to read itself (`GET /documents` → 403 at the
+gateway), and — unlike an ordinary Prismic release — the migration release is
+**not published as a ref** either. Measured immediately after a successful
+`POST /documents` and on two retries after that, `/api/v2` listed exactly one
+ref: `master`.
+
+So between staging and publishing, a document is invisible to every reader
+available to these scripts. For a type with a uid that is survivable, because a
+re-POST collides on the uid and the script can fall back to `PUT`. For a
+**singleton** there is no uid to collide on, so a blind re-run would create a
+second document and `getSingle` would start returning a coin flip.
+`seed-settings.mjs` therefore prints the id it created and takes it back as
+`--doc-id=<id>` for any re-run inside that window. Once the release is
+published the document is on `master` and the script resolves it on its own.

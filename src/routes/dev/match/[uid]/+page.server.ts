@@ -5,7 +5,7 @@ import {
   loadCollections,
 } from "$lib/blux-catalog/collections-load";
 import { createClient } from "$lib/prismicio";
-import { assemblies, PERSON_BEACHES } from "$lib/beachfront-pages.js";
+import { assemblies } from "$lib/beachfront-pages.js";
 import {
   PERSON_CONTENT,
   NEWS_ARTICLE_CONTENT,
@@ -66,22 +66,17 @@ export async function load({ params, fetch, cookies }) {
     collectionTypesOf(slices as never),
   );
 
-  // The blux-migrated person docs don't carry the favorite-beach `gallery` the
-  // live /our-team cards show (all 11 are empty). Preview the intended card here
-  // from the verbatim capture in PERSON_BEACHES so the gate can verify the full
-  // card (banner box + caption) — the production seed will populate person
-  // .gallery for real (assets in static/beaches/). Dev-route only; leaves any
-  // doc that already has a gallery untouched.
-  const people = (collections.person ?? []) as Array<{
-    uid: string;
-    data: { gallery?: unknown[] };
-  }>;
-  for (const doc of people) {
-    const beach = PERSON_BEACHES[doc.uid as keyof typeof PERSON_BEACHES];
-    if (beach && !(doc.data.gallery && doc.data.gallery.length)) {
-      doc.data.gallery = [{ image: devImg(beach.img), caption: beach.caption }];
-    }
-  }
+  // The favorite-beach preview that used to sit here is GONE, because the thing
+  // it was previewing has shipped. It filled `person.gallery` from the verbatim
+  // PERSON_BEACHES capture, pointing at static/beaches/, for exactly as long as
+  // the blux-migrated docs carried no gallery of their own — "the production
+  // seed will populate person.gallery for real", said the comment. It did: all
+  // 11 person documents now carry a filled gallery from Prismic, so the fill
+  // guarded on an empty gallery and could never fire again.
+  //
+  // Keeping it would have been worse than dead code once the static beaches
+  // were deleted alongside it: a dormant branch resolving to five 404s, waiting
+  // for the one day a gallery came back empty.
 
   // Same idea for the four authored entity fields the Webflow import never
   // captured (person.teaser/order, news_article.summary/home_order,

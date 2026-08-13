@@ -38,7 +38,11 @@
     body?: RichTextField;
     ctaLabel?: string | null;
     ctaLink?: LinkField;
-    backgroundImage?: ImageField;
+    /** `null` is a real state, not just an omission: the detail routes read
+     *  this off the `settings` singleton, which degrades to null rather than
+     *  taking every page down when the document is unreachable. Same shape as
+     *  DetailHero/SubpageHero, which already accepted it. */
+    backgroundImage?: ImageField | null;
     /** Small location label over the photo (the live "FIJI ISLANDS" whimsy).
      * Only rendered when a background photo is present. */
     caption?: string;
@@ -113,7 +117,14 @@
   </div>
 {/snippet}
 
+<!-- `data-band="cta"` is a test hook with a specific job. A spec asserting "the
+     closing beach comes from Prismic" by taking the LAST full-bleed photo on
+     the page passes whether or not this band has a photo at all — on a
+     team-member page it just lands on the hero above it, which is Prismic-hosted
+     for its own reasons. Both tests went green that way while the band was
+     genuinely empty. This names the band so the assertion can be about it. -->
 <section
+  data-band="cta"
   data-slice-type={sliceType}
   data-slice-variation={sliceVariation}
   class="w-full {hasImage ? '-mb-[10%]' : ''}"
@@ -155,7 +166,7 @@
     <div
       class="relative isolate min-h-[70vw] w-full overflow-hidden md:min-h-[640px] lg:min-h-[800px]"
     >
-      <HeroBackgroundImage image={backgroundImage} preload={false} />
+      <HeroBackgroundImage image={backgroundImage ?? {}} preload={false} />
       <!-- White for the top ~18% fading to clear by ~60%, so the heading above
            dissolves into the beach and the CTAs read on white (fade into FIJI). -->
       <div
