@@ -22,6 +22,7 @@
     PHONE,
     REVIEW_DESTINATIONS,
   } from "$lib/site";
+  import Analytics from "$lib/components/Analytics.svelte";
   import TransitionOverlay from "$lib/components/TransitionOverlay.svelte";
   import AppointmentModal from "$lib/components/AppointmentModal.svelte";
   import Nav from "$lib/components/Nav.svelte";
@@ -119,6 +120,9 @@
   noindex={NOINDEX_ENFORCED && isNoindexPath(page.url.pathname)}
   jsonLd={practiceJsonLd(page.url.origin)}
 />
+<!-- Above the frozen branch on purpose: frozen Blux pages are real site pages
+     and must report analytics like every other route. -->
+<Analytics />
 {#if page.data.frozen}
   <!-- A frozen Blux page is a complete standalone document (its own nav, footer,
        and CSS reset are baked into the frozen template). The app chrome +
