@@ -142,6 +142,9 @@ const config = {
           "https://player.vimeo.com",
           // Cloudflare Turnstile contact-form widget (enable via PUBLIC_TURNSTILE_SITE_KEY).
           "https://challenges.cloudflare.com",
+          // GA4 gtag.js loader (Analytics.svelte). Wildcard per Google's CSP
+          // guide — gtag chain-loads from more than one googletagmanager host.
+          "https://*.googletagmanager.com",
           // Google Maps JS API — map hydration (VITE_GOOGLE_MAPS_KEY); see
           // wantsMapsCsp above for why this set is conditional.
           ...(wantsMapsCsp ? ["blob:", ...mapsHosts] : []),
@@ -168,6 +171,9 @@ const config = {
           "data:",
           "https://images.prismic.io",
           "https://*.prismic.io",
+          // GA4 falls back to image beacons when sendBeacon/fetch is blocked.
+          "https://*.google-analytics.com",
+          "https://*.googletagmanager.com",
           // Google Maps tiles, markers, and My-Maps KML pin sprites (pins are
           // served from mt.google.com / maps.google.com, not maps.gstatic).
           ...(wantsMapsCsp ? mapsHosts : []),
@@ -198,6 +204,12 @@ const config = {
           "self",
           "https://*.prismic.io",
           "https://static.cdn.prismic.io",
+          // GA4 measurement beacons — the g/collect endpoint lives on
+          // google-analytics.com with regional variants, and consented
+          // sessions also post to analytics.google.com.
+          "https://*.google-analytics.com",
+          "https://*.analytics.google.com",
+          "https://*.googletagmanager.com",
           // Google Maps JS API telemetry, tile and KML fetches.
           ...(wantsMapsCsp
             ? [
