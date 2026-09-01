@@ -514,7 +514,7 @@
                uses the overlaid structure and desktop keeps the accordion. -->
           {#if isMobile}
             <div
-              class="relative h-[240px] overflow-hidden rounded-[25px] bg-[#e7f5fa] shadow-sm xs:h-[336px] md:h-[448px]"
+              class="relative h-[240px] overflow-hidden rounded-[25px] bg-[#e7f5fa] xs:h-[336px] md:h-[448px]"
               use:animateIn={REVEAL}
             >
               <!-- The mobile "Finally…" card. Measured 351/480/600 at
@@ -593,6 +593,31 @@
                  The mobile card (isMobile branch above) deliberately has no
                  toggle at all — its copy is already showing — so this is the
                  desktop/tablet structure only. -->
+            <!-- NO `shadow-sm` on the card below. MARKUP ROUND I1, thread
+                   ceb918b8-8611-48e4-accb-04bc3a4ad2e2 (home board, pin #14),
+                   Tim: "this is still showing a line when I load the page in
+                   Safari. If I resize the page, then it disappears sometimes
+                   and then reappears sometimes, but if I load the page at the
+                   beginning, it always shows up."
+                   The "line" is this card's own drop shadow. Found by sweeping
+                   every pixel row of the full page in BOTH engines for a row
+                   darker than its neighbours and near-uniform across x
+                   (probe-markup-i6.mjs): exactly one hit, y=1476 @1293, span
+                   77% of the width — this card row's bottom edge. Then
+                   isolated by injecting candidate fixes one at a time
+                   (child overhang, layer promotion, isolation, an opaque
+                   background): only `box-shadow:none` moved it, 7.95 → 0.11.
+                   Tim's "Safari / sometimes" is the same measurement: the row
+                   survives every resize in WebKit and vanishes on the first
+                   resize in Chromium, because a 1px-offset 10%-black shadow on
+                   a fractional bottom edge (1476.39) rasterises differently per
+                   engine and per snap.
+                   Removing it is also a fidelity fix, not just a concession:
+                   live's own `.expanding-box` / `.expanding-image` — same
+                   25px radius, same 362×280 box — computes `box-shadow: none`
+                   (probed on beachfront-dentistry.webflow.io). The shadow was
+                   ours. The sibling card at the top of this file loses it for
+                   the same reason. -->
             <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div
               onclick={expandable
@@ -606,7 +631,7 @@
                     if (e.key === "Escape" && open) toggleCard(i);
                   }
                 : undefined}
-              class="group relative h-[448px] overflow-hidden rounded-[25px] bg-[#e7f5fa] shadow-sm lg:h-[280px] {expandable
+              class="group relative h-[448px] overflow-hidden rounded-[25px] bg-[#e7f5fa] lg:h-[280px] {expandable
                 ? 'cursor-pointer'
                 : ''}"
               use:animateIn={REVEAL}

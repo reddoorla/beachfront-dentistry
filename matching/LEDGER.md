@@ -4008,3 +4008,40 @@ the full dir is green at `--workers=2`; clean main was re-run under stash to
 confirm. Contention flake against the single dev server, not a regression —
 recorded because "it passed on the rerun" is exactly the sentence that hides a
 real one.
+
+### Pin #7 (thread ceb918b8…) — "still showing a line when I load the page in Safari"
+
+FOUND AND FIXED, and it was not a wave seam. Round H4 had already proved every
+divider seam watertight (19 mounts × 4 widths, pixel-sampled), so the search
+was widened rather than aimed: `probe-markup-i6.mjs` sweeps EVERY pixel row of
+the full home page in WebKit **and** Chromium for a row that is both darker
+than its neighbours and near-uniform across x — content crossing a seam is dark
+in a few columns, a rendering hairline is dark all the way across.
+
+Exactly one hit, on either page, in either engine: **y=1476 @1293, spanning 77%
+of the width** — the bottom edge of the SectionGrid card row. The engine split
+IS Tim's report, measured: the row survives every resize in WebKit and vanishes
+on the first resize in Chromium ("disappears sometimes and then reappears
+sometimes… but if I load the page at the beginning, it always shows up").
+
+Then isolated by injecting candidate fixes one at a time against the same
+scanner — child overhang, layer promotion, `isolation:isolate`, an opaque
+background: all four left it at 7.95. `box-shadow: none` took it to 0.11. The
+"line" is the card's own `shadow-sm`: a 1px-offset 10%-black shadow on a
+fractional bottom edge (1476.39) rasterises differently per engine and per
+pixel snap.
+
+Removing it is a FIDELITY fix, not a concession. Live's own `.expanding-box` /
+`.expanding-image` — same 25px radius, same 362×280 box — computes
+`box-shadow: none` (probed on beachfront-dentistry.webflow.io). The shadow was
+ours. Both SectionGrid cards lose it.
+Verified after: 0 line rows at load and after all five resizes, in BOTH engines,
+on / and /our-team.
+
+Gate round: markupi1b (threshold 0.1, maxHeightDelta 0.05, matrix 1440/834/390,
+mask [], neutralizeMedia false), page home, ref beachfront-dentistry.webflow.io,
+baseline out-readreviews-home. TWO rows moved, both toward live:
+  vw1440 "Our dental team in Redondo"  9.5% → 9.4%
+  vw1440 "Finally have a dentist"      4.6% → 4.5%
+Every other row byte-identical — which is the expected signature for deleting a
+shadow live never had.
