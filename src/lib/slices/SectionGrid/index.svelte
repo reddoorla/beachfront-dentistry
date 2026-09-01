@@ -25,6 +25,7 @@
   import { SvelteSet } from "svelte/reactivity";
   import { viewport } from "$lib/stores/viewport.svelte";
   import { onMount } from "svelte";
+  import { cappedWidths } from "@reddoorla/maintenance/images";
 
   // Live reveals PER ELEMENT (each card, each step, each copy block rises as
   // IT enters the viewport), not per section — wired below accordingly.
@@ -462,9 +463,13 @@
             field={item.item_link}
             class="bg-surface flex items-center justify-center p-8"
           >
+            <!-- Logo tile: capped at 4rem tall, so it never needs a wide candidate. -->
             <PrismicImage
               field={item.item_media}
               fallbackAlt=""
+              widths={cappedWidths(item.item_media, [160, 320, 480])}
+              sizes="(min-width: 768px) 320px, 45vw"
+              loading="lazy"
               class="max-h-16 w-auto object-contain"
             />
           </PrismicLink>
@@ -715,9 +720,13 @@
             <div>
               <PrismicRichText field={item.item_heading} />
               {#if hasMedia(item)}
+                <!-- Inline in the 5-of-12 copy column (~480px). -->
                 <PrismicImage
                   field={item.item_media}
                   fallbackAlt=""
+                  widths={cappedWidths(item.item_media)}
+                  sizes="(min-width: 1024px) 480px, calc(100vw - 3rem)"
+                  loading="lazy"
                   class="mt-2 h-auto w-auto"
                 />
               {/if}
@@ -727,9 +736,13 @@
         </div>
         <div class="flex flex-col gap-10 lg:col-span-7">
           {#each mediaItems as item, i (item)}
+            <!-- Media column: 7 of 12 (~700px), every other one inset to 85%. -->
             <PrismicImage
               field={item.item_media}
               fallbackAlt=""
+              widths={cappedWidths(item.item_media)}
+              sizes="(min-width: 1024px) 700px, calc(100vw - 3rem)"
+              loading="lazy"
               class="h-auto {isSmall(item) ? 'w-auto' : 'w-full'} {i % 2 === 1
                 ? 'lg:ml-12 lg:max-w-[85%]'
                 : ''}"

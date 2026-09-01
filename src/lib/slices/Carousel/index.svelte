@@ -12,6 +12,7 @@
   import { useSwipe, type SwipeCustomEvent } from "svelte-gestures";
   import { ADDRESS, HOURS, PHONE } from "$lib/site";
   import { PrismicImage, PrismicRichText } from "@prismicio/svelte";
+  import { cappedWidths } from "@reddoorla/maintenance/images";
   import {
     isFilled,
     asLink,
@@ -263,6 +264,8 @@
               <PrismicImage
                 field={item.image}
                 fallbackAlt=""
+                widths={cappedWidths(item.image)}
+                sizes="100vw"
                 class="h-auto w-full"
               />
             </div>
@@ -660,6 +663,9 @@
                     <PrismicImage
                       field={item.image}
                       fallbackAlt=""
+                      widths={cappedWidths(item.image)}
+                      sizes="100vw"
+                      loading="lazy"
                       class="h-auto w-full object-cover"
                     />
                   {/if}
