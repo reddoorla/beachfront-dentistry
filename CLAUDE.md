@@ -13,7 +13,7 @@ rules below still govern any matching work that DOES happen — they just are no
 an instruction to go find some. Do not delete the switch; resuming is the
 operator's call.
 
-## The four rules
+## The five rules
 
 ### 1. Source prescribes, rects only verify
 
