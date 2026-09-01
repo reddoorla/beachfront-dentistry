@@ -73,7 +73,7 @@ for (const run of runs) {
   for (const r of run.regions) {
     // A DECLARED FLOOR is flat by definition — reporting it as stalled is noise
     // that hides a real stall. It stays in the LEDGER; it does not belong here.
-    if (FLOORS.some((fl) => fl.match(r))) continue;
+    if (FLOORS.some((fl) => fl.match(r, gateKey || page))) continue;
     const key = `${page}|${r.viewport}|${r.label}`;
     if (!history.has(key)) history.set(key, []);
     history.get(key).push({

@@ -62,12 +62,12 @@ let floorTotal = 0;
 for (const [page, { dir, report }] of latest) {
   const fails = report.regions.filter((r) => !r.pass);
   for (const f of fails) {
-    const floor = FLOORS.find((fl) => fl.match(f));
+    const floor = FLOORS.find((fl) => fl.match(f, page));
     if (floor) {
       floorTotal++;
       continue;
     }
-    const ack = ACCEPTED.find((a) => a.match(f));
+    const ack = ACCEPTED.find((a) => a.match(f, page));
     if (ack) {
       accepted.push({ page, vw: f.viewport, label: f.label, why: ack.why });
       continue;
