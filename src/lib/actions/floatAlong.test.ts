@@ -192,15 +192,19 @@ describe("floatAlong — the continuous mapping", () => {
     expect(node.style.transform).toBe("translateY(420px)");
   });
 
-  it("glides into a card's offset over the first 70% of its range, then holds it", () => {
+  it("holds ONE offset across the whole range a card owns — one spot per card", () => {
     mockMatchMedia(false);
-    // Sweep the viewport top from just past item 0's top to just before item
-    // 1's — the range item 1 owns. ROUND I1: the pair no longer teleports onto
-    // 420 at the top of this range and sits there; it GLIDES from 0 to 420
-    // across the first 70% of the 420px pitch (band = 294) and then holds 420
-    // for the remaining 30%. Both halves matter: the glide is what pin #15
-    // asked for, the hold is what directive 3 asked for, and a mapping missing
-    // either one fails here.
+    // DIRECTIVE 5 reverses I1 here. I1 interpolated across the first 70% of
+    // each card's pitch so that position was continuous in scroll; the operator
+    // saw it on the deploy preview and said "the snap still feels real weird,
+    // stick with one spot per card". So within the whole range item 1 owns the
+    // answer is item 1's own rung — 420 at every scroll position in it, exact
+    // and identical, never a value between two rungs.
+    //
+    // This is the test that fails if anyone reintroduces a continuous mapping,
+    // and it is deliberately swept rather than sampled once: I1's version
+    // passed a single-point check at the end of the range and was still wrong
+    // through the first 70% of it.
     const at = (topOfA: number) => {
       const { parent, node } = makeDom(3);
       const [a, b, c] = items(parent);
@@ -216,22 +220,13 @@ describe("floatAlong — the continuous mapping", () => {
       return v;
     };
 
-    // Strictly inside the glide: between the two rungs, never on one of them.
-    const early = at(-1);
-    const mid = at(-150);
-    const late = at(-250);
-    expect(early).toBeGreaterThanOrEqual(0);
-    expect(early).toBeLessThan(5);
-    expect(mid).toBeGreaterThan(0);
-    expect(mid).toBeLessThan(420);
-    expect(late).toBeGreaterThan(mid);
-    expect(late).toBeLessThan(420);
-
-    // Past the band (294 of the 420 pitch) it holds EXACTLY on the rung — this
-    // is "the same place for each card", and it is exact, not approximate.
-    expect(at(-300)).toBe(420);
-    expect(at(-360)).toBe(420);
-    expect(at(-419)).toBe(420);
+    // The entire range item 1 owns: from the instant item 0's top is cut to
+    // the instant item 1's is. Every one of these is the SAME number.
+    for (const topOfA of [-1, -60, -150, -250, -300, -360, -419]) {
+      expect(at(topOfA)).toBe(420);
+    }
+    // One pixel further and item 1's own top is cut, so the anchor advances.
+    expect(at(-421)).toBe(840);
   });
 
   it("tracks the TOP fully visible question, not the bottom one", () => {
@@ -330,35 +325,155 @@ describe("floatAlong — nothing moves except scroll", () => {
       setOffsetTop(b!, 420);
       setOffsetTop(c!, 840);
 
+      // Timers ONLY: vitest's default useFakeTimers also fakes rAF, which
+      // would replace the manual frame queue this test is built on.
+      vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
       mount(node);
       expect(node.style.transform).toBe("");
 
-      // A jump past the whole column: the mapping answers the clamped end in
-      // ONE write. Under the old exponential follow this took ~40 frames of
-      // catch-up, and that catch-up is precisely what could not be scrubbed
-      // backwards by scrolling — it was motion the input had stopped
-      // commanding. There is no such state any more.
+      // A jump past the whole column. The frame DECIDES an index; it does not
+      // paint. Painting waits out the settle window, which is what stops a
+      // flick from firing a transition per card it passes.
       scrolled = true;
       window.dispatchEvent(new Event("scroll"));
 
       expect(frames.length).toBe(1);
       frames.shift()!(1000);
-      expect(node.style.transform).toBe("translateY(840px)");
+      expect(node.style.transform).toBe("");
 
-      // NO follow-up frame was scheduled: there is no loop to settle.
+      // NO follow-up frame was scheduled: there is no loop to settle. The
+      // browser owns the motion from here; this action only picks rungs.
       expect(frames.length).toBe(0);
 
-      // And a burst of scroll events coalesces to a single frame rather than
-      // one write each.
+      vi.advanceTimersByTime(120);
+      expect(node.style.transform).toBe("translateY(840px)");
+
+      // A burst of scroll events at the SAME index coalesces to a single frame
+      // and, since the index did not change, writes nothing further.
       window.dispatchEvent(new Event("scroll"));
       window.dispatchEvent(new Event("scroll"));
       window.dispatchEvent(new Event("scroll"));
       expect(frames.length).toBe(1);
       frames.shift()!(1016);
+      vi.advanceTimersByTime(120);
       expect(node.style.transform).toBe("translateY(840px)");
       expect(frames.length).toBe(0);
     } finally {
+      vi.useRealTimers();
       window.requestAnimationFrame = originalRaf;
+    }
+  });
+});
+
+// DIRECTIVE 5 (2026-09-01): "stick with one spot per card, ship just the fix
+// with an eased translation transition ... probably wants a debounce as well to
+// avoid jittery feelings." Position is quantized (covered above); these two pin
+// the MOTION, which is the half that was actually being complained about.
+describe("floatAlong — the hop is eased and debounced", () => {
+  /** Manual frames + fake setTimeout. rAF must stay hand-driven (vitest's
+   *  default fake timers would swallow it), so only the settle timer is faked. */
+  function harness(itemCount = 3) {
+    const frames: FrameRequestCallback[] = [];
+    const originalRaf = window.requestAnimationFrame;
+    window.requestAnimationFrame = ((cb: FrameRequestCallback) => {
+      frames.push(cb);
+      return frames.length;
+    }) as typeof window.requestAnimationFrame;
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const restore = () => {
+      vi.useRealTimers();
+      window.requestAnimationFrame = originalRaf;
+    };
+    const { parent, node } = makeDom(itemCount);
+    const list = items(parent);
+    list.forEach((el, i) => setOffsetTop(el, i * 420));
+    /** Move the column so `cut` items' tops are above the tracking line. */
+    const scrollTo = (cut: number) =>
+      list.forEach((el, i) => {
+        const top = (i - cut) * 420 + (i < cut ? -10 : 10);
+        el.getBoundingClientRect = () => rect(top, top + 400);
+      });
+    const tick = () => {
+      window.dispatchEvent(new Event("scroll"));
+      while (frames.length) frames.shift()!(0);
+    };
+    return { node, scrollTo, tick, frames, restore };
+  }
+
+  it("uses live's own transition for a hop, and never eases the mount", () => {
+    mockMatchMedia(false);
+    const h = harness();
+    try {
+      // Deep link straight into the middle of the column.
+      h.scrollTo(1);
+      mount(h.node);
+      // Positioned immediately, but NOT eased: gliding in from rest would be
+      // motion nobody scrolled for.
+      expect(h.node.style.transform).toBe("translateY(420px)");
+      expect(h.node.style.transition).toBe("");
+
+      // A real handover eases, with live's curve (beachfront.css:7670).
+      h.scrollTo(2);
+      h.tick();
+      vi.advanceTimersByTime(120);
+      expect(h.node.style.transform).toBe("translateY(840px)");
+      expect(h.node.style.transition).toBe(
+        "transform 1s cubic-bezier(.19, 1, .22, 1)",
+      );
+    } finally {
+      h.restore();
+    }
+  });
+
+  it("a flick past several cards commits ONCE, to the card it lands on", () => {
+    mockMatchMedia(false);
+    const h = harness(5);
+    try {
+      h.scrollTo(0);
+      mount(h.node);
+      expect(h.node.style.transform).toBe("");
+
+      // Four cards blow past inside one settle window. Under a naive
+      // implementation each would start its own 1s transition and each would be
+      // interrupted mid-flight by the next — restarting from wherever the last
+      // had got to, which is exactly the "jittery" reading. Nothing may be
+      // painted while the index is still moving.
+      for (const cut of [1, 2, 3, 4]) {
+        h.scrollTo(cut);
+        h.tick();
+        vi.advanceTimersByTime(60); // < SETTLE_MS, and the index keeps changing
+        expect(h.node.style.transform).toBe("");
+      }
+
+      // It settles once, on the card actually landed on — not on any it passed.
+      vi.advanceTimersByTime(120);
+      expect(h.node.style.transform).toBe("translateY(1680px)");
+    } finally {
+      h.restore();
+    }
+  });
+
+  it("absorbs oscillation at a handover boundary without re-firing the hop", () => {
+    mockMatchMedia(false);
+    const h = harness();
+    try {
+      h.scrollTo(1);
+      mount(h.node);
+      expect(h.node.style.transform).toBe("translateY(420px)");
+
+      // Trackpad rubber-banding across the boundary: 2 -> 1 -> 2 inside one
+      // settle window. The pair must not chase it.
+      for (const cut of [2, 1, 2]) {
+        h.scrollTo(cut);
+        h.tick();
+        vi.advanceTimersByTime(40);
+      }
+      expect(h.node.style.transform).toBe("translateY(420px)");
+
+      vi.advanceTimersByTime(120);
+      expect(h.node.style.transform).toBe("translateY(840px)");
+    } finally {
+      h.restore();
     }
   });
 });

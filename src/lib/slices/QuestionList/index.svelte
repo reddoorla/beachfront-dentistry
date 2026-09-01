@@ -132,15 +132,13 @@
              a7c2e0d0-5e13-4cfd-bb17-a21ecee7b188 (home pin #7, 2026-08-11)
              rejected that as "jumping from question to question", so the
              mapping went continuous; 2026-08-13 moved the tracked end to the
-             TOP fully visible question; and 2026-08-13 (again, after that
-             deployed) restored quantization, because a continuous mapping
-             pins the pair to a fixed SCREEN position and lets cards slide
-             past it — it straddled the gap between two cards for most of the
-             scroll. Measured on / after the fix: the headshot sits 100px
-             below its card's top at EVERY scroll position, riding from
-             y≈467 to y≈120 before handing over. The 1s hop transition stays
-             off this class list — the ~150ms rAF follow in floatAlong is what
-             glides the handover now. Live x-geometry at 1440: handwriting's
+             TOP fully visible question; 2026-08-13 (again) and 2026-09-01
+             (twice) argued the mechanism back and forth. It now sits where
+             directive 5 put it: ONE SPOT PER CARD, with the hop eased by a
+             CSS transition and debounced so a flick lands once. floatAlong
+             owns all five directives and the reasoning; do not re-litigate
+             the mechanism from this comment. The headshot sits 100px below
+             its card's top at every resting position. Live x-geometry at 1440: handwriting's
              right edge 10px left of the column, headshot overlapping 40px
              INTO the column's right edge. -->
         <!-- MOBILE (measured live @390): the pair rests IN PLACE above the
@@ -148,10 +146,22 @@
              right edge with its bottom 12px above the card, the 120×70
              handwriting flush against its left edge (float gated off in
              floatAlong). DESKTOP: flanks the column and drifts. -->
+        <!-- z-30, not z-10. The card header button is `relative z-10` and the
+             cards come AFTER this wrapper in the DOM, so at equal z-index the
+             tie breaks in the headers' favour and they paint over the doctor
+             wherever he overlaps the column's right edge (`lg:-ml-10`, 40px).
+             Live does not have this tie: its `.qa-header` computes to z-index
+             5 and `.ask-the-doctor-headshot` to 9 — the doctor is four levels
+             clear of the cards on purpose. Nothing here creates a stacking
+             context to contain the header either: the card is `relative` with
+             z-auto, and it only LOOKED contained while animateIn left an inline
+             transform on it forever (a transform makes a stacking context).
+             I1 made that transform release on transitionend, which is what
+             exposed the tie. -->
         <div
           use:floatAlong={{ itemSelector: ".qa-item" }}
           aria-hidden="true"
-          class="pointer-events-none absolute inset-x-0 top-0 z-10 lg:top-[100px]"
+          class="pointer-events-none absolute inset-x-0 top-0 z-30 lg:top-[100px]"
         >
           {#if isFilled.richText(slice.primary.heading)}
             <!-- Live ships the raw handwriting PNG and turns it dark blue with

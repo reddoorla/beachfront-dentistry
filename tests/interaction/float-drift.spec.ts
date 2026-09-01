@@ -121,7 +121,7 @@ test("scroll 0: the pair rests in its authored position, untransformed", async (
   expect(state!.computed).toBe("none");
 });
 
-test("the pair glides continuously in scroll, rests between cards, monotone and column-bounded", async ({
+test("the pair occupies exactly one position per card — never between two", async ({
   page,
 }) => {
   test.setTimeout(180_000);
@@ -129,219 +129,181 @@ test("the pair glides continuously in scroll, rests between cards, monotone and 
   await gotoHome(page);
 
   // Fire every entrance reveal first (animateIn is one-shot — its observer
-  // disconnects after revealing) by scrolling THROUGH the page in
-  // half-viewport steps: an instant jump to the bottom never intersects the
-  // mid-page items, so their reveals would otherwise fire one by one DURING
-  // the sweep. The `.qa-item`s themselves carry the reveal transform, so an
-  // unrevealed card's rect moves on its own for ~1s and the sweep would
-  // measure that reveal motion on top of the drift this contract is about.
+  // disconnects after revealing) by scrolling THROUGH the page in half-viewport
+  // steps: an instant jump to the bottom never intersects the mid-page items,
+  // so their reveals would otherwise fire one by one DURING the sweep and move
+  // the very offsets being measured.
   await page.evaluate(async () => {
-    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-    for (let y = 0; y <= document.body.scrollHeight; y += innerHeight / 2) {
-      window.scrollTo({ top: y, behavior: "instant" });
-      await sleep(60);
+    const H = window.innerHeight / 2;
+    for (let y = 0; y < document.body.scrollHeight; y += H) {
+      scrollTo({ top: y, behavior: "instant" });
+      await new Promise((r) => setTimeout(r, 60));
     }
-    window.scrollTo({ top: 0, behavior: "instant" });
+    scrollTo({ top: 0, behavior: "instant" });
   });
-  await page.waitForTimeout(1500);
-  await settledTy(page);
+  await page.waitForTimeout(1200);
 
-  const range = await page.evaluate(() => {
-    const pair = document.querySelector(
-      ".ask-the-doctor-headshot",
-    )!.parentElement!;
-    const items = [...pair.parentElement!.querySelectorAll(".qa-item")];
-    // Handovers happen as each item's TOP crosses y=0, so the window runs from
-    // just before the first item's top reaches it to just after the last one's.
-    const topOf = (el: Element) => el.getBoundingClientRect().top + scrollY;
-    const first = items[0] as HTMLElement;
-    const last = items[items.length - 1] as HTMLElement;
+  // The ladder the pair is allowed to occupy: each card's offset from the
+  // first. DIRECTIVE 5 — "stick with one spot per card" — means every settled
+  // position must be one of exactly these numbers.
+  const rungs = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll<HTMLElement>(".qa-item")];
+    return cards.map((c) => c.offsetTop - cards[0].offsetTop);
+  });
+  expect(rungs.length).toBeGreaterThan(2);
+
+  const span = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll(".qa-item")];
     return {
-      start: Math.max(0, Math.round(topOf(first) - 50)),
-      end: Math.round(topOf(last) + 50),
-      colTravel: last.offsetTop - first.offsetTop,
-      // the card ladder the glide interpolates between
-      stops: (items as HTMLElement[]).map(
-        (el) => el.offsetTop - first.offsetTop,
-      ),
+      start: cards[0].getBoundingClientRect().top + scrollY - 600,
+      end: cards[cards.length - 1].getBoundingClientRect().top + scrollY + 400,
     };
   });
-  expect(range.colTravel).toBeGreaterThan(500);
-  expect(range.stops.length).toBeGreaterThanOrEqual(4);
 
-  // Settle fully at the sweep's first position: the reveal animations shift
-  // the cards between load and first paint, so the mapping can already be
-  // >0 here — without this, the first samples measure the follow's catch-up
-  // transient instead of the drift the contract is about.
-  await page.evaluate(
-    (y) => window.scrollTo({ top: y, behavior: "instant" }),
-    range.start,
-  );
-  await settledTy(page);
-
-  // Sampled at a 60px scroll increment — seven samples per 420px card, so
-  // neither a hold nor a glide can hide between them.
-  //
-  // No settle wait is needed any more, and that is itself the point: nothing
-  // is animated in time, so one frame after the scroll the position is final.
-  // The 1500ms this used to need was for the exponential follow that no longer
-  // exists.
-  const step = 60;
-  const samples: number[] = [];
-  for (let y = range.start; y <= range.end; y += step) {
-    await page.evaluate(
-      (y) => window.scrollTo({ top: y, behavior: "instant" }),
-      y,
-    );
-    await page.waitForTimeout(120);
-    samples.push((await pairTy(page))!);
-  }
-  expect(samples.length).toBeGreaterThanOrEqual(30);
-
-  const deltas = samples
-    .slice(1)
-    .map((v, i) => Math.round((v - samples[i]!) * 100) / 100);
-
-  // 1. CONTINUOUS IN SCROLL — the property pin #15 is about. A `step` of
-  // scroll may never command a disproportionate amount of travel. The mapping
-  // holds for 30% of a card's pitch and glides across the other 70% on a
-  // smoothstep, whose peak slope is 1.5, so the designed worst case is
-  // 1.5/0.7 = 2.14x the scroll. 2.5x is that with headroom, and it is still
-  // FAR below what the quantized mapping scored here: ~345px inside a single
-  // 40px step, i.e. 8.6x.
-  const worst = Math.max(...deltas.map(Math.abs));
-  expect(
-    worst,
-    `worst travel per ${step}px of scroll: ${worst}px`,
-  ).toBeLessThanOrEqual(step * 2.5);
-
-  // 2. …but NOT merely continuous: it still rests. Directive 3 ("it should sit
-  // in the same place for each card") survives as the holds between glides, so
-  // a mapping that had gone fully continuous — the thing directive 3 rejected —
-  // fails here even though it would sail through (1).
-  const held = deltas.filter((d) => Math.abs(d) < 0.5).length;
-  expect(
-    held / deltas.length,
-    `fraction of scroll steps where the pair holds still: ${held}/${deltas.length}`,
-  ).toBeGreaterThanOrEqual(0.15);
-
-  // 3. monotone (never drifts back up while scrolling down)…
-  for (const d of deltas) expect(d).toBeGreaterThanOrEqual(-0.5);
-  // …the pair really travelled the column, so none of this is vacuous…
-  const travelled = samples[samples.length - 1]! - samples[0]!;
-  expect(travelled).toBeGreaterThan(range.colTravel * 0.8);
-  // …it moved through more than one card…
-  expect(new Set(samples).size).toBeGreaterThanOrEqual(3);
-  // …it never left the column…
-  expect(Math.max(...samples)).toBeLessThanOrEqual(range.colTravel + 0.5);
-  // …and every sample sits on the ladder or between two of its rungs, so the
-  // glide interpolates the same stops the quantized mapping used to land on
-  // rather than inventing positions outside them.
-  for (const v of samples) {
-    expect(v).toBeGreaterThanOrEqual(-0.5);
-    expect(v).toBeLessThanOrEqual(range.colTravel + 0.5);
+  const seen: number[] = [];
+  for (let y = span.start; y <= span.end; y += 100) {
+    await page.evaluate((yy) => scrollTo({ top: yy, behavior: "instant" }), y);
+    const v = await settledTy(page);
+    seen.push(v);
   }
 
-  // 4. NOTHING MOVES WHILE THE PAGE IS STILL. Position is a pure function of
-  // scroll, so holding the page steady must hold the pair steady — this is
-  // what makes a time-decayed catch-up (the old mechanism) impossible to
-  // reintroduce without failing a test.
-  await page.evaluate(
-    (y) => window.scrollTo({ top: y, behavior: "instant" }),
-    Math.round((range.start + range.end) / 2),
+  // Every settled reading is ON a rung. A continuous mapping — which is what
+  // I1 shipped and directive 5 reversed — fails here on the first reading
+  // taken mid-pitch, because it answers a value between two rungs.
+  const offLadder = seen.filter(
+    (v) => !rungs.some((r) => Math.abs(r - v) < 1.5),
   );
-  await page.waitForTimeout(150);
-  const still = (await pairTy(page))!;
-  await page.waitForTimeout(700);
-  expect(await pairTy(page)).toBe(still);
+  expect(
+    offLadder,
+    `settled positions that are not any card's own offset: ${offLadder.join(", ")}`,
+  ).toEqual([]);
 
-  // Past the column the pair clamps exactly to the last item's offset.
-  await page.evaluate(
-    (y) => window.scrollTo({ top: y, behavior: "instant" }),
-    range.end + 600,
-  );
-  expect(await settledTy(page)).toBe(range.colTravel);
+  // Monotone in scroll, and never outside the column.
+  for (let i = 1; i < seen.length; i++)
+    expect(seen[i]).toBeGreaterThanOrEqual(seen[i - 1] - 1.5);
+  expect(Math.min(...seen)).toBeGreaterThanOrEqual(-1.5);
+  expect(Math.max(...seen)).toBeLessThanOrEqual(rungs[rungs.length - 1] + 1.5);
 });
 
-test("the handover is spread across scroll, not concentrated in one step", async ({
+test("the handover is eased in TIME by CSS, not spread across scroll", async ({
   page,
 }) => {
-  test.setTimeout(180_000);
+  test.setTimeout(120_000);
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await gotoHome(page);
   await page.evaluate(async () => {
-    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-    for (let y = 0; y <= document.body.scrollHeight; y += innerHeight / 2) {
-      window.scrollTo({ top: y, behavior: "instant" });
-      await sleep(60);
+    const H = window.innerHeight / 2;
+    for (let y = 0; y < document.body.scrollHeight; y += H) {
+      scrollTo({ top: y, behavior: "instant" });
+      await new Promise((r) => setTimeout(r, 60));
     }
-    window.scrollTo({ top: 0, behavior: "instant" });
+    scrollTo({ top: 0, behavior: "instant" });
   });
-  await page.waitForTimeout(1500);
+  await page.waitForTimeout(1200);
 
-  // Park just BEFORE item 2's top reaches the line, and settle on item 2.
-  const marks = await page.evaluate(() => {
-    const items = [...document.querySelectorAll<HTMLElement>(".qa-item")];
-    const first = items[0]!;
-    return {
-      before: Math.round(items[2]!.getBoundingClientRect().top + scrollY) - 8,
-      after: Math.round(items[2]!.getBoundingClientRect().top + scrollY) + 8,
-      from: items[2]!.offsetTop - first.offsetTop,
-      to: items[3]!.offsetTop - first.offsetTop,
-      pitch: items[2]!.offsetTop - items[1]!.offsetTop,
-    };
+  // Park just before a handover, settle, then cross it in one small step.
+  const boundary = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll(".qa-item")];
+    return cards[2].getBoundingClientRect().top + scrollY;
   });
-  // The handover is spread across SCROLL, so it is sampled in scroll — not in
-  // time. This is the substantive change from the version this replaces, which
-  // parked either side of the handover and sampled fast enough to catch the
-  // rAF follow's intermediate FRAMES. That proved the render was smoothed; it
-  // could not see that one notch of wheel still commanded a whole card of
-  // travel, which is the thing pin #15 was actually about.
-  // The glide runs FORWARD from the handover — it begins as item 2's top
-  // crosses the line and occupies the first 70% of the interval that follows —
-  // so the window has to reach well PAST `after`, not stop just beyond it.
-  const from = marks.before - Math.round(marks.pitch * 0.3);
-  const to = marks.after + Math.round(marks.pitch * 0.8);
-  const stepPx = 15;
-  const walk: { y: number; v: number }[] = [];
-  for (let y = from; y <= to; y += stepPx) {
-    await page.evaluate(
-      (y) => window.scrollTo({ top: y, behavior: "instant" }),
-      y,
-    );
-    await page.waitForTimeout(90);
-    walk.push({ y, v: (await pairTy(page))! });
-  }
-
-  // Intermediate POSITIONS exist — the pair is genuinely found between the two
-  // card offsets at some scroll positions, rather than only ever on one of
-  // them.
-  const between = walk.filter(
-    (s) => s.v > marks.from + 1 && s.v < marks.to - 1,
-  );
-  expect(
-    between.length,
-    `scroll positions with the pair strictly between ${marks.from} and ${marks.to}`,
-  ).toBeGreaterThan(3);
-
-  // …and no single 15px notch of scroll moves it more than a modest share of
-  // the 420px pitch. Under the quantized mapping this was ~345px in one step.
-  const jumps = walk.slice(1).map((s, i) => Math.abs(s.v - walk[i]!.v));
-  const worst = Math.max(...jumps);
-  expect(
-    worst,
-    `worst travel per ${stepPx}px of scroll across a handover: ${worst}px`,
-  ).toBeLessThanOrEqual(stepPx * 2.5);
-
-  // Once the glide's 70% band is behind it, the pair holds EXACTLY on the next
-  // rung for the remaining 30% of the interval — "the same place for each
-  // card", asserted as an exact equality rather than a tolerance. (A full
-  // pitch further would be inside the NEXT glide, not on this rung.)
   await page.evaluate(
-    (y) => window.scrollTo({ top: y, behavior: "instant" }),
-    marks.after + Math.round(marks.pitch * 0.85),
+    (y) => scrollTo({ top: y - 30, behavior: "instant" }),
+    boundary,
   );
-  expect(await settledTy(page)).toBe(marks.to);
+  const before = await settledTy(page);
+  await page.evaluate(
+    (y) => scrollTo({ top: y + 30, behavior: "instant" }),
+    boundary,
+  );
+
+  // Sample the COMPUTED transform through the settle + transition window. The
+  // inline style jumps straight to the destination — that is the point of
+  // quantizing — so the intermediate values must come from the compositor
+  // interpolating it, which is what "eased translation transition" means.
+  const samples: number[] = [];
+  for (let i = 0; i < 24; i++) {
+    await page.waitForTimeout(50);
+    samples.push(
+      await page.evaluate(() => {
+        const pair = document.querySelector(
+          ".ask-the-doctor-headshot",
+        )?.parentElement;
+        const m = new DOMMatrixReadOnly(getComputedStyle(pair!).transform);
+        return m.m42;
+      }),
+    );
+  }
+  const after = await settledTy(page);
+  expect(after).toBeGreaterThan(before);
+
+  // Strictly between the two rungs at some point: proof the browser animated
+  // it rather than snapping. A bare `transform` with no transition would give
+  // only `before` then only `after`.
+  const mid = samples.filter((v) => v > before + 2 && v < after - 2);
+  expect(
+    mid.length,
+    `no intermediate frames between ${before} and ${after} — the hop snapped`,
+  ).toBeGreaterThan(0);
+
+  // And the declared transition is live's own (beachfront.css:7670).
+  const transition = await page.evaluate(() => {
+    const pair = document.querySelector(
+      ".ask-the-doctor-headshot",
+    )?.parentElement;
+    return (pair as HTMLElement).style.transition;
+  });
+  // Browsers normalise `.19` to `0.19` on read-back, so compare on the
+  // numbers rather than the literal the action writes.
+  expect(transition.replace(/([\s(,])\./g, "$10.")).toBe(
+    "transform 1s cubic-bezier(0.19, 1, 0.22, 1)",
+  );
+});
+
+test("a flick past several cards settles once, on the card it lands on", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await gotoHome(page);
+  await page.evaluate(async () => {
+    const H = window.innerHeight / 2;
+    for (let y = 0; y < document.body.scrollHeight; y += H) {
+      scrollTo({ top: y, behavior: "instant" });
+      await new Promise((r) => setTimeout(r, 60));
+    }
+    scrollTo({ top: 0, behavior: "instant" });
+  });
+  await page.waitForTimeout(1200);
+
+  const rungs = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll<HTMLElement>(".qa-item")];
+    return cards.map((c) => c.offsetTop - cards[0].offsetTop);
+  });
+  const tops = await page.evaluate(() =>
+    [...document.querySelectorAll(".qa-item")].map(
+      (c) => c.getBoundingClientRect().top + scrollY,
+    ),
+  );
+
+  // Rip through four handovers faster than the settle window, the way a
+  // trackpad flick does. The debounce is what keeps this from firing one
+  // interrupted 1s transition per card passed.
+  await page.evaluate(
+    async (ys) => {
+      for (const y of ys) {
+        scrollTo({ top: y + 10, behavior: "instant" });
+        await new Promise((r) => setTimeout(r, 30));
+      }
+    },
+    tops.slice(1, 5),
+  );
+
+  const landed = await settledTy(page);
+  // It ends on the card it stopped at — a rung, not a blend of the ones
+  // passed. The last flick lands just past card 4's top, so card 4 is CUT and
+  // the top-most fully visible question is card 5: rung 5, not rung 4.
+  expect(rungs.some((r) => Math.abs(r - landed) < 1.5)).toBe(true);
+  expect(landed).toBeCloseTo(rungs[5]!, 0);
 });
 
 test("opening a card mid-drift does not move the pair", async ({ page }) => {

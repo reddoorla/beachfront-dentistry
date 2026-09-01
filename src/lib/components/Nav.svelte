@@ -181,29 +181,26 @@
     "group relative flex min-h-11 min-w-11 items-center rounded-full focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden";
   const ICON_GLYPH =
     "relative inline-flex items-center justify-center transition-[opacity,scale] duration-150 ease-[var(--transition-out-expo)] group-active:scale-90 group-active:opacity-90 group-data-[pressed]:scale-90 group-data-[pressed]:opacity-90";
-  // PRESS ONLY — no `group-hover:` variants. MARKUP ROUND I1, thread
-  // f7f7cbbd-48af-430d-ba6b-022358ebc209 (Navigation board, pin #3), Tim:
-  // "There is a weird background under the X to close [the navigation]. I want
-  // that to go away or look more deliberate."
+  // NO PRESS PILL. There was one — a `bg-primary` disc behind the glyph, shown
+  // on `group-active` / `group-data-[pressed]`. Round I1 removed its
+  // `group-hover:` variants (thread f7f7cbbd-48af-430d-ba6b-022358ebc209,
+  // Navigation pin #3: "There is a weird background under the X to close ... I
+  // want that to go away or look more deliberate"), because the trigger and the
+  // Close share one slot, so the click that opens the menu leaves the cursor on
+  // the Close and a hover pill was at full strength in the frame the overlay
+  // appeared — probed at opacity 0.7 with nothing hovered.
   //
-  // The mechanism, measured rather than guessed (probe-markup-i1.mjs): the
-  // trigger and the Close occupy THE SAME SLOT — that is the whole point of the
-  // swap, and the band above says so. So the click that opens the menu leaves
-  // the cursor resting exactly where the Close then mounts, and a `group-hover`
-  // pill is therefore at full strength IN THE FRAME THE OVERLAY APPEARS,
-  // without the visitor having hovered anything. Probed on the open menu with
-  // the pointer never moved after the click: pill opacity 0.7 at "rest",
-  // 0.7 on hover — i.e. indistinguishable from a decoration that is simply
-  // always on, which is exactly how Tim read it.
+  // 2026-09-01, operator relaying Tim after seeing that on the preview: the
+  // blue "still shows up on active ... just wants it totally gone". So the pill
+  // is gone entirely, not restyled.
   //
-  // Dropping the hover variants costs nothing the band above argued for. That
-  // note is about TOUCH — "a phone got NO feedback at all", "`onpointerdown`
-  // fires for touch, pen and mouse alike" — and every one of those paths is a
-  // PRESS path (`group-data-[pressed]`, plus `group-active` for keyboard
-  // Space). Hover was the one variant with no argument behind it, and it is the
-  // only one that can fire without an intent behind it.
-  const ICON_PILL =
-    "pointer-events-none absolute inset-[-8px] scale-90 rounded-full opacity-0 transition-[opacity,scale] duration-150 ease-[var(--transition-out-expo)] group-active:scale-100 group-active:opacity-95 group-data-[pressed]:scale-100 group-data-[pressed]:opacity-95";
+  // This costs no touch feedback, which is the one thing the original note
+  // argued for ("a phone got NO feedback at all"). ICON_GLYPH above still
+  // carries `group-active:scale-90 group-active:opacity-90` and the matching
+  // `group-data-[pressed]` pair, so a press still dips and shrinks the icon
+  // itself on every input path — mouse, touch, pen and keyboard Space. What is
+  // gone is only the coloured disc behind it, which is what was being seen.
+  // `pressProps` / `data-pressed` therefore stay live and are NOT dead code.
 
   /** Which icon control is currently held. Cleared on up/cancel/leave/blur so a
    *  finger that slides off the target, or a drag that the browser turns into a
@@ -262,7 +259,6 @@
         {...pressProps("trigger")}
       >
         <span class={ICON_GLYPH}>
-          <span aria-hidden="true" class="{ICON_PILL} bg-primary"></span>
           <Menu size={24} class="relative" />
         </span>
       </button>
@@ -444,7 +440,6 @@
                    context; a static child would lose to a positioned sibling
                    regardless of source order). -->
               <span class={ICON_GLYPH}>
-                <span aria-hidden="true" class="{ICON_PILL} bg-primary"></span>
                 {#if hamburgerSrc}
                   <!-- Live's exact icon (#E7F5FA, thick bars) — matches the
                      reference's weight/colour where the Lucide glyph would not.
@@ -501,7 +496,6 @@
         {...pressProps("close")}
       >
         <span class={ICON_GLYPH}>
-          <span aria-hidden="true" class="{ICON_PILL} bg-primary"></span>
           <X size={24} class="relative" />
         </span>
       </button>
@@ -604,7 +598,6 @@
           {...pressProps("close")}
         >
           <span class={ICON_GLYPH}>
-            <span aria-hidden="true" class="{ICON_PILL} bg-primary"></span>
             <img
               src="/icons/menu-close-white.svg"
               alt=""

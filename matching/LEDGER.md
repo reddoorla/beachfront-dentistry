@@ -3994,8 +3994,8 @@ mask [], masked [], neutralizeMedia false), page our-team, ref
 `beachfront-dentistry.webflow.io` (production is our own build since
 2026-08-10 — see LEDGER 2026-08-10), baseline out-readreviews-our-team.
 The changed region IMPROVED and nothing else moved:
-  vw1440 "Dr. Robert Quan"  37.1% → 26.9%   dE 21.1 → 14.4   Δh 17.5% → 3.0%
-  anchor "Ready for great"  cand 3301 → 3691 against ref 3761
+vw1440 "Dr. Robert Quan" 37.1% → 26.9% dE 21.1 → 14.4 Δh 17.5% → 3.0%
+anchor "Ready for great" cand 3301 → 3691 against ref 3761
 i.e. the grid was 460px shorter than live and is now 70px short — the 4rem row
 rhythm, restored. Every other row is byte-identical to the baseline. The six
 remaining FAILs are the pre-existing stalled regions `strikes.mjs` lists; none
@@ -4041,8 +4041,8 @@ on / and /our-team.
 Gate round: markupi1b (threshold 0.1, maxHeightDelta 0.05, matrix 1440/834/390,
 mask [], neutralizeMedia false), page home, ref beachfront-dentistry.webflow.io,
 baseline out-readreviews-home. TWO rows moved, both toward live:
-  vw1440 "Our dental team in Redondo"  9.5% → 9.4%
-  vw1440 "Finally have a dentist"      4.6% → 4.5%
+vw1440 "Our dental team in Redondo" 9.5% → 9.4%
+vw1440 "Finally have a dentist" 4.6% → 4.5%
 Every other row byte-identical — which is the expected signature for deleting a
 shadow live never had.
 
@@ -4063,6 +4063,7 @@ this very heading). Operator chose 2026-09-01: **let the headline sit on the
 wave**, keep the divider's size.
 
 WHAT SHIPPED
+
 - `Meet` (SubpageHero band heading, `meet` variant only): `lg:bottom-[120px]`
   → `lg:bottom-[96px]`, a 24px drop.
 - `Our Team` (the `.our-team-subtitle-section` headings): `lg:-mt-10` (40px)
@@ -4103,9 +4104,9 @@ rule would not.
 Gate round: markupi1c (threshold 0.1, maxHeightDelta 0.05, matrix
 1440/834/390, mask [], neutralizeMedia false), our-team, ref
 beachfront-dentistry.webflow.io, baseline markupi1 (this round's own).
-  vw1440 "top"  mm 11.0% → 8.6%  dE 6.8 → 5.4  BUT Δh 2.2% → 6.5%
-  vw1440 "Our"  0.2% → 0.5%
-  anchor "Our"  cand 475 → 435 against ref 465
+vw1440 "top" mm 11.0% → 8.6% dE 6.8 → 5.4 BUT Δh 2.2% → 6.5%
+vw1440 "Our" 0.2% → 0.5%
+anchor "Our" cand 475 → 435 against ref 465
 Everything else byte-identical. READ THAT HONESTLY: the pixel mismatch
 IMPROVED and the HEIGHT delta got worse, and the height delta is now the
 reason the region fails. That is not a defect to chase — it is the deviation
@@ -4122,12 +4123,12 @@ smoothly down as you scroll."
 
 WHY THIS WENT TO THE OPERATOR. This is the third pass on the same 40 lines, and
 the directives conflict on their face:
-  (1) 2026-08-11 "I do not like the jumping from question to question" → made
-      position CONTINUOUS in scroll.
-  (3) 2026-08-13 "it should sit in the same place for each card" → reversed (1),
-      because a continuous mapping pins the pair to a fixed SCREEN position and
-      lets cards slide through it. Quantized again.
-  (4) 2026-09-01 (this pin) → rejects (3)'s motion.
+(1) 2026-08-11 "I do not like the jumping from question to question" → made
+position CONTINUOUS in scroll.
+(3) 2026-08-13 "it should sit in the same place for each card" → reversed (1),
+because a continuous mapping pins the pair to a fixed SCREEN position and
+lets cards slide through it. Quantized again.
+(4) 2026-09-01 (this pin) → rejects (3)'s motion.
 Taken literally, (4) asks to undo (3) and (3) asked to undo (1). Presented as
 such; operator chose a fourth option on 2026-09-01 — scroll-driven smoothstep —
 rather than reverting to (1).
@@ -4162,21 +4163,22 @@ mapping now runs the glide forward from the handover it belongs to.
 TESTS REWRITTEN, NOT RELAXED. `float-drift.spec.ts` and `floatAlong.test.ts`
 both encoded the quantized contract and had to change; each old assertion was
 replaced by the one that governs now, and the suite got STRICTER, not looser:
-  - "every settled position is exactly a card offset" → continuity (no scroll
-    step commands >2.5x its own size) AND holds (≥15% of steps perfectly still),
-    so a mapping that went fully continuous — the thing directive 3 rejected —
-    now fails, where before it simply would not have been tested;
-  - "the handover renders intermediate FRAMES" (a time property, which a
-    time-decayed follow satisfies while still lurching) → the handover is
-    sampled in SCROLL, and no 15px notch may move the pair more than 2.5x that;
-  - NEW: nothing moves while the page is still, which makes reintroducing a
-    time-decayed catch-up impossible to do silently;
-  - the unit "holds one card's offset across the whole range" → "glides in over
-    the first 70%, then holds the rung EXACTLY" (exact equality, not tolerance);
-  - the rAF-follow describe → "writes once per scroll burst and never animates
-    on its own", asserting the coalescing and that NO follow-up frame is queued.
-float-drift also dropped from ~84s to ~16s: its 1500ms-per-sample settle waits
-existed only for the follow that no longer exists.
+
+- "every settled position is exactly a card offset" → continuity (no scroll
+  step commands >2.5x its own size) AND holds (≥15% of steps perfectly still),
+  so a mapping that went fully continuous — the thing directive 3 rejected —
+  now fails, where before it simply would not have been tested;
+- "the handover renders intermediate FRAMES" (a time property, which a
+  time-decayed follow satisfies while still lurching) → the handover is
+  sampled in SCROLL, and no 15px notch may move the pair more than 2.5x that;
+- NEW: nothing moves while the page is still, which makes reintroducing a
+  time-decayed catch-up impossible to do silently;
+- the unit "holds one card's offset across the whole range" → "glides in over
+  the first 70%, then holds the rung EXACTLY" (exact equality, not tolerance);
+- the rAF-follow describe → "writes once per scroll burst and never animates
+  on its own", asserting the coalescing and that NO follow-up frame is queued.
+  float-drift also dropped from ~84s to ~16s: its 1500ms-per-sample settle waits
+  existed only for the follow that no longer exists.
 
 Gate round: markupi1d (threshold 0.1, maxHeightDelta 0.05, matrix 1440/834/390,
 mask [], neutralizeMedia false), home, ref beachfront-dentistry.webflow.io,
@@ -4188,3 +4190,96 @@ Suite: 789 unit + 208 interaction green, svelte-check 0/0. (One qa-expand
 "within a frame of the click" case failed once under 2-worker load and passes in
 isolation and on re-run — same contention flake as the earlier six, recorded for
 the same reason.)
+
+---
+
+## 2026-09-01 — MARKUP ROUND I2 (operator, from the PR #38 deploy preview)
+
+Three directives, relayed by the operator after looking at the preview. All
+three are DESIGN decisions that depart from live; none is a matching deviation,
+and none of the three was reachable from the reference.
+
+### 1. The doctor float: quantized again, eased in CSS, debounced
+
+> "the snap still feels real weird, stick with one spot per card, ship just the
+> fix with an eased translation transition" … "probably wants a debounce as well
+> to avoid jittery feelings"
+
+FIFTH directive on this one behaviour, and the second reversal. The record is in
+`floatAlong.ts`'s header; the short version is that 1 and 4 asked for smooth, 3
+and 5 asked for one-spot-per-card, and these are not simultaneously satisfiable
+by a POSITION mapping — a continuous position cannot be a fixed position. I1
+tried to satisfy both by making the mapping continuous over 70% of each pitch
+and holding for the other 30%; the operator's "still feels real weird" is that
+compromise being rejected. The resolution is that they were never the same
+question: POSITION is quantized (3, 5) and MOTION is eased (1, 4), with the
+easing moved out of the scroll mapping and into a CSS transition.
+
+Live's own curve and duration are reused verbatim — `transform 1s
+cubic-bezier(.19, 1, .22, 1)`, `.ask-the-doctor-handwriting-anchor`,
+beachfront.css:7670. NOT a taste call, and worth stating plainly because
+directive 1 originally rejected live's behaviour: what pin #7 rejected was
+live's bottom-most anchor teleporting the pair up to 420px per 25px of scroll,
+not the curve. With directive 2's top-most anchor halving the hop and the new
+debounce collapsing a flick to one transition, the same curve now reads as a
+glide.
+
+DEBOUNCE = 120ms, and it is debounced on INDEX CHANGE, not on scroll activity.
+That distinction is the whole design: debouncing on scroll activity would freeze
+the pair for as long as someone kept scrolling slowly and then jump at the end,
+which is the defect it exists to prevent.
+
+### 2. Float wrapper z-10 → z-30
+
+> "z indexes are wrong for the floating doctor"
+
+The card header button is `relative z-10` and the cards come AFTER the float
+wrapper in the DOM, so at equal z-index the tie broke in the headers' favour
+wherever the doctor overlaps the column's right edge (`lg:-ml-10`, 40px). Live
+has no such tie: `.qa-header` computes to z-index 5 and
+`.ask-the-doctor-headshot` to 9 — four levels clear, deliberately.
+
+REGRESSION FROM I1, and worth recording as one. Nothing here creates a stacking
+context to contain the header: the card is `relative` with z-auto. It only
+LOOKED contained while `animateIn` left an inline transform on the card forever
+(a transform makes a stacking context) — and I1's fix was to release that
+transform on `transitionend`. So I1 fixed the transition bug and exposed a
+latent stacking tie in the same change.
+
+Honest note on method: four probes (`probe-markup-i2-z*.mjs`) tried to catch
+this as pixels first and all four were inconclusive or actively misleading —
+`elementFromPoint` names the background because the pair is
+`pointer-events-none`, and the raise-z diff is confounded by layer promotion
+changing antialiasing (~1500px of scattered "change" over a 200×200 box with no
+occluder at all). The defect was settled by reading live's z-values, i.e. by
+rule 1, after the pixels had wasted four rounds.
+
+### 3. The nav press pill is gone entirely
+
+> "the blue still shows up on active for the nav, pretty sure tim just wants it
+> totally gone"
+
+I1 removed the pill's `group-hover:` variants (Navigation pin #3). This removes
+the `bg-primary` disc outright — all four instances and the `ICON_PILL`
+constant.
+
+This costs NO touch feedback, which is the one thing the original pill note
+argued for. `ICON_GLYPH` independently carries `group-active:scale-90
+group-active:opacity-90` and the matching `group-data-[pressed]` pair, so a
+press still dips and shrinks the icon itself on every input path. `pressProps` /
+`data-pressed` therefore stay live and are NOT dead code — a test asserts both
+halves (the disc is gone, the glyph still responds) so a later cleanup cannot
+remove the feedback by mistaking the attribute for orphaned.
+
+### Verification
+
+793 unit (+4) green, svelte-check 0/0. float-drift rewritten again: the
+continuity assertions I1 added are replaced by the quantization they now
+contradict, and the suite gained the two properties that were previously
+untested — that the hop is interpolated by the COMPOSITOR (sampled from the
+computed transform, since the inline style jumps straight to the destination)
+and that a flick past four cards settles once, on the card landed on.
+
+No gate run: pixel matching is PAUSED (`matching/PAUSED`), and none of these
+three changes touches a static capture — the float mapping is 0 at scroll 0, the
+z-index changes no geometry, and the pill is invisible at rest.
