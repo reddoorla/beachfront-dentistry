@@ -4045,3 +4045,71 @@ baseline out-readreviews-home. TWO rows moved, both toward live:
   vw1440 "Finally have a dentist"      4.6% → 4.5%
 Every other row byte-identical — which is the expected signature for deleting a
 shadow live never had.
+
+### Pin #4 (thread c5a1f351…) — the Meet↔Our gap. DELIBERATE DEVIATION, operator-ACKed
+
+Tim: "can we decrease the space between 'Meet' and 'Our'?", follow-up "ideally
+'Meet' comes down 30px and 'Our' comes up 40px."
+
+WHY THIS NEEDED A DECISION AND DID NOT GET ONE FROM ME. Measured at 1440
+(probe-markup-i5.mjs): the Meet↔Our gap is 120px and the hero divider's lg box
+is 120px. They are the same object. "Our"'s line-box top sits exactly on the
+hero's bottom edge (475.2 = hero bottom = wave box bottom), so not one pixel of
+Tim's 70px can come from spare space — closing the gap means either shrinking
+the wave or putting the headline over it. That is a design call, and it
+contradicts the standing directive this repo already carries ("wave should never
+touch the text", thread 7dd0c2f2, which is why H4 deleted a 10px nudge from
+this very heading). Operator chose 2026-09-01: **let the headline sit on the
+wave**, keep the divider's size.
+
+WHAT SHIPPED
+- `Meet` (SubpageHero band heading, `meet` variant only): `lg:bottom-[120px]`
+  → `lg:bottom-[96px]`, a 24px drop.
+- `Our Team` (the `.our-team-subtitle-section` headings): `lg:-mt-10` (40px)
+  plus `relative z-20` so they paint ABOVE the wave's `z-10`.
+- `bg-white` is DROPPED from that section for the `meet` variant. This is
+  load-bearing, not tidying: an opaque 40px white band pulled over the hero
+  would paint full-width, and where the wave's fill is shallowest (28 of its
+  120px box) it would cover PHOTO and slice a straight edge through the
+  divider's shape. Body is already white (app.css:42,459), so removing it costs
+  nothing and lets only the TEXT overlap.
+
+24, NOT 30 — the one number in this round that is not Tim's. The site's own
+floor is 8px of clearance to the wave's painted edge
+(`wave-divider.spec.ts` MIN_CLEARANCE). A 30px drop breaks it: probed at 7.59px
+@1294 and 2.9px @993, where the hero is only 327.7px tall against a divider
+that stays a flat 120. Widening that floor to fit the request is what rule 4
+forbids, so the request bent instead. At 24 the clearance is
+8.9 / 12.2 / 13.7 / 15.4 at 993 / 1200 / 1294 / 1440.
+Net: the gap closes 120 → 56 at every lg width — 64 of the 70 asked for, and
+Tim is told the number on the pin rather than having it quietly rounded.
+≤991 is untouched (74 @390, 89 @834).
+
+THE CLEARANCE RULE IS REPLACED FOR THIS COPY, NOT SUSPENDED. The headings carry
+`data-wave-overlap`; `wave-divider.spec.ts` skips them in the blanket
+MIN_CLEARANCE scan and asserts the rule that actually governs them instead —
+their GLYPH INK must start below the wave's fill edge, i.e. they sit on white
+and never on the photograph. Ink, not line box: a 140px face in a 168px line
+box carries ~20px of leading, so a line-box test would condemn an overlap the
+letters never make (the line box does cross the fill edge by 2.7px @993; zero
+glyphs do). Ascent comes from canvas metrics for the element's own resolved
+font, so the check needs no image decoding and no new dependency. 4 new tests,
+993/1200/1294/1440, all green. Independently confirmed by pixel
+difference-mask before the spec was written: 0 of 4821 glyph pixels on
+non-white at 1200/1294/1440, and 12 of 4852 (0.25%) at 993 — boundary
+antialiasing, which is exactly what the ink rule tolerates and the line-box
+rule would not.
+
+Gate round: markupi1c (threshold 0.1, maxHeightDelta 0.05, matrix
+1440/834/390, mask [], neutralizeMedia false), our-team, ref
+beachfront-dentistry.webflow.io, baseline markupi1 (this round's own).
+  vw1440 "top"  mm 11.0% → 8.6%  dE 6.8 → 5.4  BUT Δh 2.2% → 6.5%
+  vw1440 "Our"  0.2% → 0.5%
+  anchor "Our"  cand 475 → 435 against ref 465
+Everything else byte-identical. READ THAT HONESTLY: the pixel mismatch
+IMPROVED and the HEIGHT delta got worse, and the height delta is now the
+reason the region fails. That is not a defect to chase — it is the deviation
+itself, priced. We were 10px BELOW live's "Our"; we are now 30px ABOVE it,
+because live keeps the 120px gap and the operator has chosen 56. Δh 6.5% on
+this region is the standing cost of pin #4 and must not be "fixed" by anyone
+later; nor may maxHeightDelta be widened to hide it.
