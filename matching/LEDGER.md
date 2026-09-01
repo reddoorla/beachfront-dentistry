@@ -3876,3 +3876,135 @@ job is to stop work may not fail open.
 
 Confirmed after the fix: home 5, yfv 4, our-team 4, services 1, contact 2,
 atd 3, svc 5, qa 4, team 5 = 33, which reconciles with the unfiltered run.
+
+## MARKUP ROUND I1 — the chrome stops reacting to a cursor that never moved (2026-09-01, main)
+
+MarkUp round of 2026-09-01, Tim, 8 pins across three boards (Navigation
+5e733d0b, our-team ad15707f, home d486b3c5). This entry covers the six that
+landed; pins 4, 7 and 8 are held for the operator and are recorded at the end.
+
+Every fix here was REPRODUCED before it was written — `matching/probe-markup-i1
+.mjs` … `-i4.mjs`, all at 1440 against the local dev server. None of these
+states is reachable by a static gate capture, which is why all six had survived
+every round to date.
+
+### Pin #1 (thread dc881aa2…) — "a blue background shows up [on hover]"
+
+DEVIATION REMOVED, not added. The home hero CTA hovered to an OPAQUE
+`#0e7799`. Live's own rule is `.button:hover { opacity:.6; background-color:
+#129ecc4a }` (`beachfront.css:6042-6045`) — a 29%-alpha wash. The opaque fill
+was this repo's invention, introduced by the OutlineButton consolidation on a
+contrast argument. The wash is restored; live's paired `opacity:.6` stays
+dropped, because that half IS the "affordance you can't see" defect the
+consolidation existed to remove (7.31:1 → 2.87:1, measured then).
+No contrast regression: the ink never moves — white at rest, white on hover —
+so the hover state is now exactly as legible as the rest state instead of
+jumping to a different ground mid-interaction. Verified: hover bg
+`rgba(18,158,204,0.29)`.
+
+### Pin #2 (thread b8a40d69…) — "a white weird border around the logo"
+
+That border is our own focus ring. `trapFocus` moves focus into the overlay on
+open, and the overlay's first focusable is the logo `<a href="/">`, whose
+LOGO_LINK carries `focus-visible:ring-2 focus-visible:ring-white`. Probed:
+`document.activeElement` IS that anchor.
+Chromium declines `:focus-visible` for a programmatic focus following a mouse
+click, so the ring is invisible here and visible for Tim on WebKit — the bug is
+real in both engines, only the symptom is browser-specific. Fixed at the source
+rather than per-browser: `trapFocus` now honours `data-autofocus` on the
+CONTAINER, and the menu dialog takes `tabindex="-1" data-autofocus`. AT still
+announces the dialog; Tab still enters the column in order; no real destination
+is ringed for merely being first in the DOM. Shift+Tab from the container wraps
+to the last item (it would otherwise walk backwards out of the overlay).
+
+### Pin #3 (thread f7f7cbbd…) — the X's background, and the "jittery" link hover
+
+TWO defects in one pin, both measured.
+
+(a) The pill under the X. The trigger and the Close share ONE SLOT — that is
+the point of the swap. So the click that opens the menu leaves the cursor
+resting exactly where the Close then mounts, and a `group-hover:` pill is at
+full strength in the frame the overlay appears, with nothing hovered on
+purpose. Probed with the pointer never moved after the click: pill opacity
+0.7 at "rest", 0.7 on hover — indistinguishable from an always-on decoration,
+which is how Tim read it. The hover variants are dropped; every PRESS channel
+survives (`group-active`, `group-data-[pressed]`), which is all the band
+comment above ICON_PILL ever argued for — its case is entirely about touch.
+
+(b) The link hover. Not motion — RASTERISATION. `hover:opacity-60` takes the
+row to a non-opaque opacity, promoting it to its own compositing layer, where
+the glyphs re-rasterise with greyscale AA instead of subpixel: the text
+visibly changes weight the instant the hover starts. On the way out it lands
+back on exactly 1.0 and the repaint happens at the END of the fade — hence
+"jittery to hover over, but smooth when I mouse out", which is the asymmetry
+that identifies it. Nothing moves in either direction: the row's rect is
+identical to two decimals hovered and not.
+Now `hover:text-[#9fc9d6]` — that same 0.6-white composited against the wash
+once, as a flat colour (0.6·255 + 0.4·(14,119,153)). Element stays opaque, no
+layer, subpixel AA throughout. FIDELITY COST, stated: the wash is 92% opaque,
+so where the beach photo shows through, the flat colour differs from a true
+composite by at most 8% of the 40% ground term. Sub-perceptual, and the price.
+
+### Pin #5 (thread 20a4af72…) — "I like how these raise but … ease the easing"
+
+The easing was never the problem: the raise had NO TRANSITION AT ALL, and this
+was a repo-wide defect, not a card one.
+
+`animateIn.applyHidden` writes `style.transition` INLINE, and an inline
+declaration outranks every class. It was never taken back off, so the reveal's
+list — `opacity, transform` — stayed the element's transition list for the rest
+of the page's life. CollectionList's CARD_AFFORDANCE asks for
+`transition-[box-shadow,translate] duration-200 ease-out` and hovers
+`-translate-y-1`, which Tailwind v4 compiles to the `translate` PROPERTY. The
+inline list names `transform`, not `translate`, and not `box-shadow` — so both
+hover channels were unanimated and the card snapped its 4px.
+Probed before: the card reports `transition-property: "opacity, transform"`,
+`duration: 0.75s` — the reveal's, not the card's.
+`animateIn` now releases its inline transition/delay/transform/opacity when the
+reveal ends (`transitionend` on its own `opacity`, with a
+`duration + delay + 300ms` timer for every path where no transition ever runs:
+reduced motion, the no-IntersectionObserver reveal-in-place, a triggered mount
+that hides and shows in one frame, and a `transitionend` lost to a background
+tab). Re-hiding cancels a pending release, so triggered call sites still work.
+Verified after: the card computes `box-shadow, translate` / 0.2s /
+`cubic-bezier(0,0,0.2,1)`, inline transition released, and the raise caught
+MID-FLIGHT at `translate: 0px -1.38228px` of its -4px travel.
+This is the widest-blast-radius change in the round — it hands every revealing
+element on the site back to its stylesheet. Full suite green, incl.
+reveal-first-paint and float-drift.
+
+### Pin #6 (thread 4cb2a3cb…) — "The image is overlapping the row of tiles above"
+
+ROUND C HAD ALREADY FLAGGED THIS AND PARKED IT FOR TIM, in CollectionList's own
+comment and in LEDGER ROUND C: "30 is BOX-to-box: the 100px headshot overhang
+means row 2+ circles overlap the row above's banner." The reply arrived. The
+flagged risk is now a rejected outcome, so the axis that caused it moves.
+Measured before, at 1440: every card's portrait starts exactly 100px above its
+own card top, rows sat 30px apart → each circle cut 70px into the banner of the
+row above, on every seam.
+`lg:gap-[30px]` → `lg:gap-x-[30px] lg:gap-y-[160px]`. 160 is not a clearance
+minimum reverse-engineered from the symptom; it is live's own row rhythm,
+`.team-list-item.m-2 { margin-top: 4rem }` (`beachfront.css:6538-6540`) against
+the ≥993 root of 40px, leaving the overhang 60px of daylight. The HORIZONTAL 30
+is untouched, so Tim's content-gutter alignment and `(100%−60px)/3` both hold.
+Verified: worst portrait overlap 0px at 1440/834/390; row gap exactly 160 @1440.
+
+Gate round: markupi1 (threshold 0.1, maxHeightDelta 0.05, matrix 1440/834/390,
+mask [], masked [], neutralizeMedia false), page our-team, ref
+`beachfront-dentistry.webflow.io` (production is our own build since
+2026-08-10 — see LEDGER 2026-08-10), baseline out-readreviews-our-team.
+The changed region IMPROVED and nothing else moved:
+  vw1440 "Dr. Robert Quan"  37.1% → 26.9%   dE 21.1 → 14.4   Δh 17.5% → 3.0%
+  anchor "Ready for great"  cand 3301 → 3691 against ref 3761
+i.e. the grid was 460px shorter than live and is now 70px short — the 4rem row
+rhythm, restored. Every other row is byte-identical to the baseline. The six
+remaining FAILs are the pre-existing stalled regions `strikes.mjs` lists; none
+was touched, and no threshold, mask or matrix was altered to get here.
+
+Suite: 789 unit + 204 interaction green, svelte-check 0/0. NOTE for the record:
+a first `playwright test tests/interaction/` run at 4 workers showed 6
+failures (float-drift, image-sizing, 4× mobile-ux). All 6 pass in isolation and
+the full dir is green at `--workers=2`; clean main was re-run under stash to
+confirm. Contention flake against the single dev server, not a regression —
+recorded because "it passed on the rerun" is exactly the sentence that hides a
+real one.

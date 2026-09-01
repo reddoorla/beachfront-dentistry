@@ -419,6 +419,77 @@ describe("animateIn — options overrides", () => {
   });
 });
 
+// MARKUP ROUND I1 pin #2 (our-team board, thread 20a4af72…): the reveal's
+// inline transition used to outlive the reveal, so it stayed the element's
+// transition list forever and silently disabled every class-declared hover
+// transition on anything that reveals. The team card's `-translate-y-1` raise
+// snapped because the inline list names `transform`, not `translate`.
+describe("animateIn — hands the element back to its stylesheet", () => {
+  it("releases the inline reveal styles when the reveal transition ends", async () => {
+    const el = document.createElement("div");
+    document.body.appendChild(el);
+
+    animateIn(el);
+    expect(el.style.transition).not.toBe("");
+
+    FakeIntersectionObserver.instances[0].trigger(true);
+    await nextTwoFrames();
+    // Still owned by the action while the reveal is actually running.
+    expect(el.style.transition).not.toBe("");
+    expect(el.style.opacity).toBe("1");
+
+    el.dispatchEvent(
+      new TransitionEvent("transitionend", {
+        propertyName: "opacity",
+        bubbles: true,
+      }),
+    );
+
+    expect(el.style.transition).toBe("");
+    expect(el.style.transitionDelay).toBe("");
+    expect(el.style.transform).toBe("");
+    expect(el.style.opacity).toBe("");
+  });
+
+  it("ignores a descendant's transitionend", async () => {
+    const el = document.createElement("div");
+    const child = document.createElement("span");
+    el.appendChild(child);
+    document.body.appendChild(el);
+
+    animateIn(el);
+    FakeIntersectionObserver.instances[0].trigger(true);
+    await nextTwoFrames();
+
+    // A child finishing its own transition must not strip the parent's reveal
+    // mid-flight — transitionend bubbles, so this is a real path, not a
+    // hypothetical one.
+    child.dispatchEvent(
+      new TransitionEvent("transitionend", {
+        propertyName: "opacity",
+        bubbles: true,
+      }),
+    );
+    expect(el.style.transition).not.toBe("");
+  });
+
+  it("releases on a timer when no transition ever runs", async () => {
+    vi.useFakeTimers();
+    const el = document.createElement("div");
+    document.body.appendChild(el);
+
+    animateIn(el, { duration: 400 });
+    FakeIntersectionObserver.instances[0].trigger(true);
+    await vi.advanceTimersByTimeAsync(0);
+    // The double-rAF reveal is patched to timers under fake timers; drive past
+    // duration + slack and the release must have happened anyway.
+    await vi.advanceTimersByTimeAsync(1200);
+
+    expect(el.style.transition).toBe("");
+    vi.useRealTimers();
+  });
+});
+
 describe("animateIn — prefers-reduced-motion", () => {
   it("skips animation when reduced motion is preferred (viewport mode)", () => {
     mockMatchMedia(true);

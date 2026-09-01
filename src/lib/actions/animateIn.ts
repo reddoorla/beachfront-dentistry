@@ -150,13 +150,80 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
   let reduced = false;
   let hidden = false;
 
+  // --- releasing the reveal's inline transition ------------------------------
+  //
+  // `applyHidden` writes `style.transition` INLINE, and an inline declaration
+  // outranks every class. Until this round it was never taken back off, so the
+  // reveal's transition list — `opacity, transform`, 2400ms on the expo curve —
+  // stayed the element's transition list for the rest of the page's life.
+  //
+  // That silently disabled the hover motion of anything that both reveals and
+  // reacts. MARKUP ROUND I1, thread 20a4af72-a28a-47f2-b628-b3ad11c0e99d
+  // (our-team board, pin #2), Tim on the team cards: "I like how these raise but
+  // the motion needs to be smooth. Ease the easing."
+  //
+  // The easing was never the problem — the raise had NO transition at all.
+  // `CollectionList`'s CARD_AFFORDANCE asks for `transition-[box-shadow,translate]
+  // duration-200 ease-out` and hovers `-translate-y-1`; Tailwind v4 compiles that
+  // to the `translate` PROPERTY (the same trap OutlineButton documents for
+  // `active:translate-y-px`). The inline list names `transform`, not `translate`,
+  // and not `box-shadow` — so both hover channels were unanimated and the card
+  // snapped 4px. Probed at 1440: the card reports `transition-property:
+  // "opacity, transform"`, `duration: 0.75s` — the reveal's, not the card's
+  // (probe-markup-i2.mjs, pin5).
+  //
+  // So the fix is to hand the element back to its stylesheet once the reveal is
+  // over. `transitionend` is the accurate signal; the timer is the fallback for
+  // every path where no transition ever runs (reduced motion, the
+  // no-IntersectionObserver reveal-in-place, a triggered mount that hides and
+  // shows in one frame) and for a `transitionend` lost to a background tab.
+  // Re-hiding re-writes all of it, so triggered call sites still work.
+  let revealDelay = 0;
+  let releaseTimer: ReturnType<typeof setTimeout> | undefined;
+
+  const release = () => {
+    node.removeEventListener("transitionend", onTransitionEnd);
+    if (releaseTimer !== undefined) {
+      clearTimeout(releaseTimer);
+      releaseTimer = undefined;
+    }
+    // Back to the authored markup: the element keeps whatever its classes say.
+    node.style.removeProperty("transition");
+    node.style.removeProperty("transition-delay");
+    node.style.removeProperty("transform");
+    node.style.removeProperty("opacity");
+  };
+
+  function onTransitionEnd(e: TransitionEvent) {
+    // Only this node's own reveal — a descendant's transition bubbles here too,
+    // and releasing on one would strip the transition mid-reveal.
+    if (e.target !== node) return;
+    if (e.propertyName !== "opacity") return;
+    release();
+  }
+
+  const scheduleRelease = () => {
+    node.removeEventListener("transitionend", onTransitionEnd);
+    if (releaseTimer !== undefined) clearTimeout(releaseTimer);
+    node.addEventListener("transitionend", onTransitionEnd);
+    releaseTimer = setTimeout(release, cfg.duration + revealDelay + 300);
+  };
+
   const hide = () => {
     hidden = true;
+    // A re-hide must cancel a pending release, or the release lands mid-reveal
+    // and strips the transition the new hide just wrote.
+    node.removeEventListener("transitionend", onTransitionEnd);
+    if (releaseTimer !== undefined) {
+      clearTimeout(releaseTimer);
+      releaseTimer = undefined;
+    }
     applyHidden(node, cfg);
   };
   const show = () => {
     hidden = false;
     reveal(node);
+    scheduleRelease();
   };
 
   // Reduced motion is watched, not sampled, so turning the OS setting on mid-
@@ -203,6 +270,7 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
         ? cfg.index * cfg.stagger
         : cfg.delayMax *
           (node.getBoundingClientRect().left / window.innerWidth);
+    revealDelay = delay;
     node.style.transitionDelay = `${delay}ms`;
 
     // No IntersectionObserver at all (stripped-down embed/ancient browser):
@@ -272,6 +340,8 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
     destroy() {
       unwatch();
       if (failSafeTimer !== undefined) clearTimeout(failSafeTimer);
+      if (releaseTimer !== undefined) clearTimeout(releaseTimer);
+      node.removeEventListener("transitionend", onTransitionEnd);
       observer?.disconnect();
     },
   };

@@ -27,7 +27,9 @@
   //   cyan  #0e7799 ink   rest 5.10 on white   hover 3.72  ← FAILS
   //         #0e7799 →     rest 5.10            hover 5.05  (ink darkens with
   //         #0b6180 held                                     the fill)
-  //   white #ffffff ink   hover 5.10 on the opaque #0e7799 fill
+  //   white #ffffff ink   hover — ink never changes; the fill is live's own
+  //                       29%-alpha wash, so the label stays pure white on the
+  //                       hero exactly as it is at rest (see MARKUP ROUND I1)
   //   white-deep    ink   rest 4.52 on the darkened menu wash (was 2.89)
   //         #ffffff →     hover 5.10 (#0e7799 ink on the white fill)
   //
@@ -51,8 +53,33 @@
   // the ground the pill sits on. There are two grounds, so there are two.
   //
   //  • `white` sits on PHOTOGRAPHY (the hero, a section card, a question card).
-  //    Its fill is the brand DEEP blue — a translucent cyan composites to
-  //    nothing over a bright beach — and white-on-#0e7799 is 5.10:1.
+  //    Its fill is live's own `.button:hover` wash, `#129ecc4a`
+  //    (`beachfront.css:6042-6045`) — a 29%-alpha cyan.
+  //
+  //    This REPLACES an opaque `#0e7799` fill, and the reversal is a designer
+  //    call, not a re-derivation. MARKUP ROUND I1, thread
+  //    dc881aa2-e714-4960-bca7-cb75ba1d4f16 (Navigation board, pin #1), Tim on
+  //    the home hero CTA: "When I hover over this, a blue background shows up.
+  //    I don't want there to be." The opaque fill was this repo's invention —
+  //    live has never painted a solid block behind this pill — and it was
+  //    chosen on the reasoning that "a translucent cyan composites to nothing
+  //    over a bright beach". That reasoning optimised the AFFORDANCE and
+  //    ignored that a colour block appearing under a hero headline is a
+  //    visual-design decision the designer owns.
+  //
+  //    Nothing about contrast regresses, because the INK does not move: white
+  //    at rest, white on hover. The rest state's legibility comes from the
+  //    hero's own top/bottom gradient scrims (SubpageHero:149,157), which are
+  //    unchanged, so the hover state is now exactly as readable as the rest
+  //    state instead of jumping to a different ground mid-interaction. What is
+  //    genuinely weaker is how LOUD the affordance is, and live accepted that
+  //    same trade — its own answer is this wash. The press beat
+  //    (`active:translate-y-px`) and the border carry the rest.
+  //
+  //    Live pairs the wash with `opacity:.6` on the whole control. That half is
+  //    still deliberately NOT taken: it is the "affordance you can't see"
+  //    defect this module was written to remove (7.31:1 → 2.87:1, measured).
+  //    The wash is live's; the opacity fade stays dropped.
   //  • `white-deep` sits on the MENU WASH. That wash used to be #129ecc, which
   //    left every white thing on it failing AA (measured 2.85-2.96:1 across all
   //    nine links at 390 and 1440 — the whole menu, not just the pills). The
@@ -78,7 +105,7 @@
     teal: "border-[#365b6d] text-[#365b6d] hover:border-[#129ecc] hover:bg-[#129ecc4a] focus-visible:ring-primary-deep",
     cyan: "border-[#0e7799] text-[#0e7799] hover:border-[#129ecc] hover:bg-[#129ecc4a] hover:text-[#0b6180] focus-visible:ring-primary-deep",
     white:
-      "border-white text-white hover:bg-[#0e7799] focus-visible:ring-white focus-visible:ring-offset-primary-deep",
+      "border-white text-white hover:bg-[#129ecc4a] focus-visible:ring-white focus-visible:ring-offset-primary-deep",
     "white-deep":
       "border-white text-white hover:bg-white hover:text-[#0e7799] focus-visible:ring-white focus-visible:ring-offset-primary-deep",
   };

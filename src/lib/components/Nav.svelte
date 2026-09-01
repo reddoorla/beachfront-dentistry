@@ -181,8 +181,29 @@
     "group relative flex min-h-11 min-w-11 items-center rounded-full focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden";
   const ICON_GLYPH =
     "relative inline-flex items-center justify-center transition-[opacity,scale] duration-150 ease-[var(--transition-out-expo)] group-active:scale-90 group-active:opacity-90 group-data-[pressed]:scale-90 group-data-[pressed]:opacity-90";
+  // PRESS ONLY — no `group-hover:` variants. MARKUP ROUND I1, thread
+  // f7f7cbbd-48af-430d-ba6b-022358ebc209 (Navigation board, pin #3), Tim:
+  // "There is a weird background under the X to close [the navigation]. I want
+  // that to go away or look more deliberate."
+  //
+  // The mechanism, measured rather than guessed (probe-markup-i1.mjs): the
+  // trigger and the Close occupy THE SAME SLOT — that is the whole point of the
+  // swap, and the band above says so. So the click that opens the menu leaves
+  // the cursor resting exactly where the Close then mounts, and a `group-hover`
+  // pill is therefore at full strength IN THE FRAME THE OVERLAY APPEARS,
+  // without the visitor having hovered anything. Probed on the open menu with
+  // the pointer never moved after the click: pill opacity 0.7 at "rest",
+  // 0.7 on hover — i.e. indistinguishable from a decoration that is simply
+  // always on, which is exactly how Tim read it.
+  //
+  // Dropping the hover variants costs nothing the band above argued for. That
+  // note is about TOUCH — "a phone got NO feedback at all", "`onpointerdown`
+  // fires for touch, pen and mouse alike" — and every one of those paths is a
+  // PRESS path (`group-data-[pressed]`, plus `group-active` for keyboard
+  // Space). Hover was the one variant with no argument behind it, and it is the
+  // only one that can fire without an intent behind it.
   const ICON_PILL =
-    "pointer-events-none absolute inset-[-8px] scale-90 rounded-full opacity-0 transition-[opacity,scale] duration-150 ease-[var(--transition-out-expo)] group-hover:scale-100 group-hover:opacity-70 group-active:scale-100 group-active:opacity-95 group-data-[pressed]:scale-100 group-data-[pressed]:opacity-95";
+    "pointer-events-none absolute inset-[-8px] scale-90 rounded-full opacity-0 transition-[opacity,scale] duration-150 ease-[var(--transition-out-expo)] group-active:scale-100 group-active:opacity-95 group-data-[pressed]:scale-100 group-data-[pressed]:opacity-95";
 
   /** Which icon control is currently held. Cleared on up/cancel/leave/blur so a
    *  finger that slides off the target, or a drag that the browser turns into a
@@ -514,12 +535,32 @@
          Two things downstream are load-bearing on this hex, and both invert
          when it changes — see the Close button's pill below and `white-deep`
          in OutlineButton. A fill equal to the ground composites to nothing. -->
+    <!-- `tabindex="-1"` + `data-autofocus`: open focus lands on the DIALOG, not
+         on the first thing inside it. MARKUP ROUND I1, thread
+         b8a40d69-bd4b-4b27-8f8b-b7c6ad7c5aa1 (Navigation board, pin #2), Tim:
+         "When I first pull up the navigation, there's a white weird border
+         around the logo."
+         That border is this component's own focus ring. trapFocus moves focus
+         into the overlay on open, and the first focusable here is the logo's
+         `<a href="/">`, whose LOGO_LINK carries `focus-visible:ring-2
+         focus-visible:ring-white` — a white ring, on the logo, in the frame the
+         menu opens. Probed at 1440: `document.activeElement` IS that anchor
+         (probe-markup-i1.mjs, pin2). Chromium then declines to match
+         `:focus-visible` for a programmatic focus that followed a mouse click,
+         which is why the ring is invisible here and visible for Tim — WebKit
+         paints it. The bug is real in both; only its symptom is browser-specific.
+         Focusing the container fixes it at the source rather than per-browser:
+         AT still announces the dialog (role + aria-label are on this node), Tab
+         still enters the column in order, and no real destination is ringed for
+         merely existing first in the DOM. -->
     <div
       id={MENU_ID}
       role="dialog"
       aria-modal="true"
       aria-label="Menu"
-      class="fixed inset-0 z-50 h-dvh w-screen overflow-y-auto {hamburgerOnly
+      tabindex="-1"
+      data-autofocus
+      class="fixed inset-0 z-50 h-dvh w-screen overflow-y-auto focus:outline-hidden {hamburgerOnly
         ? ''
         : 'lg:hidden'}"
       style="background-color:#0e7799;background-image:linear-gradient(rgba(14,119,153,0.92), rgba(14,119,153,0.92)),url('/menu-beach.jpg');background-position:0 0,50%;background-size:auto,cover"
@@ -593,6 +634,28 @@
            never makes a visible link inert, and trapFocus's focusable() probe
            (getClientRects, not opacity) sees the whole column immediately. No
            `out:` on purpose: the rows leave with the wash. -->
+      <!-- The hover fades the INK, not the ELEMENT. Same round I1, same thread
+           as the pill above (f7f7cbbd…, pin #3): "when I roll over the different
+           Nav items, it feels jittery to hover over, but then it's smooth when I
+           mouse out."
+           That asymmetry is the tell, and it is a rasterisation artifact rather
+           than a motion one. `hover:opacity-60` takes the element to a
+           non-opaque opacity, which promotes it to its own compositing layer for
+           the duration of the transition; the glyphs are re-rasterised there
+           with GREYSCALE antialiasing instead of subpixel, so the text visibly
+           changes weight the instant the hover starts — read as "jitter". On the
+           way OUT the element lands back on exactly 1.0, the layer is dropped,
+           and the repaint happens at the END of the fade where the eye is
+           already settled: "smooth when I mouse out". Nothing moves in either
+           direction — probed at 1440, the row's rect is identical to two
+           decimals hovered and not (probe-markup-i1.mjs, pin3_link).
+           `hover:text-[#9fc9d6]` is that same 0.6-white composited against the
+           wash ONCE, as a flat colour: 0.6·255 + 0.4·(14,119,153) =
+           (158.6, 200.6, 214.2). The element stays fully opaque, never gets a
+           layer, and the glyphs keep subpixel AA through the whole transition.
+           Fidelity note: the wash is 92% opaque, so where the beach photo shows
+           through, the flat colour differs from a true composite by at most 8%
+           of the 40% ground term — sub-perceptual, and the price of the fix. -->
       <nav
         class="flex w-full flex-col items-center gap-10"
         aria-label="Menu links"
@@ -601,7 +664,7 @@
           href="/"
           onclick={closeMenu}
           in:fly|global={linkIn(0)}
-          class="font-slab text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
+          class="font-slab text-[30px] leading-[40px] font-light text-white transition-colors duration-[350ms] hover:text-[#9fc9d6] lg:text-[40px] lg:leading-[50px]"
           >Home Page</a
         >
         {#each menuLeafItems as item, i (i)}
@@ -609,7 +672,7 @@
             href={item.href}
             onclick={closeMenu}
             in:fly|global={linkIn(i + 1)}
-            class="font-slab text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
+            class="font-slab text-[30px] leading-[40px] font-light text-white transition-colors duration-[350ms] hover:text-[#9fc9d6] lg:text-[40px] lg:leading-[50px]"
             >{item.label}</a
           >
         {/each}
@@ -617,7 +680,7 @@
           href={PHONE.href}
           onclick={closeMenu}
           in:fly|global={linkIn(menuLeafItems.length + 1)}
-          class="font-slab text-[30px] leading-[40px] font-light text-white transition-opacity duration-[350ms] hover:opacity-60 lg:text-[40px] lg:leading-[50px]"
+          class="font-slab text-[30px] leading-[40px] font-light text-white transition-colors duration-[350ms] hover:text-[#9fc9d6] lg:text-[40px] lg:leading-[50px]"
           >{PHONE.display}</a
         >
         <a

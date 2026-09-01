@@ -91,7 +91,45 @@ describe("Nav — mobile menu", () => {
     expect(dialog.getAttribute("aria-modal")).toBe("true");
 
     await frame();
-    expect(document.activeElement).toBe(getByLabelText("Close menu"));
+    // The DIALOG takes focus, not the first control inside it: it carries
+    // `data-autofocus` + `tabindex="-1"` so that opening the menu never rings a
+    // real destination — MARKUP ROUND I1 pin #2, where the ring landed on the
+    // logo (see the note on the dialog element in Nav.svelte).
+    //
+    // This assertion used to name the Close button, and that is precisely why
+    // the defect was invisible here: `focusable()[0]` is the Close button only
+    // because THIS render passes no `logo` prop, so the logo anchor that
+    // precedes it on every real page of the site does not exist in the tree.
+    // The test agreed with the browser about the element and disagreed about
+    // the page.
+    expect(document.activeElement).toBe(dialog);
+    expect(dialog.getAttribute("tabindex")).toBe("-1");
+  });
+
+  // The shape of the page the pin was actually filed against: a logo IS
+  // present, so the logo anchor is the overlay's first focusable and was what
+  // trapFocus handed the ring to. Rendering it here is the whole point.
+  it("does not focus the logo when one is present (MarkUp I1 pin #2)", async () => {
+    const { getByLabelText, getByRole, getAllByAltText } = render(Nav, {
+      items,
+      logo: { url: "https://cdn.example/logo.png" },
+    });
+
+    await fireEvent.click(getByLabelText("Open menu"));
+    const dialog = getByRole("dialog");
+    await frame();
+
+    const logoLink = getAllByAltText("Home")
+      .map((img) => img.closest("a"))
+      .find((a) => dialog.contains(a));
+    expect(logoLink).toBeTruthy();
+    // The logo is still the first focusable in the overlay — the fix is not to
+    // reorder the DOM, it is to stop handing that position the focus.
+    expect(dialog.querySelector('a[href="/"], button:not([disabled])')).toBe(
+      logoLink,
+    );
+    expect(document.activeElement).not.toBe(logoLink);
+    expect(document.activeElement).toBe(dialog);
   });
 
   it("wraps Tab from the last link back to the close button", async () => {
@@ -357,6 +395,35 @@ describe("Nav — the trigger announces the menu's state", () => {
 // it — so the press state is driven by pointer events and surfaced as
 // `data-pressed`, which the pill/glyph classes key off.
 describe("Nav — the trigger acknowledges a press", () => {
+  // MARKUP ROUND I1 pin #3: "There is a weird background under the X to close."
+  // The pill is a PRESS affordance and must not key off hover, because the
+  // trigger and the Close share one slot — so the click that opens the menu
+  // leaves the cursor sitting exactly where the Close mounts, and a
+  // `group-hover:` pill is at full strength in the frame the overlay appears
+  // with nothing hovered on purpose.
+  it("the press pill has no hover variant on either icon control", async () => {
+    const { getByLabelText } = render(Nav, {
+      items,
+      logo: { url: "https://cdn.example/logo.png" },
+      hamburgerOnly: true,
+    });
+
+    const pillOf = (btn: HTMLElement) =>
+      btn.querySelector("span > span[aria-hidden]") as HTMLElement;
+
+    const triggerPill = pillOf(getByLabelText("Open menu"));
+    expect(triggerPill.className).not.toMatch(/group-hover:/);
+    // …while every press channel it was actually argued for survives.
+    expect(triggerPill.className).toMatch(/group-data-\[pressed\]:opacity-95/);
+    expect(triggerPill.className).toMatch(/group-active:opacity-95/);
+
+    await fireEvent.click(getByLabelText("Open menu"));
+    await frame();
+    const closePill = pillOf(getByLabelText("Close menu"));
+    expect(closePill.className).not.toMatch(/group-hover:/);
+    expect(closePill.className).toMatch(/group-data-\[pressed\]:opacity-95/);
+  });
+
   it("sets data-pressed on pointerdown and clears it on every release path", async () => {
     const { getByLabelText } = render(Nav, {
       items,
