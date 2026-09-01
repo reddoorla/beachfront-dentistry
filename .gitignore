@@ -38,6 +38,11 @@ matching/*
 !matching/*.sh
 !matching/*.mjs
 !matching/*.md
+# The pause switch. Extensionless on purpose (it is a sentinel, not a doc), so
+# the whitelist above misses it — and an ignored switch is not a switch: it
+# would work on one machine and be absent from every fresh clone, CI run and
+# agent that most needs to see it.
+!matching/PAUSED
 !matching/spec-sections/
 !matching/states/
 matching/states/*

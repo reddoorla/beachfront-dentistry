@@ -5,6 +5,14 @@ SvelteKit + Prismic. The `matching-a-page` skill governs the work. These rules
 exist because the skill alone did not hold — each one below is a drift that
 actually happened, with the mechanical check that now catches it.
 
+## Status: pixel matching is PAUSED
+
+Since 2026-09-01, by operator instruction. `matching/PAUSED` is the switch and
+says what it means; `next.mjs` and `strikes.mjs` honour it by exiting 0. The
+rules below still govern any matching work that DOES happen — they just are not
+an instruction to go find some. Do not delete the switch; resuming is the
+operator's call.
+
 ## The four rules
 
 ### 1. Source prescribes, rects only verify
@@ -64,6 +72,11 @@ This exists because the failure was habitual, not deliberate: a turn ends when
 user-facing prose gets written, and "I just committed something good" is the
 moment that invites writing it. The gate stops incorrect work; this stops
 premature stopping.
+
+**Paused:** while `matching/PAUSED` exists, `next.mjs` exits 0 and there is no
+next action — the loop below terminates immediately and correctly. This rule
+says "do not stop while work is named"; it never said "find work to name". An
+empty agenda and a paused one end the round the same way.
 
 **Check:** `node matching/next.mjs` — exits 1 while any non-floor region fails.
 **Operator's challenge:** _"what does next.mjs say?"_
