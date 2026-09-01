@@ -327,6 +327,12 @@ test("a resting field border is visible against the white card (≥3:1)", async 
 test("focusing a field steps the border and the ring in together, over 150ms", async ({
   page,
 }) => {
+  // This test asserts the 150ms focus transition itself. @reddoorla/maintenance
+  // 0.90 emulates `prefers-reduced-motion: reduce` fleet-wide, and app.css
+  // correctly zeroes transitions under it — so `transitionProperty` comes back
+  // as "none" and the ramp can't be observed. Opt this one test back into
+  // motion; reduced motion stays the default everywhere else.
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.setViewportSize({ width: 1440, height: 900 });
   await gotoContact(page);
   await openModal(page);
