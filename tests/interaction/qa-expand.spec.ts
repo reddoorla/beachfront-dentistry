@@ -190,6 +190,10 @@ for (const pg of PAGES) {
     test(`${pg.label} @${vp.width}: the answer's first pixel clears the mask within a frame of the click`, async ({
       page,
     }) => {
+      // Motion must be ON here: 0.90 of @reddoorla/maintenance emulates
+      // prefers-reduced-motion fleet-wide, which would zero the very transition
+      // this block exists to measure (see the note above).
+      await page.emulateMedia({ reducedMotion: "no-preference" });
       await page.setViewportSize({ width: vp.width, height: vp.height });
       await page.goto(pg.path, { waitUntil: "networkidle" });
       await page.evaluate(() => document.fonts.ready);

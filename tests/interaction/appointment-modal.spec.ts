@@ -409,6 +409,9 @@ test("forced-colors: the focus ring survives (outline-hidden, not outline-none)"
 test("the submit button acknowledges hover, press and focus", async ({
   page,
 }) => {
+  // Measures the hover/press/focus transition itself, so it needs motion on —
+  // 0.90 of @reddoorla/maintenance emulates prefers-reduced-motion fleet-wide.
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.setViewportSize({ width: 1440, height: 900 });
   await gotoContact(page);
   await openModal(page);
