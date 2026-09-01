@@ -192,13 +192,16 @@ describe("floatAlong — the continuous mapping", () => {
     expect(node.style.transform).toBe("translateY(420px)");
   });
 
-  it("holds one card's offset across the whole scroll range that card owns", () => {
+  it("glides into a card's offset over the first 70% of its range, then holds it", () => {
     mockMatchMedia(false);
     // Sweep the viewport top from just past item 0's top to just before item
-    // 1's. Every position in that range belongs to item 1, so the target must
-    // not move at all — the continuous mapping swept 0→420 across it.
-    const seen = new Set<string>();
-    for (const topOfA of [-1, -80, -200, -300, -419]) {
+    // 1's — the range item 1 owns. ROUND I1: the pair no longer teleports onto
+    // 420 at the top of this range and sits there; it GLIDES from 0 to 420
+    // across the first 70% of the 420px pitch (band = 294) and then holds 420
+    // for the remaining 30%. Both halves matter: the glide is what pin #15
+    // asked for, the hold is what directive 3 asked for, and a mapping missing
+    // either one fails here.
+    const at = (topOfA: number) => {
       const { parent, node } = makeDom(3);
       const [a, b, c] = items(parent);
       a!.getBoundingClientRect = () => rect(topOfA, topOfA + 400);
@@ -207,14 +210,28 @@ describe("floatAlong — the continuous mapping", () => {
       setOffsetTop(a!, 0);
       setOffsetTop(b!, 420);
       setOffsetTop(c!, 840);
-
       mount(node);
-
-      seen.add(node.style.transform);
+      const v = ty(node);
       document.body.innerHTML = "";
-    }
+      return v;
+    };
 
-    expect([...seen]).toEqual(["translateY(420px)"]);
+    // Strictly inside the glide: between the two rungs, never on one of them.
+    const early = at(-1);
+    const mid = at(-150);
+    const late = at(-250);
+    expect(early).toBeGreaterThanOrEqual(0);
+    expect(early).toBeLessThan(5);
+    expect(mid).toBeGreaterThan(0);
+    expect(mid).toBeLessThan(420);
+    expect(late).toBeGreaterThan(mid);
+    expect(late).toBeLessThan(420);
+
+    // Past the band (294 of the 420 pitch) it holds EXACTLY on the rung — this
+    // is "the same place for each card", and it is exact, not approximate.
+    expect(at(-300)).toBe(420);
+    expect(at(-360)).toBe(420);
+    expect(at(-419)).toBe(420);
   });
 
   it("tracks the TOP fully visible question, not the bottom one", () => {
@@ -287,11 +304,11 @@ describe("floatAlong — the continuous mapping", () => {
   });
 });
 
-describe("floatAlong — the follow cannot step", () => {
-  it("approaches a moved target through strictly intermediate positions, bounded per frame, and settles exactly", () => {
+describe("floatAlong — nothing moves except scroll", () => {
+  it("writes once per scroll burst and never animates on its own", () => {
     mockMatchMedia(false);
-    // Manual rAF: each frame is driven by hand with its own timestamp, so the
-    // exponential follow is fully deterministic here.
+    // Manual rAF: frames are driven by hand, so "does a frame move it?" is a
+    // question this test can actually ask.
     const frames: FrameRequestCallback[] = [];
     const originalRaf = window.requestAnimationFrame;
     window.requestAnimationFrame = ((cb: FrameRequestCallback) => {
@@ -316,35 +333,30 @@ describe("floatAlong — the follow cannot step", () => {
       mount(node);
       expect(node.style.transform).toBe("");
 
-      // The user scrolls past the whole column in one jump — the TARGET
-      // leaps 0→840, the worst case the old code answered with a hop.
+      // A jump past the whole column: the mapping answers the clamped end in
+      // ONE write. Under the old exponential follow this took ~40 frames of
+      // catch-up, and that catch-up is precisely what could not be scrubbed
+      // backwards by scrolling — it was motion the input had stopped
+      // commanding. There is no such state any more.
       scrolled = true;
       window.dispatchEvent(new Event("scroll"));
 
-      const positions: number[] = [];
-      let ts = 1000;
-      for (let i = 0; i < 400 && frames.length > 0; i++) {
-        const cb = frames.shift()!;
-        cb(ts);
-        ts += 16;
-        positions.push(ty(node));
-      }
-
-      // Settled: dormant (no pending frame) at exactly the mapped position.
-      expect(frames.length).toBe(0);
+      expect(frames.length).toBe(1);
+      frames.shift()!(1000);
       expect(node.style.transform).toBe("translateY(840px)");
-      // No step: every frame moves, no frame moves more than the follow's
-      // per-frame bound (~10.7% of the remaining gap at 16ms/TAU 150ms —
-      // first frame ≈ 85px), and the sequence is strictly monotone up to
-      // the settle snap.
-      expect(positions.length).toBeGreaterThan(10);
-      expect(positions[0]!).toBeGreaterThan(0);
-      expect(positions[0]!).toBeLessThan(130);
-      for (let i = 1; i < positions.length; i++) {
-        const d = positions[i]! - positions[i - 1]!;
-        expect(d).toBeGreaterThanOrEqual(0);
-        expect(d).toBeLessThan(130);
-      }
+
+      // NO follow-up frame was scheduled: there is no loop to settle.
+      expect(frames.length).toBe(0);
+
+      // And a burst of scroll events coalesces to a single frame rather than
+      // one write each.
+      window.dispatchEvent(new Event("scroll"));
+      window.dispatchEvent(new Event("scroll"));
+      window.dispatchEvent(new Event("scroll"));
+      expect(frames.length).toBe(1);
+      frames.shift()!(1016);
+      expect(node.style.transform).toBe("translateY(840px)");
+      expect(frames.length).toBe(0);
     } finally {
       window.requestAnimationFrame = originalRaf;
     }

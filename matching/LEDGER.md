@@ -4113,3 +4113,78 @@ itself, priced. We were 10px BELOW live's "Our"; we are now 30px ABOVE it,
 because live keeps the 120px gap and the operator has chosen 56. Δh 6.5% on
 this region is the standing cost of pin #4 and must not be "fixed" by anyone
 later; nor may maxHeightDelta be widened to hide it.
+
+### Pin #8 (thread 717b8986…) — the floating doctor. THIRD directive on one behaviour
+
+Tim: "I still don't like how jittery the doctor's photo and the ask the doctor
+handwriting moves down from one question to the next. I just wanted to move
+smoothly down as you scroll."
+
+WHY THIS WENT TO THE OPERATOR. This is the third pass on the same 40 lines, and
+the directives conflict on their face:
+  (1) 2026-08-11 "I do not like the jumping from question to question" → made
+      position CONTINUOUS in scroll.
+  (3) 2026-08-13 "it should sit in the same place for each card" → reversed (1),
+      because a continuous mapping pins the pair to a fixed SCREEN position and
+      lets cards slide through it. Quantized again.
+  (4) 2026-09-01 (this pin) → rejects (3)'s motion.
+Taken literally, (4) asks to undo (3) and (3) asked to undo (1). Presented as
+such; operator chose a fourth option on 2026-09-01 — scroll-driven smoothstep —
+rather than reverting to (1).
+
+THE MEASUREMENT THAT SHOWED (3) WAS NOT SIMPLY WRONG. Probed at 1440 in 40px
+scroll steps, before: 57 of 87 steps moved the pair 0px, and each handover then
+moved it ~345px inside a SINGLE step — 8.6x the input. So quantizing put the
+pair in the right PLACE and gave it the wrong MOTION, and the ~150ms rAF follow
+could never fix that, because it smoothed in TIME: it softened the handover's
+edges but never its SIZE. One notch of wheel still commanded a whole card.
+
+WHAT SHIPPED. Position is a pure, continuous function of SCROLL. No time-based
+motion at all — the rAF only coalesces scroll events into one write per frame,
+so there is no loop to settle and no state that can move while the page is
+still. Within the interval a card owns, the pair GLIDES from the previous rung
+to that card's rung across the first 70% (smoothstep, peak slope 1.5) and then
+HOLDS exactly on the rung for the remaining 30%. Both directives survive: (3) as
+the hold, (4) by construction, since output continuous in input admits no step.
+After: worst 85.1px per 40px step (2.13x — the designed peak of 1.5/0.7), 47 of
+87 steps still perfectly still, screen-space worst 45.1px.
+
+ONE REAL MISTAKE, RECORDED because it was invisible to every check that existed.
+The glide was first written to run BACKWARD into the next handover — ending on
+it rather than starting from it. That is equally continuous and equally smooth,
+and it silently broke directive 2 ("anchor to the top fully visible question"):
+the pair arrived at the next card's rung up to a whole band (294px of scroll)
+BEFORE that card reached the line, i.e. it was anchored to the wrong question
+for most of the scroll. The existing unit tests caught it — they assert the
+anchor, and two of them failed — which is the only reason it did not ship. The
+mapping now runs the glide forward from the handover it belongs to.
+
+TESTS REWRITTEN, NOT RELAXED. `float-drift.spec.ts` and `floatAlong.test.ts`
+both encoded the quantized contract and had to change; each old assertion was
+replaced by the one that governs now, and the suite got STRICTER, not looser:
+  - "every settled position is exactly a card offset" → continuity (no scroll
+    step commands >2.5x its own size) AND holds (≥15% of steps perfectly still),
+    so a mapping that went fully continuous — the thing directive 3 rejected —
+    now fails, where before it simply would not have been tested;
+  - "the handover renders intermediate FRAMES" (a time property, which a
+    time-decayed follow satisfies while still lurching) → the handover is
+    sampled in SCROLL, and no 15px notch may move the pair more than 2.5x that;
+  - NEW: nothing moves while the page is still, which makes reintroducing a
+    time-decayed catch-up impossible to do silently;
+  - the unit "holds one card's offset across the whole range" → "glides in over
+    the first 70%, then holds the rung EXACTLY" (exact equality, not tolerance);
+  - the rAF-follow describe → "writes once per scroll burst and never animates
+    on its own", asserting the coalescing and that NO follow-up frame is queued.
+float-drift also dropped from ~84s to ~16s: its 1500ms-per-sample settle waits
+existed only for the follow that no longer exists.
+
+Gate round: markupi1d (threshold 0.1, maxHeightDelta 0.05, matrix 1440/834/390,
+mask [], neutralizeMedia false), home, ref beachfront-dentistry.webflow.io,
+baseline markupi1b. EVERY measured row byte-identical — the only differing line
+in the log is the report path. Expected and required: the mapping is 0 at scroll
+0, so the static capture is untouched, and that is asserted independently by
+float-drift's scroll-0 test.
+Suite: 789 unit + 208 interaction green, svelte-check 0/0. (One qa-expand
+"within a frame of the click" case failed once under 2-worker load and passes in
+isolation and on re-run — same contention flake as the earlier six, recorded for
+the same reason.)
