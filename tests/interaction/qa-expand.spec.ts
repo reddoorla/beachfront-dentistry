@@ -190,6 +190,16 @@ for (const pg of PAGES) {
     test(`${pg.label} @${vp.width}: the answer's first pixel clears the mask within a frame of the click`, async ({
       page,
     }) => {
+      // MOTION IS THE SUBJECT HERE, so this test opts OUT of the suite-wide
+      // reduced-motion default. @reddoorla/maintenance's a11y base sets
+      // `contextOptions: { reducedMotion: "reduce" }`, which is the fix for the
+      // problem playwright.config.ts documents — plain `use.reducedMotion` silently
+      // did nothing, so specs that believed they ran reduced ran with motion ON.
+      // Now that it works, app.css's reduced-motion reset flattens every duration
+      // to 0.01ms (`1e-05s`) and the `no-preference`-gated `bump` utilities drop to
+      // `transition-property: none`, which is what this assertion would then be
+      // measuring instead of the ramp it exists to police.
+      await page.emulateMedia({ reducedMotion: "no-preference" });
       await page.setViewportSize({ width: vp.width, height: vp.height });
       await page.goto(pg.path, { waitUntil: "networkidle" });
       await page.evaluate(() => document.fonts.ready);

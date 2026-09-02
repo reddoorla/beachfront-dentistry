@@ -4445,3 +4445,48 @@ function of window HEIGHT, and this is confirmed at one window size on one
 machine. The overhang is 1.8-4px against a one-device-row (0.5 CSS px)
 shortfall, so it has 3-8x of margin, but a second sighting at a different
 window height would be worth more than another headless sweep.
+
+#### Addendum, 2026-09-02 — the 8 "pre-existing" interaction failures, explained and fixed
+
+The Verification block above logs 8 interaction failures as pre-existing and
+leaves them. They are now understood and fixed, and the cause is worth the
+record because it is a lockfile drift, not a test flake:
+
+- **They date from the Sep 1 14:47 install, not from any commit on this
+  branch.** `node_modules` holds `@reddoorla/maintenance` 0.90.1, installed
+  from `main`'s lockfile. This branch still locks 0.83.0 (`package.json` pins
+  `^0.83.0`); it is 3 commits behind `main`, one of which is the bump.
+- **0.90.1 (4c79cfa) moved `reducedMotion: "reduce"` into the shared Playwright
+  base under `use.contextOptions`, where Playwright actually reads it.** Every
+  earlier attempt — reddoor-starter's, and this repo's own `playwright.config.ts`
+  until it was removed — had put it at the top level of `use`, which Playwright
+  drops silently. So the suite had run with motion ON since June, and the
+  "pre-existing" failures are the first run in which reduced motion was real.
+- **With it real, app.css's reduced-motion reset flattens every duration to
+  0.01ms and the `no-preference`-gated `bump` utilities fall to
+  `transition-property: none`.** The 8 cases are the three tests whose subject
+  is that motion: the modal's 150ms focus ramp, the submit button's
+  hover/press/focus states, and the Q&A answer's first painted frame after the
+  click (2 pages × 3 viewports = 6). They were measuring the reset, not the ramp.
+- **Fix: those three test bodies opt out per page with
+  `page.emulateMedia({ reducedMotion: "no-preference" })`**, with the reason
+  written above the call. Under 0.83.0 (what this branch's CI installs) the call
+  is a no-op and the tests behave as before; under 0.90.1 it restores the
+  subject. `playwright.config.ts`'s note on the inert option now records the
+  upstream resolution and the inverted obligation.
+
+Verification: `appointment-modal.spec.ts` + `qa-expand.spec.ts` 30/30 against
+0.90.1 (previously 8 red in those files); full suite 231/231; 778 unit green;
+svelte-check 0/0; prettier and eslint clean. One earlier full run came back
+230/1 with nav-menu's "1354x930: whole menu fits without scrolling" red — that
+run had vitest and svelte-check executing alongside it; the spec is 22/22
+alone and the suite 231/231 rerun alone, so it is logged as CPU contention,
+not a regression. Do not run the interaction suite concurrently with other
+CPU-heavy work when the number is going to be cited.
+
+Correction to the block above: "pixel matching is PAUSED (`matching/PAUSED`)"
+was written from memory. The pause switch (873749f, PR #40) is on `main`, not
+on this branch — here `matching/PAUSED` does not exist and `next.mjs` still
+prints "Round continues". Nothing was run against it, so nothing is affected,
+but the line was wrong as stated. Merging `main` into this branch restores both
+the switch and the maintenance bump, and is the obvious next step.
