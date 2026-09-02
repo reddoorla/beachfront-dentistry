@@ -4,9 +4,9 @@ import base from "@reddoorla/maintenance/configs/playwright-a11y";
 // This file used to claim it emulated reduced motion suite-wide (for instant
 // scrollIntoView and instant view transitions, pairing with the
 // prefers-reduced-motion gate on scroll-behavior in src/app.css). It never
-// did — see the note in `use` below. Specs that need the preference emulate
-// it themselves; the intent above was never actually in force, so nothing
-// depends on it.
+// did — see the note in `use` below, which also records the resolution: since
+// @reddoorla/maintenance 0.90.1 the shared base emulates it correctly, so the
+// default here IS reduced and specs that measure motion opt out per page.
 //
 // R1.1 (health-gate): the central `smoke` audit (reddoor-maintenance
 // src/audits/smoke.ts) allocates a free port and passes it as
@@ -29,6 +29,14 @@ export default defineConfig({
     // line asserted a guarantee it never delivered. Removing it changes no
     // runtime behaviour (there was none to change); specs that need reduced
     // motion call emulateMedia themselves, as nav-menu and review-mask do.
+    //
+    // Resolved upstream: @reddoorla/maintenance 0.90.1 (4c79cfa) sets it where
+    // Playwright actually reads it — `use.contextOptions.reducedMotion` — so
+    // from that version on the suite default IS reduced. The obligation now
+    // runs the other way: a spec whose SUBJECT is motion (the modal's focus
+    // ramp, the submit button's states, the Q&A answer's first frame) opts OUT
+    // with `page.emulateMedia({ reducedMotion: "no-preference" })`, or it
+    // measures app.css's 0.01ms reduced-motion reset instead of the ramp.
     ...(smokePort ? { baseURL: `http://localhost:${smokePort}` } : {}),
   },
   ...(smokePort

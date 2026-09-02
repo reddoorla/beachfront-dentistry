@@ -180,9 +180,35 @@
        longer held to the webflow reference, so neither is the clearance it
        demands. The band's height does not change — these are absolute boxes,
        so nothing below the hero moves. -->
+  <!-- ROUND I1 — the `meet` variant alone drops at lg, 120 → 96 (24px).
+       MarkUp thread c5a1f351-c4d7-4d8a-a814-eff7ef586965 (our-team board,
+       pin #1), Tim: "can we decrease the space between 'Meet' and 'Our'?" and,
+       on the follow-up, "ideally 'Meet' comes down 30px and 'Our' comes up
+       40px." Operator ACK 2026-09-01.
+       This is a REVERSAL of the H4 rule two paragraphs above, so the arithmetic
+       is spelled out rather than asserted. Measured at 1440
+       (probe-markup-i5.mjs): the Meet↔Our gap is 120px, which IS this divider's
+       lg box height — the gap and the wave are the same object, so no part of
+       Tim's 70px can come from anywhere else. H4's "clear the whole BOX" rule
+       therefore cannot survive here; what replaces it is the rule that rule was
+       always a proxy for — clear the INK.
+
+       24, NOT Tim's 30, and the 6px is the one number in this round that is not
+       his. The site's own floor is 8px of clearance to the wave's painted edge
+       (wave-divider.spec.ts MIN_CLEARANCE), and a 30px drop breaks it: probed,
+       it leaves 7.59px at 1294 and 2.9px at 993, where the hero is only 327.7px
+       tall against a divider that stays a flat 120. Widening that floor to fit
+       the request is exactly what CLAUDE.md rule 4 forbids, so the request bent
+       instead. At 24 the clearance is 8.9 / 12.2 / 13.7 / 15.4 at
+       993 / 1200 / 1294 / 1440 — floor intact at every lg width.
+       Net: the gap closes 120 → 56 (24 here + 40 below), 64 of the 70 asked
+       for. Told to Tim on the pin rather than quietly rounded.
+       The other two variants keep the box rule (`lg:bottom-[120px]`): only
+       `meet` was pinned, and only `meet` moves. -->
   <div
-    class="absolute z-10 bottom-[72px] md:bottom-[96px] lg:bottom-[120px] {align ===
-    'left'
+    class="absolute z-10 bottom-[72px] md:bottom-[96px] {headingStyle === 'meet'
+      ? 'lg:bottom-[96px]'
+      : 'lg:bottom-[120px]'} {align === 'left'
       ? 'mx-auto w-full max-w-[1400px] px-[5%] xs:px-[8%] md:px-[48px] lg:px-[60px]'
       : headingStyle === 'meet'
         ? 'left-0 w-full'
@@ -243,9 +269,31 @@
   <!-- Above the fold on /our-team at both 390 and 1440 (measured: it is the
        second reveal target inside the first viewport there), so it takes the
        server-rendered hidden state too. -->
+  <!-- ROUND I1, second half of the same pin: the `meet` block rises 40px at lg
+       and paints ABOVE the divider (`z-20` over the wave's `z-10`).
+       This is the OTHER half of Tim's 70px, and unlike Meet's 30px it cannot
+       come out of clearance — "Our"'s line-box top already sits exactly on the
+       hero's bottom edge (475.2 = hero bottom = wave box bottom, measured), so
+       every pixel of the lift puts it inside the divider's band. Operator chose
+       that on 2026-09-01 over shrinking the wave: the headline sits ON the
+       wave. It reads correctly because the wave's fill under this column IS
+       white and so is the page.
+       `bg-white` is DROPPED for this variant, and that is the load-bearing
+       part. The section's background is what must not move: an opaque 40px
+       white band pulled over the hero would paint across the full width, and
+       where the wave's fill is shallowest (28px of its 120px box) it would
+       cover PHOTO — slicing a straight edge through the divider's shape. Body
+       is already `--color-background: white` (app.css:42,459), so removing it
+       costs nothing and lets only the TEXT overlap. The other two variants keep
+       `bg-white` and their position exactly as before.
+       This supersedes the H4 note below about the removed `-mt-[10px]`: that
+       nudge was deleted under "wave should never touch the text", and the
+       operator has now reinstated a larger one deliberately. -->
   <section
     data-reveal
-    class="w-full bg-white px-5 text-center"
+    class="w-full px-5 text-center {headingStyle === 'meet'
+      ? 'relative z-20 lg:-mt-10'
+      : 'bg-white'}"
     use:animateIn={ABOVE_FOLD_REVEAL}
   >
     {#each subheadings ?? [] as line (line)}
@@ -264,6 +312,7 @@
            Same global h2 ladder as the band heading: 56/70 -> 72/80 (480-991,
            flat) -> 140/168. -->
       <h2
+        data-wave-overlap={headingStyle === "meet" ? "" : undefined}
         class="font-slab text-[56px] leading-[70px] font-thin xs:text-[72px] xs:leading-[80px] lg:text-[140px] lg:leading-[168px]"
         style="color:#365b6d"
       >

@@ -25,7 +25,7 @@ const read = async (p) =>
       out.heroH2 = `${cs.fontSize}/${cs.lineHeight} x=${px(r.left)} y=${px(r.top + scrollY)} ${px(r.width)}x${px(r.height)} mb=${cs.marginBottom} ta=${cs.textAlign} "${hero.textContent.trim().slice(0, 18)}"`;
     }
     // hero band + its wave
-    const svg = document.querySelector("svg[viewBox='0 0 1200 120']");
+    const svg = document.querySelector("svg[data-wave]");
     if (svg) {
       const r = svg.getBoundingClientRect();
       out.wave1 = `h=${px(r.height)} y=${px(r.top + scrollY)}`;

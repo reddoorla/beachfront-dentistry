@@ -654,16 +654,33 @@
        gutter with 30px gaps both axes — so at lg the section IS the
        `.content-width` box (max-w-1400 + px-[60px], beachfront.css:5858-5867
        = max(60px, 50% − 640px) per edge), the 30px gaps live on the section
-       (lg:gap-[30px]), live's 4rem first-row clearance moves from the card
+       (lg:gap-x-[30px]), live's 4rem first-row clearance moves from the card
        to lg:pt-40 (:6538-6540), and the card width derives from the box:
-       (100% − 2×30px)/3 → 406.7@1440, 371.3@1294. 30 is BOX-to-box: the
-       100px headshot overhang means row 2+ circles overlap the row above's
-       banner — flagged in LEDGER ROUND C for Tim's resolve reply. ≤991
-       (single-column, live's ladder) is untouched. -->
+       (100% − 2×30px)/3 → 406.7@1440, 371.3@1294. ≤991 (single-column,
+       live's ladder) is untouched.
+
+       ROUND I1 — the VERTICAL half of that 30px is now 160px
+       (lg:gap-y-[160px]). Round C had already flagged the consequence here and
+       in LEDGER ROUND C, explicitly parked for Tim's reply: "30 is BOX-to-box:
+       the 100px headshot overhang means row 2+ circles overlap the row above's
+       banner." The reply arrived — MarkUp thread
+       4cb2a3cb-6eec-4473-9fe5-497f52ffa26a (our-team board, pin #3): "The image
+       is overlapping the row of tiles above." The flagged risk is now a
+       rejected outcome, so the axis that caused it is the one that moves.
+       Measured at 1440 before the change (probe-markup-i2.mjs, pin6): every
+       card's portrait starts exactly 100px above its own card top and rows sat
+       30px apart, so each circle cut 70px into the banner of the row above —
+       on every seam, not one.
+       160px is not a clearance minimum reverse-engineered from the symptom; it
+       is live's own row rhythm for this element, `.team-list-item.m-2 {
+       margin-top: 4rem }` (beachfront.css:6538-6540) against the ≥993 root of
+       40px, and it leaves the 100px overhang 60px of daylight. The HORIZONTAL
+       30px is untouched, so Tim's content-gutter alignment and the
+       `(100%−60px)/3` card width both still hold exactly. -->
   <section
     data-slice-type={slice.slice_type}
     data-slice-variation={slice.variation}
-    class="team-grid-section mx-auto flex w-full max-w-[1400px] flex-wrap justify-center px-5 md:px-12 lg:gap-[30px] lg:px-[60px] lg:pt-40"
+    class="team-grid-section mx-auto flex w-full max-w-[1400px] flex-wrap justify-center px-5 md:px-12 lg:gap-x-[30px] lg:gap-y-[160px] lg:px-[60px] lg:pt-40"
   >
     {#each docs as doc, i (doc.uid)}
       {@render personCard(doc, "grid", i)}

@@ -2,9 +2,11 @@
   /** The Webflow site's section-divider wave. `fill` should match the
    * neighbouring section's background so the wave reads as its edge.
    *
-   * The path lives in a `0 0 1200 120` viewBox with `preserveAspectRatio="none"`,
+   * The path lives in a `0 -3 1200 123` viewBox with `preserveAspectRatio="none"`,
    * so the CSS height IS the crest amplitude (the old 48px squashed it into a
-   * flat, wrong-looking ripple).
+   * flat, wrong-looking ripple). The box is still 120 units tall — the extra 3
+   * are pure fill BEYOND the seam, and the svg is sized to keep the scale at
+   * exactly h/120. See the note above the wrapper.
    *
    * Live sizes these in REM — `.bot-wave svg{height:3rem}` and the footer arc
    * `height:4rem` — against its stepped root (40px >=993 / 32px 769-992 / 24px
@@ -40,7 +42,9 @@
      * the seam identically. */
     mirror?: boolean;
     /** Responsive Tailwind height utilities (see the block comment for live's
-     * 72/96/120 vs 96/128/160 rem ladders, stepping at 768 and 992). */
+     * 72/96/120 vs 96/128/160 rem ladders, stepping at 768 and 992). Sits on
+     * the CLIP BOX, not the svg — the svg is sized as a percentage of it so it
+     * can overhang the seam (see the note above the wrapper). */
     heightClass?: string;
   }
 
@@ -60,9 +64,40 @@
    * thread 7dd0c2f2: "wave should never touch the text". */
 </script>
 
+<!-- VERTICAL HAIRLINE INSURANCE (MarkUp round I2, Tim 2026-09-02: "still
+     seeing the line", Safari). The width has overhung its box by 1.3px since
+     round H4 for exactly this reason; the height overhung by nothing at all,
+     and the seam edge is where four boxes met on one line with zero overlap —
+     the hero's bottom, its sand wash's bottom (Hero/index.svelte:359), this
+     clip box's bottom and the path's closing `V` edge. Rasterise the rotated
+     SVG one device row off the wash behind it and the wash shows through.
+     Tim's line is rgb(182,170,145), which is that wash's terminal stop and
+     nothing else on the site, at CSS y 1259.8 where the hero's bottom edge is
+     1260.0 (his crop's landmarks matched against our render, scale 1.991).
+     The row reads FULL sand, so the fill is absent from it altogether — a
+     whole-row shortfall, not edge antialiasing.
+     See the LEDGER for what would not reproduce it: both Playwright engines
+     across DPR, width, height and scroll, and a real WKWebView at fifteen
+     window heights, all render it clean. So this fixes the invariant instead
+     of the raster — overlap rather than abutment, which no rounding can undo.
+
+     THE WAVE DOES NOT MOVE. The box height moves to this wrapper and the SVG
+     becomes 102.5% of it, offset -2.5%, against a viewBox extended by 3 units
+     of pure fill (123 rather than 120). 102.5%/123 = 1/120 and 2.5% = 3/120,
+     so the vertical scale and the position of every point on the curve are
+     algebraically identical to before at EVERY height in the ladder. A/B'd
+     against the old markup at all four heights x flip/mirror in both engines:
+     max |Δ| on the curve is 0.0000px at 120 and 160, 0.0070px at 96 — float
+     noise, not a shift — while the fill's closing edge moves from exactly the
+     box edge to 1.8/2.4/3/4px past it (2.5% of the box, per the ladder).
+     What DOES change is ~1% of pixels along the curve's antialiased edge, at
+     up to a third of a channel: the SVG's raster grid now starts at -2.5%, so
+     edge coverage is resampled. Same curve, re-antialiased — stated because
+     "byte-identical" would have been the stronger claim and it is not true. -->
+
 <div
   aria-hidden="true"
-  class="pointer-events-none w-full overflow-hidden leading-none {flip
+  class="pointer-events-none w-full overflow-hidden leading-none {heightClass} {flip
     ? 'rotate-180'
     : ''} {mirror ? '-scale-x-100' : ''}"
 >
@@ -112,19 +147,20 @@
        measured). The path is ANTI-symmetric about x=600 rather than symmetric
        — a crest answered by a trough — so the mirrored services mount reads as
        the same wave run backwards, which is what a single sine looks like
-       either way round. The V0 H0 close and the A-round overlap-seam mechanics
+       either way round. The V-3 H0 close and the A-round overlap-seam mechanics
        (heights, absolute footer overlay) are unchanged: the fill still hugs the
        full top edge across the full box width, so every seam stays watertight
        even though the fill now meets the ends at mid-height instead of near
        the crest. -->
   <svg
-    viewBox="0 0 1200 120"
+    data-wave
+    viewBox="0 -3 1200 123"
     preserveAspectRatio="none"
-    class="block {heightClass}"
-    style="width: calc(100% + 1.3px)"
+    class="relative block"
+    style="width: calc(100% + 1.3px); height: 102.5%; top: -2.5%"
   >
     <path
-      d="M0,60C100,43.24,200,28,300,28C400,28,500,43.24,600,60C700,76.76,800,92,900,92C1000,92,1100,76.76,1200,60V0H0Z"
+      d="M0,60C100,43.24,200,28,300,28C400,28,500,43.24,600,60C700,76.76,800,92,900,92C1000,92,1100,76.76,1200,60V-3H0Z"
       {fill}
     />
   </svg>

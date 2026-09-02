@@ -153,7 +153,7 @@ describe("QuestionList slice — teaser variation", () => {
     );
   });
 
-  it("marks each question link's list item as a qa-item (floatAlong's tracking target)", () => {
+  it("marks each question link's list item as a qa-item (the card hook)", () => {
     const { container } = render(QuestionList, {
       props: { slice: teaserSlice, context },
     });

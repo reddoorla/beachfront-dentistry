@@ -52,8 +52,11 @@ describe("WaveDivider", () => {
   it("starts and ends the wave at the same height", () => {
     const d = pathD();
     const start = d.match(/^M0,([\d.]+)/)![1];
-    // the last knot before the V0 H0 Z close
-    const end = d.match(/,([\d.]+)V0H0Z$/)![1];
+    // The last knot before the closing V/H/Z. The V no longer returns to the
+    // viewBox's own top: round I2 extended the fill 3 units past it (`V-3`) so
+    // it OVERHANGS the seam instead of meeting it — see WaveDivider's markup
+    // note and tests/interaction/wave-divider.spec.ts.
+    const end = d.match(/,([\d.]+)V-?[\d.]+H0Z$/)![1];
     expect(Number(end)).toBe(Number(start));
   });
 
