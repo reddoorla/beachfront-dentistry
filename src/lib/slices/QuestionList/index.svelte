@@ -151,6 +151,14 @@
              6. 2026-09-02, Discord, after seeing 5 — "these elements still
                 jump from question to question" … "sticky on scroll through
                 that section."
+             7. 2026-09-02, Discord, on the build that shipped 6 — "Can we get
+                the doc image and text to stop sooner" [screenshot: the pair
+                still stuck over the next section's "Ready for…" headline] …
+                "it also starts high" [headshot's top level with the first
+                card's top] "should start here" [headshot down on the first
+                card's photo]. Not a new mechanism — 6's GEOMETRY was an
+                approximation of live's, and 7 is live's: see the sticky box
+                below.
 
              6 is what runs, and it runs as `position: sticky` rather than as
              JS: the pair holds one viewport position while this column scrolls
@@ -191,15 +199,29 @@
              asked for; all six are recorded above and in
              tests/interaction/float-drift.spec.ts, which is the check.
 
-             Zero-height in flow (both children are `lg:absolute`), so sticking
-             it at the top of the column costs no layout. `lg:inset-x-auto`
+             DIRECTIVE 7 fixed the geometry to live's, which is what decides
+             where the pair STARTS and where it STOPS (beachfront.css):
+               :7664-7672  .ask-the-doctor-handwriting-anchor — sticky, top:0,
+                           height:10rem (400px at live's ≥993 root of 40px)
+               :7786       .collection-list-wrapper-4 { margin-top:-10rem } —
+                           the cards are pulled up UNDER the box, so the box
+                           and the first card share a top edge
+               :7700       .ask-the-doctor-headshot margin-top:2.5rem = 100px
+               :7682       .ask-the-doctor-handwriting margin-top:3rem = 120px
+             So at rest the pair sits 100/120px down the first card, and the
+             box releases when ITS bottom meets the column's — 400px before
+             the column ends, i.e. with the headshot still on the last card.
+             The 6 port had a zero-height box with the children at its top
+             edge and the 100px moved into the sticky `top`: same stuck
+             position, but 100px too high at rest and 300px too late letting
+             go, which is exactly the two things Tim saw. `lg:inset-x-auto`
              undoes the mobile `inset-x-0`: on a sticky box left/right are
              stick constraints, not offsets, and the children hang off this
              box's edges via `right-full` / `left-full`. -->
         <div
           data-doctor-float
           aria-hidden="true"
-          class="pointer-events-none absolute inset-x-0 top-0 z-30 lg:sticky lg:inset-x-auto lg:top-[100px]"
+          class="pointer-events-none absolute inset-x-0 top-0 z-30 lg:sticky lg:inset-x-auto lg:top-0 lg:h-[400px]"
         >
           {#if isFilled.richText(slice.primary.heading)}
             <!-- Live ships the raw handwriting PNG and turns it dark blue with
@@ -208,14 +230,14 @@
             <img
               src="/annotations/ask-the-doctor.png"
               alt=""
-              class="absolute right-[144px] bottom-[26px] w-[120px] max-w-none lg:top-0 lg:right-full lg:bottom-auto lg:mr-[10px] lg:w-[210px]"
+              class="absolute right-[144px] bottom-[26px] w-[120px] max-w-none lg:top-[120px] lg:right-full lg:bottom-auto lg:mr-[10px] lg:w-[210px]"
               style="filter:brightness(0) saturate(1) invert(0.29) sepia(0.33) saturate(5.99) hue-rotate(155deg) brightness(1) contrast(0.87)"
               use:animateIn={LIVE_REVEAL}
             />
           {/if}
           {#if isFilled.image(slice.primary.side_image)}
             <div
-              class="ask-the-doctor-headshot absolute right-6 bottom-[12px] w-[120px] lg:top-0 lg:right-auto lg:bottom-auto lg:left-full lg:-ml-10 lg:w-[200px]"
+              class="ask-the-doctor-headshot absolute right-6 bottom-[12px] w-[120px] lg:top-[100px] lg:right-auto lg:bottom-auto lg:left-full lg:-ml-10 lg:w-[200px]"
               use:animateIn={LIVE_REVEAL}
             >
               <!-- The doctor headshot beside home's question column. Measured 120/120/200 — overshoot 7.2x. -->
@@ -234,7 +256,8 @@
            item is 300/420 tall around a 288/400 card). Each card is the shared
            QuestionCard (live's `.qa-block`); the parent only decides the column
            layout and which cards are featured. -->
-      <ul class="flex flex-col gap-3 lg:gap-5">
+      <!-- lg:-mt-[400px] = live's .collection-list-wrapper-4 margin-top:-10rem (beachfront.css:7786): the cards start under the sticky box, not after it. -->
+      <ul class="flex flex-col gap-3 lg:-mt-[400px] lg:gap-5">
         {#each teaserCards as card (card.doc.uid)}
           <li>
             <QuestionCard
