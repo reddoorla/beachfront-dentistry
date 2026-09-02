@@ -1,0 +1,25 @@
+PAUSED 2026-09-01 by the operator (Tucker).
+
+  "we're done with pixel matching for now"
+
+STATE AT PAUSE: 109/153 regions passing. 24 open failures, 18 declared floors,
+1 operator-ACCEPTED failure. Worst page is our-team. Every open region is
+long-stalled per strikes.mjs — which is the point: they are out of strikes and
+need a new model or a decision, not another attempt. Nothing here is lost by
+stopping, and nothing here improves by one more round.
+
+WHAT THIS FILE DOES: next.mjs and strikes.mjs read it and exit 0 with no
+agenda. CLAUDE.md rule 5's loop is "run next.mjs; while it exits 1 the round
+continues" — so a pause has to be expressed as an exit code, or the rule simply
+overrules it. This is that exit code.
+
+STILL ALLOWED while paused: gate.sh, the probes, and every other measuring
+instrument. Verifying that some unrelated change did not regress a page is
+never the thing being paused. What is paused is STARTING A ROUND — treating the
+backlog as an agenda, or continuing one because a commit landed.
+
+IF YOU ARE AN AGENT READING THIS: do not delete it to "unblock" yourself, and
+do not work the backlog because you have spare context or the round felt
+unfinished. Resuming is the operator's call and takes one word from them.
+
+TO RESUME: rm matching/PAUSED
