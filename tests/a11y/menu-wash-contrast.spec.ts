@@ -29,13 +29,16 @@ import { expect, test } from "@playwright/test";
 
 const WIDTHS = [390, 1440];
 
-/** A press affordance has to be SEEN. 1.00 is literally invisible (fill equal
- *  to its ground); the two brand tones against each other measure 1.56-1.65,
- *  and 1.2 is the floor below which the pill has stopped being feedback. This
- *  is not a WCAG number — no criterion covers a decorative press fill — it is
- *  the property the fix was made for, and it is the one that silently inverts
- *  if the wash tone is ever changed without changing the pill with it. */
-const MIN_PILL_VISIBILITY = 1.2;
+/* This file used to also assert a MIN_PILL_VISIBILITY floor on the close
+ * button's coloured press disc, against the same composited ground. Markup
+ * round I1 pin #3 removed that disc outright — Tim asked for it "totally gone"
+ * after it kept showing on :active — so the assertion measured an element that
+ * no longer exists and failed on a null. Nav.test.ts now guards the removal
+ * from the other side ("has NO coloured press disc behind either icon glyph"),
+ * which is the check that has to hold going forward. If the disc is ever
+ * reinstated, restore the visibility floor with it: the coupling it caught —
+ * darkening the wash to the pill's own colour leaves every link assertion here
+ * green and the affordance gone — comes back the moment the disc does. */
 
 type Row = {
   label: string;
@@ -119,24 +122,7 @@ const measure = async () => {
     });
   }
 
-  // The Close button's press pill against the same ground.
-  const pill = dialog.querySelector<HTMLElement>(
-    '[aria-label="Close menu"] span span',
-  );
-  let pillRatio: number | null = null;
-  let pillColour: string | null = null;
-  if (pill) {
-    const pr = pill.getBoundingClientRect();
-    pillColour = getComputedStyle(pill).backgroundColor;
-    const rgb = pillColour.match(/\d+/g)!.slice(0, 3).map(Number);
-    const ground = composite(
-      Math.min(W - 1, Math.max(0, Math.round(pr.left + pr.width / 2))),
-      Math.min(H - 1, Math.max(0, Math.round(pr.top + pr.height / 2))),
-    );
-    pillRatio = Math.round(ratio(rgb, ground) * 100) / 100;
-  }
-
-  return { rows, pillRatio, pillColour, washRGB, washA };
+  return { rows, washRGB, washA };
 };
 
 for (const width of WIDTHS) {
@@ -150,7 +136,7 @@ for (const width of WIDTHS) {
     await page.getByLabel("Open menu").click();
     await expect(page.getByRole("dialog")).toBeVisible();
 
-    const { rows, pillRatio, pillColour } = await page.evaluate(measure);
+    const { rows } = await page.evaluate(measure);
 
     // Guard the guard: if the overlay ever renders fewer links, a per-link loop
     // would pass vacuously.
@@ -169,17 +155,5 @@ for (const width of WIDTHS) {
         `"${r.label}" at ${r.fontPx}px needs ${need}:1 on the menu wash`,
       ).toBeGreaterThanOrEqual(need);
     }
-
-    // The press pill must not be the ground it sits on. This is the assertion
-    // that catches the coupling: darkening the wash to the pill's own colour
-    // would leave every other assertion here green and the affordance gone.
-    expect(
-      pillRatio,
-      `close-button press pill (${pillColour}) vs the wash`,
-    ).not.toBeNull();
-    expect(
-      pillRatio!,
-      `close-button press pill (${pillColour}) vs the wash`,
-    ).toBeGreaterThanOrEqual(MIN_PILL_VISIBILITY);
   });
 }
