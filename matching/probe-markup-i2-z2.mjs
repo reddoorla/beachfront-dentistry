@@ -18,40 +18,61 @@ await p.evaluate(() => document.fonts.ready);
 await p.evaluate(() => {
   const cards = [...document.querySelectorAll(".qa-item")];
   const t = cards[Math.min(2, cards.length - 1)];
-  scrollTo({ top: t.getBoundingClientRect().top + scrollY - 40, behavior: "instant" });
+  scrollTo({
+    top: t.getBoundingClientRect().top + scrollY - 40,
+    behavior: "instant",
+  });
 });
 await p.waitForTimeout(1500);
 
 const rect = await p.evaluate(() => {
   const s = document.querySelector(".ask-the-doctor-headshot");
   const r = s.getBoundingClientRect();
-  return { x: Math.round(r.left), y: Math.round(r.top), width: Math.round(r.width), height: Math.round(r.height) };
+  return {
+    x: Math.round(r.left),
+    y: Math.round(r.top),
+    width: Math.round(r.width),
+    height: Math.round(r.height),
+  };
 });
 const asShipped = await p.screenshot({ clip: rect });
 await p.evaluate(() => {
-  const w = document.querySelector(".ask-the-doctor-headshot").closest("[class*='pointer-events-none']");
+  const w = document
+    .querySelector(".ask-the-doctor-headshot")
+    .closest("[class*='pointer-events-none']");
   w.style.zIndex = "9999";
 });
 await p.waitForTimeout(200);
 const raised = await p.screenshot({ clip: rect });
 
-const A = PNG.sync.read(asShipped), B = PNG.sync.read(raised);
+const A = PNG.sync.read(asShipped),
+  B = PNG.sync.read(raised);
 let changed = 0;
 const rows = {};
 for (let y = 0; y < A.height; y++) {
   for (let x = 0; x < A.width; x++) {
     const i = (y * A.width + x) * 4;
-    if (Math.abs(A.data[i] - B.data[i]) > 6 || Math.abs(A.data[i+1] - B.data[i+1]) > 6 || Math.abs(A.data[i+2] - B.data[i+2]) > 6) {
-      changed++; rows[y] = (rows[y] || 0) + 1;
+    if (
+      Math.abs(A.data[i] - B.data[i]) > 6 ||
+      Math.abs(A.data[i + 1] - B.data[i + 1]) > 6 ||
+      Math.abs(A.data[i + 2] - B.data[i + 2]) > 6
+    ) {
+      changed++;
+      rows[y] = (rows[y] || 0) + 1;
     }
   }
 }
-const bandRows = Object.keys(rows).map(Number).sort((a, z) => a - z);
+const bandRows = Object.keys(rows)
+  .map(Number)
+  .sort((a, z) => a - z);
 const ourZ = await p.evaluate(() => {
   const card = document.querySelector(".qa-item");
   const header = card.querySelector("button");
-  const wrap = document.querySelector(".ask-the-doctor-headshot").closest("[class*='pointer-events-none']");
-  const z = (e) => e ? `${getComputedStyle(e).position}/${getComputedStyle(e).zIndex}` : null;
+  const wrap = document
+    .querySelector(".ask-the-doctor-headshot")
+    .closest("[class*='pointer-events-none']");
+  const z = (e) =>
+    e ? `${getComputedStyle(e).position}/${getComputedStyle(e).zIndex}` : null;
   return { floatWrapper: z(wrap), card: z(card), cardHeader: z(header) };
 });
 await ctx.close();
@@ -61,25 +82,42 @@ const ctx2 = await b.newContext({ viewport: { width: 1440, height: 900 } });
 const p2 = await ctx2.newPage();
 await p2.goto(REF, { waitUntil: "networkidle", timeout: 60000 });
 const liveZ = await p2.evaluate(() => {
-  const z = (e) => e ? `${getComputedStyle(e).position}/${getComputedStyle(e).zIndex}` : null;
+  const z = (e) =>
+    e ? `${getComputedStyle(e).position}/${getComputedStyle(e).zIndex}` : null;
   const card = document.querySelector(".qa-block");
   const anchor = document.querySelector(".ask-the-doctor-handwriting-anchor");
   const shot = document.querySelector(".ask-the-doctor-headshot");
   return {
-    anchor: z(anchor), headshot: z(shot), card: z(card),
-    cardHeader: z(card && (card.querySelector(".qa-header") || card.firstElementChild)),
+    anchor: z(anchor),
+    headshot: z(shot),
+    card: z(card),
+    cardHeader: z(
+      card && (card.querySelector(".qa-header") || card.firstElementChild),
+    ),
   };
 });
 await ctx2.close();
 await b.close();
 
-console.log(JSON.stringify({
-  occlusion: {
-    headshotRect: rect,
-    pixelsChangedWhenRaised: changed,
-    pctOfHeadshotBox: +((changed / (A.width * A.height)) * 100).toFixed(1),
-    occludedRowsTopToBottom: bandRows.length ? `${bandRows[0]}..${bandRows[bandRows.length-1]} of ${A.height}` : "none",
-    verdict: changed > 50 ? "OCCLUDED — something paints over the headshot" : "clear",
-  },
-  ourZ, liveZ,
-}, null, 1));
+console.log(
+  JSON.stringify(
+    {
+      occlusion: {
+        headshotRect: rect,
+        pixelsChangedWhenRaised: changed,
+        pctOfHeadshotBox: +((changed / (A.width * A.height)) * 100).toFixed(1),
+        occludedRowsTopToBottom: bandRows.length
+          ? `${bandRows[0]}..${bandRows[bandRows.length - 1]} of ${A.height}`
+          : "none",
+        verdict:
+          changed > 50
+            ? "OCCLUDED — something paints over the headshot"
+            : "clear",
+      },
+      ourZ,
+      liveZ,
+    },
+    null,
+    1,
+  ),
+);
