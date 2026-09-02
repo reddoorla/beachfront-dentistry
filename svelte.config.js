@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import adapter from "@sveltejs/adapter-netlify";
 import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
+import { SVELTE_EVENT_REPLAY_HASH } from "@reddoorla/maintenance/configs/svelte";
 
 const slicemachine = JSON.parse(
   readFileSync(new URL("./slicemachine.config.json", import.meta.url), "utf-8"),
@@ -140,6 +141,20 @@ const config = {
           "self",
           "https://static.cdn.prismic.io",
           "https://player.vimeo.com",
+          // Svelte 5 server-renders `onload="this.__e=event"` (and onerror) on
+          // every image with a spread attribute: the pre-hydration event-replay
+          // stub. A nonce policy refuses that inline handler unless the hash of
+          // its exact text is listed AND 'unsafe-hashes' extends hash matching
+          // to event handlers. Without both, the pre-hydration load is dropped
+          // and the browser POSTs one report to /api/csp-report per image on
+          // every page view (56 on `/` in dev, 2026-09-02). The shared baseline
+          // has carried them since @reddoorla/maintenance 0.85.2; this file
+          // overrides script-src wholesale, so it must carry them itself — the
+          // upstream NOTE says exactly that. Only this one-liner is allowed;
+          // pairing with 'unsafe-inline' would void the guarantee.
+          // tests/interaction/csp-event-replay.spec.ts probes the served policy.
+          "unsafe-hashes",
+          SVELTE_EVENT_REPLAY_HASH,
           // Cloudflare Turnstile contact-form widget (enable via PUBLIC_TURNSTILE_SITE_KEY).
           "https://challenges.cloudflare.com",
           // GA4 gtag.js loader (Analytics.svelte). Wildcard per Google's CSP
