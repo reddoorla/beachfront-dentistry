@@ -4410,3 +4410,38 @@ operator scoped this round to the two Discord items.
 No gate run: pixel matching is PAUSED (`matching/PAUSED`). Neither change moves
 a static capture — the wave's curve is unchanged to 0.007px by measurement, and
 the sticky anchor is at its rest position at scroll 0.
+
+#### Addendum, 2026-09-02 — the line IS confirmed fixed on a real Safari
+
+The "[disclosed — NOT REPRODUCED]" caveat above is superseded by an operator
+observation on the machine that has the defect, and the sequence is worth
+keeping because it is the only before/after this bug has ever produced:
+
+- Operator loaded deploy-preview-38 while the fix was still building, i.e. got
+  the PRE-fix build: "it seemed to show up on my first load of safari and then
+  disappeared [when] I looked into inspector".
+- Post-fix build, fresh private window: "not a cache thing, I can't reproduce
+  it in a private window now."
+
+Same machine, same browser, one build apart. That is the check the headless
+matrix could not be.
+
+It also finally names the mechanism. Web Inspector clears the row on the spot,
+exactly as a resize did in Tim's original pin ("if I resize the page, then it
+disappears sometimes and then reappears sometimes, but if I load the page at
+the beginning, it always shows up"). Opening Inspector forces WebKit to
+re-rasterise and drop the composited layer. So this was a FIRST-PAINT
+COMPOSITING artifact, not a layout one — which is precisely why 60+ renders
+across Playwright WebKit, Chromium and a real offscreen WKWebView all came back
+clean: none of them paint through the on-screen compositor. Any future
+"can't reproduce it headlessly" on this site should suspect the same thing
+before widening the search.
+
+Corollary for anyone testing this class of bug: DevTools destroys it. Capture
+with a screenshot (which does not force a repaint), never with the inspector.
+
+Residual risk, stated: the hero is 90vh, so the seam's subpixel position is a
+function of window HEIGHT, and this is confirmed at one window size on one
+machine. The overhang is 1.8-4px against a one-device-row (0.5 CSS px)
+shortfall, so it has 3-8x of margin, but a second sighting at a different
+window height would be worth more than another headless sweep.
