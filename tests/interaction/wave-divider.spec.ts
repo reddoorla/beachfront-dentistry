@@ -54,12 +54,43 @@ const MIN_CLEARANCE = 8;
  * one full amplitude (19-43px). */
 const MAX_END_DELTA = 1;
 
+/** How far the divider's OPAQUE FILL must reach past the edge it seams into.
+ *
+ * MarkUp round I2, Tim 2026-09-02 ("still seeing the line", Safari). The line
+ * in his screenshot is rgb(182,170,145) — verbatim the terminal stop of the
+ * hero's own bottom wash (Hero/index.svelte:359) — and matching his crop's
+ * landmarks against our render (H1 last-line ink top → the line → the H2's
+ * first blue ink: 60 → 400 → 508 device px, crop scale 1.991) puts it at CSS
+ * y 1259.8 where the hero's bottom edge is 1260.0. So the seam the fill is
+ * supposed to close is exactly one device row wide, and the row reads FULL
+ * sand rather than a blend: the fill is absent from it entirely, which is a
+ * whole-row shortfall and not edge antialiasing.
+ *
+ * The fill could only ever ABUT that edge. Four things land on the same line —
+ * the hero's bottom, the wash's bottom, the divider box's bottom and the
+ * closing `V0` edge of the path — with zero overlap between them, so any
+ * engine that rasterises the rotated SVG onto a different device row than the
+ * wash behind it exposes the wash. The horizontal axis has carried explicit
+ * hairline insurance since round H4 (`width: calc(100% + 1.3px)`); the
+ * vertical axis had none at all.
+ *
+ * Stated as a property rather than a pixel because it could not be reproduced
+ * to a pixel: Playwright WebKit and Chromium (DPR 1 and 2, widths 1440/1293/
+ * 1171, viewport heights 890-910, five scroll offsets, viewport and full-page
+ * captures) and a real offscreen WKWebView at fifteen window heights all
+ * render the seam clean. The defect is in Tim's on-screen compositor, which
+ * none of those reach. What IS checkable in every engine is the invariant that
+ * makes the raster irrelevant: overlap, not abutment. 1px is the floor — the
+ * shortfall observed is one device row, i.e. 0.5 CSS px at his 2x. */
+const MIN_SEAM_OVERHANG = 1;
+
 type Mount = {
   mount: string;
   endDelta: number;
   turns: number;
   worstClearance: number;
   worstText: string;
+  seamOverhang: number;
 };
 
 const measure = () => {
@@ -113,7 +144,7 @@ const measure = () => {
   }
 
   for (const svg of document.querySelectorAll<SVGSVGElement>(
-    'svg[viewBox="0 0 1200 120"]',
+    "svg[data-wave]",
   )) {
     const path = svg.querySelector("path")!;
     const clip = svg.parentElement!.getBoundingClientRect();
@@ -197,7 +228,24 @@ const measure = () => {
       }
     }
 
+    // How far the fill's flat closing edge reaches PAST the clip box's own
+    // edge on the seam side. The flat edge is the viewBox's y-min line (the
+    // path closes back along it), and getScreenCTM folds in the stretch and
+    // the rotate-180 / -scale-x-100, so this is where the fill actually ends
+    // on screen. Whichever clip edge it is nearer IS the seam: `flip` mounts
+    // seam at the bottom, the mirrored SectionGrid mount at the top.
+    const vb = svg.viewBox.baseVal;
+    const flatY = (pt(vb.x, vb.y).y + pt(vb.x + vb.width, vb.y).y) / 2;
+    const clipTop = clip.top + scrollY;
+    const clipBottom = clip.bottom + scrollY;
+    const seamOverhang = R(
+      Math.abs(flatY - clipTop) < Math.abs(flatY - clipBottom)
+        ? clipTop - flatY
+        : flatY - clipBottom,
+    );
+
     out.push({
+      seamOverhang,
       mount:
         (svg.closest("footer") && "Footer") ||
         svg
@@ -273,6 +321,12 @@ for (const width of WIDTHS) {
           m.worstClearance,
           `${where}: clearance to "${m.worstText}"`,
         ).toBeGreaterThanOrEqual(MIN_CLEARANCE);
+        // 3. Tim, 2026-09-02: "still seeing the line" (Safari). The fill must
+        // OVERLAP the edge it seams into, never merely meet it.
+        expect(
+          m.seamOverhang,
+          `${where}: fill overhang past the seam edge`,
+        ).toBeGreaterThanOrEqual(MIN_SEAM_OVERHANG);
       }
     });
   }

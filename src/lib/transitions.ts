@@ -28,9 +28,10 @@ const subscribers = new Set<Subscriber>();
 // ONE MediaQueryList for the whole app, created on first use and reused. The
 // site used to consult the preference five ways — this module per transition
 // run, Slider with its own listener, and a once-at-mount sample in animateIn,
-// floatAlong and ScreenWidthMedia — so switching Reduce Motion on mid-session
-// stopped the carousel but left the scroll reveals and the floating doctor
-// running until a reload. Everything that can should read the store below.
+// floatAlong (since deleted — the doctor pair is CSS sticky now) and
+// ScreenWidthMedia — so switching Reduce Motion on mid-session stopped the
+// carousel but left the scroll reveals and the floating doctor running until a
+// reload. Everything that can should read the store below.
 let factory: typeof window.matchMedia | null = null;
 let list: MediaQueryList | null = null;
 

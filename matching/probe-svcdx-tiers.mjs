@@ -25,7 +25,7 @@ const run = async () => {
           );
           const cr = card ? card.getBoundingClientRect() : null;
           const wave = document.querySelector(
-            isLive ? ".bot-wave svg" : 'section svg[viewBox="0 0 1200 120"]',
+            isLive ? ".bot-wave svg" : "section svg[data-wave]",
           );
           const h2 = document.querySelector(
             isLive ? ".subpage-hero-heading" : "main section h2",

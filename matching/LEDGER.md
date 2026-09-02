@@ -4283,3 +4283,130 @@ and that a flick past four cards settles once, on the card landed on.
 No gate run: pixel matching is PAUSED (`matching/PAUSED`), and none of these
 three changes touches a static capture — the float mapping is 0 at scroll 0, the
 z-index changes no geometry, and the pill is invisible at rest.
+
+---
+
+## MARKUP ROUND I3 — Tim's Discord clarifications, 2026-09-02
+
+Two items, both reported against deploy-preview-38 (which by then carried I1 +
+I2), both in Discord `#beachfront-dentistry-website` rather than on a board.
+The operator's instruction was these two only; everything else on the boards
+stays cleared.
+
+### 1. "still seeing the line" — Safari. I1 fixed the wrong line.
+
+> Tim: "still seeing the line:" [screenshot] · Tuck: "hmm chrome? or are you on
+> something else for this?" · Tim: "safari"
+
+**I1's diagnosis was wrong and this supersedes it.** I1 (pin #7, commit
+173fd60) swept the page for a dark, near-uniform row, found exactly one at
+y=1476 spanning 77% of the width, and removed the SectionGrid card's
+`shadow-sm`. That row was real and the shadow was ours, so the change stands on
+its own fidelity grounds — but it was not Tim's line.
+
+**What his line actually is, measured off the screenshot he posted:**
+
+- Colour, sampled at five x across the row: `rgb(182,170,145)`, constant. That
+  is verbatim the terminal stop of the hero's bottom wash
+  (`Hero/index.svelte:359`, live's `beachfront.css:6497`) and it appears
+  nowhere else on the site as a painted line.
+- Position, by landmark match rather than guesswork. Three landmarks in his
+  crop — the H1's last-line ink top (60), the line (400), the H2's first blue
+  ink (508) — against the same three in our render. The span 60→508 is 448
+  device px against 225 CSS px rendered at 1440, so his crop is scale **1.991**
+  (Retina 2x, no zoom), and the line lands at CSS y **1259.8** where the hero's
+  bottom edge is **1260.0**. Both offsets agree independently: −171 CSS to the
+  ink top (rendered −171), +54 to the blue ink (rendered +54).
+- Strength: the row is FULL sand, not a blend of sand and white. So the white
+  wave fill contributes nothing to it — a whole-device-row shortfall, not edge
+  antialiasing.
+
+Root cause: **four edges met on one line with zero overlap** — the hero's
+bottom, the wash's bottom, the divider clip box's bottom, and the closing `V0`
+edge of the wave path. The width has carried explicit hairline insurance since
+round H4 (`width: calc(100% + 1.3px)`, and the comment calls it that); the
+height carried none. Rasterise the rotated SVG one device row off the wash
+behind it and the wash shows.
+
+**[disclosed — NOT REPRODUCED]** The raster was not reproduced anywhere I can
+drive:
+
+| engine                                   | matrix                                               | result |
+| ---------------------------------------- | ---------------------------------------------------- | ------ |
+| Playwright WebKit + Chromium             | DPR 1/2 × widths 1440/1293/1171, viewport + fullPage | clean  |
+| Playwright WebKit + Chromium             | viewport heights 890–910 × 5 scroll offsets, DPR 2   | clean  |
+| real WKWebView (`swiftc`, offscreen, 2x) | 1440 × 15 window heights                             | clean  |
+
+The defect is in Tim's on-screen compositor, which none of those reach. So this
+round fixes **the invariant, not the raster**: overlap instead of abutment,
+which no rounding, layer snapping or framebuffer resampling can undo. Stated
+here because "fixed" would be a stronger claim than the evidence supports —
+Tim's confirmation on his own machine is what closes this.
+
+The check is `tests/interaction/wave-divider.spec.ts`, a new third assertion on
+the existing 16-case matrix (4 routes × 4 widths, every mount): the fill's flat
+closing edge must sit ≥1px PAST the clip box's seam edge. It scored **0 at all
+16** before the change and 1.8–4px after.
+
+**The wave itself does not move.** Box height moves to the wrapper; the svg
+becomes 102.5% of it at −2.5%, against a viewBox extended 3 units to
+`0 -3 1200 123`. 102.5%/123 = 1/120 and 2.5% = 3/120, so the scale and every
+point on the curve are algebraically unchanged at every height in the ladder.
+A/B'd against the old markup at 72/96/120/160 × flip/mirror in both engines at
+DPR 1 and 2: max |Δ| on the curve **0.0000px** at 120 and 160, **0.0070px** at 96. What does change is ~1% of pixels along the curve's antialiased edge (the
+raster grid now starts at −2.5%) — same curve, re-antialiased. Recorded because
+"byte-identical" would have been the stronger claim and it is not true.
+
+Two stale selectors keyed to the literal old viewBox were found and repointed
+at the component's new `data-wave` hook: `tests/interaction/mobile-ux.spec.ts`
+(32 tests, which is how it was caught) and `matching/probe-shared.mjs` /
+`matching/probe-svcdx-tiers.mjs`. A selector that silently matches nothing is a
+spec that passes by measuring an absent element.
+
+### 2. The doctor pair is sticky — DIRECTIVE 6, reversing 3 and 5
+
+> Tim: "these elements still jump from question to question:" [screenshot] ·
+> Tuck: "oh i thought you wanted it smoother … you just want it as a straight
+> scroll?" · Tim: "sticky on scroll through that section" · Tuck: "got it, the
+> old behavior"
+
+**[deviation — operator directive, reverses an earlier operator directive]**
+This is the sixth directive on one behaviour and it contradicts the third
+("it should sit in the same place for each card") and the fifth ("stick with
+one spot per card"), landing back on the mechanism the first asked for. All six
+are recorded verbatim in `QuestionList/index.svelte`'s markup so a seventh
+round cannot re-derive a rejected one; the previous five lived in
+`floatAlong.ts`, which this round deletes.
+
+Every mechanism 1–5 was a mapping from scroll to `transform`, and every
+complaint (1, 4, 6) was about how that mapping felt. So the answer is not a
+better mapping: `position: sticky`, `lg:`-gated, on the zero-height anchor at
+the top of the question column. There is no per-frame code left, no debounce,
+no easing curve and nothing to tune, and "does not jump" is true by
+construction rather than by tuning.
+
+`floatAlong.ts` (221 lines) and `floatAlong.test.ts` (479) are DELETED, not
+disabled — a dead action that five directives argued over is exactly what a
+seventh round resurrects by accident. Unit count therefore drops 793 → 778.
+
+`tests/interaction/float-drift.spec.ts` is rewritten around the new property,
+at 1440/1294/1024: while the column owns the viewport the pair's viewport y
+holds to ≤1.5px of spread, no single 40px scroll step moves it more than that,
+and it must RELEASE at the column's bottom (or it would be `fixed`, not
+sticky). Before the change the same probe measured a **3080px** sweep.
+
+### Verification
+
+778 unit green, svelte-check 0 errors / 0 warnings, eslint clean, 223
+interaction green.
+
+**[pre-existing — not touched by this round]** 8 interaction tests fail on this
+branch both with and without these changes, verified by stashing and re-running
+each file: `qa-expand.spec.ts` ×6 ("the answer's first pixel clears the mask
+within a frame of the click") and `appointment-modal.spec.ts` ×2 (focus-ring
+and button-state timing). They are logged here rather than fixed because the
+operator scoped this round to the two Discord items.
+
+No gate run: pixel matching is PAUSED (`matching/PAUSED`). Neither change moves
+a static capture — the wave's curve is unchanged to 0.007px by measurement, and
+the sticky anchor is at its rest position at scroll 0.

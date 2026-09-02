@@ -7,7 +7,6 @@
     type ImageField,
     type RichTextField,
   } from "@prismicio/client";
-  import { floatAlong } from "$lib/actions/floatAlong";
   import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
   import QuestionCard from "./QuestionCard.svelte";
   import { pillClass } from "$lib/components/OutlineButton.svelte";
@@ -122,30 +121,53 @@
         <!-- Live's .ask-the-doctor-handwriting-anchor: ONE anchor holds the
              hand-drawn "ask the doctor" annotation (real PNG asset, NOT a
              redrawn cursive font) AND the doctor headshot at the SAME height,
-             flanking the question column exactly 100px below the tracked
-             card's top, and travelling WITH that card. floatAlong owns the
-             motion; see it for the full three-directive record. In short:
-             live's floating-doc.js quantized the pair per question to the
-             BOTTOM-most fully visible card, glided by
-             `.ask-the-doctor-handwriting-anchor { transition: transform 1s
-             cubic-bezier(.19,1,.22,1) }` (beachfront.css:7670). MarkUp thread
-             a7c2e0d0-5e13-4cfd-bb17-a21ecee7b188 (home pin #7, 2026-08-11)
-             rejected that as "jumping from question to question", so the
-             mapping went continuous; 2026-08-13 moved the tracked end to the
-             TOP fully visible question; 2026-08-13 (again) and 2026-09-01
-             (twice) argued the mechanism back and forth. It now sits where
-             directive 5 put it: ONE SPOT PER CARD, with the hop eased by a
-             CSS transition and debounced so a flick lands once. floatAlong
-             owns all five directives and the reasoning; do not re-litigate
-             the mechanism from this comment. The headshot sits 100px below
-             its card's top at every resting position. Live x-geometry at 1440: handwriting's
-             right edge 10px left of the column, headshot overlapping 40px
-             INTO the column's right edge. -->
+             flanking the question column 100px below its top.
+
+             SIX OPERATOR DIRECTIVES SHAPED THIS and they are not compatible —
+             3 reverses 1, 4 reverses 3, 5 reverses 4, 6 reverses 5 and lands
+             back on 1. The whole record lives here because each was written by
+             someone looking at the result of the previous one, and without it
+             a seventh round re-derives a mechanism that has already been
+             rejected:
+
+             1. 2026-08-11 (MarkUp a7c2e0d0…, home pin #7) — "I do not like the
+                jumping from question to question." Live's floating-doc.js
+                quantized per question and glided with
+                `.ask-the-doctor-handwriting-anchor { transition: transform 1s
+                cubic-bezier(.19,1,.22,1) }` (beachfront.css:7670); a 25px
+                scroll step could move it 420px. → continuous function of
+                scroll.
+             2. 2026-08-13 — "anchor to the top fully visible question rather
+                than the bottom one." Never reversed; moot under 6, which
+                tracks no question at all.
+             3. 2026-08-13, after seeing 2 — "it should sit in the same place
+                for each card." → quantized again.
+             4. 2026-09-01 (MarkUp 717b8986…, home pin #15) — "jittery … I just
+                wanted to move smoothly down as you scroll." → continuous
+                again (smoothstep over 70% of each card's pitch).
+             5. 2026-09-01, after seeing 4 — "the snap still feels real weird,
+                stick with one spot per card, ship just the fix with an eased
+                translation transition [and] probably wants a debounce."
+             6. 2026-09-02, Discord, after seeing 5 — "these elements still
+                jump from question to question" … "sticky on scroll through
+                that section."
+
+             6 is what runs, and it runs as `position: sticky` rather than as
+             JS: the pair holds one viewport position while this column scrolls
+             past and releases at its end. Every earlier mechanism was a
+             mapping from scroll to transform, and every complaint (1, 4, 6)
+             was about how that mapping felt. Deleting the mapping is the only
+             answer that cannot be tuned wrong. Checked in
+             tests/interaction/float-drift.spec.ts; do not re-litigate from
+             this comment.
+
+             Live x-geometry at 1440: handwriting's right edge 10px left of the
+             column, headshot overlapping 40px INTO the column's right edge. -->
         <!-- MOBILE (measured live @390): the pair rests IN PLACE above the
              first card, right-aligned — 120px headshot 24px from the content's
              right edge with its bottom 12px above the card, the 120×70
-             handwriting flush against its left edge (float gated off in
-             floatAlong). DESKTOP: flanks the column and drifts. -->
+             handwriting flush against its left edge (sticky is `lg:`-gated).
+             DESKTOP: flanks the column and sticks. -->
         <!-- z-30, not z-10. The card header button is `relative z-10` and the
              cards come AFTER this wrapper in the DOM, so at equal z-index the
              tie breaks in the headers' favour and they paint over the doctor
@@ -158,10 +180,26 @@
              transform on it forever (a transform makes a stacking context).
              I1 made that transform release on transitionend, which is what
              exposed the tie. -->
+        <!-- DIRECTIVE 6 (Tim, 2026-09-02, Discord): "these elements still jump
+             from question to question" … "sticky on scroll through that
+             section". The pair holds ONE viewport position while this column
+             scrolls past and releases at its end — real `position: sticky`,
+             not a JS emulation of it, which is why there is no longer an
+             action here. `floatAlong` is deleted, not disabled.
+
+             This reverses directives 3 and 5 and reinstates the mechanism 1
+             asked for; all six are recorded above and in
+             tests/interaction/float-drift.spec.ts, which is the check.
+
+             Zero-height in flow (both children are `lg:absolute`), so sticking
+             it at the top of the column costs no layout. `lg:inset-x-auto`
+             undoes the mobile `inset-x-0`: on a sticky box left/right are
+             stick constraints, not offsets, and the children hang off this
+             box's edges via `right-full` / `left-full`. -->
         <div
-          use:floatAlong={{ itemSelector: ".qa-item" }}
+          data-doctor-float
           aria-hidden="true"
-          class="pointer-events-none absolute inset-x-0 top-0 z-30 lg:top-[100px]"
+          class="pointer-events-none absolute inset-x-0 top-0 z-30 lg:sticky lg:inset-x-auto lg:top-[100px]"
         >
           {#if isFilled.richText(slice.primary.heading)}
             <!-- Live ships the raw handwriting PNG and turns it dark blue with
