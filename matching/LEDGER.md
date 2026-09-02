@@ -4511,3 +4511,108 @@ things that changes about the record above:
 
 Post-merge verification, run alone: interaction 231/231, unit 778/778,
 svelte-check 0/0, prettier and eslint clean, no conflict markers in the tree.
+
+## MARKUP ROUND I4 — Tim's Discord notes on deploy-preview-38 (post-I3), 2026-09-02 evening
+
+Read straight from `#beachfront-dentistry-website` with the reader bot
+(reddoor-maintenance CLAUDE.md, "Discord"). Five messages after Tucker's 17:22
+"fixes should be in":
+
+- 19:41 "line is gone for me." — closes I3 item 1 from Tim's own machine. No
+  action; recorded because it is the second confirmation on the only browser
+  that ever showed the line.
+- 19:41 "Can we get the doc image and text to stop sooner" [pair still stuck
+  over the next section's "Ready for…" headline] / 19:42 "It would be ideal to
+  stop here" [headshot on the last card].
+- 19:50 "it also starts high" [headshot's top level with the first card's top]
+  / "should start here" [headshot down on the first card's photo].
+- 20:43 "Last thing I found on the 'first visit' page" [screenshot: the
+  registration box's button with "Request" painted over "Appointment"].
+
+### 1. The sticky doctor — DIRECTIVE 7, and it is live's own geometry
+
+Directive 6 (I3) got the mechanism right and the geometry approximate. Live
+(beachfront.css):
+
+    :7664-7672  .ask-the-doctor-handwriting-anchor  sticky; top:0; height:10rem
+    :7786       .collection-list-wrapper-4          margin-top:-10rem
+    :7700       .ask-the-doctor-headshot            margin-top:2.5rem
+    :7682       .ask-the-doctor-handwriting         margin-top:3rem
+
+At live's ≥993 root of 40px that is a 400px sticky box at the column's top
+with the cards pulled up UNDER it, and the headshot/handwriting 100/120px down
+inside it. The I3 port had a zero-height box with both children at its top
+edge and the 100px moved into the sticky `top`. Same stuck position — which is
+why nothing looked wrong mid-scroll — but two consequences at the ends, and
+they are exactly Tim's two screenshots: 100px too high at rest, and 300px too
+late letting go (a zero-height box releases when the column's bottom reaches
+`top`; a 400px box releases when its own bottom does).
+
+`src/lib/slices/QuestionList/index.svelte` — anchor `lg:top-0 lg:h-[400px]`,
+`ul lg:-mt-[400px]`, headshot `lg:top-[100px]`, handwriting `lg:top-[120px]`.
+The directive record in the markup now runs to seven; the handwriting also
+moves 20px (it was at the headshot's height; live has it 20px lower).
+
+Check: `tests/interaction/float-drift.spec.ts` now asserts the rest geometry
+(box 400, first card at the box's top, children at 100/120), the stuck edge at
+viewport 0, and the release — 3/3 at 1440/1294/1024.
+
+Gate (measuring only; matching stays PAUSED): `bash matching/gate.sh d7 home`
+— header `page-diff — FAIL (threshold=0.1)`, 1440/834/390, no masks —
+identical to `out-markupi1d-home` on all 27 regions to 0.1pp. Expected, and
+worth saying why so nobody reads it as "no effect": the gate captures each
+region scrolled into view, where the pair is STUCK, and the stuck position did
+not change. The rest position is what moved, and the spec is its check. The
+three pre-existing home failures (top @390/@1440, "Want to learn more"
+@390/@834, "Our dental team" @834, "Ready for" @834) are unchanged.
+
+### 2. "Request" over "Appointment" — a wrapped label under `line-height:0`
+
+The pill is live's `.button` (`beachfront.css:6028-6040`): `padding:1.3em 1em;
+line-height:0`, so the box is 2.6em of padding and tracks the font ladder. The
+cost of `line-height:0` is that a label which WRAPS does not grow the pill —
+the second line lands on the first line's baseline and the words paint on top
+of each other.
+
+Live never shows it because live's label is "Book Appointment" (283px at
+25px). MarkUp pin 5980c9d7 #3 renamed it "Request Appointment" (315px), and
+the registration box's copy column beside the "15 MIN" badge is 300px at
+≥1100 and 275 at 1024. Probed (`matching/probe-pill-wrap.mjs`, counting text
+FRAGMENTS — distinct line tops find nothing, because the tops are equal):
+2 fragments at 1024/1200/1440 in Chromium AND WebKit, so not a Safari
+thing; and the TOC's "Request an Appointment" wraps the same way at 1024.
+**This is in production**: `beachfrontdentistry.com` has served this build
+since 2026-08-10 (gate.sh:32), and the probe against it shows the same two
+fragments.
+
+Fix, `src/lib/components/OutlineButton.svelte` — `whitespace-nowrap` in
+`PILL_BASE`. DEVIATION from live's `.button`, which has no `white-space`
+rule, recorded here: the single-line geometry is byte-identical (nowrap
+changes nothing that fits), and the honest failure for a label that outgrows
+its column is a visible overflow, not a silent overlap. Live has no wrapping
+pill anywhere. Where it now overflows: the timeline pill is 315px in a 300px
+column and ends 25px from the box's edge instead of 40 (probed at
+1024/1200/1440 — the box is 480 at all three, the padding absorbs it).
+
+Not taken: a `line-height:1em; padding:0.8em` box (same single-line
+geometry, wraps to two readable lines) — a two-line pill beside the TOC's
+one-line pill is a second defect; and shrinking the pill's padding — cannot
+reach 275 at 1024 anyway.
+
+Check: `tests/interaction/pill-label.spec.ts` — every `<a>` with computed
+`line-height: 0px` (the pill signature) has exactly one text fragment, on `/`
+and `/your-first-visit` at 390/834/1024/1200/1440. Red 3/10 before (the
+timeline pill at 1024/1200/1440 and the TOC pill at 1024), 10/10 after.
+
+Not Tim's, seen in his screenshot: "your dental helath goals" is a typo in
+the live copy (`matching/spec/your-first-visit.html:121`) carried into the
+seed (`beachfront-pages.js:556`). Content, not ours to change unasked.
+
+### Verification
+
+Interaction 243/243 alone on a fresh server (231 + the 3 rewritten float-drift
+cases + 10 new pill-label cases), unit 778/778, svelte-check 0/0, prettier +
+eslint clean. One earlier full run was 241/2 (a11y question-detail,
+shared-photos crawl) with a macOS XProtect scan and two leftover node
+processes competing for the CPU; both files pass alone (9/9, 7/7) and the
+clean rerun is the number above. Gate header for home is under item 1.

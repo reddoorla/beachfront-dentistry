@@ -110,9 +110,19 @@
       "border-white text-white hover:bg-white hover:text-[#0e7799] focus-visible:ring-white focus-visible:ring-offset-primary-deep",
   };
 
-  /** Shape + focus mechanics every pill shares, colourway-independent. */
+  /** Shape + focus mechanics every pill shares, colourway-independent.
+   *
+   * `whitespace-nowrap` because the box is `line-height:0` (see `sizing`
+   * below): a label that wraps does not make the pill taller, it paints the
+   * second line ON the first. Tim saw exactly that on /your-first-visit
+   * (Discord, 2026-09-02: "Request" over "Appointment") after MarkUp pin
+   * 5980c9d7 #3 renamed live's 283px "Book Appointment" to a 315px "Request
+   * Appointment" in a 300px copy column. A pill label is one line by design —
+   * live has no wrapping pill anywhere — so the honest failure for a label
+   * that outgrows its column is a visible overflow, not a silent overlap.
+   * tests/interaction/pill-label.spec.ts holds every pill to one fragment. */
   export const PILL_BASE =
-    "inline-flex items-center rounded-lg border font-slab font-light focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden";
+    "inline-flex items-center rounded-lg border font-slab font-light whitespace-nowrap focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden";
 
   /**
    * The full interaction + colour class string for a pill.
