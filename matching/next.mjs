@@ -8,10 +8,26 @@
 //
 // Reads the most recent gate log per page rather than the whole corpus, so it
 // reflects HEAD rather than history (that is strikes.mjs's job).
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const DIR = new URL(".", import.meta.url).pathname;
+
+// PAUSE SWITCH. While matching/PAUSED exists this hands out no agenda and
+// exits 0. It is deliberately the FIRST thing that runs: no report is read, no
+// score is printed, nothing tempting is put on screen to argue with.
+//
+// Why an exit code and not a note somewhere: rule 5 is a LOOP — "after
+// committing, run next.mjs; while it exits 1 there is a named next action and
+// the round continues". A pause written as prose loses to that loop, because
+// the loop is mechanical and the prose is not. Exiting 0 satisfies rule 5
+// truthfully rather than suspending it: there is no next action.
+const PAUSE = join(DIR, "PAUSED");
+if (existsSync(PAUSE)) {
+  console.log("MATCHING PAUSED — no agenda, and none is to be inferred.\n");
+  console.log(readFileSync(PAUSE, "utf8").trimEnd());
+  process.exit(0);
+}
 const TOTALS = {
   home: 27,
   yfv: 24,

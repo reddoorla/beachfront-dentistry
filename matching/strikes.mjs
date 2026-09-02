@@ -20,9 +20,20 @@
 // unchanged, across N gate runs while you were working on this page." That is
 // the more useful discipline number anyway, and it is honest about being an
 // upper bound. Improvement resets the count: real progress earns a fresh start.
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { FLOORS } from "./floors.mjs";
+
+// PAUSE SWITCH — see matching/next.mjs for why this is an exit code. Round
+// protocol step 1 is "run strikes.mjs; the stalled regions are the agenda", so
+// this is the second door into the backlog and has to be shut too. Exits 0:
+// there are no strikes to spend when no round is being played.
+const PAUSED = join(new URL(".", import.meta.url).pathname, "PAUSED");
+if (existsSync(PAUSED)) {
+  console.log("MATCHING PAUSED — no agenda, and none is to be inferred.\n");
+  console.log(readFileSync(PAUSED, "utf8").trimEnd());
+  process.exit(0);
+}
 
 const IMPROVE_PP = 0.01; // 1 percentage point = the smallest move worth calling progress
 const MAX_STRIKES = 3;

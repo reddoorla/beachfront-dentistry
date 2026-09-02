@@ -4490,3 +4490,24 @@ on this branch — here `matching/PAUSED` does not exist and `next.mjs` still
 prints "Round continues". Nothing was run against it, so nothing is affected,
 but the line was wrong as stated. Merging `main` into this branch restores both
 the switch and the maintenance bump, and is the obvious next step.
+
+Merged `main` into this branch the same day (73d9d34 → merge commit). Two
+things that changes about the record above:
+
+- **`main` had already made the identical fix.** c7a4467 (PR #39, the images
+  and maintenance-0.90 bump) opts the same three test bodies out with the same
+  `emulateMedia({ reducedMotion: "no-preference" })` call, with a shorter
+  comment. Nobody on this branch had looked; 73d9d34 re-derived it from
+  first principles. The merge conflicted only on the two comment blocks and
+  was resolved to `main`'s text, so both spec files are now byte-identical to
+  `main` and the call appears once. The longer explanation survives here and
+  in `playwright.config.ts`'s note.
+- **Lockfile and switch are now on the branch.** `package.json` pins
+  `^0.90.0`, the lockfile locks 0.90.1 (what `node_modules` already held, so
+  `pnpm install --frozen-lockfile --offline` is a no-op), and
+  `matching/PAUSED` exists: `next.mjs` and `strikes.mjs` both print the pause
+  and exit 0. The "PAUSED" line in the Verification block above is true from
+  this commit forward.
+
+Post-merge verification, run alone: interaction 231/231, unit 778/778,
+svelte-check 0/0, prettier and eslint clean, no conflict markers in the tree.

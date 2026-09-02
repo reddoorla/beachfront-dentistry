@@ -327,15 +327,11 @@ test("a resting field border is visible against the white card (≥3:1)", async 
 test("focusing a field steps the border and the ring in together, over 150ms", async ({
   page,
 }) => {
-  // MOTION IS THE SUBJECT HERE, so this test opts OUT of the suite-wide
-  // reduced-motion default. @reddoorla/maintenance's a11y base sets
-  // `contextOptions: { reducedMotion: "reduce" }`, which is the fix for the
-  // problem playwright.config.ts documents — plain `use.reducedMotion` silently
-  // did nothing, so specs that believed they ran reduced ran with motion ON.
-  // Now that it works, app.css's reduced-motion reset flattens every duration
-  // to 0.01ms (`1e-05s`) and the `no-preference`-gated `bump` utilities drop to
-  // `transition-property: none`, which is what this assertion would then be
-  // measuring instead of the ramp it exists to police.
+  // This test asserts the 150ms focus transition itself. @reddoorla/maintenance
+  // 0.90 emulates `prefers-reduced-motion: reduce` fleet-wide, and app.css
+  // correctly zeroes transitions under it — so `transitionProperty` comes back
+  // as "none" and the ramp can't be observed. Opt this one test back into
+  // motion; reduced motion stays the default everywhere else.
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.setViewportSize({ width: 1440, height: 900 });
   await gotoContact(page);
@@ -413,15 +409,8 @@ test("forced-colors: the focus ring survives (outline-hidden, not outline-none)"
 test("the submit button acknowledges hover, press and focus", async ({
   page,
 }) => {
-  // MOTION IS THE SUBJECT HERE, so this test opts OUT of the suite-wide
-  // reduced-motion default. @reddoorla/maintenance's a11y base sets
-  // `contextOptions: { reducedMotion: "reduce" }`, which is the fix for the
-  // problem playwright.config.ts documents — plain `use.reducedMotion` silently
-  // did nothing, so specs that believed they ran reduced ran with motion ON.
-  // Now that it works, app.css's reduced-motion reset flattens every duration
-  // to 0.01ms (`1e-05s`) and the `no-preference`-gated `bump` utilities drop to
-  // `transition-property: none`, which is what this assertion would then be
-  // measuring instead of the ramp it exists to police.
+  // Measures the hover/press/focus transition itself, so it needs motion on —
+  // 0.90 of @reddoorla/maintenance emulates prefers-reduced-motion fleet-wide.
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.setViewportSize({ width: 1440, height: 900 });
   await gotoContact(page);
