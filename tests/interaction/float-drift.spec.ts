@@ -1,334 +1,178 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 
-// ROUND G3 CONTRACT — the floating doctor+handwriting pair drifts
-// CONTINUOUSLY with scroll (MarkUp thread a7c2e0d0-5e13-4cfd-bb17-a21ecee7b188,
-// home board pin #7; operator directive 2026-08-11: Tim over live). Tim: "I
-// like the user experience of 'Ask The Doctor' and the [floating Doctor
-// image] of the original site. I do not like the jumping from question to
-// question."
+// THE ASK-THE-DOCTOR PAIR IS STICKY. Sixth and current operator directive on
+// this one behaviour; the five before it are recorded in QuestionList's markup
+// comment, because each was written by someone looking at the result of the
+// last and the record is the only thing that stops a seventh re-litigation.
 //
-// Live's floating-doc.js hopped the pair per-question to the bottom-most
-// fully visible card, glided by `.ask-the-doctor-handwriting-anchor
-// { transition: transform 1s cubic-bezier(.19,1,.22,1) }`
-// (beachfront.css:7670) — a step function of scroll: the probed BEFORE showed
-// 420px jumps inside a single 25px scroll step.
+// Tim, 2026-09-02, on the deploy-preview build that shipped directive 5 (one
+// spot per card, eased and debounced):
 //
-// TWO LATER DIRECTIVES (both 2026-08-13) settled where it sits and how:
-// "anchor to the top fully visible question rather than the bottom one", then,
-// after that shipped, "it should sit in the same place for each card". The
-// second one is why the target is QUANTIZED again. Continuous interpolation
-// pins the pair to a fixed SCREEN position and lets the cards slide past it —
-// measured on the deployed builds, its offset within a card swept ±190px at
-// BOTH tracking lines, so it spent most of the scroll straddling a card gap.
-// Travelling with a card requires a target that does not move while that card
-// owns the viewport top.
+//   Tim:  "these elements still jump from question to question" [screenshot of
+//          the handwriting + headshot beside the question column]
+//   Tuck: "oh i thought you wanted it smoother … you just want it as a
+//          straight scroll?"
+//   Tim:  "sticky on scroll through that section"
 //
-// Pin #7 is still honoured by the rAF follow rather than by the mapping: the
-// target steps 420px, the RENDERED position crosses it over ~4 frames. This
-// suite pins that contract:
-//   1. scroll 0: the pair's authored rest state is untouched (no transform) —
-//      the static gate captures depend on it byte-for-byte;
-//   2. quantized: every settled position down the column is exactly one of the
-//      items' offsets — never a value between two cards — and the set of them
-//      is monotone and covers the column (the assertion cannot go vacuous);
-//   3. smoothed: the handover is rendered as intermediate frames, not a
-//      teleport — sampling faster than the follow's settle catches the pair
-//      strictly between the two card offsets;
-//   4. bounds: past the column the pair clamps exactly to the last item's
-//      offset — it never leaves the column;
-//   5. opening a card mid-drift does not move the pair (G2's frozen cards
-//      keep every item offset, so the mapping's input never changes);
-//   6. prefers-reduced-motion: the pair is pinned statically at rest — no
-//      listeners, no transform, no drift.
+// So the answer is not a better hop. It is no hop: the pair holds ONE viewport
+// position while the question column scrolls past it, and releases at the
+// column's ends. That is `position: sticky`, and using the real thing rather
+// than emulating it in JS is what makes "does not jump" true by construction —
+// there is no per-frame mapping left to be jittery, no debounce, no easing
+// curve, and nothing to tune. `floatAlong` and its 479 lines of unit tests are
+// deleted rather than disabled; a dead action that five directives argued over
+// is exactly the thing a seventh round would resurrect by accident.
 //
-// The pair mounts ONLY on the home teaser: live's /ask-the-doctor page has no
-// `.ask-the-doctor-handwriting-anchor` at all (SPEC.md D.4 — FloatingDoctor
-// throws there and must not be ported), so the numbered variation is guarded
-// pair-free below.
+// This reverses directives 3 and 5 ("it should sit in the same place for each
+// card") and reinstates the mechanism directive 1 asked for. Tim was shown
+// both and chose this one; see LEDGER.
+//
+// DIRECTIVE 7 (Tim, 2026-09-02, on the build that shipped 6): "Can we get the
+// doc image and text to stop sooner" and "it also starts high … should start
+// here". Same mechanism, live's geometry: the sticky box is 400px tall at
+// top:0 with the cards pulled up under it, and the headshot/handwriting sit
+// 100/120px down inside it (beachfront.css:7664-7672, 7682, 7700, 7786). The
+// rest and release assertions below are that geometry; the 6 port had the
+// pair 100px high at rest and let go 300px late.
+//
+// Desktop only, which is unchanged: below lg the pair rests in the column flow
+// above the first question (full-width cards leave nowhere to glide without
+// covering content), so the sticky class is `lg:`-gated and this spec runs at
+// desktop widths only.
 
-const VIEWPORT = { width: 1440, height: 900 };
+const ROUTE = "/dev/match/home";
+const WIDTHS = [1440, 1294, 1024];
 
-const pairTy = (page: Page) =>
-  page.evaluate(() => {
-    const pair = document.querySelector(
-      ".ask-the-doctor-headshot",
-    )?.parentElement;
-    if (!pair) return null;
-    const t = (pair as HTMLElement).style.transform;
-    if (!t) return 0;
-    const m = /translateY\((-?[\d.]+)px\)/.exec(t);
-    return m ? parseFloat(m[1]!) : NaN;
-  });
+/** The pair may wander this far from its stuck position while the column owns
+ * the viewport. Sticky is exact, so this is only measurement noise: the reveal
+ * animation on the two children settles to translate(0) and sub-pixel layout
+ * rounding moves the rect by well under a pixel. A single hop of the old
+ * mechanism was ~345px, so this catches the failure it exists for by 300x. */
+const MAX_DRIFT = 1.5;
 
-/** Poll the pair's transform until it is stable across two 150ms reads (the
- *  rAF follow snaps to its exact target when settled, so this converges). */
-const settledTy = async (page: Page): Promise<number> => {
-  let prev: number | null = null;
-  for (let i = 0; i < 20; i++) {
-    await page.waitForTimeout(150);
-    const v = await pairTy(page);
-    if (v !== null && v === prev) return v;
-    prev = v;
-  }
-  return prev ?? NaN;
-};
+for (const width of WIDTHS) {
+  test(`the ask-the-doctor pair sticks through the question column — @${width}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(ROUTE, { waitUntil: "networkidle" });
+    await page.evaluate(() => document.fonts.ready);
 
-const gotoHome = async (page: Page) => {
-  await page.setViewportSize(VIEWPORT);
-  await page.goto("/", { waitUntil: "networkidle" });
-  await page.evaluate(() => document.fonts.ready);
-};
+    const samples = await page.evaluate(async () => {
+      const anchor = document.querySelector<HTMLElement>("[data-doctor-float]");
+      const column = anchor?.parentElement;
+      if (!anchor || !column) return null;
 
-test("scroll 0: the pair rests in its authored position, untransformed", async ({
-  page,
-}) => {
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await gotoHome(page);
-  const state = await page.evaluate(() => {
-    const pair = document.querySelector(
-      ".ask-the-doctor-headshot",
-    )?.parentElement;
-    if (!pair) return null;
-    return {
-      inline: (pair as HTMLElement).style.transform,
-      computed: getComputedStyle(pair).transform,
-    };
-  });
-  expect(state).not.toBeNull();
-  expect(state!.inline).toBe("");
-  expect(state!.computed).toBe("none");
-});
+      const colTop = column.getBoundingClientRect().top + scrollY;
+      const colBottom = column.getBoundingClientRect().bottom + scrollY;
+      const headshot = anchor.querySelector<HTMLElement>(
+        ".ask-the-doctor-headshot",
+      );
+      const handwriting = anchor.querySelector<HTMLElement>("img");
+      scrollTo({ top: 0, behavior: "instant" });
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
+      const rest = {
+        boxHeight: anchor.getBoundingClientRect().height,
+        headshotDown: headshot
+          ? headshot.getBoundingClientRect().top -
+            anchor.getBoundingClientRect().top
+          : null,
+        handwritingDown: handwriting
+          ? handwriting.getBoundingClientRect().top -
+            anchor.getBoundingClientRect().top
+          : null,
+        firstCardDown:
+          (column.querySelector("li")?.getBoundingClientRect().top ?? NaN) -
+          anchor.getBoundingClientRect().top,
+      };
 
-test("the pair holds one card's offset at a time, monotone and column-bounded", async ({
-  page,
-}) => {
-  test.setTimeout(180_000);
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await gotoHome(page);
-
-  // Fire every entrance reveal first (animateIn is one-shot — its observer
-  // disconnects after revealing) by scrolling THROUGH the page in
-  // half-viewport steps: an instant jump to the bottom never intersects the
-  // mid-page items, so their reveals would otherwise fire one by one DURING
-  // the sweep. The `.qa-item`s themselves carry the reveal transform, so an
-  // unrevealed card's rect moves on its own for ~1s and the sweep would
-  // measure that reveal motion on top of the drift this contract is about.
-  await page.evaluate(async () => {
-    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-    for (let y = 0; y <= document.body.scrollHeight; y += innerHeight / 2) {
-      window.scrollTo({ top: y, behavior: "instant" });
-      await sleep(60);
-    }
-    window.scrollTo({ top: 0, behavior: "instant" });
-  });
-  await page.waitForTimeout(1500);
-  await settledTy(page);
-
-  const range = await page.evaluate(() => {
-    const pair = document.querySelector(
-      ".ask-the-doctor-headshot",
-    )!.parentElement!;
-    const items = [...pair.parentElement!.querySelectorAll(".qa-item")];
-    // Handovers happen as each item's TOP crosses y=0, so the window runs from
-    // just before the first item's top reaches it to just after the last one's.
-    const topOf = (el: Element) => el.getBoundingClientRect().top + scrollY;
-    const first = items[0] as HTMLElement;
-    const last = items[items.length - 1] as HTMLElement;
-    return {
-      start: Math.max(0, Math.round(topOf(first) - 50)),
-      end: Math.round(topOf(last) + 50),
-      colTravel: last.offsetTop - first.offsetTop,
-      // the only offsets a quantized target may ever settle on
-      stops: (items as HTMLElement[]).map(
-        (el) => el.offsetTop - first.offsetTop,
-      ),
-    };
-  });
-  expect(range.colTravel).toBeGreaterThan(500);
-  expect(range.stops.length).toBeGreaterThanOrEqual(4);
-
-  // Settle fully at the sweep's first position: the reveal animations shift
-  // the cards between load and first paint, so the mapping can already be
-  // >0 here — without this, the first samples measure the follow's catch-up
-  // transient instead of the drift the contract is about.
-  await page.evaluate(
-    (y) => window.scrollTo({ top: y, behavior: "instant" }),
-    range.start,
-  );
-  await settledTy(page);
-
-  // Sampled at a 60px scroll increment — still seven samples per 420px card,
-  // so a target that moved WITHIN a card could not hide between them.
-  //
-  // 1500ms per sample, not the 600ms this first used: the follow is
-  // exponential with TAU=150ms, so at 600ms it is still exp(-4) = 1.8% short —
-  // on a 420px handover that is ~7px, and every mid-handover sample read 413
-  // instead of 420 and failed the grid check as if the TARGET were off-grid.
-  // 1500ms leaves exp(-10) ≈ 0.02px, far inside the ±1 tolerance. Each sample
-  // must be settled or this assertion is about the follow, not the mapping.
-  const step = 60;
-  const samples: number[] = [];
-  for (let y = range.start; y <= range.end; y += step) {
-    await page.evaluate(
-      (y) => window.scrollTo({ top: y, behavior: "instant" }),
-      y,
-    );
-    await page.waitForTimeout(1500);
-    samples.push((await pairTy(page))!);
-  }
-  expect(samples.length).toBeGreaterThanOrEqual(30);
-
-  // Quantized: every settled position is one of the cards' own offsets. A
-  // continuous mapping fails this on the first mid-segment sample.
-  const offGrid = samples.filter(
-    (v) => !range.stops.some((s) => Math.abs(s - v) <= 1),
-  );
-  expect(
-    offGrid,
-    `settled positions off the card grid: ${offGrid.join(", ")}`,
-  ).toEqual([]);
-
-  for (let i = 1; i < samples.length; i++) {
-    // monotone (never drifts back up while scrolling down)…
-    expect(samples[i]! - samples[i - 1]!).toBeGreaterThanOrEqual(-0.5);
-  }
-  // …the pair really travelled the column, so none of this is vacuous…
-  const travelled = samples[samples.length - 1]! - samples[0]!;
-  expect(travelled).toBeGreaterThan(range.colTravel * 0.8);
-  // …it visited more than one card, i.e. handovers actually happened…
-  expect(new Set(samples).size).toBeGreaterThanOrEqual(3);
-  // …and it never left the column.
-  expect(Math.max(...samples)).toBeLessThanOrEqual(range.colTravel + 0.5);
-
-  // Past the column the pair clamps exactly to the last item's offset.
-  await page.evaluate(
-    (y) => window.scrollTo({ top: y, behavior: "instant" }),
-    range.end + 600,
-  );
-  expect(await settledTy(page)).toBe(range.colTravel);
-});
-
-test("the handover between cards is glided, not teleported", async ({
-  page,
-}) => {
-  test.setTimeout(180_000);
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await gotoHome(page);
-  await page.evaluate(async () => {
-    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-    for (let y = 0; y <= document.body.scrollHeight; y += innerHeight / 2) {
-      window.scrollTo({ top: y, behavior: "instant" });
-      await sleep(60);
-    }
-    window.scrollTo({ top: 0, behavior: "instant" });
-  });
-  await page.waitForTimeout(1500);
-
-  // Park just BEFORE item 2's top reaches the line, and settle on item 2.
-  const marks = await page.evaluate(() => {
-    const items = [...document.querySelectorAll<HTMLElement>(".qa-item")];
-    const first = items[0]!;
-    return {
-      before: Math.round(items[2]!.getBoundingClientRect().top + scrollY) - 8,
-      after: Math.round(items[2]!.getBoundingClientRect().top + scrollY) + 8,
-      from: items[2]!.offsetTop - first.offsetTop,
-      to: items[3]!.offsetTop - first.offsetTop,
-    };
-  });
-  await page.evaluate(
-    (y) => window.scrollTo({ top: y, behavior: "instant" }),
-    marks.before,
-  );
-  expect(await settledTy(page)).toBe(marks.from);
-
-  // Cross the handover and sample FASTER than the follow settles. The target
-  // steps `from`→`to` instantly; the rendered position must not.
-  await page.evaluate(
-    (y) => window.scrollTo({ top: y, behavior: "instant" }),
-    marks.after,
-  );
-  const mid: number[] = [];
-  for (let i = 0; i < 12; i++) {
-    const v = await pairTy(page);
-    if (v !== null && v > marks.from + 1 && v < marks.to - 1) mid.push(v);
-    await page.waitForTimeout(20);
-  }
-
-  // At least one frame strictly between the two card offsets — that is the
-  // difference between this and live's instant transform swap. (Live's own
-  // glide was CSS over 1s; this one is the rAF follow over ~4 frames.)
-  expect(
-    mid.length,
-    `intermediate frames observed between ${marks.from} and ${marks.to}`,
-  ).toBeGreaterThan(0);
-  expect(await settledTy(page)).toBe(marks.to);
-});
-
-test("opening a card mid-drift does not move the pair", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await gotoHome(page);
-
-  // Park mid-column and settle.
-  await page.evaluate(() => {
-    const items = [...document.querySelectorAll<HTMLElement>(".qa-item")];
-    const mid = items[Math.floor(items.length / 2)]!;
-    window.scrollTo({
-      top: mid.getBoundingClientRect().top + scrollY - innerHeight / 2,
-      behavior: "instant",
+      const rows: { scrollY: number; viewportTop: number; phase: string }[] =
+        [];
+      // Walk the whole column in 40px steps — the same step the old
+      // mechanism's 345px handovers were measured in.
+      for (let y = colTop - 400; y < colBottom + 400; y += 40) {
+        scrollTo({ top: Math.max(0, y), behavior: "instant" });
+        await new Promise((r) => requestAnimationFrame(() => r(null)));
+        await new Promise((r) => requestAnimationFrame(() => r(null)));
+        const r = anchor.getBoundingClientRect();
+        const stuck =
+          scrollY >= colTop && r.bottom < column.getBoundingClientRect().bottom;
+        rows.push({
+          scrollY,
+          viewportTop: Math.round(r.top * 100) / 100,
+          phase: stuck ? "stuck" : "free",
+        });
+      }
+      return { rows, rest };
     });
+
+    expect(samples, "the float anchor is present").not.toBeNull();
+    const { rest } = samples!;
+
+    // 0. Directive 7 — live's geometry. The box is 400px tall
+    //    (beachfront.css:7667, 10rem at a 40px root) and the first card starts
+    //    under it, not after it (:7786); the headshot and handwriting hang
+    //    100/120px down inside it (:7700, :7682). "Should start here."
+    expect(rest.boxHeight, `@${width}: sticky box height`).toBeCloseTo(400, 0);
+    expect(
+      rest.firstCardDown,
+      `@${width}: first card shares the box's top`,
+    ).toBeCloseTo(0, 0);
+    expect(
+      rest.headshotDown,
+      `@${width}: headshot 100px down at rest`,
+    ).toBeCloseTo(100, 0);
+    expect(
+      rest.handwritingDown,
+      `@${width}: handwriting 120px down at rest`,
+    ).toBeCloseTo(120, 0);
+
+    const stuck = samples!.rows.filter((s) => s.phase === "stuck");
+    expect(
+      stuck.length,
+      "the column is long enough to actually stick through",
+    ).toBeGreaterThan(5);
+
+    // 1. While stuck, the pair holds ONE viewport position. This is the whole
+    //    directive: no jumping from question to question.
+    const tops = stuck.map((s) => s.viewportTop);
+    const spread = Math.max(...tops) - Math.min(...tops);
+    expect(
+      spread,
+      `@${width}: viewport spread while stuck (${Math.min(...tops)} … ${Math.max(...tops)})`,
+    ).toBeLessThanOrEqual(MAX_DRIFT);
+
+    //    It holds it at the viewport's top edge (top:0, :7672) — the 100px the
+    //    headshot clears the nav by is INSIDE the box, not a sticky offset.
+    expect(
+      Math.min(...tops),
+      `@${width}: stuck at the viewport top`,
+    ).toBeCloseTo(0, 0);
+
+    // 2. And it holds it by STICKING, not by being fixed forever: the pair has
+    //    to let go at the column's end, or it would ride down the whole page.
+    //    Directive 7, "stop sooner": the 400px box lets go when ITS bottom
+    //    meets the column's, so the headshot is still on the last card.
+    const rows = samples!.rows;
+    const last = rows[rows.length - 1];
+    expect(
+      last.phase,
+      `@${width}: the pair releases at the column's bottom`,
+    ).toBe("free");
+
+    // 3. No step may move it more than a step. A hop is exactly a step in
+    //    scroll producing a jump in position; the old mechanism scored 8.6x.
+    let worstStep = 0;
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i].phase !== "stuck" || rows[i - 1].phase !== "stuck") continue;
+      worstStep = Math.max(
+        worstStep,
+        Math.abs(rows[i].viewportTop - rows[i - 1].viewportTop),
+      );
+    }
+    expect(
+      worstStep,
+      `@${width}: worst single-step movement`,
+    ).toBeLessThanOrEqual(MAX_DRIFT);
   });
-  const before = await settledTy(page);
-  expect(Number.isNaN(before)).toBe(false);
-
-  // Open the card nearest the viewport centre (a real click, real motion
-  // preferences — G2's frozen footprint is what keeps the mapping's input
-  // geometry unchanged).
-  const opened = await page.evaluate(() => {
-    const items = [...document.querySelectorAll<HTMLElement>(".qa-item")];
-    const centre = innerHeight / 2;
-    const best = items
-      .map((el) => {
-        const r = el.getBoundingClientRect();
-        return { el, d: Math.abs((r.top + r.bottom) / 2 - centre) };
-      })
-      .sort((a, b) => a.d - b.d)[0];
-    const btn = best?.el.querySelector<HTMLElement>("button[aria-expanded]");
-    if (!btn) return false;
-    btn.click();
-    return true;
-  });
-  expect(opened).toBe(true);
-
-  await page.waitForTimeout(800);
-  const after = await settledTy(page);
-  expect(Math.abs(after - before)).toBeLessThanOrEqual(1);
-});
-
-test("prefers-reduced-motion: the pair is pinned statically at rest", async ({
-  page,
-}) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await gotoHome(page);
-
-  await page.evaluate(() => {
-    const pair = document.querySelector(
-      ".ask-the-doctor-headshot",
-    )!.parentElement!;
-    const items = [...pair.parentElement!.querySelectorAll(".qa-item")];
-    const last = items[items.length - 1]!;
-    window.scrollTo({
-      top: last.getBoundingClientRect().bottom + scrollY - innerHeight,
-      behavior: "instant",
-    });
-  });
-  await page.waitForTimeout(800);
-  expect(await pairTy(page)).toBe(0);
-});
-
-test("the numbered /ask-the-doctor variation stays pair-free (SPEC D.4)", async ({
-  page,
-}) => {
-  await page.setViewportSize(VIEWPORT);
-  await page.goto("/ask-the-doctor", { waitUntil: "networkidle" });
-  expect(await page.locator(".ask-the-doctor-headshot").count()).toBe(0);
-});
+}

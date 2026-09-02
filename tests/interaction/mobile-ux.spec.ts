@@ -417,9 +417,14 @@ test.describe("Read Reviews opens clear of the footer wave", () => {
             return el.closest("footer") ? "FOOTER" : el.tagName.toLowerCase();
           });
 
-          // (3) clearance to the footer wave's painted curve, under the row
+          // (3) clearance to the footer wave's painted curve, under the row.
+          // `[data-wave]` rather than the viewBox literal: round I2 extended
+          // the viewBox to `0 -3 1200 123` so the fill overhangs the seam, and
+          // a selector keyed to the old numbers silently matched nothing —
+          // which is a spec that passes by measuring an absent element, not a
+          // spec that fails. The attribute is the component's stable hook.
           const svg = document.querySelector<SVGSVGElement>(
-            "footer svg[viewBox='0 0 1200 120']",
+            "footer svg[data-wave]",
           )!;
           const path = svg.querySelector("path")!;
           const m = svg.getScreenCTM()!;

@@ -168,7 +168,9 @@
   );
 </script>
 
-<!-- Per-card reveal + floatAlong tracking target (`.qa-item`): live raises
+<!-- Per-card reveal + `.qa-item`, the card hook the expand specs select on
+     (it was also floatAlong's tracking target until directive 6 made the
+     doctor pair sticky and deleted the action): live raises
      each `.qa-block` as IT enters. -->
 <!-- `firstFold` marks the cards that are inside the first viewport on
      /ask-the-doctor (measured: two at 390 and at 1440). Only those get the

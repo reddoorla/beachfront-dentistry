@@ -54,12 +54,43 @@ const MIN_CLEARANCE = 8;
  * one full amplitude (19-43px). */
 const MAX_END_DELTA = 1;
 
+/** How far the divider's OPAQUE FILL must reach past the edge it seams into.
+ *
+ * MarkUp round I2, Tim 2026-09-02 ("still seeing the line", Safari). The line
+ * in his screenshot is rgb(182,170,145) — verbatim the terminal stop of the
+ * hero's own bottom wash (Hero/index.svelte:359) — and matching his crop's
+ * landmarks against our render (H1 last-line ink top → the line → the H2's
+ * first blue ink: 60 → 400 → 508 device px, crop scale 1.991) puts it at CSS
+ * y 1259.8 where the hero's bottom edge is 1260.0. So the seam the fill is
+ * supposed to close is exactly one device row wide, and the row reads FULL
+ * sand rather than a blend: the fill is absent from it entirely, which is a
+ * whole-row shortfall and not edge antialiasing.
+ *
+ * The fill could only ever ABUT that edge. Four things land on the same line —
+ * the hero's bottom, the wash's bottom, the divider box's bottom and the
+ * closing `V0` edge of the path — with zero overlap between them, so any
+ * engine that rasterises the rotated SVG onto a different device row than the
+ * wash behind it exposes the wash. The horizontal axis has carried explicit
+ * hairline insurance since round H4 (`width: calc(100% + 1.3px)`); the
+ * vertical axis had none at all.
+ *
+ * Stated as a property rather than a pixel because it could not be reproduced
+ * to a pixel: Playwright WebKit and Chromium (DPR 1 and 2, widths 1440/1293/
+ * 1171, viewport heights 890-910, five scroll offsets, viewport and full-page
+ * captures) and a real offscreen WKWebView at fifteen window heights all
+ * render the seam clean. The defect is in Tim's on-screen compositor, which
+ * none of those reach. What IS checkable in every engine is the invariant that
+ * makes the raster irrelevant: overlap, not abutment. 1px is the floor — the
+ * shortfall observed is one device row, i.e. 0.5 CSS px at his 2x. */
+const MIN_SEAM_OVERHANG = 1;
+
 type Mount = {
   mount: string;
   endDelta: number;
   turns: number;
   worstClearance: number;
   worstText: string;
+  seamOverhang: number;
 };
 
 const measure = () => {
@@ -79,6 +110,16 @@ const measure = () => {
     if (!s || !s.trim()) continue;
     const el = n.parentElement;
     if (!el || el.closest("[aria-hidden='true']")) continue;
+    // `data-wave-overlap` marks copy the operator has DELIBERATELY placed over
+    // a divider, so the blanket clearance rule below does not apply to it.
+    // Currently only /our-team's "Our Team" (MARKUP ROUND I1 pin #4 — the
+    // Meet↔Our gap IS the divider, so closing it means overlapping it). The
+    // rule that replaces clearance for those elements is not "nothing" — it is
+    // the pixel assertion in the test at the bottom of this file: their glyphs
+    // must land on the wave's WHITE FILL, never on the photograph. Marking the
+    // element rather than special-casing a route keeps the exemption visible
+    // in the markup that takes it.
+    if (el.closest("[data-wave-overlap]")) continue;
     const cs = getComputedStyle(el);
     if (cs.visibility === "hidden" || cs.display === "none") continue;
     // `checkVisibility`, not `cs.opacity`: the scroll reveal sets opacity on a
@@ -103,7 +144,7 @@ const measure = () => {
   }
 
   for (const svg of document.querySelectorAll<SVGSVGElement>(
-    'svg[viewBox="0 0 1200 120"]',
+    "svg[data-wave]",
   )) {
     const path = svg.querySelector("path")!;
     const clip = svg.parentElement!.getBoundingClientRect();
@@ -187,7 +228,24 @@ const measure = () => {
       }
     }
 
+    // How far the fill's flat closing edge reaches PAST the clip box's own
+    // edge on the seam side. The flat edge is the viewBox's y-min line (the
+    // path closes back along it), and getScreenCTM folds in the stretch and
+    // the rotate-180 / -scale-x-100, so this is where the fill actually ends
+    // on screen. Whichever clip edge it is nearer IS the seam: `flip` mounts
+    // seam at the bottom, the mirrored SectionGrid mount at the top.
+    const vb = svg.viewBox.baseVal;
+    const flatY = (pt(vb.x, vb.y).y + pt(vb.x + vb.width, vb.y).y) / 2;
+    const clipTop = clip.top + scrollY;
+    const clipBottom = clip.bottom + scrollY;
+    const seamOverhang = R(
+      Math.abs(flatY - clipTop) < Math.abs(flatY - clipBottom)
+        ? clipTop - flatY
+        : flatY - clipBottom,
+    );
+
     out.push({
+      seamOverhang,
       mount:
         (svg.closest("footer") && "Footer") ||
         svg
@@ -263,7 +321,122 @@ for (const width of WIDTHS) {
           m.worstClearance,
           `${where}: clearance to "${m.worstText}"`,
         ).toBeGreaterThanOrEqual(MIN_CLEARANCE);
+        // 3. Tim, 2026-09-02: "still seeing the line" (Safari). The fill must
+        // OVERLAP the edge it seams into, never merely meet it.
+        expect(
+          m.seamOverhang,
+          `${where}: fill overhang past the seam edge`,
+        ).toBeGreaterThanOrEqual(MIN_SEAM_OVERHANG);
       }
     });
   }
+}
+
+// ---------------------------------------------------------------------------
+// The rule that REPLACES clearance for `[data-wave-overlap]` copy.
+//
+// MARKUP ROUND I1 pin #4 (thread c5a1f351…): Tim asked for the Meet↔Our gap to
+// close by 70px. That gap IS the hero divider's lg box height (120px, measured
+// — the two are the same object), so the only way to close it is to put "Our
+// Team" over the divider. Operator ACKed that on 2026-09-01, choosing it over
+// shrinking the wave.
+//
+// So "never touch the text" stops being the right question for THESE elements
+// and this is the right one instead: the divider's fill under them is WHITE and
+// so is the page, so the headline is legible exactly as long as its GLYPHS land
+// on that fill and never on the photograph above it. Clearance would score this
+// mount as a failure while it looks perfect; this scores what a reader sees.
+//
+// Ink, not line box. A 140px face in a 168px line box carries ~20px of leading
+// above the cap, so a line-box test would condemn an overlap the letters never
+// make. The ascent comes from canvas metrics for the element's own resolved
+// font, which is why this needs no image decoding and no new dependency.
+const OVERLAP_WIDTHS = [1440, 1294, 1200, 993];
+
+for (const width of OVERLAP_WIDTHS) {
+  test(`[data-wave-overlap] copy sits on the divider's white fill — /dev/match/our-team @${width}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/dev/match/our-team", { waitUntil: "networkidle" });
+    await page.evaluate(() => document.fonts.ready);
+    await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
+    await page.waitForTimeout(900);
+
+    const rows = await page.evaluate(() => {
+      const marked = [
+        ...document.querySelectorAll<HTMLElement>("[data-wave-overlap]"),
+      ];
+      const hero = document.querySelector("section");
+      const svg = hero?.querySelector("svg");
+      if (!svg || !marked.length) return [];
+      const path = svg.querySelector("path")!;
+      const ctm = path.getScreenCTM()!;
+      const len = path.getTotalLength();
+      const box = svg.getBoundingClientRect();
+      const top = box.top + scrollY;
+      const bottom = box.bottom + scrollY;
+
+      const pts: { x: number; y: number }[] = [];
+      for (let i = 0; i <= 1200; i++) {
+        const q = path.getPointAtLength((len * i) / 1200);
+        const s = new DOMPoint(q.x, q.y).matrixTransform(ctm);
+        pts.push({ x: s.x, y: s.y + scrollY });
+      }
+      // Flipped divider: the white fill runs from the curve DOWN to the box
+      // bottom. The worst (latest-starting) fill edge under a run is what the
+      // glyphs must clear.
+      const fillTopUnder = (x0: number, x1: number) => {
+        let worst: number | null = null;
+        for (let x = x0; x <= x1; x += 1) {
+          const near = pts.filter(
+            (q) =>
+              Math.abs(q.x - x) < 2 && q.y > top + 0.5 && q.y < bottom - 0.5,
+          );
+          if (!near.length) continue;
+          const c = Math.min(...near.map((q) => q.y));
+          if (worst === null || c > worst) worst = c;
+        }
+        return worst;
+      };
+
+      const cv = document.createElement("canvas").getContext("2d")!;
+      return marked
+        .map((el) => {
+          const r = document.createRange();
+          r.selectNodeContents(el);
+          const b = r.getBoundingClientRect();
+          const lineTop = b.top + scrollY;
+          const cs = getComputedStyle(el);
+          cv.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+          const m = cv.measureText(el.textContent || "");
+          const fa = m.fontBoundingBoxAscent;
+          const fd = m.fontBoundingBoxDescent;
+          const aa = m.actualBoundingBoxAscent;
+          const lh = parseFloat(cs.lineHeight);
+          // half-leading, then the gap from the font's ascent to the real cap
+          const inkTop = lineTop + (lh - (fa + fd)) / 2 + (fa - aa);
+          const fill = fillTopUnder(b.left, b.right);
+          return {
+            text: (el.textContent || "").trim(),
+            inkTop: Math.round(inkTop * 10) / 10,
+            fillTop: fill === null ? null : Math.round(fill * 10) / 10,
+            margin:
+              fill === null ? null : Math.round((inkTop - fill) * 10) / 10,
+            belowWaveEntirely: lineTop >= bottom,
+          };
+        })
+        .filter((r) => r.fillTop !== null || r.belowWaveEntirely);
+    });
+
+    expect(rows.length, "marked headings are present").toBeGreaterThan(0);
+    for (const r of rows) {
+      if (r.belowWaveEntirely) continue; // clear of the divider altogether
+      // Positive margin = the glyphs start below the fill edge, i.e. on white.
+      expect(
+        r.margin,
+        `@${width} "${r.text}": glyph ink must start below the wave's fill edge (ink ${r.inkTop}, fill ${r.fillTop})`,
+      ).toBeGreaterThanOrEqual(0);
+    }
+  });
 }

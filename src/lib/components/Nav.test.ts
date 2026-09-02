@@ -91,7 +91,45 @@ describe("Nav — mobile menu", () => {
     expect(dialog.getAttribute("aria-modal")).toBe("true");
 
     await frame();
-    expect(document.activeElement).toBe(getByLabelText("Close menu"));
+    // The DIALOG takes focus, not the first control inside it: it carries
+    // `data-autofocus` + `tabindex="-1"` so that opening the menu never rings a
+    // real destination — MARKUP ROUND I1 pin #2, where the ring landed on the
+    // logo (see the note on the dialog element in Nav.svelte).
+    //
+    // This assertion used to name the Close button, and that is precisely why
+    // the defect was invisible here: `focusable()[0]` is the Close button only
+    // because THIS render passes no `logo` prop, so the logo anchor that
+    // precedes it on every real page of the site does not exist in the tree.
+    // The test agreed with the browser about the element and disagreed about
+    // the page.
+    expect(document.activeElement).toBe(dialog);
+    expect(dialog.getAttribute("tabindex")).toBe("-1");
+  });
+
+  // The shape of the page the pin was actually filed against: a logo IS
+  // present, so the logo anchor is the overlay's first focusable and was what
+  // trapFocus handed the ring to. Rendering it here is the whole point.
+  it("does not focus the logo when one is present (MarkUp I1 pin #2)", async () => {
+    const { getByLabelText, getByRole, getAllByAltText } = render(Nav, {
+      items,
+      logo: { url: "https://cdn.example/logo.png" },
+    });
+
+    await fireEvent.click(getByLabelText("Open menu"));
+    const dialog = getByRole("dialog");
+    await frame();
+
+    const logoLink = getAllByAltText("Home")
+      .map((img) => img.closest("a"))
+      .find((a) => dialog.contains(a));
+    expect(logoLink).toBeTruthy();
+    // The logo is still the first focusable in the overlay — the fix is not to
+    // reorder the DOM, it is to stop handing that position the focus.
+    expect(dialog.querySelector('a[href="/"], button:not([disabled])')).toBe(
+      logoLink,
+    );
+    expect(document.activeElement).not.toBe(logoLink);
+    expect(document.activeElement).toBe(dialog);
   });
 
   it("wraps Tab from the last link back to the close button", async () => {
@@ -357,6 +395,66 @@ describe("Nav — the trigger announces the menu's state", () => {
 // it — so the press state is driven by pointer events and surfaced as
 // `data-pressed`, which the pill/glyph classes key off.
 describe("Nav — the trigger acknowledges a press", () => {
+  // MARKUP ROUND I1 pin #3: "There is a weird background under the X to close."
+  // I1 removed the pill's hover variants; on 2026-09-01, after seeing that on
+  // the deploy preview, the operator relayed that the blue "still shows up on
+  // active" and Tim "just wants it totally gone". So the coloured disc is gone
+  // outright — this test is the guard against it being reintroduced, and against
+  // the removal quietly taking the touch feedback with it.
+  it("has NO coloured press disc behind either icon glyph", async () => {
+    const { getByLabelText } = render(Nav, {
+      items,
+      logo: { url: "https://cdn.example/logo.png" },
+      hamburgerOnly: true,
+    });
+
+    // The pill was the decorative `aria-hidden` span nested inside the glyph
+    // wrapper. Nothing of that shape may come back.
+    const discOf = (btn: HTMLElement) =>
+      btn.querySelector("span > span[aria-hidden]");
+
+    expect(discOf(getByLabelText("Open menu"))).toBeNull();
+    await fireEvent.click(getByLabelText("Open menu"));
+    await frame();
+    expect(discOf(getByLabelText("Close menu"))).toBeNull();
+
+    // No element under either control paints `bg-primary` any more.
+    for (const label of ["Close menu"]) {
+      const btn = getByLabelText(label);
+      expect(btn.innerHTML).not.toMatch(/bg-primary/);
+    }
+  });
+
+  // Removing the disc must NOT cost the press feedback it was carrying: the
+  // glyph itself still dips and shrinks, which is what a phone needs so a tap
+  // that looks like nothing happened does not get tapped twice.
+  it("still acknowledges a press on the glyph itself, on every input path", async () => {
+    const { getByLabelText } = render(Nav, {
+      items,
+      logo: { url: "https://cdn.example/logo.png" },
+      hamburgerOnly: true,
+    });
+
+    const glyphOf = (btn: HTMLElement) =>
+      btn.querySelector("span") as HTMLElement;
+
+    const trigger = glyphOf(getByLabelText("Open menu"));
+    // `group-active` covers mouse and keyboard Space; `group-data-[pressed]`
+    // is the pointer-event path that touch and pen actually take.
+    expect(trigger.className).toMatch(/group-active:scale-90/);
+    expect(trigger.className).toMatch(/group-active:opacity-90/);
+    expect(trigger.className).toMatch(/group-data-\[pressed\]:scale-90/);
+    expect(trigger.className).toMatch(/group-data-\[pressed\]:opacity-90/);
+    // …and no hover variant, for the same shared-slot reason as pin #3.
+    expect(trigger.className).not.toMatch(/group-hover:/);
+
+    await fireEvent.click(getByLabelText("Open menu"));
+    await frame();
+    const close = glyphOf(getByLabelText("Close menu"));
+    expect(close.className).toMatch(/group-data-\[pressed\]:opacity-90/);
+    expect(close.className).not.toMatch(/group-hover:/);
+  });
+
   it("sets data-pressed on pointerdown and clears it on every release path", async () => {
     const { getByLabelText } = render(Nav, {
       items,

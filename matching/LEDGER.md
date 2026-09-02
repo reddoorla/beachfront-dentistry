@@ -3876,3 +3876,743 @@ job is to stop work may not fail open.
 
 Confirmed after the fix: home 5, yfv 4, our-team 4, services 1, contact 2,
 atd 3, svc 5, qa 4, team 5 = 33, which reconciles with the unfiltered run.
+
+## MARKUP ROUND I1 — the chrome stops reacting to a cursor that never moved (2026-09-01, main)
+
+MarkUp round of 2026-09-01, Tim, 8 pins across three boards (Navigation
+5e733d0b, our-team ad15707f, home d486b3c5). This entry covers the six that
+landed; pins 4, 7 and 8 are held for the operator and are recorded at the end.
+
+Every fix here was REPRODUCED before it was written — `matching/probe-markup-i1
+.mjs` … `-i4.mjs`, all at 1440 against the local dev server. None of these
+states is reachable by a static gate capture, which is why all six had survived
+every round to date.
+
+### Pin #1 (thread dc881aa2…) — "a blue background shows up [on hover]"
+
+DEVIATION REMOVED, not added. The home hero CTA hovered to an OPAQUE
+`#0e7799`. Live's own rule is `.button:hover { opacity:.6; background-color:
+#129ecc4a }` (`beachfront.css:6042-6045`) — a 29%-alpha wash. The opaque fill
+was this repo's invention, introduced by the OutlineButton consolidation on a
+contrast argument. The wash is restored; live's paired `opacity:.6` stays
+dropped, because that half IS the "affordance you can't see" defect the
+consolidation existed to remove (7.31:1 → 2.87:1, measured then).
+No contrast regression: the ink never moves — white at rest, white on hover —
+so the hover state is now exactly as legible as the rest state instead of
+jumping to a different ground mid-interaction. Verified: hover bg
+`rgba(18,158,204,0.29)`.
+
+### Pin #2 (thread b8a40d69…) — "a white weird border around the logo"
+
+That border is our own focus ring. `trapFocus` moves focus into the overlay on
+open, and the overlay's first focusable is the logo `<a href="/">`, whose
+LOGO_LINK carries `focus-visible:ring-2 focus-visible:ring-white`. Probed:
+`document.activeElement` IS that anchor.
+Chromium declines `:focus-visible` for a programmatic focus following a mouse
+click, so the ring is invisible here and visible for Tim on WebKit — the bug is
+real in both engines, only the symptom is browser-specific. Fixed at the source
+rather than per-browser: `trapFocus` now honours `data-autofocus` on the
+CONTAINER, and the menu dialog takes `tabindex="-1" data-autofocus`. AT still
+announces the dialog; Tab still enters the column in order; no real destination
+is ringed for merely being first in the DOM. Shift+Tab from the container wraps
+to the last item (it would otherwise walk backwards out of the overlay).
+
+### Pin #3 (thread f7f7cbbd…) — the X's background, and the "jittery" link hover
+
+TWO defects in one pin, both measured.
+
+(a) The pill under the X. The trigger and the Close share ONE SLOT — that is
+the point of the swap. So the click that opens the menu leaves the cursor
+resting exactly where the Close then mounts, and a `group-hover:` pill is at
+full strength in the frame the overlay appears, with nothing hovered on
+purpose. Probed with the pointer never moved after the click: pill opacity
+0.7 at "rest", 0.7 on hover — indistinguishable from an always-on decoration,
+which is how Tim read it. The hover variants are dropped; every PRESS channel
+survives (`group-active`, `group-data-[pressed]`), which is all the band
+comment above ICON_PILL ever argued for — its case is entirely about touch.
+
+(b) The link hover. Not motion — RASTERISATION. `hover:opacity-60` takes the
+row to a non-opaque opacity, promoting it to its own compositing layer, where
+the glyphs re-rasterise with greyscale AA instead of subpixel: the text
+visibly changes weight the instant the hover starts. On the way out it lands
+back on exactly 1.0 and the repaint happens at the END of the fade — hence
+"jittery to hover over, but smooth when I mouse out", which is the asymmetry
+that identifies it. Nothing moves in either direction: the row's rect is
+identical to two decimals hovered and not.
+Now `hover:text-[#9fc9d6]` — that same 0.6-white composited against the wash
+once, as a flat colour (0.6·255 + 0.4·(14,119,153)). Element stays opaque, no
+layer, subpixel AA throughout. FIDELITY COST, stated: the wash is 92% opaque,
+so where the beach photo shows through, the flat colour differs from a true
+composite by at most 8% of the 40% ground term. Sub-perceptual, and the price.
+
+### Pin #5 (thread 20a4af72…) — "I like how these raise but … ease the easing"
+
+The easing was never the problem: the raise had NO TRANSITION AT ALL, and this
+was a repo-wide defect, not a card one.
+
+`animateIn.applyHidden` writes `style.transition` INLINE, and an inline
+declaration outranks every class. It was never taken back off, so the reveal's
+list — `opacity, transform` — stayed the element's transition list for the rest
+of the page's life. CollectionList's CARD_AFFORDANCE asks for
+`transition-[box-shadow,translate] duration-200 ease-out` and hovers
+`-translate-y-1`, which Tailwind v4 compiles to the `translate` PROPERTY. The
+inline list names `transform`, not `translate`, and not `box-shadow` — so both
+hover channels were unanimated and the card snapped its 4px.
+Probed before: the card reports `transition-property: "opacity, transform"`,
+`duration: 0.75s` — the reveal's, not the card's.
+`animateIn` now releases its inline transition/delay/transform/opacity when the
+reveal ends (`transitionend` on its own `opacity`, with a
+`duration + delay + 300ms` timer for every path where no transition ever runs:
+reduced motion, the no-IntersectionObserver reveal-in-place, a triggered mount
+that hides and shows in one frame, and a `transitionend` lost to a background
+tab). Re-hiding cancels a pending release, so triggered call sites still work.
+Verified after: the card computes `box-shadow, translate` / 0.2s /
+`cubic-bezier(0,0,0.2,1)`, inline transition released, and the raise caught
+MID-FLIGHT at `translate: 0px -1.38228px` of its -4px travel.
+This is the widest-blast-radius change in the round — it hands every revealing
+element on the site back to its stylesheet. Full suite green, incl.
+reveal-first-paint and float-drift.
+
+### Pin #6 (thread 4cb2a3cb…) — "The image is overlapping the row of tiles above"
+
+ROUND C HAD ALREADY FLAGGED THIS AND PARKED IT FOR TIM, in CollectionList's own
+comment and in LEDGER ROUND C: "30 is BOX-to-box: the 100px headshot overhang
+means row 2+ circles overlap the row above's banner." The reply arrived. The
+flagged risk is now a rejected outcome, so the axis that caused it moves.
+Measured before, at 1440: every card's portrait starts exactly 100px above its
+own card top, rows sat 30px apart → each circle cut 70px into the banner of the
+row above, on every seam.
+`lg:gap-[30px]` → `lg:gap-x-[30px] lg:gap-y-[160px]`. 160 is not a clearance
+minimum reverse-engineered from the symptom; it is live's own row rhythm,
+`.team-list-item.m-2 { margin-top: 4rem }` (`beachfront.css:6538-6540`) against
+the ≥993 root of 40px, leaving the overhang 60px of daylight. The HORIZONTAL 30
+is untouched, so Tim's content-gutter alignment and `(100%−60px)/3` both hold.
+Verified: worst portrait overlap 0px at 1440/834/390; row gap exactly 160 @1440.
+
+Gate round: markupi1 (threshold 0.1, maxHeightDelta 0.05, matrix 1440/834/390,
+mask [], masked [], neutralizeMedia false), page our-team, ref
+`beachfront-dentistry.webflow.io` (production is our own build since
+2026-08-10 — see LEDGER 2026-08-10), baseline out-readreviews-our-team.
+The changed region IMPROVED and nothing else moved:
+vw1440 "Dr. Robert Quan" 37.1% → 26.9% dE 21.1 → 14.4 Δh 17.5% → 3.0%
+anchor "Ready for great" cand 3301 → 3691 against ref 3761
+i.e. the grid was 460px shorter than live and is now 70px short — the 4rem row
+rhythm, restored. Every other row is byte-identical to the baseline. The six
+remaining FAILs are the pre-existing stalled regions `strikes.mjs` lists; none
+was touched, and no threshold, mask or matrix was altered to get here.
+
+Suite: 789 unit + 204 interaction green, svelte-check 0/0. NOTE for the record:
+a first `playwright test tests/interaction/` run at 4 workers showed 6
+failures (float-drift, image-sizing, 4× mobile-ux). All 6 pass in isolation and
+the full dir is green at `--workers=2`; clean main was re-run under stash to
+confirm. Contention flake against the single dev server, not a regression —
+recorded because "it passed on the rerun" is exactly the sentence that hides a
+real one.
+
+### Pin #7 (thread ceb918b8…) — "still showing a line when I load the page in Safari"
+
+FOUND AND FIXED, and it was not a wave seam. Round H4 had already proved every
+divider seam watertight (19 mounts × 4 widths, pixel-sampled), so the search
+was widened rather than aimed: `probe-markup-i6.mjs` sweeps EVERY pixel row of
+the full home page in WebKit **and** Chromium for a row that is both darker
+than its neighbours and near-uniform across x — content crossing a seam is dark
+in a few columns, a rendering hairline is dark all the way across.
+
+Exactly one hit, on either page, in either engine: **y=1476 @1293, spanning 77%
+of the width** — the bottom edge of the SectionGrid card row. The engine split
+IS Tim's report, measured: the row survives every resize in WebKit and vanishes
+on the first resize in Chromium ("disappears sometimes and then reappears
+sometimes… but if I load the page at the beginning, it always shows up").
+
+Then isolated by injecting candidate fixes one at a time against the same
+scanner — child overhang, layer promotion, `isolation:isolate`, an opaque
+background: all four left it at 7.95. `box-shadow: none` took it to 0.11. The
+"line" is the card's own `shadow-sm`: a 1px-offset 10%-black shadow on a
+fractional bottom edge (1476.39) rasterises differently per engine and per
+pixel snap.
+
+Removing it is a FIDELITY fix, not a concession. Live's own `.expanding-box` /
+`.expanding-image` — same 25px radius, same 362×280 box — computes
+`box-shadow: none` (probed on beachfront-dentistry.webflow.io). The shadow was
+ours. Both SectionGrid cards lose it.
+Verified after: 0 line rows at load and after all five resizes, in BOTH engines,
+on / and /our-team.
+
+Gate round: markupi1b (threshold 0.1, maxHeightDelta 0.05, matrix 1440/834/390,
+mask [], neutralizeMedia false), page home, ref beachfront-dentistry.webflow.io,
+baseline out-readreviews-home. TWO rows moved, both toward live:
+vw1440 "Our dental team in Redondo" 9.5% → 9.4%
+vw1440 "Finally have a dentist" 4.6% → 4.5%
+Every other row byte-identical — which is the expected signature for deleting a
+shadow live never had.
+
+### Pin #4 (thread c5a1f351…) — the Meet↔Our gap. DELIBERATE DEVIATION, operator-ACKed
+
+Tim: "can we decrease the space between 'Meet' and 'Our'?", follow-up "ideally
+'Meet' comes down 30px and 'Our' comes up 40px."
+
+WHY THIS NEEDED A DECISION AND DID NOT GET ONE FROM ME. Measured at 1440
+(probe-markup-i5.mjs): the Meet↔Our gap is 120px and the hero divider's lg box
+is 120px. They are the same object. "Our"'s line-box top sits exactly on the
+hero's bottom edge (475.2 = hero bottom = wave box bottom), so not one pixel of
+Tim's 70px can come from spare space — closing the gap means either shrinking
+the wave or putting the headline over it. That is a design call, and it
+contradicts the standing directive this repo already carries ("wave should never
+touch the text", thread 7dd0c2f2, which is why H4 deleted a 10px nudge from
+this very heading). Operator chose 2026-09-01: **let the headline sit on the
+wave**, keep the divider's size.
+
+WHAT SHIPPED
+
+- `Meet` (SubpageHero band heading, `meet` variant only): `lg:bottom-[120px]`
+  → `lg:bottom-[96px]`, a 24px drop.
+- `Our Team` (the `.our-team-subtitle-section` headings): `lg:-mt-10` (40px)
+  plus `relative z-20` so they paint ABOVE the wave's `z-10`.
+- `bg-white` is DROPPED from that section for the `meet` variant. This is
+  load-bearing, not tidying: an opaque 40px white band pulled over the hero
+  would paint full-width, and where the wave's fill is shallowest (28 of its
+  120px box) it would cover PHOTO and slice a straight edge through the
+  divider's shape. Body is already white (app.css:42,459), so removing it costs
+  nothing and lets only the TEXT overlap.
+
+24, NOT 30 — the one number in this round that is not Tim's. The site's own
+floor is 8px of clearance to the wave's painted edge
+(`wave-divider.spec.ts` MIN_CLEARANCE). A 30px drop breaks it: probed at 7.59px
+@1294 and 2.9px @993, where the hero is only 327.7px tall against a divider
+that stays a flat 120. Widening that floor to fit the request is what rule 4
+forbids, so the request bent instead. At 24 the clearance is
+8.9 / 12.2 / 13.7 / 15.4 at 993 / 1200 / 1294 / 1440.
+Net: the gap closes 120 → 56 at every lg width — 64 of the 70 asked for, and
+Tim is told the number on the pin rather than having it quietly rounded.
+≤991 is untouched (74 @390, 89 @834).
+
+THE CLEARANCE RULE IS REPLACED FOR THIS COPY, NOT SUSPENDED. The headings carry
+`data-wave-overlap`; `wave-divider.spec.ts` skips them in the blanket
+MIN_CLEARANCE scan and asserts the rule that actually governs them instead —
+their GLYPH INK must start below the wave's fill edge, i.e. they sit on white
+and never on the photograph. Ink, not line box: a 140px face in a 168px line
+box carries ~20px of leading, so a line-box test would condemn an overlap the
+letters never make (the line box does cross the fill edge by 2.7px @993; zero
+glyphs do). Ascent comes from canvas metrics for the element's own resolved
+font, so the check needs no image decoding and no new dependency. 4 new tests,
+993/1200/1294/1440, all green. Independently confirmed by pixel
+difference-mask before the spec was written: 0 of 4821 glyph pixels on
+non-white at 1200/1294/1440, and 12 of 4852 (0.25%) at 993 — boundary
+antialiasing, which is exactly what the ink rule tolerates and the line-box
+rule would not.
+
+Gate round: markupi1c (threshold 0.1, maxHeightDelta 0.05, matrix
+1440/834/390, mask [], neutralizeMedia false), our-team, ref
+beachfront-dentistry.webflow.io, baseline markupi1 (this round's own).
+vw1440 "top" mm 11.0% → 8.6% dE 6.8 → 5.4 BUT Δh 2.2% → 6.5%
+vw1440 "Our" 0.2% → 0.5%
+anchor "Our" cand 475 → 435 against ref 465
+Everything else byte-identical. READ THAT HONESTLY: the pixel mismatch
+IMPROVED and the HEIGHT delta got worse, and the height delta is now the
+reason the region fails. That is not a defect to chase — it is the deviation
+itself, priced. We were 10px BELOW live's "Our"; we are now 30px ABOVE it,
+because live keeps the 120px gap and the operator has chosen 56. Δh 6.5% on
+this region is the standing cost of pin #4 and must not be "fixed" by anyone
+later; nor may maxHeightDelta be widened to hide it.
+
+### Pin #8 (thread 717b8986…) — the floating doctor. THIRD directive on one behaviour
+
+Tim: "I still don't like how jittery the doctor's photo and the ask the doctor
+handwriting moves down from one question to the next. I just wanted to move
+smoothly down as you scroll."
+
+WHY THIS WENT TO THE OPERATOR. This is the third pass on the same 40 lines, and
+the directives conflict on their face:
+(1) 2026-08-11 "I do not like the jumping from question to question" → made
+position CONTINUOUS in scroll.
+(3) 2026-08-13 "it should sit in the same place for each card" → reversed (1),
+because a continuous mapping pins the pair to a fixed SCREEN position and
+lets cards slide through it. Quantized again.
+(4) 2026-09-01 (this pin) → rejects (3)'s motion.
+Taken literally, (4) asks to undo (3) and (3) asked to undo (1). Presented as
+such; operator chose a fourth option on 2026-09-01 — scroll-driven smoothstep —
+rather than reverting to (1).
+
+THE MEASUREMENT THAT SHOWED (3) WAS NOT SIMPLY WRONG. Probed at 1440 in 40px
+scroll steps, before: 57 of 87 steps moved the pair 0px, and each handover then
+moved it ~345px inside a SINGLE step — 8.6x the input. So quantizing put the
+pair in the right PLACE and gave it the wrong MOTION, and the ~150ms rAF follow
+could never fix that, because it smoothed in TIME: it softened the handover's
+edges but never its SIZE. One notch of wheel still commanded a whole card.
+
+WHAT SHIPPED. Position is a pure, continuous function of SCROLL. No time-based
+motion at all — the rAF only coalesces scroll events into one write per frame,
+so there is no loop to settle and no state that can move while the page is
+still. Within the interval a card owns, the pair GLIDES from the previous rung
+to that card's rung across the first 70% (smoothstep, peak slope 1.5) and then
+HOLDS exactly on the rung for the remaining 30%. Both directives survive: (3) as
+the hold, (4) by construction, since output continuous in input admits no step.
+After: worst 85.1px per 40px step (2.13x — the designed peak of 1.5/0.7), 47 of
+87 steps still perfectly still, screen-space worst 45.1px.
+
+ONE REAL MISTAKE, RECORDED because it was invisible to every check that existed.
+The glide was first written to run BACKWARD into the next handover — ending on
+it rather than starting from it. That is equally continuous and equally smooth,
+and it silently broke directive 2 ("anchor to the top fully visible question"):
+the pair arrived at the next card's rung up to a whole band (294px of scroll)
+BEFORE that card reached the line, i.e. it was anchored to the wrong question
+for most of the scroll. The existing unit tests caught it — they assert the
+anchor, and two of them failed — which is the only reason it did not ship. The
+mapping now runs the glide forward from the handover it belongs to.
+
+TESTS REWRITTEN, NOT RELAXED. `float-drift.spec.ts` and `floatAlong.test.ts`
+both encoded the quantized contract and had to change; each old assertion was
+replaced by the one that governs now, and the suite got STRICTER, not looser:
+
+- "every settled position is exactly a card offset" → continuity (no scroll
+  step commands >2.5x its own size) AND holds (≥15% of steps perfectly still),
+  so a mapping that went fully continuous — the thing directive 3 rejected —
+  now fails, where before it simply would not have been tested;
+- "the handover renders intermediate FRAMES" (a time property, which a
+  time-decayed follow satisfies while still lurching) → the handover is
+  sampled in SCROLL, and no 15px notch may move the pair more than 2.5x that;
+- NEW: nothing moves while the page is still, which makes reintroducing a
+  time-decayed catch-up impossible to do silently;
+- the unit "holds one card's offset across the whole range" → "glides in over
+  the first 70%, then holds the rung EXACTLY" (exact equality, not tolerance);
+- the rAF-follow describe → "writes once per scroll burst and never animates
+  on its own", asserting the coalescing and that NO follow-up frame is queued.
+  float-drift also dropped from ~84s to ~16s: its 1500ms-per-sample settle waits
+  existed only for the follow that no longer exists.
+
+Gate round: markupi1d (threshold 0.1, maxHeightDelta 0.05, matrix 1440/834/390,
+mask [], neutralizeMedia false), home, ref beachfront-dentistry.webflow.io,
+baseline markupi1b. EVERY measured row byte-identical — the only differing line
+in the log is the report path. Expected and required: the mapping is 0 at scroll
+0, so the static capture is untouched, and that is asserted independently by
+float-drift's scroll-0 test.
+Suite: 789 unit + 208 interaction green, svelte-check 0/0. (One qa-expand
+"within a frame of the click" case failed once under 2-worker load and passes in
+isolation and on re-run — same contention flake as the earlier six, recorded for
+the same reason.)
+
+---
+
+## 2026-09-01 — MARKUP ROUND I2 (operator, from the PR #38 deploy preview)
+
+Three directives, relayed by the operator after looking at the preview. All
+three are DESIGN decisions that depart from live; none is a matching deviation,
+and none of the three was reachable from the reference.
+
+### 1. The doctor float: quantized again, eased in CSS, debounced
+
+> "the snap still feels real weird, stick with one spot per card, ship just the
+> fix with an eased translation transition" … "probably wants a debounce as well
+> to avoid jittery feelings"
+
+FIFTH directive on this one behaviour, and the second reversal. The record is in
+`floatAlong.ts`'s header; the short version is that 1 and 4 asked for smooth, 3
+and 5 asked for one-spot-per-card, and these are not simultaneously satisfiable
+by a POSITION mapping — a continuous position cannot be a fixed position. I1
+tried to satisfy both by making the mapping continuous over 70% of each pitch
+and holding for the other 30%; the operator's "still feels real weird" is that
+compromise being rejected. The resolution is that they were never the same
+question: POSITION is quantized (3, 5) and MOTION is eased (1, 4), with the
+easing moved out of the scroll mapping and into a CSS transition.
+
+Live's own curve and duration are reused verbatim — `transform 1s
+cubic-bezier(.19, 1, .22, 1)`, `.ask-the-doctor-handwriting-anchor`,
+beachfront.css:7670. NOT a taste call, and worth stating plainly because
+directive 1 originally rejected live's behaviour: what pin #7 rejected was
+live's bottom-most anchor teleporting the pair up to 420px per 25px of scroll,
+not the curve. With directive 2's top-most anchor halving the hop and the new
+debounce collapsing a flick to one transition, the same curve now reads as a
+glide.
+
+DEBOUNCE = 120ms, and it is debounced on INDEX CHANGE, not on scroll activity.
+That distinction is the whole design: debouncing on scroll activity would freeze
+the pair for as long as someone kept scrolling slowly and then jump at the end,
+which is the defect it exists to prevent.
+
+### 2. Float wrapper z-10 → z-30
+
+> "z indexes are wrong for the floating doctor"
+
+The card header button is `relative z-10` and the cards come AFTER the float
+wrapper in the DOM, so at equal z-index the tie broke in the headers' favour
+wherever the doctor overlaps the column's right edge (`lg:-ml-10`, 40px). Live
+has no such tie: `.qa-header` computes to z-index 5 and
+`.ask-the-doctor-headshot` to 9 — four levels clear, deliberately.
+
+REGRESSION FROM I1, and worth recording as one. Nothing here creates a stacking
+context to contain the header: the card is `relative` with z-auto. It only
+LOOKED contained while `animateIn` left an inline transform on the card forever
+(a transform makes a stacking context) — and I1's fix was to release that
+transform on `transitionend`. So I1 fixed the transition bug and exposed a
+latent stacking tie in the same change.
+
+Honest note on method: four probes (`probe-markup-i2-z*.mjs`) tried to catch
+this as pixels first and all four were inconclusive or actively misleading —
+`elementFromPoint` names the background because the pair is
+`pointer-events-none`, and the raise-z diff is confounded by layer promotion
+changing antialiasing (~1500px of scattered "change" over a 200×200 box with no
+occluder at all). The defect was settled by reading live's z-values, i.e. by
+rule 1, after the pixels had wasted four rounds.
+
+### 3. The nav press pill is gone entirely
+
+> "the blue still shows up on active for the nav, pretty sure tim just wants it
+> totally gone"
+
+I1 removed the pill's `group-hover:` variants (Navigation pin #3). This removes
+the `bg-primary` disc outright — all four instances and the `ICON_PILL`
+constant.
+
+This costs NO touch feedback, which is the one thing the original pill note
+argued for. `ICON_GLYPH` independently carries `group-active:scale-90
+group-active:opacity-90` and the matching `group-data-[pressed]` pair, so a
+press still dips and shrinks the icon itself on every input path. `pressProps` /
+`data-pressed` therefore stay live and are NOT dead code — a test asserts both
+halves (the disc is gone, the glyph still responds) so a later cleanup cannot
+remove the feedback by mistaking the attribute for orphaned.
+
+### Verification
+
+793 unit (+4) green, svelte-check 0/0. float-drift rewritten again: the
+continuity assertions I1 added are replaced by the quantization they now
+contradict, and the suite gained the two properties that were previously
+untested — that the hop is interpolated by the COMPOSITOR (sampled from the
+computed transform, since the inline style jumps straight to the destination)
+and that a flick past four cards settles once, on the card landed on.
+
+No gate run: pixel matching is PAUSED (`matching/PAUSED`), and none of these
+three changes touches a static capture — the float mapping is 0 at scroll 0, the
+z-index changes no geometry, and the pill is invisible at rest.
+
+---
+
+## MARKUP ROUND I3 — Tim's Discord clarifications, 2026-09-02
+
+Two items, both reported against deploy-preview-38 (which by then carried I1 +
+I2), both in Discord `#beachfront-dentistry-website` rather than on a board.
+The operator's instruction was these two only; everything else on the boards
+stays cleared.
+
+### 1. "still seeing the line" — Safari. I1 fixed the wrong line.
+
+> Tim: "still seeing the line:" [screenshot] · Tuck: "hmm chrome? or are you on
+> something else for this?" · Tim: "safari"
+
+**I1's diagnosis was wrong and this supersedes it.** I1 (pin #7, commit
+173fd60) swept the page for a dark, near-uniform row, found exactly one at
+y=1476 spanning 77% of the width, and removed the SectionGrid card's
+`shadow-sm`. That row was real and the shadow was ours, so the change stands on
+its own fidelity grounds — but it was not Tim's line.
+
+**What his line actually is, measured off the screenshot he posted:**
+
+- Colour, sampled at five x across the row: `rgb(182,170,145)`, constant. That
+  is verbatim the terminal stop of the hero's bottom wash
+  (`Hero/index.svelte:359`, live's `beachfront.css:6497`) and it appears
+  nowhere else on the site as a painted line.
+- Position, by landmark match rather than guesswork. Three landmarks in his
+  crop — the H1's last-line ink top (60), the line (400), the H2's first blue
+  ink (508) — against the same three in our render. The span 60→508 is 448
+  device px against 225 CSS px rendered at 1440, so his crop is scale **1.991**
+  (Retina 2x, no zoom), and the line lands at CSS y **1259.8** where the hero's
+  bottom edge is **1260.0**. Both offsets agree independently: −171 CSS to the
+  ink top (rendered −171), +54 to the blue ink (rendered +54).
+- Strength: the row is FULL sand, not a blend of sand and white. So the white
+  wave fill contributes nothing to it — a whole-device-row shortfall, not edge
+  antialiasing.
+
+Root cause: **four edges met on one line with zero overlap** — the hero's
+bottom, the wash's bottom, the divider clip box's bottom, and the closing `V0`
+edge of the wave path. The width has carried explicit hairline insurance since
+round H4 (`width: calc(100% + 1.3px)`, and the comment calls it that); the
+height carried none. Rasterise the rotated SVG one device row off the wash
+behind it and the wash shows.
+
+**[disclosed — NOT REPRODUCED]** The raster was not reproduced anywhere I can
+drive:
+
+| engine                                   | matrix                                               | result |
+| ---------------------------------------- | ---------------------------------------------------- | ------ |
+| Playwright WebKit + Chromium             | DPR 1/2 × widths 1440/1293/1171, viewport + fullPage | clean  |
+| Playwright WebKit + Chromium             | viewport heights 890–910 × 5 scroll offsets, DPR 2   | clean  |
+| real WKWebView (`swiftc`, offscreen, 2x) | 1440 × 15 window heights                             | clean  |
+
+The defect is in Tim's on-screen compositor, which none of those reach. So this
+round fixes **the invariant, not the raster**: overlap instead of abutment,
+which no rounding, layer snapping or framebuffer resampling can undo. Stated
+here because "fixed" would be a stronger claim than the evidence supports —
+Tim's confirmation on his own machine is what closes this.
+
+The check is `tests/interaction/wave-divider.spec.ts`, a new third assertion on
+the existing 16-case matrix (4 routes × 4 widths, every mount): the fill's flat
+closing edge must sit ≥1px PAST the clip box's seam edge. It scored **0 at all
+16** before the change and 1.8–4px after.
+
+**The wave itself does not move.** Box height moves to the wrapper; the svg
+becomes 102.5% of it at −2.5%, against a viewBox extended 3 units to
+`0 -3 1200 123`. 102.5%/123 = 1/120 and 2.5% = 3/120, so the scale and every
+point on the curve are algebraically unchanged at every height in the ladder.
+A/B'd against the old markup at 72/96/120/160 × flip/mirror in both engines at
+DPR 1 and 2: max |Δ| on the curve **0.0000px** at 120 and 160, **0.0070px** at 96. What does change is ~1% of pixels along the curve's antialiased edge (the
+raster grid now starts at −2.5%) — same curve, re-antialiased. Recorded because
+"byte-identical" would have been the stronger claim and it is not true.
+
+Two stale selectors keyed to the literal old viewBox were found and repointed
+at the component's new `data-wave` hook: `tests/interaction/mobile-ux.spec.ts`
+(32 tests, which is how it was caught) and `matching/probe-shared.mjs` /
+`matching/probe-svcdx-tiers.mjs`. A selector that silently matches nothing is a
+spec that passes by measuring an absent element.
+
+### 2. The doctor pair is sticky — DIRECTIVE 6, reversing 3 and 5
+
+> Tim: "these elements still jump from question to question:" [screenshot] ·
+> Tuck: "oh i thought you wanted it smoother … you just want it as a straight
+> scroll?" · Tim: "sticky on scroll through that section" · Tuck: "got it, the
+> old behavior"
+
+**[deviation — operator directive, reverses an earlier operator directive]**
+This is the sixth directive on one behaviour and it contradicts the third
+("it should sit in the same place for each card") and the fifth ("stick with
+one spot per card"), landing back on the mechanism the first asked for. All six
+are recorded verbatim in `QuestionList/index.svelte`'s markup so a seventh
+round cannot re-derive a rejected one; the previous five lived in
+`floatAlong.ts`, which this round deletes.
+
+Every mechanism 1–5 was a mapping from scroll to `transform`, and every
+complaint (1, 4, 6) was about how that mapping felt. So the answer is not a
+better mapping: `position: sticky`, `lg:`-gated, on the zero-height anchor at
+the top of the question column. There is no per-frame code left, no debounce,
+no easing curve and nothing to tune, and "does not jump" is true by
+construction rather than by tuning.
+
+`floatAlong.ts` (221 lines) and `floatAlong.test.ts` (479) are DELETED, not
+disabled — a dead action that five directives argued over is exactly what a
+seventh round resurrects by accident. Unit count therefore drops 793 → 778.
+
+`tests/interaction/float-drift.spec.ts` is rewritten around the new property,
+at 1440/1294/1024: while the column owns the viewport the pair's viewport y
+holds to ≤1.5px of spread, no single 40px scroll step moves it more than that,
+and it must RELEASE at the column's bottom (or it would be `fixed`, not
+sticky). Before the change the same probe measured a **3080px** sweep.
+
+### Verification
+
+778 unit green, svelte-check 0 errors / 0 warnings, eslint clean, 223
+interaction green.
+
+**[pre-existing — not touched by this round]** 8 interaction tests fail on this
+branch both with and without these changes, verified by stashing and re-running
+each file: `qa-expand.spec.ts` ×6 ("the answer's first pixel clears the mask
+within a frame of the click") and `appointment-modal.spec.ts` ×2 (focus-ring
+and button-state timing). They are logged here rather than fixed because the
+operator scoped this round to the two Discord items.
+
+No gate run: pixel matching is PAUSED (`matching/PAUSED`). Neither change moves
+a static capture — the wave's curve is unchanged to 0.007px by measurement, and
+the sticky anchor is at its rest position at scroll 0.
+
+#### Addendum, 2026-09-02 — the line IS confirmed fixed on a real Safari
+
+The "[disclosed — NOT REPRODUCED]" caveat above is superseded by an operator
+observation on the machine that has the defect, and the sequence is worth
+keeping because it is the only before/after this bug has ever produced:
+
+- Operator loaded deploy-preview-38 while the fix was still building, i.e. got
+  the PRE-fix build: "it seemed to show up on my first load of safari and then
+  disappeared [when] I looked into inspector".
+- Post-fix build, fresh private window: "not a cache thing, I can't reproduce
+  it in a private window now."
+
+Same machine, same browser, one build apart. That is the check the headless
+matrix could not be.
+
+It also finally names the mechanism. Web Inspector clears the row on the spot,
+exactly as a resize did in Tim's original pin ("if I resize the page, then it
+disappears sometimes and then reappears sometimes, but if I load the page at
+the beginning, it always shows up"). Opening Inspector forces WebKit to
+re-rasterise and drop the composited layer. So this was a FIRST-PAINT
+COMPOSITING artifact, not a layout one — which is precisely why 60+ renders
+across Playwright WebKit, Chromium and a real offscreen WKWebView all came back
+clean: none of them paint through the on-screen compositor. Any future
+"can't reproduce it headlessly" on this site should suspect the same thing
+before widening the search.
+
+Corollary for anyone testing this class of bug: DevTools destroys it. Capture
+with a screenshot (which does not force a repaint), never with the inspector.
+
+Residual risk, stated: the hero is 90vh, so the seam's subpixel position is a
+function of window HEIGHT, and this is confirmed at one window size on one
+machine. The overhang is 1.8-4px against a one-device-row (0.5 CSS px)
+shortfall, so it has 3-8x of margin, but a second sighting at a different
+window height would be worth more than another headless sweep.
+
+#### Addendum, 2026-09-02 — the 8 "pre-existing" interaction failures, explained and fixed
+
+The Verification block above logs 8 interaction failures as pre-existing and
+leaves them. They are now understood and fixed, and the cause is worth the
+record because it is a lockfile drift, not a test flake:
+
+- **They date from the Sep 1 14:47 install, not from any commit on this
+  branch.** `node_modules` holds `@reddoorla/maintenance` 0.90.1, installed
+  from `main`'s lockfile. This branch still locks 0.83.0 (`package.json` pins
+  `^0.83.0`); it is 3 commits behind `main`, one of which is the bump.
+- **0.90.1 (4c79cfa) moved `reducedMotion: "reduce"` into the shared Playwright
+  base under `use.contextOptions`, where Playwright actually reads it.** Every
+  earlier attempt — reddoor-starter's, and this repo's own `playwright.config.ts`
+  until it was removed — had put it at the top level of `use`, which Playwright
+  drops silently. So the suite had run with motion ON since June, and the
+  "pre-existing" failures are the first run in which reduced motion was real.
+- **With it real, app.css's reduced-motion reset flattens every duration to
+  0.01ms and the `no-preference`-gated `bump` utilities fall to
+  `transition-property: none`.** The 8 cases are the three tests whose subject
+  is that motion: the modal's 150ms focus ramp, the submit button's
+  hover/press/focus states, and the Q&A answer's first painted frame after the
+  click (2 pages × 3 viewports = 6). They were measuring the reset, not the ramp.
+- **Fix: those three test bodies opt out per page with
+  `page.emulateMedia({ reducedMotion: "no-preference" })`**, with the reason
+  written above the call. Under 0.83.0 (what this branch's CI installs) the call
+  is a no-op and the tests behave as before; under 0.90.1 it restores the
+  subject. `playwright.config.ts`'s note on the inert option now records the
+  upstream resolution and the inverted obligation.
+
+Verification: `appointment-modal.spec.ts` + `qa-expand.spec.ts` 30/30 against
+0.90.1 (previously 8 red in those files); full suite 231/231; 778 unit green;
+svelte-check 0/0; prettier and eslint clean. One earlier full run came back
+230/1 with nav-menu's "1354x930: whole menu fits without scrolling" red — that
+run had vitest and svelte-check executing alongside it; the spec is 22/22
+alone and the suite 231/231 rerun alone, so it is logged as CPU contention,
+not a regression. Do not run the interaction suite concurrently with other
+CPU-heavy work when the number is going to be cited.
+
+Correction to the block above: "pixel matching is PAUSED (`matching/PAUSED`)"
+was written from memory. The pause switch (873749f, PR #40) is on `main`, not
+on this branch — here `matching/PAUSED` does not exist and `next.mjs` still
+prints "Round continues". Nothing was run against it, so nothing is affected,
+but the line was wrong as stated. Merging `main` into this branch restores both
+the switch and the maintenance bump, and is the obvious next step.
+
+Merged `main` into this branch the same day (73d9d34 → merge commit). Two
+things that changes about the record above:
+
+- **`main` had already made the identical fix.** c7a4467 (PR #39, the images
+  and maintenance-0.90 bump) opts the same three test bodies out with the same
+  `emulateMedia({ reducedMotion: "no-preference" })` call, with a shorter
+  comment. Nobody on this branch had looked; 73d9d34 re-derived it from
+  first principles. The merge conflicted only on the two comment blocks and
+  was resolved to `main`'s text, so both spec files are now byte-identical to
+  `main` and the call appears once. The longer explanation survives here and
+  in `playwright.config.ts`'s note.
+- **Lockfile and switch are now on the branch.** `package.json` pins
+  `^0.90.0`, the lockfile locks 0.90.1 (what `node_modules` already held, so
+  `pnpm install --frozen-lockfile --offline` is a no-op), and
+  `matching/PAUSED` exists: `next.mjs` and `strikes.mjs` both print the pause
+  and exit 0. The "PAUSED" line in the Verification block above is true from
+  this commit forward.
+
+Post-merge verification, run alone: interaction 231/231, unit 778/778,
+svelte-check 0/0, prettier and eslint clean, no conflict markers in the tree.
+
+## MARKUP ROUND I4 — Tim's Discord notes on deploy-preview-38 (post-I3), 2026-09-02 evening
+
+Read straight from `#beachfront-dentistry-website` with the reader bot
+(reddoor-maintenance CLAUDE.md, "Discord"). Five messages after Tucker's 17:22
+"fixes should be in":
+
+- 19:41 "line is gone for me." — closes I3 item 1 from Tim's own machine. No
+  action; recorded because it is the second confirmation on the only browser
+  that ever showed the line.
+- 19:41 "Can we get the doc image and text to stop sooner" [pair still stuck
+  over the next section's "Ready for…" headline] / 19:42 "It would be ideal to
+  stop here" [headshot on the last card].
+- 19:50 "it also starts high" [headshot's top level with the first card's top]
+  / "should start here" [headshot down on the first card's photo].
+- 20:43 "Last thing I found on the 'first visit' page" [screenshot: the
+  registration box's button with "Request" painted over "Appointment"].
+
+### 1. The sticky doctor — DIRECTIVE 7, and it is live's own geometry
+
+Directive 6 (I3) got the mechanism right and the geometry approximate. Live
+(beachfront.css):
+
+    :7664-7672  .ask-the-doctor-handwriting-anchor  sticky; top:0; height:10rem
+    :7786       .collection-list-wrapper-4          margin-top:-10rem
+    :7700       .ask-the-doctor-headshot            margin-top:2.5rem
+    :7682       .ask-the-doctor-handwriting         margin-top:3rem
+
+At live's ≥993 root of 40px that is a 400px sticky box at the column's top
+with the cards pulled up UNDER it, and the headshot/handwriting 100/120px down
+inside it. The I3 port had a zero-height box with both children at its top
+edge and the 100px moved into the sticky `top`. Same stuck position — which is
+why nothing looked wrong mid-scroll — but two consequences at the ends, and
+they are exactly Tim's two screenshots: 100px too high at rest, and 300px too
+late letting go (a zero-height box releases when the column's bottom reaches
+`top`; a 400px box releases when its own bottom does).
+
+`src/lib/slices/QuestionList/index.svelte` — anchor `lg:top-0 lg:h-[400px]`,
+`ul lg:-mt-[400px]`, headshot `lg:top-[100px]`, handwriting `lg:top-[120px]`.
+The directive record in the markup now runs to seven; the handwriting also
+moves 20px (it was at the headshot's height; live has it 20px lower).
+
+Check: `tests/interaction/float-drift.spec.ts` now asserts the rest geometry
+(box 400, first card at the box's top, children at 100/120), the stuck edge at
+viewport 0, and the release — 3/3 at 1440/1294/1024.
+
+Gate (measuring only; matching stays PAUSED): `bash matching/gate.sh d7 home`
+— header `page-diff — FAIL (threshold=0.1)`, 1440/834/390, no masks —
+identical to `out-markupi1d-home` on all 27 regions to 0.1pp. Expected, and
+worth saying why so nobody reads it as "no effect": the gate captures each
+region scrolled into view, where the pair is STUCK, and the stuck position did
+not change. The rest position is what moved, and the spec is its check. The
+three pre-existing home failures (top @390/@1440, "Want to learn more"
+@390/@834, "Our dental team" @834, "Ready for" @834) are unchanged.
+
+### 2. "Request" over "Appointment" — a wrapped label under `line-height:0`
+
+The pill is live's `.button` (`beachfront.css:6028-6040`): `padding:1.3em 1em;
+line-height:0`, so the box is 2.6em of padding and tracks the font ladder. The
+cost of `line-height:0` is that a label which WRAPS does not grow the pill —
+the second line lands on the first line's baseline and the words paint on top
+of each other.
+
+Live never shows it because live's label is "Book Appointment" (283px at
+25px). MarkUp pin 5980c9d7 #3 renamed it "Request Appointment" (315px), and
+the registration box's copy column beside the "15 MIN" badge is 300px at
+≥1100 and 275 at 1024. Probed (`matching/probe-pill-wrap.mjs`, counting text
+FRAGMENTS — distinct line tops find nothing, because the tops are equal):
+2 fragments at 1024/1200/1440 in Chromium AND WebKit, so not a Safari
+thing; and the TOC's "Request an Appointment" wraps the same way at 1024.
+**This is in production**: `beachfrontdentistry.com` has served this build
+since 2026-08-10 (gate.sh:32), and the probe against it shows the same two
+fragments.
+
+Fix, `src/lib/components/OutlineButton.svelte` — `whitespace-nowrap` in
+`PILL_BASE`. DEVIATION from live's `.button`, which has no `white-space`
+rule, recorded here: the single-line geometry is byte-identical (nowrap
+changes nothing that fits), and the honest failure for a label that outgrows
+its column is a visible overflow, not a silent overlap. Live has no wrapping
+pill anywhere. Where it now overflows: the timeline pill is 315px in a 300px
+column and ends 25px from the box's edge instead of 40 (probed at
+1024/1200/1440 — the box is 480 at all three, the padding absorbs it).
+
+Not taken: a `line-height:1em; padding:0.8em` box (same single-line
+geometry, wraps to two readable lines) — a two-line pill beside the TOC's
+one-line pill is a second defect; and shrinking the pill's padding — cannot
+reach 275 at 1024 anyway.
+
+Check: `tests/interaction/pill-label.spec.ts` — every `<a>` with computed
+`line-height: 0px` (the pill signature) has exactly one text fragment, on `/`
+and `/your-first-visit` at 390/834/1024/1200/1440. Red 3/10 before (the
+timeline pill at 1024/1200/1440 and the TOC pill at 1024), 10/10 after.
+
+Not Tim's, seen in his screenshot: "your dental helath goals" is a typo in
+the live copy (`matching/spec/your-first-visit.html:121`) carried into the
+seed (`beachfront-pages.js:556`). Content, not ours to change unasked.
+
+### Verification
+
+Interaction 243/243 alone on a fresh server (231 + the 3 rewritten float-drift
+cases + 10 new pill-label cases), unit 778/778, svelte-check 0/0, prettier +
+eslint clean. One earlier full run was 241/2 (a11y question-detail,
+shared-photos crawl) with a macOS XProtect scan and two leftover node
+processes competing for the CPU; both files pass alone (9/9, 7/7) and the
+clean rerun is the number above. Gate header for home is under item 1.

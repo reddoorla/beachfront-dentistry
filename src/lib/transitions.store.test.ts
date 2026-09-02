@@ -3,7 +3,7 @@ import { reducedMotion, prefersReducedMotion } from "./transitions";
 
 // The preference used to be read five different ways — a per-run check here, a
 // live listener in Slider, and a once-at-mount sample in animateIn, floatAlong
-// and ScreenWidthMedia. Toggling Reduce Motion mid-session updated some of
+// (since deleted) and ScreenWidthMedia. Toggling Reduce Motion mid-session updated some of
 // them and left the rest on the old setting until a reload. This store is the
 // single reading; these tests hold it to being both live and cheap.
 
