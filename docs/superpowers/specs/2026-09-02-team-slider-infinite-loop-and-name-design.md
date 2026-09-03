@@ -50,40 +50,52 @@ machinery) are unchanged.
 - Active only when `mode === "slide"`, `loop`, and `itemCount >
   responsiveCardsPerView`; otherwise the prop is a no-op and behaviour is
   exactly today's.
-- The track renders the items three times (`3n` cells; cell `i` renders
-  `children({ index: i % n })` and is labelled `${(i % n) + 1} of ${n}`).
-- The index starts at `n` (the middle copy's first item). Because the
-  translate formula is linear in the index and the first `n` cells are the
-  same width as the real ones, the rest frame is pixel-identical to today's.
-- `next`/`prev` (buttons, arrow keys, swipe, autoplay) move one step in the
-  pressed direction with no upper/lower bound.
-- **Snap.** Before applying a step (and after a resize clamps the range), if
-  the index is outside `[n, 2n)` it is normalised by `±n` with the
-  transition disabled for one frame: set `snapping`, apply the normalised
-  index, `await tick()`, force a reflow, clear `snapping`, then apply the
-  step. The two frames are identical pixels, so the user sees one ordinary
-  step. Doing it before the next move rather than on `transitionend` makes
-  it independent of transition timing, so it holds under reduced motion.
-- Dots: `goToSlide(i)` targets `n + i`; the active dot is
-  `((index % n) + n) % n`. The live-region announcement uses the same
-  modulus.
+- **At rest the track is plain** — one copy, index 0 — so the first frame
+  (and every gate anchor cut from it) is unchanged. "After the first click":
+  the first move in either direction _engages_ three copies of the items
+  (`3n` cells; cell `i` renders `children({ index: i % n, clone })` and is
+  labelled `${(i % n) + 1} of ${n}`). The `each` is keyed so the cells
+  already on screen become the middle copy — same DOM nodes, moved — and the
+  index is re-based by `+n` in the same frame; pixels do not change.
+- From then on `next`/`prev` (buttons, arrow keys, swipe, autoplay) move one
+  step in the pressed direction with no upper/lower bound.
+- **Snap.** Before applying a step, if the index is outside `[n, 2n)` it is
+  normalised by `±n` with the transition suppressed for one frame: set
+  `snapping` (the track gets `transition-none` — merely dropping
+  `transition-transform` leaves the CSS default `transition-property: all`
+  under the duration utilities, and the snap itself animates), apply the
+  normalised index, `await tick()`, force a reflow, clear `snapping`, then
+  apply the step. Doing it before the next move rather than on
+  `transitionend` makes it independent of transition timing, so it holds
+  under reduced motion.
+- Copies render with `clone: true`; the person card passes that to
+  `animateIn` as `{ disabled: true }` (a new option — `trigger: false` would
+  hide the element), so a copy entering mid-scroll plays no entrance on a
+  card the reader has already seen.
+- Dots: one per item; `goToSlide(i)` targets `n + i` (engaging first if
+  needed); the active dot is `((index % n) + n) % n`. The live-region
+  announcement uses the same modulus.
 - Arrows are never `aria-disabled` in infinite mode.
+- A resize that makes everything fit while engaged drops back to a plain
+  track on the real index, without a glide.
 - Accessibility: the cells outside the visible window are `inert` +
   `aria-hidden` exactly as today, so copies never add tab stops or duplicate
   announcements; the visible window is whichever cells are on screen.
 
 **Checks.**
 
-- `src/lib/components/Slider.test.ts`: three-copy render with modulo labels;
-  rest index `n` in the transform; prev from rest goes to `n − 1` (the last
-  item) not `maxSlide`; next from the last real position continues forward
-  and the following move is normalised into the middle copy; dots map
-  modulo; arrows never disabled; the prop is a no-op when everything fits.
+- `src/lib/components/Slider.test.ts`: plain at rest and three copies with
+  modulo labels on the first move; prev from rest goes to `n − 1` (the last
+  item) not `maxSlide`; next past the last item continues forward and the
+  following move is normalised into the middle copy; dots map modulo;
+  arrows never disabled; the prop is a no-op when everything fits.
 - `tests/interaction/team-slider-loop.spec.ts` on `/your-first-visit` at
-  1440: the rest frame's first card sits where it does today; twelve
-  next-clicks advance the leftmost card by exactly one roster position each
-  time (never back by ten); one prev-click from rest shows the last roster
-  member as the leftmost card.
+  1440, motion on: the rest frame is one copy with the first card at the
+  content gutter; a full lap of next-clicks advances the leftmost card by
+  exactly one roster position each time; and MID-transition across the seam,
+  in both directions, the last and first cards are on screen together and no
+  mid-roster card is — the end state cannot tell a seamless step from a
+  rewind, the middle of the motion can.
 
 ## Ledger
 

@@ -214,6 +214,7 @@
   doc: CollectionDoc,
   variant: "grid" | "slider" = "grid",
   index = 0,
+  clone = false,
 )}
   <!-- live `.team-list-item` (320×480 / 303×384, bg #E7F5FA, radius 20): a
        circular headshot straddling the top edge, then name (cyan slab) / role
@@ -278,8 +279,14 @@
        column it would leave card 4 sitting invisible for 210ms AFTER it had
        already entered the viewport. Modulo the 3-up row resets the ramp per
        row, so no card ever waits longer than two steps. -->
+  <!-- A clone cell of the infinite slider is a copy of a card the reader
+       has already seen revealed; an entrance playing on it mid-scroll would
+       be a flicker, so the reveal is disabled there (and the copy is never
+       the one that is on screen at rest). -->
   <article
-    use:animateIn={{ ...LIVE_REVEAL, stagger: 70, index: index % 3 }}
+    use:animateIn={clone
+      ? { disabled: true }
+      : { ...LIVE_REVEAL, stagger: 70, index: index % 3 }}
     class="team-list-item group relative mx-6 mb-6 flex flex-col rounded-[20px] bg-[#e7f5fa] xs:min-h-[576px] xs:w-[384px] md:mx-8 md:mb-8 md:min-h-[768px] md:w-[512px] lg:min-h-[480px] {href
       ? CARD_AFFORDANCE
       : ''} {variant === 'slider'
@@ -495,6 +502,7 @@
         <Slider
           itemCount={docs.length}
           label={asText(slice.primary.heading) || "Meet the team"}
+          infinite
           itemWidth="200px"
           tabletItemWidth="160px"
           mobileItemWidth="120px"
@@ -609,6 +617,7 @@
         <Slider
           itemCount={docs.length}
           label={asText(slice.primary.heading) || "Meet our team"}
+          infinite
           itemWidth="383.34px"
           tabletItemWidth="640px"
           mobileItemWidth="288px"
@@ -630,10 +639,16 @@
           {#snippet nextArrow()}
             <img src="/icons/team-arrow-right.svg" alt="" class="h-10 w-auto" />
           {/snippet}
-          {#snippet children({ index }: { index: number })}
+          {#snippet children({
+            index,
+            clone = false,
+          }: {
+            index: number;
+            clone?: boolean;
+          })}
             {@const doc = docs[index]}
             {#if doc}
-              {@render personCard(doc, "slider")}
+              {@render personCard(doc, "slider", 0, clone)}
             {/if}
           {/snippet}
         </Slider>

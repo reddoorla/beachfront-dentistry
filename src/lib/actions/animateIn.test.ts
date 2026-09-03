@@ -234,6 +234,22 @@ describe("animateIn — viewport mode", () => {
   });
 });
 
+describe("animateIn — disabled", () => {
+  it("leaves the element untouched: no hidden state, no observer", () => {
+    const node = document.createElement("div");
+    document.body.appendChild(node);
+    const observers = (globalThis as { __observers?: unknown[] }).__observers;
+    const before = observers?.length ?? 0;
+    const action = animateIn(node, { disabled: true });
+    expect(node.style.opacity).toBe("");
+    expect(node.style.transform).toBe("");
+    expect(node.hasAttribute("data-reveal")).toBe(false);
+    expect((observers?.length ?? 0) - before).toBe(0);
+    action.destroy();
+    node.remove();
+  });
+});
+
 describe("animateIn — viewport fail-safe", () => {
   // The timer path never touches requestAnimationFrame (that suspension is
   // one of the failure modes it guards), so fake setTimeout is sufficient.

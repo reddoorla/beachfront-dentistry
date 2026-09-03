@@ -79,6 +79,12 @@ export type AnimateInOptions = {
    *  (MarkUp thread 738ad46b-0be6-4d92-a1c0-73a53e4c298e pin #2 — the
    *  team-member hero name intermittently never appeared.) */
   failSafe?: number;
+  /** Do nothing at all: no hidden state, no observer, no timers. For an
+   *  element that is a COPY of one already revealed — the infinite Slider's
+   *  clone cells — where an entrance would play mid-scroll on content the
+   *  reader has already seen. Distinct from `trigger: false`, which HIDES the
+   *  element until it is triggered. */
+  disabled?: boolean;
 };
 
 export type AnimateInParam = boolean | AnimateInOptions | undefined;
@@ -144,6 +150,9 @@ function reveal(node: HTMLElement) {
 }
 
 export function animateIn(node: HTMLElement, param?: AnimateInParam) {
+  if (typeof param === "object" && param !== null && param.disabled) {
+    return { update() {}, destroy() {} };
+  }
   const cfg = resolveConfig(param);
   let observer: IntersectionObserver | undefined;
   let failSafeTimer: ReturnType<typeof setTimeout> | undefined;
