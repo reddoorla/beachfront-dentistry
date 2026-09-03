@@ -1,3 +1,10 @@
+<script module lang="ts">
+  /** Width, in px, of each `edgeFadeColor` gradient. Exported so a slide's
+   *  own reveal can treat the band as not-yet-seen (CollectionList passes it
+   *  as a negative `rootMargin` to `animateIn`). */
+  export const EDGE_FADE_WIDTH = 80;
+</script>
+
 <script lang="ts">
   import { useSwipe, type SwipeCustomEvent } from "svelte-gestures";
   import { onMount, tick, untrack, type Snippet } from "svelte";
@@ -8,7 +15,15 @@
     /** Accessible name for the carousel region — say what's inside
      *  ("Customer testimonials"), not "Slider". */
     label: string;
-    children: Snippet<[{ index: number; clone?: boolean }]>;
+    /** Rendered once per cell. `index` is the item; `clone` is true for a
+     *  cell of the infinite track's two outer copies; `offscreen` is true for
+     *  a cell CREATED outside the on-screen window (the fully visible cells
+     *  plus the clipped partial one at the right edge) — a fact about the cell
+     *  for its whole life, so its first appearance is always a slide-in, never
+     *  the page-load reveal. */
+    children: Snippet<
+      [{ index: number; clone?: boolean; offscreen?: boolean }]
+    >;
     /** Slides visible at once from 768px up. */
     cardsPerView?: number;
     /** Slides visible below 768px (default 1). The live team row keeps several
@@ -233,6 +248,20 @@
   });
 
   const maxSlide = $derived(Math.max(0, itemCount - responsiveCardsPerView));
+  /** Cells at least PARTLY on screen: the fully visible count plus the clipped
+   *  partial cell at the right edge (live's 6th headshot), when there is one.
+   *  Only decides `offscreen` for a cell at its creation — see `children`. */
+  const cellsOnScreen = $derived.by(() => {
+    if (mode === "fade") return 1;
+    if (fixedMode) {
+      const iw = parseFloat(activeItemWidth ?? "0");
+      const g = parseFloat(currentGap) || 0;
+      const pad = parseFloat(currentPadStart) || 0;
+      if (!viewport.width || !iw) return 1;
+      return Math.max(1, Math.ceil((viewport.width - pad) / (iw + g)));
+    }
+    return responsiveCardsPerView;
+  });
 
   // ---- infinite mode (see the `infinite` prop) ----
   const mod = (i: number, n: number) => ((i % n) + n) % n;
@@ -413,6 +442,8 @@
 
   const slideVisible = (i: number) =>
     i >= currentSlide && i < currentSlide + responsiveCardsPerView;
+  const cellOnScreen = (i: number) =>
+    i >= currentSlide && i < currentSlide + cellsOnScreen;
 </script>
 
 <div
@@ -444,6 +475,10 @@
              on screen BECOME the middle copy (same nodes, moved) and only the
              two copies are new. -->
         {#each Array(trackCount) as _, i (i - (copies === 3 ? itemCount : 0))}
+          <!-- Captured once, when the cell is created (untrack: no
+               dependencies, so the derived never re-runs): a cell that moves
+               copies when the track engages keeps the mark it was born with. -->
+          {@const offscreen = untrack(() => !cellOnScreen(i))}
           <div
             class="w-full shrink-0 {slideClass}"
             role="group"
@@ -462,6 +497,7 @@
             {@render children({
               index: i % itemCount,
               clone: copies === 3 && (i < itemCount || i >= 2 * itemCount),
+              offscreen,
             })}
           </div>
         {/each}
@@ -493,13 +529,13 @@
          mobile, where the row is a fit-to-container 3-across and a fade would
          just grey out the third headshot. -->
     <div
-      class="pointer-events-none absolute inset-y-0 left-0 z-[5] hidden w-20 lg:block"
-      style="background:linear-gradient(90deg, {edgeFadeColor}, rgba(255,255,255,0))"
+      class="pointer-events-none absolute inset-y-0 left-0 z-[5] hidden lg:block"
+      style="width:{EDGE_FADE_WIDTH}px;background:linear-gradient(90deg, {edgeFadeColor}, rgba(255,255,255,0))"
       aria-hidden="true"
     ></div>
     <div
-      class="pointer-events-none absolute inset-y-0 right-0 z-[5] hidden w-20 lg:block"
-      style="background:linear-gradient(270deg, {edgeFadeColor}, rgba(255,255,255,0))"
+      class="pointer-events-none absolute inset-y-0 right-0 z-[5] hidden lg:block"
+      style="width:{EDGE_FADE_WIDTH}px;background:linear-gradient(270deg, {edgeFadeColor}, rgba(255,255,255,0))"
       aria-hidden="true"
     ></div>
   {/if}

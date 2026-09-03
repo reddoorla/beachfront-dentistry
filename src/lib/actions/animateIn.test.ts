@@ -4,10 +4,15 @@ import { animateIn } from "./animateIn";
 class FakeIntersectionObserver {
   static instances: FakeIntersectionObserver[] = [];
   callback: IntersectionObserverCallback;
+  options: IntersectionObserverInit | undefined;
   observed: Element[] = [];
   disconnected = false;
-  constructor(cb: IntersectionObserverCallback) {
+  constructor(
+    cb: IntersectionObserverCallback,
+    options?: IntersectionObserverInit,
+  ) {
     this.callback = cb;
+    this.options = options;
     FakeIntersectionObserver.instances.push(this);
   }
   observe(el: Element) {
@@ -248,6 +253,71 @@ describe("animateIn — disabled", () => {
     action.destroy();
     node.remove();
   });
+
+  // The infinite Slider's cells of one item share their reveal: the first
+  // cell to intersect plays the entrance (`onReveal`), and the item's other
+  // cells then get `disabled` on update. Tucker, 2026-09-02: "if I click left
+  // twice the second click retriggers a fadein from all visible items" — that
+  // was a still-waiting cell being teleported into view by the snap.
+  it("update with `disabled` settles an element still waiting: visible now, no entrance, observer gone", () => {
+    const node = document.createElement("div");
+    document.body.appendChild(node);
+    const action = animateIn(node, { duration: 750 });
+    expect(node.style.opacity).toBe("0");
+    expect(node.hasAttribute("data-reveal")).toBe(true);
+    const observer = FakeIntersectionObserver.instances.at(-1)!;
+    action.update({ disabled: true });
+    expect(node.style.opacity).toBe("");
+    expect(node.style.transform).toBe("");
+    expect(node.style.transition).toBe("");
+    expect(node.style.transitionDelay).toBe("");
+    expect(node.hasAttribute("data-reveal")).toBe(false);
+    expect(observer.disconnected).toBe(true);
+    // Nothing left running: a late intersection must not re-hide or re-reveal.
+    observer.trigger(true);
+    expect(node.style.opacity).toBe("");
+    action.destroy();
+    node.remove();
+  });
+
+  it("update with `disabled` leaves a reveal already under way to finish", async () => {
+    const node = document.createElement("div");
+    document.body.appendChild(node);
+    const action = animateIn(node, { duration: 750 });
+    FakeIntersectionObserver.instances.at(-1)!.trigger(true);
+    await nextTwoFrames();
+    expect(node.style.opacity).toBe("1");
+    action.update({ disabled: true });
+    expect(node.style.opacity).toBe("1");
+    expect(node.style.transition).toContain("opacity 750ms");
+    action.destroy();
+    node.remove();
+  });
+
+  it("calls onReveal when the entrance plays, not before", async () => {
+    const node = document.createElement("div");
+    document.body.appendChild(node);
+    const onReveal = vi.fn();
+    const action = animateIn(node, { onReveal });
+    expect(onReveal).not.toHaveBeenCalled();
+    FakeIntersectionObserver.instances.at(-1)!.trigger(true);
+    expect(onReveal).not.toHaveBeenCalled();
+    await nextTwoFrames();
+    expect(onReveal).toHaveBeenCalledTimes(1);
+    action.destroy();
+    node.remove();
+  });
+
+  it("does not call onReveal when settled by `disabled`", () => {
+    const node = document.createElement("div");
+    document.body.appendChild(node);
+    const onReveal = vi.fn();
+    const action = animateIn(node, { onReveal });
+    action.update({ disabled: true });
+    expect(onReveal).not.toHaveBeenCalled();
+    action.destroy();
+    node.remove();
+  });
 });
 
 describe("animateIn — viewport fail-safe", () => {
@@ -414,6 +484,23 @@ describe("animateIn — options overrides", () => {
     expect(el.style.transition).toContain(
       "transform 1200ms var(--transition-out-expo)",
     );
+  });
+
+  it("passes rootMargin to the observer, and none by default", () => {
+    const a = document.createElement("div");
+    document.body.appendChild(a);
+    animateIn(a, { rootMargin: "0px -80px" });
+    expect(FakeIntersectionObserver.instances.at(-1)!.options?.rootMargin).toBe(
+      "0px -80px",
+    );
+    const b = document.createElement("div");
+    document.body.appendChild(b);
+    animateIn(b, { duration: 500 });
+    expect(
+      FakeIntersectionObserver.instances.at(-1)!.options?.rootMargin,
+    ).toBeUndefined();
+    a.remove();
+    b.remove();
   });
 
   it("applies a custom translateY on the hidden transform", () => {

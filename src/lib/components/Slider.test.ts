@@ -439,6 +439,38 @@ describe("Slider infinite mode", () => {
     expect(isInert(slides[4])).toBe(true);
   });
 
+  it("marks a cell created outside the on-screen window as offscreen, for life", async () => {
+    // Tucker, 2026-09-02: "double the length of the transition in for items
+    // that are initially hidden" — the card reads this mark to pick its
+    // reveal. The mark is taken at the cell's creation and never changes,
+    // so the originals keep theirs after moving copies, and every cell of
+    // the two new copies is born offscreen.
+    const marking = createRawSnippet<
+      [{ index: number; clone?: boolean; offscreen?: boolean }]
+    >((args) => ({
+      render: () =>
+        `<span data-offscreen="${args().offscreen}">Item ${args().index + 1}</span>`,
+    }));
+    const marks = (container: HTMLElement) =>
+      Array.from(container.querySelectorAll("[data-offscreen]")).map((el) =>
+        el.getAttribute("data-offscreen"),
+      );
+    const { container, getByLabelText } = renderSlider({
+      infinite: true,
+      cardsPerView: 2,
+      children: marking,
+    });
+    await settle();
+    expect(marks(container)).toEqual(["false", "false", "true", "true"]);
+    await fireEvent.click(getByLabelText("Next slide"));
+    await settle();
+    expect(marks(container)).toEqual([
+      ...["true", "true", "true", "true"],
+      ...["false", "false", "true", "true"],
+      ...["true", "true", "true", "true"],
+    ]);
+  });
+
   it("prev from rest goes ONE step back to the last item, not to maxSlide", async () => {
     const { container, getByLabelText } = renderSlider({ infinite: true });
     await settle();

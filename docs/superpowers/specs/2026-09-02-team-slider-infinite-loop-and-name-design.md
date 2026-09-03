@@ -68,10 +68,11 @@ machinery) are unchanged.
   apply the step. Doing it before the next move rather than on
   `transitionend` makes it independent of transition timing, so it holds
   under reduced motion.
-- Copies render with `clone: true`; the person card passes that to
-  `animateIn` as `{ disabled: true }` (a new option — `trigger: false` would
-  hide the element), so a copy entering mid-scroll plays no entrance on a
-  card the reader has already seen.
+- Copies render with `clone: true`, and every cell renders with `offscreen`:
+  whether it was CREATED outside the on-screen window (the fully visible
+  cells plus the clipped partial one at the right edge), captured once at
+  creation and kept for the cell's life. See §3 for what the card does with
+  it.
 - Dots: one per item; `goToSlide(i)` targets `n + i` (engaging first if
   needed); the active dot is `((index % n) + n) % n`. The live-region
   announcement uses the same modulus.
@@ -96,6 +97,61 @@ machinery) are unchanged.
   in both directions, the last and first cards are on screen together and no
   mid-roster card is — the end state cannot tell a seamless step from a
   rewind, the middle of the motion can.
+
+## 3. One entrance per person (preview feedback, same day)
+
+Tucker on deploy-preview-42: "initial behavior is good, double the length of
+the transition in for items that are initially hidden. if I click left twice
+the second click retriggers a fadein from all visible items, I assumes that's
+moving to a different set of clones, please fix that." And: "for the full
+boxes, add the fade effect on the edges that we have on the pure headshot
+carousel."
+
+**The retrigger.** The first prev from rest engages the track and slides in
+the last item's CLONE (no reveal — clones were disabled). The second prev
+first snaps the index by `+n`, which teleports the last item's REAL cell into
+the spot the clone occupied. That real cell had been waiting for its reveal
+since page load (off screen at rest), so it arrived at opacity 0 and faded
+in, and the item beside it did the same as it slid in. The clone/real split
+was the wrong unit: an entrance belongs to a PERSON, not a cell.
+
+**Change.** `CollectionList` keeps a reactive `seen: SvelteSet<uid>`. A card
+whose uid is seen mounts with `animateIn` `{ disabled: true }`; otherwise it
+gets the reveal plus `onReveal: () => seen.add(uid)` (new option: called
+when the entrance plays). `disabled` is now also honoured on UPDATE: a cell
+still waiting settles to visible in one frame with no transition, its
+observer and timers torn down; a reveal already under way is left to finish.
+So the first cell of a person to slide in plays the entrance and the person's
+other cells never do — including the one the snap teleports in, and clones
+created later.
+
+**The doubled fade.** A card created off screen (`offscreen` from the
+Slider) reveals with `SLIDE_IN_REVEAL` = LIVE_REVEAL at 2 × 750ms. The cards
+on screen at rest keep the page-load reveal and their `index % 3` stagger.
+This also gives the prev direction a fade on first appearance (before, a
+clone never faded), so the two directions match — which needed one more
+thing: the next card to enter from the left waits as a 37px sliver at the
+screen edge (cell margin + track padding), and a plain viewport observer
+counts that sliver as seen, so the card faded in under the edge fade and
+then slid in with nothing left to play (the first run of the browser check
+below caught exactly this). Slider cards therefore observe with
+`rootMargin: "0px -80px"` (`EDGE_FADE_WIDTH`, exported by the Slider and
+also what sizes its fades): a card is seen once it is past the fade band.
+
+**The edge fade.** The first-visit card slider gets the home headshot row's
+`edgeFadeColor="#fff"`: two 80px gradients at the screen edges, desktop
+only, under the arrows. Live gives only the headshot row this
+(`.heads-opacity-gradient`, beachfront.css:7504-7530); on the card slider it
+is operator-directed.
+
+**Checks.** `animateIn.test.ts`: `disabled` on update settles a waiting
+element (no styles, no marker, observer disconnected, a late intersection
+inert), leaves a running reveal alone, `onReveal` fires when the entrance
+plays and not on settle. `Slider.test.ts`: the `offscreen` mark at creation
+and after the track engages. `team-slider-loop.spec.ts`: two prev clicks
+with motion on — mid-step after the second, every card that was on screen is
+at opacity 1 and not held hidden, while the newly entering card is mid-fade;
+and the edge fades exist at 1440 spanning the track, hidden at 834.
 
 ## Ledger
 

@@ -4688,3 +4688,60 @@ byte-identical (one copy, index 0, the same track padding).
 Interaction 248/248 alone on a fresh server (243 + the 3 "row stays level"
 cases + the 2 loop cases), unit 785/785 (778 + 6 Slider infinite-mode + 1
 animateIn disabled), svelte-check 0/0, prettier + eslint clean.
+
+### 3. Preview feedback (deploy-preview-42, same day): one entrance per person
+
+> initial behavior is good, double the length of the transition in for items
+> that are initially hidden. if I click left twice the second click retriggers
+> a fadein from all visible items, I assumes that's moving to a different set
+> of clones, please fix that.
+
+> for the full boxes, add the fade effect on the edges that we have on the
+> pure headshot carousel
+
+**The retrigger, reproduced.** Prev from rest engages the track and slides in
+the last person's CLONE (no reveal — clones were disabled). The second prev
+snaps the index by `+n` first, which teleports the last person's REAL cell
+into the spot the clone occupied; that cell had waited for its reveal since
+page load (off screen at rest), so it arrived at opacity 0 and faded in, and
+the card beside it did the same as it slid in. The clone/real split was the
+wrong unit: an entrance belongs to a PERSON, not a cell.
+
+**Fix.** `CollectionList` keeps a reactive `seen` set of uids. A card whose
+uid is seen mounts with `animateIn` `{ disabled: true }`; otherwise it gets
+the reveal plus `onReveal` (new option), which records the uid. `disabled` is
+now honoured on UPDATE too: a cell still waiting settles to visible in one
+frame with no transition (observer and timers torn down); a reveal under way
+is left to finish. So the first cell of a person to slide in plays the
+entrance and no other cell of that person ever does.
+
+**The doubled fade.** A cell created off screen (`offscreen`, a new Slider
+snippet arg captured once at the cell's creation — the fully visible cells
+plus the clipped partial one count as on screen) reveals at 2 × 750ms. Cards
+on screen at rest keep the page-load reveal. This gives the prev direction a
+fade on first appearance too — which surfaced a second defect, caught by the
+first run of the browser check: the next card to enter from the left waits
+as a 37px sliver at the screen edge, and a plain viewport observer counted
+it as seen, so it faded in under the edge fade and slid in with nothing left
+to play. Slider cards now observe with `rootMargin: "0px -80px"`
+(`EDGE_FADE_WIDTH`, exported by the Slider and also what sizes its fades): a
+card is seen once it is past the fade band.
+
+**The edge fade.** The first-visit card slider gets the headshot row's
+`edgeFadeColor="#fff"`: two 80px gradients at the screen edges, lg only,
+under the arrows. DEVIATION from live, operator-directed: live gives only the
+headshot row its `.heads-opacity-gradient` (beachfront.css:7504-7530); the
+card slider has none.
+
+Checks: `animateIn.test.ts` (+5: settle on `disabled` update, a running
+reveal left alone, `onReveal` on the entrance and not on settle,
+`rootMargin` passed through), `Slider.test.ts` (+1: the `offscreen` mark at
+creation and after the track engages), `team-slider-loop.spec.ts` (+2: two
+prev clicks with motion on — mid-step after the second, every card that was
+on screen is at opacity 1 and not held hidden while the entering card is
+mid-fade; the edge fades at 1440 span the track and are hidden at 834).
+
+Verification: unit 791/791, interaction + smoke 250/250 alone on a fresh
+server, svelte-check 0/0, prettier + eslint clean. No gate run: matching is
+PAUSED, and the rest frame is unchanged apart from the two edge-fade
+gradients, which paint over white at the screen edges.
