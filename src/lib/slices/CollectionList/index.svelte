@@ -336,8 +336,16 @@
            on /our-team and 4 on /your-first-visit. #0e7799 here is 4.58:1,
            which clears the body threshold too. Operator-ACKed brand deviation;
            see app.css's `.h-primary` block for the general rule. -->
+      <!-- `lg:-mx-3`: the name's box may run 12px into each side of the
+           card's padding. Tucker, 2026-09-02: "Dr. Michael Hopkins goes to two
+           lines on his card, can we relax the padding on that name, it can go
+           a bit wider than the text if it keeps everything inline height
+           wise." Measured: the widest name is 295px on one line and the
+           slider card's column is 292 (340 − 2×24) at every lg width. 316 now.
+           No nowrap — a longer name still wraps and the card still grows
+           (ROUND C); this only stops the row losing its level over 3px. -->
       <h5
-        class="font-slab text-primary-deep text-[30px] leading-[40px] font-light"
+        class="font-slab text-primary-deep text-[30px] leading-[40px] font-light lg:-mx-3"
       >
         {name}
       </h5>
