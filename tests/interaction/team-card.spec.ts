@@ -168,3 +168,49 @@ test.describe("the team row names a face without hover", () => {
     expect(new URL(page.url()).pathname).toBe(href);
   });
 });
+
+// Tucker, 2026-09-02: "Dr. Michael Hopkins goes to two lines on his card, can
+// we relax the padding on that name, it can go a bit wider than the text if it
+// keeps everything inline height wise." The widest name is 295px on one line;
+// the slider card's text column is 292px at every desktop width (340px card,
+// 24px side padding). The name's box may extend into that padding; a name
+// that still does not fit wraps and the card grows (ROUND C), so this holds
+// the ROW level rather than forbidding growth outright. Spec:
+// docs/superpowers/specs/2026-09-02-team-slider-infinite-loop-and-name-design.md
+test.describe("the slider card row stays level", () => {
+  for (const width of [1440, 1200, 1024]) {
+    test(`@${width}: no name wraps and every card is the same height`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/your-first-visit", { waitUntil: "networkidle" });
+      await page.evaluate(() => document.fonts.ready);
+      const r = await page.evaluate(() => {
+        const cards = Array.from(
+          document.querySelectorAll("#meet-our-team .team-list-item"),
+        );
+        const heights = cards.map((c) => c.getBoundingClientRect().height);
+        const wrapped: string[] = [];
+        for (const c of cards) {
+          const h = c.querySelector("h5");
+          if (!h) continue;
+          const range = document.createRange();
+          range.selectNodeContents(h);
+          const tops = new Set(
+            Array.from(range.getClientRects()).map((x) => Math.round(x.top)),
+          );
+          if (tops.size > 1)
+            wrapped.push(`${h.textContent?.trim()} (${tops.size} lines)`);
+        }
+        return {
+          cards: cards.length,
+          wrapped,
+          spread: Math.max(...heights) - Math.min(...heights),
+        };
+      });
+      expect(r.cards, "slider cards present").toBeGreaterThan(1);
+      expect(r.wrapped, "names on more than one line").toEqual([]);
+      expect(r.spread, "card height spread across the row").toBeLessThan(1);
+    });
+  }
+});

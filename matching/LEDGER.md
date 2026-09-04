@@ -4616,3 +4616,132 @@ eslint clean. One earlier full run was 241/2 (a11y question-detail,
 shared-photos crawl) with a macOS XProtect scan and two leftover node
 processes competing for the CPU; both files pass alone (9/9, 7/7) and the
 clean rerun is the number above. Gate header for home is under item 1.
+
+## TEAM SLIDER ROUND — Tucker, 2026-09-02, on the merged #38 build
+
+> Dr. Michael Hopkins goes to two lines on his card, can we relax the padding
+> on that name, it can go a bit wider than the text if it keeps everything
+> inline height wise. Transitioning to infinite scroll after the first click
+> (in either direction) would be great.
+
+Design approved (scope: both team sliders) —
+`docs/superpowers/specs/2026-09-02-team-slider-infinite-loop-and-name-design.md`.
+Two DEVIATIONS from live, both operator-directed:
+
+### 1. The name's box runs 12px into the card's padding at lg
+
+Measured (`matching/probe-team-names.mjs`): the widest name, "Dr. Michael
+Hopkins", is 295px on one line at the card's 30px slab; the slider card is
+340px with 24px side padding, so the column is 292px at 1440/1200/1024 alike
+— three pixels short, and the card grew (ROUND C) and broke the row's level.
+Live's name box is the padding box; ours is now `lg:-mx-3` on the `<h5>`
+(316px). Centred text, same size, no `nowrap`: a name longer than 316px still
+wraps and the card still grows, per ROUND C. Fixed by this: the slider at
+every lg width, and the /our-team grid at 1200 (same 340px card). Not fixed,
+and not fixable by padding: the grid at 1024 (281px card) and phones (240px),
+where one card is visible at a time so nothing reads as misaligned.
+
+Check: `tests/interaction/team-card.spec.ts`, "the slider card row stays
+level" — no slider card name on more than one line and all cards the same
+height, at 1440/1200/1024. Red 3/3 before, green after.
+
+### 2. The team sliders loop seamlessly after the first click
+
+Live's `.team-slider` (and the shared Slider until now) wraps by REWINDING:
+next on the last position slides the whole track back to the first. Tucker
+asked for the opposite: after the first click in either direction, every
+move is one step in the pressed direction, forever.
+
+`src/lib/components/Slider.svelte`, new `infinite` prop, on the home headshot
+row and the first-visit card slider (`CollectionList`). At rest the track is
+plain — one copy, index 0 — so the first frame, and every gate anchor cut
+from it, is unchanged. The first move engages three copies with the on-screen
+cells becoming the middle copy (keyed each: same nodes, moved; pixels
+identical), and from then on an invisible snap re-bases the index into the
+middle copy before the next move. The snap suppresses the track's transition
+with `transition-none` for one frame and commits by a forced reflow; merely
+dropping `transition-transform` leaves the duration utilities on and the CSS
+default `transition-property: all`, so the snap itself animates and the step
+retargets mid-flight — probed 2026-09-02 as a 0 → −3833px glide, the very
+rewind this exists to remove, caught by the interaction spec below and not by
+jsdom. Copies render the card with the reveal disabled (`animateIn`'s new
+`disabled` option; `trigger: false` would HIDE it), so a copy entering
+mid-scroll does not play an entrance on a card the reader has already seen.
+Off-screen cells stay `inert` + `aria-hidden` as before; dots and the live
+region count 1..n by the real index; arrows never disable. The office-tour
+photo carousel keeps its rewind (not asked for).
+
+Checks: `src/lib/components/Slider.test.ts` "Slider infinite mode" (6 cases:
+plain at rest and three copies on the first move, prev from rest to the last
+item, forward past the end then re-based, dots per item and to the middle
+copy, arrows never disabled, no-op when everything fits) and
+`tests/interaction/team-slider-loop.spec.ts`, which samples the cards on
+screen MID-transition across the seam in both directions — the end state
+cannot distinguish a seamless step from a rewind, the middle of the motion
+can. Motion is on for that spec (the suite default is reduced).
+
+No gate run: matching is PAUSED, and the rest frame of both sliders is
+byte-identical (one copy, index 0, the same track padding).
+
+### Verification
+
+Interaction 248/248 alone on a fresh server (243 + the 3 "row stays level"
+cases + the 2 loop cases), unit 785/785 (778 + 6 Slider infinite-mode + 1
+animateIn disabled), svelte-check 0/0, prettier + eslint clean.
+
+### 3. Preview feedback (deploy-preview-42, same day): one entrance per person
+
+> initial behavior is good, double the length of the transition in for items
+> that are initially hidden. if I click left twice the second click retriggers
+> a fadein from all visible items, I assumes that's moving to a different set
+> of clones, please fix that.
+
+> for the full boxes, add the fade effect on the edges that we have on the
+> pure headshot carousel
+
+**The retrigger, reproduced.** Prev from rest engages the track and slides in
+the last person's CLONE (no reveal — clones were disabled). The second prev
+snaps the index by `+n` first, which teleports the last person's REAL cell
+into the spot the clone occupied; that cell had waited for its reveal since
+page load (off screen at rest), so it arrived at opacity 0 and faded in, and
+the card beside it did the same as it slid in. The clone/real split was the
+wrong unit: an entrance belongs to a PERSON, not a cell.
+
+**Fix.** `CollectionList` keeps a reactive `seen` set of uids. A card whose
+uid is seen mounts with `animateIn` `{ disabled: true }`; otherwise it gets
+the reveal plus `onReveal` (new option), which records the uid. `disabled` is
+now honoured on UPDATE too: a cell still waiting settles to visible in one
+frame with no transition (observer and timers torn down); a reveal under way
+is left to finish. So the first cell of a person to slide in plays the
+entrance and no other cell of that person ever does.
+
+**The doubled fade.** A cell created off screen (`offscreen`, a new Slider
+snippet arg captured once at the cell's creation — the fully visible cells
+plus the clipped partial one count as on screen) reveals at 2 × 750ms. Cards
+on screen at rest keep the page-load reveal. This gives the prev direction a
+fade on first appearance too — which surfaced a second defect, caught by the
+first run of the browser check: the next card to enter from the left waits
+as a 37px sliver at the screen edge, and a plain viewport observer counted
+it as seen, so it faded in under the edge fade and slid in with nothing left
+to play. Slider cards now observe with `rootMargin: "0px -80px"`
+(`EDGE_FADE_WIDTH`, exported by the Slider and also what sizes its fades): a
+card is seen once it is past the fade band.
+
+**The edge fade.** The first-visit card slider gets the headshot row's
+`edgeFadeColor="#fff"`: two 80px gradients at the screen edges, lg only,
+under the arrows. DEVIATION from live, operator-directed: live gives only the
+headshot row its `.heads-opacity-gradient` (beachfront.css:7504-7530); the
+card slider has none.
+
+Checks: `animateIn.test.ts` (+5: settle on `disabled` update, a running
+reveal left alone, `onReveal` on the entrance and not on settle,
+`rootMargin` passed through), `Slider.test.ts` (+1: the `offscreen` mark at
+creation and after the track engages), `team-slider-loop.spec.ts` (+2: two
+prev clicks with motion on — mid-step after the second, every card that was
+on screen is at opacity 1 and not held hidden while the entering card is
+mid-fade; the edge fades at 1440 span the track and are hidden at 834).
+
+Verification: unit 791/791, interaction + smoke 250/250 alone on a fresh
+server, svelte-check 0/0, prettier + eslint clean. No gate run: matching is
+PAUSED, and the rest frame is unchanged apart from the two edge-fade
+gradients, which paint over white at the screen edges.

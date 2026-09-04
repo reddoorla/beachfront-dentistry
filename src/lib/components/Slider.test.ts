@@ -394,3 +394,148 @@ describe("Slider autoplay", () => {
     );
   });
 });
+
+describe("Slider infinite mode", () => {
+  // Tucker, 2026-09-02: "transitioning to infinite scroll after the first
+  // click (in either direction)". The track renders the items three times,
+  // rests on the middle copy, and every move is one step in the pressed
+  // direction; an invisible snap re-bases the index into the middle copy
+  // before the NEXT move, so there is never a visible rewind. Spec:
+  // docs/superpowers/specs/2026-09-02-team-slider-infinite-loop-and-name-design.md
+  const track = (container: HTMLElement) =>
+    container.querySelector<HTMLElement>('[style*="transform"]')!;
+  const indexOf = (container: HTMLElement) =>
+    Number(/calc\((\d+) \*/.exec(track(container).style.transform)?.[1]);
+  const settle = async () => {
+    await tick();
+    await tick();
+  };
+
+  it("rests as a plain track and engages three copies on the first move", async () => {
+    const { container, getAllByRole, getByLabelText } = renderSlider({
+      infinite: true,
+    });
+    await settle();
+    expect(allSlides(getAllByRole)).toHaveLength(4);
+    expect(indexOf(container)).toBe(0);
+    expect(activeDot(container)?.getAttribute("aria-label")).toBe(
+      "Go to slide 1",
+    );
+
+    await fireEvent.click(getByLabelText("Next slide"));
+    await settle();
+    const slides = allSlides(getAllByRole);
+    expect(slides).toHaveLength(12);
+    expect(slides[0].getAttribute("aria-label")).toBe("1 of 4");
+    expect(slides[4].getAttribute("aria-label")).toBe("1 of 4");
+    expect(slides[11].getAttribute("aria-label")).toBe("4 of 4");
+    // 0 → engaged at 4 (same pixels) → stepped to 5: the second item leads.
+    expect(indexOf(container)).toBe(5);
+    expect(activeDot(container)?.getAttribute("aria-label")).toBe(
+      "Go to slide 2",
+    );
+    expect(isInert(slides[5])).toBe(false);
+    expect(isInert(slides[1])).toBe(true);
+    expect(isInert(slides[4])).toBe(true);
+  });
+
+  it("marks a cell created outside the on-screen window as offscreen, for life", async () => {
+    // Tucker, 2026-09-02: "double the length of the transition in for items
+    // that are initially hidden" — the card reads this mark to pick its
+    // reveal. The mark is taken at the cell's creation and never changes,
+    // so the originals keep theirs after moving copies, and every cell of
+    // the two new copies is born offscreen.
+    const marking = createRawSnippet<
+      [{ index: number; clone?: boolean; offscreen?: boolean }]
+    >((args) => ({
+      render: () =>
+        `<span data-offscreen="${args().offscreen}">Item ${args().index + 1}</span>`,
+    }));
+    const marks = (container: HTMLElement) =>
+      Array.from(container.querySelectorAll("[data-offscreen]")).map((el) =>
+        el.getAttribute("data-offscreen"),
+      );
+    const { container, getByLabelText } = renderSlider({
+      infinite: true,
+      cardsPerView: 2,
+      children: marking,
+    });
+    await settle();
+    expect(marks(container)).toEqual(["false", "false", "true", "true"]);
+    await fireEvent.click(getByLabelText("Next slide"));
+    await settle();
+    expect(marks(container)).toEqual([
+      ...["true", "true", "true", "true"],
+      ...["false", "false", "true", "true"],
+      ...["true", "true", "true", "true"],
+    ]);
+  });
+
+  it("prev from rest goes ONE step back to the last item, not to maxSlide", async () => {
+    const { container, getByLabelText } = renderSlider({ infinite: true });
+    await settle();
+    await fireEvent.click(getByLabelText("Previous slide"));
+    await settle();
+    expect(indexOf(container)).toBe(3);
+    expect(activeDot(container)?.getAttribute("aria-label")).toBe(
+      "Go to slide 4",
+    );
+  });
+
+  it("next past the last item keeps going forward, then re-bases before the following move", async () => {
+    const { container, getByLabelText } = renderSlider({ infinite: true });
+    await settle();
+    const next = getByLabelText("Next slide");
+    for (let i = 0; i < 4; i++) {
+      await fireEvent.click(next);
+      await settle();
+    }
+    // 4 → 8: still moving forward into the third copy, never back to 0.
+    expect(indexOf(container)).toBe(8);
+    expect(activeDot(container)?.getAttribute("aria-label")).toBe(
+      "Go to slide 1",
+    );
+    // The fifth move snaps 8 → 4 invisibly, then steps to 5.
+    await fireEvent.click(next);
+    await settle();
+    expect(indexOf(container)).toBe(5);
+    expect(activeDot(container)?.getAttribute("aria-label")).toBe(
+      "Go to slide 2",
+    );
+  });
+
+  it("never marks an arrow disabled and offers a dot per item", () => {
+    const { getByLabelText, queryByLabelText } = renderSlider({
+      infinite: true,
+    });
+    expect(
+      getByLabelText("Previous slide").getAttribute("aria-disabled"),
+    ).toBeNull();
+    expect(
+      getByLabelText("Next slide").getAttribute("aria-disabled"),
+    ).toBeNull();
+    // 4 items, 1 per view: every item can be the leftmost card.
+    expect(getByLabelText("Go to slide 4")).toBeTruthy();
+    expect(queryByLabelText("Go to slide 5")).toBeNull();
+  });
+
+  it("dots target the middle copy", async () => {
+    const { container, getByLabelText } = renderSlider({ infinite: true });
+    await settle();
+    await fireEvent.click(getByLabelText("Go to slide 3"));
+    await settle();
+    expect(indexOf(container)).toBe(6);
+    expect(activeDot(container)?.getAttribute("aria-label")).toBe(
+      "Go to slide 3",
+    );
+  });
+
+  it("is a no-op when everything already fits", () => {
+    const { getAllByRole, queryByLabelText } = renderSlider({
+      itemCount: 1,
+      infinite: true,
+    });
+    expect(allSlides(getAllByRole)).toHaveLength(1);
+    expect(queryByLabelText("Next slide")).toBeNull();
+  });
+});

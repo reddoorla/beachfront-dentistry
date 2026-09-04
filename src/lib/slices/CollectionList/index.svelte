@@ -8,9 +8,30 @@
     type ImageField,
     type RichTextField,
   } from "@prismicio/client";
-  import Slider from "$lib/components/Slider.svelte";
+  import Slider, { EDGE_FADE_WIDTH } from "$lib/components/Slider.svelte";
   import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
   import { ENTITY_ROUTE_PREFIX } from "$lib/blux-catalog/entity-routes";
+  import { SvelteSet } from "svelte/reactivity";
+
+  /** Items (by uid) whose card has played its entrance. The infinite Slider
+   *  renders an item as up to three cells, and the reader meets it in
+   *  whichever cell slides in first; after that no cell of that item may fade
+   *  — least of all the one the pre-step snap teleports into the exact spot
+   *  the reader is looking at (Tucker, 2026-09-02, on the deploy preview:
+   *  "if I click left twice the second click retriggers a fadein from all
+   *  visible items"). Reactive: a cell still waiting for its reveal settles
+   *  the moment its twin reveals, and a cell created later for a seen item
+   *  mounts with no reveal at all. */
+  const seen = new SvelteSet<string>();
+  /** LIVE_REVEAL at twice the duration, for a slider card that is NOT on
+   *  screen at rest and so only ever appears by sliding in. Tucker,
+   *  2026-09-02: "double the length of the transition in for items that are
+   *  initially hidden." The cards on screen at rest (including the clipped
+   *  partial one at the right edge) keep the page-load reveal as it is. */
+  const SLIDE_IN_REVEAL = {
+    ...LIVE_REVEAL,
+    duration: LIVE_REVEAL.duration * 2,
+  } as const;
 
   type CollectionDoc = {
     uid: string;
@@ -214,6 +235,7 @@
   doc: CollectionDoc,
   variant: "grid" | "slider" = "grid",
   index = 0,
+  offscreen = false,
 )}
   <!-- live `.team-list-item` (320×480 / 303×384, bg #E7F5FA, radius 20): a
        circular headshot straddling the top edge, then name (cyan slab) / role
@@ -278,8 +300,28 @@
        column it would leave card 4 sitting invisible for 210ms AFTER it had
        already entered the viewport. Modulo the 3-up row resets the ramp per
        row, so no card ever waits longer than two steps. -->
+  <!-- One entrance per PERSON, not per cell. In the infinite slider the same
+       person is up to three cells (`seen`, above): the first cell to slide in
+       plays the reveal and records the uid, which turns the reveal off for
+       the person's other cells — settling one still waiting without a
+       transition, and mounting a later one plain. A card that is off screen
+       at rest (`offscreen`, the Slider's mark) reveals over twice the time
+       when it slides in; a card on screen at rest keeps the page-load reveal
+       and its `index % 3` stagger. In the slider a card under the edge fade
+       is not yet seen (`rootMargin`): the next card to enter from the left
+       waits as a 37px sliver under the fade, and without this it would
+       reveal there, unseen, and arrive with nothing left to play. -->
   <article
-    use:animateIn={{ ...LIVE_REVEAL, stagger: 70, index: index % 3 }}
+    use:animateIn={seen.has(doc.uid)
+      ? { disabled: true }
+      : {
+          ...(offscreen ? SLIDE_IN_REVEAL : LIVE_REVEAL),
+          stagger: 70,
+          index: index % 3,
+          rootMargin:
+            variant === "slider" ? `0px -${EDGE_FADE_WIDTH}px` : undefined,
+          onReveal: () => seen.add(doc.uid),
+        }}
     class="team-list-item group relative mx-6 mb-6 flex flex-col rounded-[20px] bg-[#e7f5fa] xs:min-h-[576px] xs:w-[384px] md:mx-8 md:mb-8 md:min-h-[768px] md:w-[512px] lg:min-h-[480px] {href
       ? CARD_AFFORDANCE
       : ''} {variant === 'slider'
@@ -329,8 +371,16 @@
            on /our-team and 4 on /your-first-visit. #0e7799 here is 4.58:1,
            which clears the body threshold too. Operator-ACKed brand deviation;
            see app.css's `.h-primary` block for the general rule. -->
+      <!-- `lg:-mx-3`: the name's box may run 12px into each side of the
+           card's padding. Tucker, 2026-09-02: "Dr. Michael Hopkins goes to two
+           lines on his card, can we relax the padding on that name, it can go
+           a bit wider than the text if it keeps everything inline height
+           wise." Measured: the widest name is 295px on one line and the
+           slider card's column is 292 (340 − 2×24) at every lg width. 316 now.
+           No nowrap — a longer name still wraps and the card still grows
+           (ROUND C); this only stops the row losing its level over 3px. -->
       <h5
-        class="font-slab text-primary-deep text-[30px] leading-[40px] font-light"
+        class="font-slab text-primary-deep text-[30px] leading-[40px] font-light lg:-mx-3"
       >
         {name}
       </h5>
@@ -495,6 +545,7 @@
         <Slider
           itemCount={docs.length}
           label={asText(slice.primary.heading) || "Meet the team"}
+          infinite
           itemWidth="200px"
           tabletItemWidth="160px"
           mobileItemWidth="120px"
@@ -606,9 +657,18 @@
              the compensation and the cell width move with it IN THE SAME
              commit: itemWidth = 340 + 2×21.67 = 383.34, trackPadStart
              − 21.67px. ≤991 tiers untouched. See LEDGER 2026-08-10 A2 + C. -->
+        <!-- Tucker, 2026-09-02, on the deploy preview: "for the full boxes,
+             add the fade effect on the edges that we have on the pure
+             headshot carousel." Same Slider edge-fade as the home row (live's
+             `.heads-opacity-gradient`, beachfront.css:7504-7530, which live
+             gives only the headshot row); the section sits on the page's
+             white, so the fade is to #fff. A DEVIATION from live, operator-
+             directed — see LEDGER TEAM SLIDER ROUND. -->
         <Slider
           itemCount={docs.length}
           label={asText(slice.primary.heading) || "Meet our team"}
+          infinite
+          edgeFadeColor="#fff"
           itemWidth="383.34px"
           tabletItemWidth="640px"
           mobileItemWidth="288px"
@@ -630,10 +690,16 @@
           {#snippet nextArrow()}
             <img src="/icons/team-arrow-right.svg" alt="" class="h-10 w-auto" />
           {/snippet}
-          {#snippet children({ index }: { index: number })}
+          {#snippet children({
+            index,
+            offscreen = false,
+          }: {
+            index: number;
+            offscreen?: boolean;
+          })}
             {@const doc = docs[index]}
             {#if doc}
-              {@render personCard(doc, "slider")}
+              {@render personCard(doc, "slider", 0, offscreen)}
             {/if}
           {/snippet}
         </Slider>

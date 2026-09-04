@@ -1,6 +1,13 @@
+<script module lang="ts">
+  /** Width, in px, of each `edgeFadeColor` gradient. Exported so a slide's
+   *  own reveal can treat the band as not-yet-seen (CollectionList passes it
+   *  as a negative `rootMargin` to `animateIn`). */
+  export const EDGE_FADE_WIDTH = 80;
+</script>
+
 <script lang="ts">
   import { useSwipe, type SwipeCustomEvent } from "svelte-gestures";
-  import { onMount, type Snippet } from "svelte";
+  import { onMount, tick, untrack, type Snippet } from "svelte";
   import { viewport } from "$stores/viewport.svelte";
 
   interface Props {
@@ -8,7 +15,15 @@
     /** Accessible name for the carousel region — say what's inside
      *  ("Customer testimonials"), not "Slider". */
     label: string;
-    children: Snippet<[{ index: number }]>;
+    /** Rendered once per cell. `index` is the item; `clone` is true for a
+     *  cell of the infinite track's two outer copies; `offscreen` is true for
+     *  a cell CREATED outside the on-screen window (the fully visible cells
+     *  plus the clipped partial one at the right edge) — a fact about the cell
+     *  for its whole life, so its first appearance is always a slide-in, never
+     *  the page-load reveal. */
+    children: Snippet<
+      [{ index: number; clone?: boolean; offscreen?: boolean }]
+    >;
     /** Slides visible at once from 768px up. */
     cardsPerView?: number;
     /** Slides visible below 768px (default 1). The live team row keeps several
@@ -22,6 +37,17 @@
     /** Wrap past the ends. When false, arrows disable at the bounds and
      *  autoplay parks on the last position. */
     loop?: boolean;
+    /** Seamless wrap for `loop` in slide mode. At rest the track is plain —
+     *  one copy, index 0, the reference's first frame. The FIRST move in either
+     *  direction engages three copies of the items with the on-screen cells
+     *  becoming the middle copy (same nodes, pixels unchanged), and from then
+     *  on every move is one step in the pressed direction, forever: an
+     *  invisible snap re-bases the index into the middle copy before the next
+     *  move, so there is never a rewind. Copies render `children` with
+     *  `clone: true`. Requires `loop`; a no-op when everything already fits.
+     *  Tucker, 2026-09-02: "infinite scroll after the first click (in either
+     *  direction)". */
+    infinite?: boolean;
     /** Auto-advance every N ms. Off by default. Pauses on hover and hidden
      *  tab; focus entering the carousel stops rotation until the user hits
      *  play again (APG); never runs under prefers-reduced-motion. */
@@ -102,6 +128,7 @@
     mobileGap = "6px",
     mode = "slide",
     loop = true,
+    infinite = false,
     autoplay = 0,
     showDots = true,
     showArrows = true,
@@ -128,6 +155,11 @@
   }: Props = $props();
 
   let currentSlide = $state(0);
+  /** Infinite mode: has the first move happened (three copies on the track)? */
+  let engaged = $state(false);
+  /** One frame with the transition suppressed, so a re-base does not glide. */
+  let snapping = $state(false);
+  let trackEl: HTMLDivElement | undefined = $state();
   let hovered = $state(false);
   let pageHidden = $state(false);
   let reducedMotion = $state(false);
@@ -216,6 +248,76 @@
   });
 
   const maxSlide = $derived(Math.max(0, itemCount - responsiveCardsPerView));
+  /** Cells at least PARTLY on screen: the fully visible count plus the clipped
+   *  partial cell at the right edge (live's 6th headshot), when there is one.
+   *  Only decides `offscreen` for a cell at its creation — see `children`. */
+  const cellsOnScreen = $derived.by(() => {
+    if (mode === "fade") return 1;
+    if (fixedMode) {
+      const iw = parseFloat(activeItemWidth ?? "0");
+      const g = parseFloat(currentGap) || 0;
+      const pad = parseFloat(currentPadStart) || 0;
+      if (!viewport.width || !iw) return 1;
+      return Math.max(1, Math.ceil((viewport.width - pad) / (iw + g)));
+    }
+    return responsiveCardsPerView;
+  });
+
+  // ---- infinite mode (see the `infinite` prop) ----
+  const mod = (i: number, n: number) => ((i % n) + n) % n;
+  const infiniteActive = $derived(
+    infinite && loop && mode === "slide" && itemCount > responsiveCardsPerView,
+  );
+  const copies = $derived(infiniteActive && engaged ? 3 : 1);
+  const trackCount = $derived(itemCount * copies);
+  /** The item at the leftmost position, whichever copy is on screen. */
+  const realIndex = $derived(
+    copies === 3 ? mod(currentSlide, itemCount) : currentSlide,
+  );
+  /** Re-position the track with its transition suppressed for one frame: the
+   *  new transform is committed by a forced reflow, so the step that follows
+   *  in the same flush animates from it. The suppression must be
+   *  `transition-none`, not merely dropping `transition-transform`: the
+   *  duration/easing utilities stay on, and with no property list the CSS
+   *  default is `all` — the snap itself would animate and the step would
+   *  retarget mid-flight, i.e. the very rewind this exists to remove
+   *  (probed 2026-09-02: the track glided 0 → −3833px over 500ms). */
+  const snapTo = async (index: number, alsoEngage = false) => {
+    snapping = true;
+    if (alsoEngage) engaged = true;
+    currentSlide = index;
+    await tick();
+    void trackEl?.offsetHeight;
+    snapping = false;
+  };
+  /** First move: three copies, and the index re-based onto the middle one. */
+  const engage = () => snapTo(currentSlide + itemCount, true);
+  const stepForward = async () => {
+    if (!engaged) await engage();
+    else if (currentSlide >= 2 * itemCount)
+      await snapTo(currentSlide - itemCount);
+    currentSlide++;
+  };
+  const stepBack = async () => {
+    if (!engaged) await engage();
+    else if (currentSlide < itemCount) await snapTo(currentSlide + itemCount);
+    currentSlide--;
+  };
+  // A resize that makes everything fit while engaged: back to a plain track
+  // on the real index, without a glide.
+  $effect(() => {
+    const on = infiniteActive;
+    untrack(() => {
+      if (on || !engaged) return;
+      snapping = true;
+      engaged = false;
+      currentSlide = Math.min(mod(currentSlide, itemCount), maxSlide);
+      void tick().then(() => {
+        void trackEl?.offsetHeight;
+        snapping = false;
+      });
+    });
+  });
 
   // Each step advances one slide width plus one gap. With n cards per view
   // a slide is (100% - (n-1)*gap)/n wide, so the step is (100% + gap)/n —
@@ -233,7 +335,7 @@
   // Clamp when a resize (or fade mode) shrinks the reachable range out from
   // under the current index — otherwise the track points at empty space.
   $effect(() => {
-    if (currentSlide > maxSlide) currentSlide = maxSlide;
+    if (!infiniteActive && currentSlide > maxSlide) currentSlide = maxSlide;
   });
 
   // Autoplay wants a pause/play control (WCAG 2.2.2) — but only when rotation
@@ -255,7 +357,9 @@
     if (!autoRotating) return;
     void autoplayEpoch;
     const id = setInterval(() => {
-      if (currentSlide < maxSlide) {
+      if (infiniteActive) {
+        void stepForward();
+      } else if (currentSlide < maxSlide) {
         currentSlide++;
       } else if (loop) {
         currentSlide = 0;
@@ -264,8 +368,10 @@
     return () => clearInterval(id);
   });
 
-  const nextSlide = () => {
-    if (currentSlide < maxSlide) {
+  const nextSlide = async () => {
+    if (infiniteActive) {
+      await stepForward();
+    } else if (currentSlide < maxSlide) {
       currentSlide++;
     } else if (loop) {
       currentSlide = 0;
@@ -273,8 +379,10 @@
     autoplayEpoch++;
   };
 
-  const prevSlide = () => {
-    if (currentSlide > 0) {
+  const prevSlide = async () => {
+    if (infiniteActive) {
+      await stepBack();
+    } else if (currentSlide > 0) {
       currentSlide--;
     } else if (loop) {
       currentSlide = maxSlide;
@@ -282,8 +390,15 @@
     autoplayEpoch++;
   };
 
-  const goToSlide = (index: number) => {
-    currentSlide = Math.min(index, maxSlide);
+  const goToSlide = async (index: number) => {
+    if (infiniteActive) {
+      if (!engaged) await engage();
+      else if (currentSlide < itemCount || currentSlide >= 2 * itemCount)
+        await snapTo(itemCount + mod(currentSlide, itemCount));
+      currentSlide = itemCount + index;
+    } else {
+      currentSlide = Math.min(index, maxSlide);
+    }
     autoplayEpoch++;
   };
 
@@ -327,6 +442,8 @@
 
   const slideVisible = (i: number) =>
     i >= currentSlide && i < currentSlide + responsiveCardsPerView;
+  const cellOnScreen = (i: number) =>
+    i >= currentSlide && i < currentSlide + cellsOnScreen;
 </script>
 
 <div
@@ -348,15 +465,25 @@
   >
     {#if mode === "slide"}
       <div
-        class="flex transition-transform {transitionClass}"
+        bind:this={trackEl}
+        class="flex {snapping
+          ? 'transition-none'
+          : 'transition-transform'} {transitionClass}"
         style="transform: {translateValue}; gap: {currentGap}; padding-left: {currentPadStart};"
       >
-        {#each Array(itemCount) as _, i (i)}
+        <!-- Keyed so that when the infinite track engages, the cells already
+             on screen BECOME the middle copy (same nodes, moved) and only the
+             two copies are new. -->
+        {#each Array(trackCount) as _, i (i - (copies === 3 ? itemCount : 0))}
+          <!-- Captured once, when the cell is created (untrack: no
+               dependencies, so the derived never re-runs): a cell that moves
+               copies when the track engages keeps the mark it was born with. -->
+          {@const offscreen = untrack(() => !cellOnScreen(i))}
           <div
             class="w-full shrink-0 {slideClass}"
             role="group"
             aria-roledescription="slide"
-            aria-label="{i + 1} of {itemCount}"
+            aria-label="{(i % itemCount) + 1} of {itemCount}"
             aria-hidden={slideVisible(i) ? undefined : "true"}
             inert={!slideVisible(i)}
             style={fixedMode
@@ -367,7 +494,11 @@
                   ? `width: calc((100% - ${mobileCardsPerView - 1} * ${mobileGap}) / ${mobileCardsPerView});`
                   : ""}
           >
-            {@render children({ index: i })}
+            {@render children({
+              index: i % itemCount,
+              clone: copies === 3 && (i < itemCount || i >= 2 * itemCount),
+              offscreen,
+            })}
           </div>
         {/each}
       </div>
@@ -398,13 +529,13 @@
          mobile, where the row is a fit-to-container 3-across and a fade would
          just grey out the third headshot. -->
     <div
-      class="pointer-events-none absolute inset-y-0 left-0 z-[5] hidden w-20 lg:block"
-      style="background:linear-gradient(90deg, {edgeFadeColor}, rgba(255,255,255,0))"
+      class="pointer-events-none absolute inset-y-0 left-0 z-[5] hidden lg:block"
+      style="width:{EDGE_FADE_WIDTH}px;background:linear-gradient(90deg, {edgeFadeColor}, rgba(255,255,255,0))"
       aria-hidden="true"
     ></div>
     <div
-      class="pointer-events-none absolute inset-y-0 right-0 z-[5] hidden w-20 lg:block"
-      style="background:linear-gradient(270deg, {edgeFadeColor}, rgba(255,255,255,0))"
+      class="pointer-events-none absolute inset-y-0 right-0 z-[5] hidden lg:block"
+      style="width:{EDGE_FADE_WIDTH}px;background:linear-gradient(270deg, {edgeFadeColor}, rgba(255,255,255,0))"
       aria-hidden="true"
     ></div>
   {/if}
@@ -474,10 +605,13 @@
     aria-atomic="true"
   >
     {#if responsiveCardsPerView > 1}
-      Slides {currentSlide + 1} through {currentSlide + responsiveCardsPerView} of
+      Slides {realIndex + 1} through {Math.min(
+        realIndex + responsiveCardsPerView,
+        itemCount,
+      )} of
       {itemCount}
     {:else}
-      Slide {currentSlide + 1} of {itemCount}
+      Slide {realIndex + 1} of {itemCount}
     {/if}
   </div>
 
@@ -532,21 +666,21 @@
 
       {#if dotsShown}
         <div class="flex gap-2">
-          {#each Array(maxSlide + 1) as _, i (i)}
+          {#each Array(infiniteActive ? itemCount : maxSlide + 1) as _, i (i)}
             <!-- 24px hit target (WCAG 2.5.8); the visual dot is the span. -->
             <button
               type="button"
               onclick={() => goToSlide(i)}
               onkeydown={handleKeydown}
-              class="group h-6 min-w-6 flex items-center justify-center {currentSlide ===
+              class="group h-6 min-w-6 flex items-center justify-center {realIndex ===
               i
                 ? 'cursor-default'
                 : ''}"
               aria-label="Go to slide {i + 1}"
-              aria-current={currentSlide === i ? "true" : undefined}
+              aria-current={realIndex === i ? "true" : undefined}
             >
               <span
-                class="h-3 rounded-full group-active:-translate-y-1 transition-all duration-200 {currentSlide ===
+                class="h-3 rounded-full group-active:-translate-y-1 transition-all duration-200 {realIndex ===
                 i
                   ? `w-8 ${activeDotClass}`
                   : `w-3 ${dotClass}`}"

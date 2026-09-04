@@ -79,6 +79,33 @@ export type AnimateInOptions = {
    *  (MarkUp thread 738ad46b-0be6-4d92-a1c0-73a53e4c298e pin #2 — the
    *  team-member hero name intermittently never appeared.) */
   failSafe?: number;
+  /** Viewport mode only: the observer's `rootMargin`, e.g. "0px -80px" to
+   *  shrink the viewport by 80px on each side so an element under a slider's
+   *  edge fade does not count as seen — the infinite team slider's next card
+   *  waits as a 37px sliver under the fade, and with the plain viewport it
+   *  would reveal there, hidden, and then slide in with nothing left to play.
+   *  Default: none (the viewport as is). */
+  rootMargin?: string;
+  /** The content of this element has already been revealed somewhere else,
+   *  so no entrance should play here. At MOUNT: do nothing at all — no hidden
+   *  state, no observer, no timers. On UPDATE (the option turning true later,
+   *  in viewport mode): an element still waiting for its reveal is settled to
+   *  visible in one frame, with no transition, and its observer and timers are
+   *  torn down; a reveal already under way is left to finish. Distinct from
+   *  `trigger: false`, which HIDES the element until it is triggered.
+   *
+   *  The case: the infinite Slider renders each item as up to three cells, and
+   *  the reader sees an item for the first time in whichever cell slides in.
+   *  The other cells of that item must then never fade — in particular the
+   *  one the pre-step snap teleports into the exact spot the reader is looking
+   *  at (Tucker, 2026-09-02: "the second click retriggers a fadein from all
+   *  visible items"). Pair with `onReveal` on the sibling cells. */
+  disabled?: boolean;
+  /** Called every time this element's entrance plays (viewport intersection,
+   *  fail-safe, or a triggered `trigger: true`), synchronously with the
+   *  reveal styles. The Slider's team cards use it to record that an item has
+   *  been seen, which turns `disabled` on for the item's other cells. */
+  onReveal?: () => void;
 };
 
 export type AnimateInParam = boolean | AnimateInOptions | undefined;
@@ -92,6 +119,8 @@ type ResolvedConfig = {
   stagger: number | null;
   index: number;
   failSafe: number | null;
+  rootMargin: string | undefined;
+  onReveal: (() => void) | null;
 };
 
 function resolveConfig(param: AnimateInParam): ResolvedConfig {
@@ -112,6 +141,8 @@ function resolveConfig(param: AnimateInParam): ResolvedConfig {
     stagger: opts.stagger ?? null,
     index: opts.index ?? 0,
     failSafe: opts.failSafe ?? null,
+    rootMargin: opts.rootMargin,
+    onReveal: opts.onReveal ?? null,
   };
 }
 
@@ -144,6 +175,9 @@ function reveal(node: HTMLElement) {
 }
 
 export function animateIn(node: HTMLElement, param?: AnimateInParam) {
+  if (typeof param === "object" && param !== null && param.disabled) {
+    return { update() {}, destroy() {} };
+  }
   const cfg = resolveConfig(param);
   let observer: IntersectionObserver | undefined;
   let failSafeTimer: ReturnType<typeof setTimeout> | undefined;
@@ -224,6 +258,22 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
     hidden = false;
     reveal(node);
     scheduleRelease();
+    cfg.onReveal?.();
+  };
+  /** `disabled` arriving on update: the content was revealed elsewhere while
+   *  this element was still waiting. Visible now, in one frame, no entrance —
+   *  the observer, the fail-safe and the inline reveal styles all go, and the
+   *  element is handed straight back to its stylesheet. Not `show()`: that
+   *  would play the transition from the committed hidden frame. */
+  const settle = () => {
+    hidden = false;
+    observer?.disconnect();
+    if (failSafeTimer !== undefined) {
+      clearTimeout(failSafeTimer);
+      failSafeTimer = undefined;
+    }
+    node.removeAttribute("data-reveal");
+    release();
   };
 
   // Reduced motion is watched, not sampled, so turning the OS setting on mid-
@@ -308,7 +358,7 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
           observer?.disconnect();
         }
       },
-      { threshold: 0 },
+      { threshold: 0, rootMargin: cfg.rootMargin },
     );
     observer.observe(node);
 
@@ -324,8 +374,14 @@ export function animateIn(node: HTMLElement, param?: AnimateInParam) {
   }
 
   return {
-    /** In triggered mode, only the `trigger` field of `next` is read — other options are locked at mount. */
+    /** Two fields of `next` are read: `disabled` (both modes — settles an
+     *  element still waiting, see AnimateInOptions.disabled) and, in triggered
+     *  mode, `trigger`. Every other option is locked at mount. */
     update(next?: AnimateInParam) {
+      if (typeof next === "object" && next !== null && next.disabled) {
+        if (hidden) settle();
+        return;
+      }
       if (cfg.mode !== "triggered") return;
       const nextCfg = resolveConfig(next);
       // Under reduced motion the element must never go back to hidden: the
