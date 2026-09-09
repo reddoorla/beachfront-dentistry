@@ -28,19 +28,13 @@ if (existsSync(PAUSE)) {
   console.log(readFileSync(PAUSE, "utf8").trimEnd());
   process.exit(0);
 }
-const TOTALS = {
-  home: 27,
-  yfv: 24,
-  "our-team": 15,
-  services: 15,
-  atd: 15,
-  contact: 12,
-  team: 15,
-  svc: 15,
-  qa: 15,
-};
 
 import { FLOORS, ACCEPTED } from "./floors.mjs";
+import { TOTALS, THRESHOLD, MAX_HEIGHT_DELTA, REPORT_SCHEMA } from "./harness.mjs";
+
+// Reports written by a different page-diff, by page key. Kept rather than
+// dropped: silently ignoring them is how a page vanishes from the score.
+const schemaMismatch = new Set();
 
 const latest = new Map();
 for (const d of readdirSync(DIR).filter((d) => d.startsWith("out-"))) {
@@ -59,6 +53,12 @@ for (const d of readdirSync(DIR).filter((d) => d.startsWith("out-"))) {
   // it happened immediately: an --mask-photos probe of yfv made `top` @834 read
   // 43.9% here while the real gate had it passing at 1.3%.
   const meta = report.meta ?? {};
+  // Missing schemaVersion means "written before the field existed" = 0. It is
+  // not an error on its own; it is only fatal when it would blank a page.
+  if ((meta.schemaVersion ?? 0) !== REPORT_SCHEMA) {
+    schemaMismatch.add(m[1]);
+    continue;
+  }
   if (
     (meta.mask?.length ?? 0) > 0 ||
     meta.neutralizeMedia ||
@@ -66,9 +66,26 @@ for (const d of readdirSync(DIR).filter((d) => d.startsWith("out-"))) {
     meta.truncated
   )
     continue;
-  if (meta.threshold !== 0.1) continue;
+  if (meta.threshold !== THRESHOLD) continue;
   const prev = latest.get(m[1]);
   if (!prev || mtime > prev.mtime) latest.set(m[1], { dir: d, mtime, report });
+}
+
+const blanked = [...schemaMismatch].filter((p) => !latest.has(p));
+if (blanked.length) {
+  console.error(
+    `next: ${blanked.length} page(s) have no run at report schema ${REPORT_SCHEMA} — ` +
+      `their newest reports came from a different page-diff (${blanked.sort().join(", ")}).\n` +
+      `      Re-run: bash matching/gate.sh <tag> ${blanked.sort().join(" ")}`,
+  );
+  process.exit(2);
+}
+if (latest.size === 0) {
+  console.error(
+    "next: no parseable gate run under matching/ — refusing to report a score.\n" +
+      "      Run bash matching/gate.sh <tag> first.",
+  );
+  process.exit(2);
 }
 
 const rows = [];
@@ -146,8 +163,9 @@ console.log(
 console.log(`\nNEXT: ${worst} — worst page. Its open regions:\n`);
 for (const r of rows.filter((r) => r.page === worst)) {
   const why = [];
-  if (r.mm > 0.1) why.push(`pixels ${(r.mm * 100).toFixed(1)}%`);
-  if (Math.abs(r.dh) > 0.05) why.push(`height ${(r.dh * 100).toFixed(1)}%`);
+  if (r.mm > THRESHOLD) why.push(`pixels ${(r.mm * 100).toFixed(1)}%`);
+  if (Math.abs(r.dh) > MAX_HEIGHT_DELTA)
+    why.push(`height ${(r.dh * 100).toFixed(1)}%`);
   console.log(
     `  @${String(r.vw).padEnd(5)} ${r.label.slice(0, 44).padEnd(45)} ${why.join(" + ")}`,
   );

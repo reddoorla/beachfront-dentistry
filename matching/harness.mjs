@@ -69,9 +69,13 @@ export const PLAYWRIGHT = pathToFileURL(join(SKILL_DIR, "node_modules/playwright
 /** The report format this site's scripts can read, so gate.sh can compare it
  *  with `page-diff --version` before spending a run and next.mjs can refuse
  *  rather than quietly drop a page whose newest report came from another
- *  schema. Neither does that yet — today this is only the constant they will
- *  read. Checked 2026-09-09 against the installed skill:
- *  `page-diff --version` → `page-diff 0.1.0 report-schema 1`. */
+ *  schema. Both do that now — gate.sh preflights `page-diff --version` against
+ *  this value before spending a run, and next.mjs counts a foreign-schema
+ *  report as MISSING rather than skipping it. (This said "neither does that
+ *  yet" — true at 922dde3 where it was written, false from 4e2cd7b, which
+ *  gave gate.sh the preflight and did not come back here.) Checked 2026-09-09
+ *  against the installed skill: `page-diff --version` → `page-diff 0.1.0
+ *  report-schema 1`. */
 export const REPORT_SCHEMA = 1;
 
 /**
