@@ -199,3 +199,36 @@ opposite reasons). Moving it also caught a stale number inside it: it claimed
 written and went false the moment #54 deleted 16 sweeps and converted four
 probes. Measured on merged main: **12**. A count in a doc comment has no way to
 know when it stopped being true; a dated record does not pretend to.
+
+## 2026-09-09 — The corrections lived in the copy, not the original (`fix/harness-comments-match-recipe`)
+
+Adversarial review of the recipe PR caught this, and it is the sharpest version
+of tonight's recurring defect. Three false comments were found in
+`reddoor-maintenance`'s generated `template.ts` and corrected there — the claim
+that the `match-harness` recipe "does not exist yet" (in `harness.mjs` and
+`gate.sh`), and `gate.sh`'s pre-consolidation census of "33 of its 230 top-level
+matching scripts".
+
+But `template.ts` is **generated** from this repo. Its own header says `Do NOT
+hand-edit — regenerate`. So the corrections survived exactly until someone ran
+the generator, at which point all three reverted to the false text — and the
+file's instructions actively tell you to run it.
+
+Reproduced before fixing: regenerating produced `8 insertions, 15 deletions`,
+every line of it a correction being undone.
+
+**Why this shape is worth naming.** A fix applied to a derived artifact reads as
+done, passes review, and is undone by the documented workflow. It is the same
+class as reading a cached response as state, or a glob as a population — the
+thing you edited was not the thing that decides. The distinguishing symptom is
+that the artifact's own header tells you how to destroy your work.
+
+The fix is here rather than there: `matching/harness.mjs` and `matching/gate.sh`
+now carry the corrected text at source, so regeneration is a no-op instead of a
+reversion. `census.sh`, `next.mjs`, `strikes.mjs`, `build-spec.mjs` and
+`census-count.mjs` were already byte-identical and untouched.
+
+`--table` is still byte-identical to the frozen copy (`cmp` exit 0), which is
+the check that these were comment-only edits and not a behaviour change. The
+hyphen guard still refuses at exit 2, the reference preflight still refuses at
+exit 2, and `next.mjs` still exits 0 at the pause switch.

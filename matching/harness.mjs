@@ -1,7 +1,8 @@
 // The single source for everything the matching gates need to know about this
 // site. DATA lives in matching/harness.json (site-edited); this file is the
-// READ LAYER — edit harness.json, not this. (It is written to be cut into a
-// `reddoor-maint match-harness` recipe; that recipe does not exist yet.)
+// READ LAYER — edit harness.json, not this. (It is installed and upgraded by
+// the `reddoor-maint match-harness` recipe, which owns these bytes: a hand
+// edit here is flagged on the next run and never silently overwritten.)
 //
 // It exists because the page table, the two hosts, the matrix, the threshold
 // and the skill path were hand-copied all over matching/. Re-measured
