@@ -8,32 +8,32 @@
 // later. The verdict line per section is written by hand after LOOKING at each
 // pair; this script only produces the pairs.
 //
-// Sections come from gate.sh's own `--sections` anchors, so the walkthrough
-// covers exactly the census the pixel gate is cut on — no more, no less.
-import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
-import { mkdirSync, readFileSync } from "node:fs";
-
-const REF = "https://www.beachfrontdentistry.com";
-const CAND = "http://localhost:5173";
+// Sections come from the page table's own anchors — the same list gate.sh
+// passes to --sections — so the walkthrough covers exactly the census the
+// pixel gate is cut on, no more and no less.
+import { mkdirSync } from "node:fs";
+import { byKey, REF, CAND, MATRIX, PLAYWRIGHT } from "./harness.mjs";
+const { chromium } = await import(PLAYWRIGHT);
 
 const [page, vwArg] = process.argv.slice(2);
-const VW = Number(vwArg || 1440);
+const VW = Number(vwArg || MATRIX[0]);
 if (!page) {
   console.error("usage: walk.mjs <page> [viewport]");
   process.exit(2);
 }
-
-// read the page's paths + anchors straight out of gate.sh so the two gates can
-// never drift apart
-const gate = readFileSync("matching/gate.sh", "utf8");
-const re = new RegExp(`^run ${page} "([^"]+)" "([^"]+)"[^"]*"([^"]+)"`, "ms");
-const m = re.exec(gate.replace(/\\\n\s*/g, " "));
-if (!m) {
-  console.error(`no "run ${page}" line in matching/gate.sh`);
+// The table, not gate.sh's text. Regex-parsing the gate coupled this script to
+// the shell layout of another file, and it broke the moment that file was
+// restructured. The coupling was invisible until then.
+const rec = byKey[page];
+if (!rec) {
+  console.error(
+    `no page "${page}" in matching/harness.json (have: ${Object.keys(byKey).join(", ")})`,
+  );
   process.exit(2);
 }
-const [, refPath, candPath, sectionsRaw] = m;
-const SECTIONS = sectionsRaw.split(",").map((s) => s.trim());
+const refPath = rec.ref;
+const candPath = rec.cand;
+const SECTIONS = rec.anchors;
 
 mkdirSync("matching/states", { recursive: true });
 

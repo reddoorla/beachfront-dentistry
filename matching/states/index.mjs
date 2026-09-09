@@ -109,21 +109,12 @@ export const CHROME_STATES = [
   },
 ];
 
-/** The nine gated pages, ref -> cand, same list gate.sh and census.sh drive. */
-const SITE = {
-  home: ["/", "/dev/match/home"],
-  yfv: ["/your-first-visit", "/dev/match/your-first-visit"],
-  "our-team": ["/our-team", "/dev/match/our-team"],
-  services: ["/services", "/dev/match/services"],
-  atd: ["/ask-the-doctor", "/dev/match/ask-the-doctor"],
-  contact: ["/contact-us", "/contact-us"],
-  team: ["/team-members/dr-robert-quan", "/team-members/dr-robert-quan"],
-  svc: ["/services/dental-exams", "/services/dental-exams"],
-  qa: [
-    "/questions/regular-dental-cleanings-support-your-whole-body-health",
-    "/questions/regular-dental-cleanings-support-your-whole-body-health",
-  ],
-};
+// Aliased: this file already exports its own `PAGES` (the state lists that
+// states.mjs consumes), and an unaliased import would shadow-clash with it.
+import { PAGES as GATED } from "../harness.mjs";
+
+/** The gated pages, ref -> cand — the same table gate.sh and census.sh drive. */
+const SITE = Object.fromEntries(GATED.map((p) => [p.key, [p.ref, p.cand]]));
 
 // The cheap cross-page subset. Verifying the chrome ONCE (the operator's scope
 // call) is only safe if a page-specific override cannot hide, and these four

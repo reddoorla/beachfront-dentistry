@@ -14,105 +14,18 @@
 //
 // This checks every anchor on every gated page before any of those numbers are
 // trusted again.
-import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
+import { REF, CAND, PAGES, MATRIX, PLAYWRIGHT } from "./harness.mjs";
+const { chromium } = await import(PLAYWRIGHT);
 
-const REF = "https://www.beachfrontdentistry.com";
-const CAND = "http://localhost:5173";
+// key -> [refPath, candPath, anchors]. Built from the table, so the "must
+// mirror gate.sh exactly" comment this replaces stops being a promise.
+const TABLE = Object.fromEntries(
+  PAGES.map((p) => [p.key, [p.ref, p.cand, p.anchors]]),
+);
 
-// Must mirror matching/gate.sh exactly.
-const PAGES = {
-  home: [
-    "/",
-    "/dev/match/home",
-    [
-      "Finally have a dentist",
-      "MEET YOUR TEAM",
-      "Serving the South Bay",
-      "Your Path to Oral Health",
-      "Our dental team in Redondo",
-      "Beyond the Smile",
-      "Ready for great dental health",
-      "Want to learn more",
-    ],
-  ],
-  yfv: [
-    "/your-first-visit",
-    "/dev/match/your-first-visit",
-    [
-      "We want you to feel comfortable",
-      "Office Tour",
-      "Dr. Robert Quan",
-      "To be a long term health partner",
-      "Serving the South Bay for over 40 years",
-      "Ready for great dental health",
-      "Want to learn more",
-    ],
-  ],
-  "our-team": [
-    "/our-team",
-    "/dev/match/our-team",
-    [
-      "Our",
-      "Dr. Robert Quan",
-      "Ready for great dental health",
-      "Want to learn more",
-    ],
-  ],
-  services: [
-    "/services",
-    "/dev/match/services",
-    [
-      "Cosmetic Dentistry",
-      "General Dentistry",
-      "Ready for great dental health",
-      "Want to learn more",
-    ],
-  ],
-  atd: [
-    "/ask-the-doctor",
-    "/dev/match/ask-the-doctor",
-    [
-      "Beyond the Smile",
-      "Back to Top",
-      "Ready for great dental health",
-      "Want to learn more",
-    ],
-  ],
-  contact: [
-    "/contact-us",
-    "/contact-us",
-    ["Book Appointment", "Ready for great dental health", "Want to learn more"],
-  ],
-  team: [
-    "/team-members/dr-robert-quan",
-    "/team-members/dr-robert-quan",
-    ["Dentist", "Back to Team", "Ready for great", "Want to learn more"],
-  ],
-  svc: [
-    "/services/dental-exams",
-    "/services/dental-exams",
-    [
-      "What to expect",
-      "Back to All Services",
-      "Ready for great",
-      "Want to learn more",
-    ],
-  ],
-  qa: [
-    "/questions/regular-dental-cleanings-support-your-whole-body-health",
-    "/questions/regular-dental-cleanings-support-your-whole-body-health",
-    [
-      "At Beachfront Dentistry",
-      "Have another question",
-      "Ready for great",
-      "Want to learn more",
-    ],
-  ],
-};
-
-const VW = Number(process.env.VW ?? 1440);
+const VW = Number(process.env.VW ?? MATRIX[0]);
 const want = process.argv.slice(2);
-const pages = Object.keys(PAGES).filter(
+const pages = Object.keys(TABLE).filter(
   (p) => !want.length || want.includes(p),
 );
 
@@ -164,7 +77,7 @@ const b = await chromium.launch();
 const problems = [];
 try {
   for (const page of pages) {
-    const [refPath, candPath, anchors] = PAGES[page];
+    const [refPath, candPath, anchors] = TABLE[page];
     const out = {};
     for (const [name, url] of [
       ["live", REF + refPath],

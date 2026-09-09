@@ -4,16 +4,27 @@
 // `reddoor-maint match-harness` recipe; that recipe does not exist yet.)
 //
 // It exists because the page table, the two hosts, the matrix, the threshold
-// and the skill path were hand-copied all over matching/. Measured 2026-09-09
-// across this site's 229 top-level scripts (211 .mjs + 18 .sh):
+// and the skill path were hand-copied all over matching/. Re-measured
+// 2026-09-09 AFTER the six-probe conversion, over the 216 tracked scripts under
+// matching/ (214 top-level — 212 .mjs + 2 .sh — plus 2 in states/):
 //
-//   • the nine-row page table: 5 copies — gate.sh, probe-anchor-parity.mjs,
-//     sweep-all10.sh, sweep-all16.sh, sweep-final.sh
-//   • the skill path (~/.claude/skills/matching-a-page): 216 copies
-//   • the viewport matrix (1440/834/390): 54 copies
+//   • a hand-typed copy of the page table (three or more gate keys sitting next
+//     to their route): 8 files. Exactly ONE of them, probe-chrome-count.mjs,
+//     still carries all nine rows; probe-anchors.mjs carries five; the other
+//     six are three-row detail triples (team/svc/qa).
+//   • the skill path (~/.claude/skills/matching-a-page): 193 copies
+//   • the viewport matrix (1440/834/390): 51 copies
 //   • REF pointed at a beachfrontdentistry.com host — which is OUR OWN Netlify
-//     build, both hosts are in selfHosts: 33 scripts, including four of the
-//     five page-table carriers (all but gate.sh)
+//     build, both hosts are in selfHosts: 12 scripts, one of which
+//     (probe-chrome-count.mjs) is also the last nine-row table carrier
+//
+// The first bullet read "the nine-row page table: 5 copies — gate.sh,
+// probe-anchor-parity.mjs, sweep-all10.sh, sweep-all16.sh, sweep-final.sh" when
+// it was written here at 922dde3. It was wrong within the hour and wrong on two
+// counts: 4e2cd7b took the table out of gate.sh, and the list never named
+// states/index.mjs or probe-chrome-count.mjs, which were both carrying nine-row
+// copies at the time. A census is a claim about code; it has to be measured
+// against the tree, not recalled.
 //
 //   node matching/harness.mjs --env        shell-safe KEY='value' lines
 //   node matching/harness.mjs --table      key<TAB>ref<TAB>cand<TAB>anchors

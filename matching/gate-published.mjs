@@ -22,20 +22,12 @@
 //                 and are invisible to every pixel and text gate on the site.
 //
 // Run the dev server first (npm run dev). Sandbox must be disabled.
-import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
+import { CAND, MATRIX, PAGES, PLAYWRIGHT } from "./harness.mjs";
+const { chromium } = await import(PLAYWRIGHT);
 
-const BASE = process.env.CAND_BASE ?? "http://localhost:5173";
-const VIEWPORTS = [1440, 834, 390];
-const PAGES = [
-  "home",
-  "your-first-visit",
-  "our-team",
-  "services",
-  "ask-the-doctor",
-];
-
-/** The real route for a uid ("home" lives at /, the rest at /<uid>). */
-const realPath = (uid) => (uid === "home" ? "/" : `/${uid}`);
+// Only the pages that HAVE a /dev/match twin: the four whose cand path equals
+// their real route have nothing to diff.
+const TWINS = PAGES.filter((p) => p.cand !== p.published);
 
 /** Scroll the whole page so reveal animations fire, then let it settle. */
 async function settle(page) {
@@ -86,16 +78,18 @@ function missing(fromList, inList) {
 }
 
 const want = process.argv.slice(2).filter((a) => !a.startsWith("--"));
-const pages = want.length ? want : PAGES;
+const pages = want.length
+  ? TWINS.filter((p) => want.includes(p.key) || want.includes(p.uid))
+  : TWINS;
 const browser = await chromium.launch();
 let failures = 0;
 
 try {
-  for (const uid of pages) {
-    console.log(`\n########## ${uid} ##########`);
-    for (const vw of VIEWPORTS) {
-      const real = await snapshot(browser, `${BASE}${realPath(uid)}`, vw);
-      const twin = await snapshot(browser, `${BASE}/dev/match/${uid}`, vw);
+  for (const p of pages) {
+    console.log(`\n########## ${p.key} ##########`);
+    for (const vw of MATRIX) {
+      const real = await snapshot(browser, `${CAND}${p.published}`, vw);
+      const twin = await snapshot(browser, `${CAND}${p.cand}`, vw);
 
       const dh = real.height - twin.height;
       // 1% or 24px, whichever is larger — the same shape of tolerance the pixel
@@ -123,7 +117,7 @@ try {
 
     // Head fields exist ONLY on the published document — /dev/match has none, so
     // there is nothing to diff against. Assert they are present and non-empty.
-    const real = await snapshot(browser, `${BASE}${realPath(uid)}`, 1440);
+    const real = await snapshot(browser, `${CAND}${p.published}`, MATRIX[0]);
     const headOk = !!real.description && real.description.length >= 70;
     if (!headOk) failures++;
     console.log(

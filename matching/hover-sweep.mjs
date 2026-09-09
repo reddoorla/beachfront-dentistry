@@ -19,19 +19,15 @@
 // that rule belongs to another page). Rules whose live element has no findable
 // counterpart are "unmapped" and are REPORTED, never silently passed: an
 // unmapped rule is exactly where an unimplemented hover hides.
-import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
 import { readFileSync, writeFileSync } from "node:fs";
+import { REF, CAND, PAGES, MATRIX, PLAYWRIGHT } from "./harness.mjs";
+const { chromium } = await import(PLAYWRIGHT);
 
-const REF = "https://www.beachfrontdentistry.com";
-const CAND = "http://localhost:5173";
-const SITE = {
-  home: ["/", "/dev/match/home"],
-  yfv: ["/your-first-visit", "/dev/match/your-first-visit"],
-  "our-team": ["/our-team", "/dev/match/our-team"],
-  services: ["/services", "/dev/match/services"],
-  atd: ["/ask-the-doctor", "/dev/match/ask-the-doctor"],
-  contact: ["/contact-us", "/contact-us"],
-};
+// Nav pages only: the detail templates have no .form-modal on live, so a hover
+// sweep there measures live's own broken buttons (see states/index.mjs).
+const SITE = Object.fromEntries(
+  PAGES.filter((p) => p.group === "nav").map((p) => [p.key, [p.ref, p.cand]]),
+);
 
 /** Pull every `:hover` / `:focus` rule block out of the reference stylesheet. */
 function hoverRules(css) {
@@ -50,7 +46,16 @@ function hoverRules(css) {
   return out;
 }
 
-const css = readFileSync("matching/spec/beachfront.css", "utf8");
+const CSS_PATH = "matching/spec/beachfront.css";
+let css;
+try {
+  css = readFileSync(CSS_PATH, "utf8");
+} catch {
+  console.error(
+    `hover-sweep: ${CSS_PATH} is missing (matching/spec/ is git-ignored — re-capture the reference).`,
+  );
+  process.exit(2);
+}
 const RULES = hoverRules(css);
 
 const wanted = process.argv.slice(2);
@@ -111,7 +116,9 @@ const b = await chromium.launch();
 const report = [];
 try {
   for (const [tag, [refPath, candPath]] of pages) {
-    const ctx = await b.newContext({ viewport: { width: 1440, height: 900 } });
+    const ctx = await b.newContext({
+      viewport: { width: MATRIX[0], height: 900 },
+    });
     const p = await ctx.newPage();
     await p.goto(REF + refPath, { waitUntil: "networkidle", timeout: 60000 });
     await p.waitForTimeout(600);

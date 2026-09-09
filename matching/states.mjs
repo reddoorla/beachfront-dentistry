@@ -13,11 +13,9 @@
 // compares. Values are never hardcoded here.
 //
 // With --shot it also writes paired screenshots to matching/states/.
-import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
 import { mkdirSync, writeFileSync } from "node:fs";
-
-const REF = "https://www.beachfrontdentistry.com";
-const CAND = "http://localhost:5173";
+import { REF, CAND, MATRIX, PLAYWRIGHT } from "./harness.mjs";
+const { chromium } = await import(PLAYWRIGHT);
 
 const [page, ...flags] = process.argv.slice(2);
 const SHOT = flags.includes("--shot");
@@ -132,7 +130,7 @@ async function runSide(browser, url, side, states, viewport) {
   return results;
 }
 
-const vw = def.viewport ?? { width: 1440, height: 900 };
+const vw = def.viewport ?? { width: MATRIX[0], height: 900 };
 const b = await chromium.launch();
 let fails = 0;
 let declared = 0;
