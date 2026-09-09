@@ -232,3 +232,94 @@ reversion. `census.sh`, `next.mjs`, `strikes.mjs`, `build-spec.mjs` and
 the check that these were comment-only edits and not a behaviour change. The
 hyphen guard still refuses at exit 2, the reference preflight still refuses at
 exit 2, and `next.mjs` still exits 0 at the pause switch.
+
+## 2026-09-09 — census.sh granted a green from a census that never ran (`fix/census-sh-vacuous-clean`)
+
+Phase 3's gate reported CLEAN without measuring anything. Point
+`MATCHING_SKILL_DIR` at a directory with no `style-census.mjs` and
+`bash matching/census.sh` prints
+
+```
+page          1440     834     390
+home             0       0       0
+
+Phase 3 CLEAN — 0 undeclared type mismatches (0 declared, 0 ambiguous).
+```
+
+and exits 0. Every run died on module resolution; `census-count.mjs` read each
+crash log as `0 0 0`, because it counts `^  y=` rows and a stack trace has none
+(`census-count.mjs:35-56`); and census.sh summed three zeroes into a green. No
+rows was reported as no mismatches. Nine pages × three viewports is 27 such
+runs, and the operator sees one word.
+
+**The belief this corrects.** The finding arrived naming the missing-file case,
+and the missing file is not the likely one — nobody deletes the skill. The
+likely one is the candidate host being down, and I measured that it is
+byte-identical: with `style-census.mjs` present and every run throwing
+`page.goto: net::ERR_CONNECTION_REFUSED`, census.sh prints the same table and
+the same CLEAN. So the obvious repair — check the exit status — could never
+have worked. `style-census.mjs:187` exits 1 when it finds mismatches, and node's
+uncaught-exception exit code is also 1 (measured: `node -e 'throw new
+Error("boom")'` → 1). The one number available to the caller means "there is a
+finding" and "I died before I looked" with equal weight, and a gate cannot
+divide by it.
+
+**Enumerating the class rather than fixing the instance** turned one reported
+case into seven, each of which printed CLEAN and exited 0 on `main`:
+`style-census.mjs` absent; present but crashing; present but silent (writes an
+empty log and exits 0); both pages rendering zero text runs, which agree
+perfectly and mean nothing; a typo'd page argument (`bash matching/census.sh
+hom`); an empty `pages` table in `harness.json`; and `census-count.mjs` itself
+failing to import `census-deviations.mjs`, where node's own stack trace went to
+stderr, `read -r n a d` bound nothing, and bash's arithmetic read the empty `$n`
+as zero. That last one's only visible symptom on `main` was a blank cell in the
+table — whitespace, in a column of zeroes.
+
+**What was tried and abandoned.** The natural shape was `gate.sh:37-42`, which
+preflights `node "$PD" --version` and compares field 4 with the harness's
+`REPORT_SCHEMA` before spending a run. It does not transfer: `style-census.mjs`
+has no `--version` at all (`page-diff.mjs:191-195` defines one; nothing in
+style-census writes one), and adding one would move this file's correctness into
+the `matching-a-page` skill's release cycle, in a different repository. The
+substitute is style-census's own usage banner (`style-census.mjs:151-157`),
+demanded by running it with no arguments. That is better than it first looks:
+`import { chromium } from "playwright"` is at `style-census.mjs:19` and runs
+before the banner, so a skill checkout with no browser dependency installed
+fails once, here, cheaply — instead of writing 27 crash logs that every reader
+downstream counts as zero.
+
+The three guards are GUARD 1 (the tool exists and answers its banner), GUARD 2
+(each run leaves the header and the counts line that `style-census.mjs:166-169`
+writes together, only after walking both pages, with `ref runs`/`cand runs` both
+non-zero) and GUARD 3 (at least one page was censused — the empty table and the
+unmatched page name distinguished, the latter being the refusal
+`strikes.mjs:147-156` already had). GUARD 2b rejects a `census-count.mjs` run
+that did not return three integers. Everything refused exits 2 and names which
+guard refused. The loop still reads `done < <(pages)` and not a pipe: a pipe
+runs it in a subshell, every counter would still read 0 at the bottom, and the
+fix would reproduce the bug it fixes — `gate.sh:123-125` records the same trap
+for `FAILED_PREFLIGHT`.
+
+**Honest accounting: the guards were proved to GRANT, not only to refuse.** A
+refusal-only proof is worthless here, because refusing everything also refuses
+every crash. Against a stub that produces a real completed census, census.sh
+still reports CLEAN and exits 0 and now says what the green is made of —
+`(3 censused run(s) over 1 page(s), each one counted.)` — and against the same
+stub emitting one 11px/cyan mismatch row it still exits 1 with
+`3 type mismatch(es) remain`. Mutating the per-run evidence check to `if false`
+returns the crash case to `Phase 3 CLEAN` exit 0; mutating `done < <(pages)`
+into a pipe reddens the GRANT case, which is the whole reason that case exists.
+
+`matching/*.sh` and `matching/*.mjs` are in `.prettierignore` and `matching/` is
+in `eslint.config.js:52`'s ignores, so neither tool touches either file — the
+bytes have to survive verbatim into the `match-harness` recipe's `template.ts`,
+which is regenerated from this checkout rather than hand-edited.
+
+**Found here, not fixed here.** census.sh honours no `matching/PAUSED` switch.
+`next.mjs:25-30` and `strikes.mjs:36-42` both exit 0 on it as their first act;
+census.sh reads it never. This repo has been PAUSED since 2026-09-01, so
+`bash matching/census.sh` today would spend 27 browser-pair runs against a live
+reference during a declared pause. It is a real asymmetry in the same
+three-gate family, it is not in this change, and it is tracked as an issue
+against reddoor-maintenance — census.sh is recipe-owned, so any fix has to go
+through the same source-then-regenerate path this one did.

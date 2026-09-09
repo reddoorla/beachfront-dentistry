@@ -16,12 +16,17 @@ if (!path) {
   process.exit(2);
 }
 
+// A log that cannot be READ is not a log with nothing IN it. This printed
+// "0 0 0" and exited 0, and census.sh added that to its total — the same green
+// it used to grant for a style-census that never ran. There is no count to
+// give here; say so and let the caller decide, which is never zero.
 let text = "";
 try {
   text = readFileSync(path, "utf8");
-} catch {
-  console.log("0 0 0");
-  process.exit(0);
+} catch (e) {
+  console.error(`census-count: cannot read ${path} — ${e.message}`);
+  console.error("              a missing log is not a census with no findings.");
+  process.exit(2);
 }
 
 const [head, tail = ""] = text.split("--- AMBIGUOUS");
