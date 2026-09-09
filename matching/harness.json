@@ -1,0 +1,130 @@
+{
+  "ref": "https://beachfront-dentistry.webflow.io",
+  "cand": "http://localhost:5173",
+  "matrix": [1440, 834, 390],
+  "threshold": 0.1,
+  "maxHeightDelta": 0.05,
+  "refMark": "data-wf-site=\"64af3f93339537d6b661b556\"",
+  "candMark": "_app/immutable",
+  "selfHosts": ["beachfrontdentistry.com", "www.beachfrontdentistry.com"],
+  "pages": {
+    "team": {
+      "uid": null,
+      "ref": "/team-members/dr-robert-quan",
+      "cand": "/team-members/dr-robert-quan",
+      "published": "/team-members/dr-robert-quan",
+      "anchors": ["Dentist", "Back to Team", "Ready for great", "Want to learn more"],
+      "spec": "team",
+      "group": "detail"
+    },
+    "svc": {
+      "uid": null,
+      "ref": "/services/dental-exams",
+      "cand": "/services/dental-exams",
+      "published": "/services/dental-exams",
+      "anchors": [
+        "What to expect",
+        "Back to All Services",
+        "Ready for great",
+        "Want to learn more"
+      ],
+      "spec": "svc",
+      "group": "detail"
+    },
+    "qa": {
+      "uid": null,
+      "ref": "/questions/regular-dental-cleanings-support-your-whole-body-health",
+      "cand": "/questions/regular-dental-cleanings-support-your-whole-body-health",
+      "published": "/questions/regular-dental-cleanings-support-your-whole-body-health",
+      "anchors": [
+        "At Beachfront Dentistry",
+        "Have another question",
+        "Ready for great",
+        "Want to learn more"
+      ],
+      "spec": "qa",
+      "group": "detail"
+    },
+    "home": {
+      "uid": "home",
+      "ref": "/",
+      "cand": "/dev/match/home",
+      "published": "/",
+      "anchors": [
+        "Finally have a dentist",
+        "MEET YOUR TEAM",
+        "Serving the South Bay",
+        "Your Path to Oral Health",
+        "Our dental team in Redondo",
+        "Beyond the Smile",
+        "Ready for great dental health",
+        "Want to learn more"
+      ],
+      "spec": "home",
+      "group": "nav"
+    },
+    "yfv": {
+      "uid": "your-first-visit",
+      "ref": "/your-first-visit",
+      "cand": "/dev/match/your-first-visit",
+      "published": "/your-first-visit",
+      "anchors": [
+        "We want you to feel comfortable",
+        "Office Tour",
+        "Dr. Robert Quan",
+        "To be a long term health partner",
+        "Serving the South Bay for over 40 years",
+        "Ready for great dental health",
+        "Want to learn more"
+      ],
+      "spec": "yfv",
+      "group": "nav"
+    },
+    "our-team": {
+      "uid": "our-team",
+      "ref": "/our-team",
+      "cand": "/dev/match/our-team",
+      "published": "/our-team",
+      "anchors": ["Our", "Dr. Robert Quan", "Ready for great dental health", "Want to learn more"],
+      "spec": "our-team",
+      "group": "nav"
+    },
+    "services": {
+      "uid": "services",
+      "ref": "/services",
+      "cand": "/dev/match/services",
+      "published": "/services",
+      "anchors": [
+        "Cosmetic Dentistry",
+        "General Dentistry",
+        "Ready for great dental health",
+        "Want to learn more"
+      ],
+      "spec": "services",
+      "group": "nav"
+    },
+    "atd": {
+      "uid": "ask-the-doctor",
+      "ref": "/ask-the-doctor",
+      "cand": "/dev/match/ask-the-doctor",
+      "published": "/ask-the-doctor",
+      "anchors": [
+        "Beyond the Smile",
+        "Back to Top",
+        "Ready for great dental health",
+        "Want to learn more"
+      ],
+      "spec": "atd",
+      "group": "nav"
+    },
+    "contact": {
+      "uid": null,
+      "ref": "/contact-us",
+      "cand": "/contact-us",
+      "published": "/contact-us",
+      "anchors": ["OFFICE HOURS", "Ready for great dental health", "Want to learn more"],
+      "spec": "contact",
+      "group": "nav"
+    }
+  }
+}

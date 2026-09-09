@@ -50,4 +50,7 @@ matching/states/*
 # derived artefacts, even where the extensions above would catch them
 matching/*.log
 matching/*.json
+# ...except the page table itself, which is the harness's configuration and the
+# one thing a fresh clone cannot reconstruct.
+!matching/harness.json
 matching/*.png
