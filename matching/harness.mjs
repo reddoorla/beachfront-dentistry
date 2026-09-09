@@ -14,9 +14,9 @@
 //     six are three-row detail triples (team/svc/qa).
 //   • the skill path (~/.claude/skills/matching-a-page): 193 copies
 //   • the viewport matrix (1440/834/390): 51 copies
-//   • REF pointed at a beachfrontdentistry.com host — which is OUR OWN Netlify
-//     build, both hosts are in selfHosts: 12 scripts, one of which
-//     (probe-chrome-count.mjs) is also the last nine-row table carrier
+//   • REF pointed at a host listed in selfHosts — i.e. comparing the candidate
+//     with itself: 12 scripts, one of which (probe-chrome-count.mjs) is also
+//     the last nine-row table carrier
 //
 // The first bullet read "the nine-row page table: 5 copies — gate.sh,
 // probe-anchor-parity.mjs, sweep-all10.sh, sweep-all16.sh, sweep-final.sh" when
@@ -90,12 +90,10 @@ export const PLAYWRIGHT = pathToFileURL(join(SKILL_DIR, "node_modules/playwright
 export const REPORT_SCHEMA = 1;
 
 /**
- * Fail-closed reference preflight. A 200 is NOT evidence — verified
- * 2026-09-09: `https://www.beachfrontdentistry.com/` 301s to
- * `https://beachfrontdentistry.com/`, which is `server: Netlify`, our own
- * build; `https://beachfront-dentistry.webflow.io/` answers 404 with a
- * 906-byte page. 33 of this site's scripts still point REF at the former. A
- * pass here requires an artefact only the reference produces.
+ * Fail-closed reference preflight. A 200 is NOT evidence: a host that has been
+ * repointed at our own build answers 200, and so does a staging host serving a
+ * 404 page. Both have happened on a real site — see the dated measurement in
+ * LEDGER.md. A pass here requires an artefact only the reference produces.
  */
 export async function checkRef() {
   if (!REF_MARK) {
