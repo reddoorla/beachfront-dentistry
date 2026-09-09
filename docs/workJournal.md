@@ -170,3 +170,32 @@ unescaped), #51 (12 probes still point `REF` at a host serving our own build),
 #52 (the `vite:dev` port trap above), #53 (five `/dev` fixture pages still ship
 as public static HTML; the blanket fix would destroy the 200 control that makes
 the guard test meaningful).
+
+## 2026-09-09 — The template would have shipped the client's name to every future site (`fix/harness-template-generic`)
+
+A follow-on to the entry above, found while starting the recipe that consumes
+this work. The `match-harness` generator copies seven files out of `matching/`
+**verbatim** into a template installed on every future site, and its acceptance
+check is `grep -ci beachfront` over the generated template — expected `0`.
+
+`harness.mjs` returned `4`.
+
+The consolidation had been careful about exactly this: `gate.sh`, `census.sh`
+and `build-spec.mjs` were emptied of site prose, and the acceptance block in #54
+greps those three and gets `0`. But the copied set is seven files, not three,
+and `harness.mjs` — the file the whole consolidation was built around — was
+never in the grep. It carried the client's hostnames in two comments: the census
+block, and the `checkRef` doc explaining why the preflight is fail-closed.
+
+**The check was right and its scope was wrong**, which is a harder failure to
+see than a check that is simply absent: #54's acceptance printed a truthful `0`
+about three files while a fourth, more important one, was never asked.
+
+The `checkRef` prose was worth keeping, so it moved to a dated `LEDGER.md`
+record rather than being deleted — it is the argument for the whole fail-closed
+design (both candidate hosts return a status a naive check reads as success, for
+opposite reasons). Moving it also caught a stale number inside it: it claimed
+"33 of this site's scripts still point REF at the former", which was true when
+written and went false the moment #54 deleted 16 sweeps and converted four
+probes. Measured on merged main: **12**. A count in a doc comment has no way to
+know when it stopped being true; a dated record does not pretend to.

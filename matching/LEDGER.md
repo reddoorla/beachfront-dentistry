@@ -4768,3 +4768,19 @@ gradients, which paint over white at the screen edges.
   2026-08-07 qafix0807 run, and as of 2026-09-08 the webflow.io staging host
   404s on every path — so there is no live reference at all. gate.sh now
   refuses rather than comparing the candidate with itself.
+
+- [record 2026-09-09] The reference-host measurement, moved out of
+  `harness.mjs`'s `checkRef` doc comment when that file became the source the
+  `match-harness` recipe is cut from verbatim — a comment naming this client
+  would ship to every future site. Verified 2026-09-09:
+  `https://www.beachfrontdentistry.com/` 301s to
+  `https://beachfrontdentistry.com/`, which is `server: Netlify` — our own
+  build; `https://beachfront-dentistry.webflow.io/` answers 404 with a 906-byte
+  page. **That is why the preflight is fail-closed and demands a positive
+  fingerprint rather than a 200:** both hosts return a status a naive check
+  would read as success, for opposite and equally wrong reasons. The same
+  comment claimed "33 of this site's scripts still point REF at the former";
+  measured on merged main it is **12**, the drop being the 16 `sweep*.sh`
+  deleted and the four probes converted in #54. The figure was correct when
+  written and went stale the moment that PR landed — which is the argument for
+  keeping counts in a dated record rather than in a doc comment.
