@@ -235,6 +235,8 @@ exit 2, and `next.mjs` still exits 0 at the pause switch.
 
 ## 2026-09-09 — census.sh granted a green from a census that never ran (`fix/census-sh-vacuous-clean`)
 
+> Superseded in part by 2026-09-09 — The guard read the count line and threw the number away.
+
 Phase 3's gate reported CLEAN without measuring anything. Point
 `MATCHING_SKILL_DIR` at a directory with no `style-census.mjs` and
 `bash matching/census.sh` prints
@@ -323,3 +325,64 @@ reference during a declared pause. It is a real asymmetry in the same
 three-gate family, it is not in this change, and it is tracked as an issue
 against reddoor-maintenance — census.sh is recipe-owned, so any fix has to go
 through the same source-then-regenerate path this one did.
+
+## 2026-09-09 — The guard read the count line and threw the number away (`fix/census-sh-vacuous-clean`, GUARD 2c)
+
+Corrects the entry above, which claimed the vacuous-CLEAN class was closed. It
+was not. Adversarial verification of the fix found the same defect one step
+along, and I reproduced it before writing a line of this: a **complete** census
+— header present, counts line present, `ref runs: 12 cand runs: 12
+mismatches: 3 ambiguous: 0` — whose `y=` rows carried one leading space instead
+of two printed
+
+```
+page          1440
+home             0
+
+Phase 3 CLEAN — 0 undeclared type mismatches (0 declared, 0 ambiguous).
+```
+
+and exited 0, over a log that says on its own second line that there are three.
+
+The mechanism is the reason the shape survived. GUARD 2 matched the counts line
+with `grep -qE`, which answers _is it there_, and then threw the numbers away;
+the count actually reported came from `census-count.mjs`'s row parse, and
+**nothing compared the two**. Two readers of the same artefact, no cross-check.
+They also version in different repositories — the printer is
+`style-census.mjs` in the matching-a-page skill, the parser is
+`census-count.mjs`, copied byte-for-byte into every site the recipe installs —
+so drift needs nobody to touch either repo. One space is enough:
+`census-count.mjs:39` matches `/^ {2}y=/`.
+
+GUARD 2c compares them. For mismatches the identity is exact, because
+style-census prints at most 100 rows and states the remainder on its own line
+(`style-census.mjs:175-177`): parsed + remainder == reported. For ambiguous
+rows the cap is the same (`:184`) but **the remainder is not stated**, so only a
+floor is checkable there — any is not none, and the parse may never exceed the
+report. That asymmetry is not a preference; it is what the printer actually
+does, read out of the installed skill rather than assumed.
+
+**The truncation case is why the exact form matters, and it is a GRANT test.** A
+census with 137 mismatches prints 100 rows and `… and 37 more (truncated print,
+all counted)`. A naive equality check would call that drift and refuse a count
+it can honestly report. Dropping `+ ${more:-0}` from the arithmetic reddens
+`census.sh counts a truncated print rather than calling it drift`, and nothing
+else — that mutation is the only evidence that the guard grants for the right
+reason.
+
+**Honest accounting on the previous entry's evidence.** It said the guards were
+proved to grant and not only to refuse, and that was true. What it did not say
+is that three of the seven enumerated class members shipped with a comment
+asserting a behaviour and no test that could go red for it: GUARD 2's
+viewport-header half (deleting it left all eight census tests green), GUARD 2b,
+and GUARD 3's empty-page-table arm. All three worked when driven by hand, so
+this was missing evidence rather than broken code — but by this project's own
+rule a claim about what the tests cover is a claim about code, and that claim
+was unbacked. Six cases now cover them, each mutation-proven at source: the
+mutation goes into `matching/census.sh` here, `template.ts` is regenerated, and
+exactly one test reddens **by name**. Six mutations, six single reds, no
+collateral.
+
+The first mutation is the one that matters: with the identity leg disabled the
+drift case returns to `Phase 3 CLEAN` exit 0, which is the defect, measured
+again at the end rather than predicted at the start.
