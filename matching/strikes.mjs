@@ -23,6 +23,12 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { FLOORS } from "./floors.mjs";
+import {
+  PAGES,
+  THRESHOLD,
+  MAX_HEIGHT_DELTA,
+  REPORT_SCHEMA,
+} from "./harness.mjs";
 
 // PAUSE SWITCH — see matching/next.mjs for why this is an exit code. Round
 // protocol step 1 is "run strikes.mjs; the stalled regions are the agenda", so
@@ -40,12 +46,17 @@ const MAX_STRIKES = 3;
 const ROOT = new URL(".", import.meta.url).pathname;
 const only = process.argv[2] ?? null;
 
+// The gate key for a report, from its ref path. Deriving it by string surgery
+// disagreed with the gate on exactly six of the nine rows — yfv, contact, atd,
+// svc, qa and team (measured 2026-09-09 against harness.json); the table knows.
+// keyOf (below) stays as the fallback for a run whose ref was rewritten.
 const pageOf = (ref) => {
-  const path = new URL(ref).pathname.replace(/\/$/, "");
-  return path === "" ? "home" : path.slice(1);
+  const path = new URL(ref).pathname.replace(/\/$/, "") || "/";
+  return PAGES.find((p) => p.ref === path)?.key ?? null;
 };
 
 const runs = [];
+const unreadable = [];
 for (const dir of readdirSync(ROOT).filter((d) => d.startsWith("out-"))) {
   let report;
   try {
@@ -54,6 +65,17 @@ for (const dir of readdirSync(ROOT).filter((d) => d.startsWith("out-"))) {
     continue; // not a completed run dir
   }
   if (!report.meta?.ref || !Array.isArray(report.regions)) continue;
+  // A report from another schema is still usable for a STALL count as long as
+  // it carries the two fields this reads. Anything else is counted and named,
+  // never silently dropped — an under-counted history reads as "clear".
+  const usable = report.regions.every(
+    (r) =>
+      typeof r.mismatchFraction === "number" && typeof r.pass === "boolean",
+  );
+  if (!usable) {
+    unreadable.push(`${dir} (schema ${report.meta.schemaVersion ?? 0})`);
+    continue;
+  }
   runs.push({
     dir,
     at: report.meta.generatedAt,
@@ -61,22 +83,42 @@ for (const dir of readdirSync(ROOT).filter((d) => d.startsWith("out-"))) {
     regions: report.regions,
   });
 }
+
+// The failure mode of a stall detector is always "clear", which is exactly the
+// answer that stops nobody. A corpus this could not read is not a clean one.
+if (runs.length === 0) {
+  console.error(
+    `strikes: no parseable gate run under matching/ — refusing to report "clear".` +
+      (unreadable.length
+        ? `\n         ${unreadable.length} report(s) unreadable at schema ${REPORT_SCHEMA}: ${unreadable.slice(0, 5).join(", ")}`
+        : ""),
+  );
+  process.exit(2);
+}
+if (unreadable.length) {
+  console.error(
+    `strikes: ignored ${unreadable.length} unreadable report(s) — the history below is incomplete.` +
+      `\n         ${unreadable.slice(0, 5).join(", ")}`,
+  );
+}
+
 runs.sort((a, b) => a.at.localeCompare(b.at));
 
 // The gate page KEY, recovered from the run dir the way next.mjs does it
 // (out-<TAG>-<page>, split on the first hyphen — the tag is hyphen-free by
-// gate.sh's own preflight). `pageOf` derives its name from the ref URL instead,
-// so the two disagree on every page whose key is not its path: yfv, contact,
-// atd, svc, qa, team. Accept EITHER, because the round protocol in CLAUDE.md
-// tells you to run `strikes.mjs <page>` with the same key you just passed to
-// gate.sh — and until 2026-08-13 that silently matched nothing.
+// gate.sh's own preflight). `pageOf` now returns that same key off the table,
+// so the two vocabularies agree and the round protocol in CLAUDE.md — "run
+// `strikes.mjs <page>` with the key you just passed to gate.sh", which until
+// 2026-08-13 silently matched nothing — works either way. This stays because
+// a dir key is not always a gate key: 69 of this corpus's 377 run dirs are
+// hand-named probes (out-band3, out-390masked), and FLOORS matches on it.
 const keyOf = (dir) => /^out-[^-]+-(.+)$/.exec(dir)?.[1] ?? null;
 
 // key -> chronological list of {dir, at, mm, pass, masked}
 const history = new Map();
 const seenNames = new Set();
 for (const run of runs) {
-  const page = pageOf(run.meta.ref);
+  const page = pageOf(run.meta.ref) ?? keyOf(run.dir) ?? "unknown";
   const gateKey = keyOf(run.dir);
   seenNames.add(page);
   if (gateKey) seenNames.add(gateKey);
@@ -153,8 +195,8 @@ if (stuck.length === 0) {
 
 const why = (e) => {
   const reasons = [];
-  if (e.mm > 0.1) reasons.push(`pixels ${(e.mm * 100).toFixed(1)}%`);
-  if (Math.abs(e.dh ?? 0) > 0.05)
+  if (e.mm > THRESHOLD) reasons.push(`pixels ${(e.mm * 100).toFixed(1)}%`);
+  if (Math.abs(e.dh ?? 0) > MAX_HEIGHT_DELTA)
     reasons.push(`height ${((e.dh ?? 0) * 100).toFixed(1)}%`);
   return reasons.join(" + ") || "marginal";
 };
