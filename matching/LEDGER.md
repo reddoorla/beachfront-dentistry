@@ -4745,3 +4745,26 @@ Verification: unit 791/791, interaction + smoke 250/250 alone on a fresh
 server, svelte-check 0/0, prettier + eslint clean. No gate run: matching is
 PAUSED, and the rest frame is unchanged apart from the two edge-fade
 gradients, which paint over white at the screen edges.
+
+## Rationale moved out of the gate scripts
+
+- [record 2026-09-08] Rationale moved out of gate.sh when the page table became
+  matching/harness.json (JSON holds no comments, and the script is now generic).
+  **Matrix 1440/834/390:** live's real breakpoints are 480/768/992, and the
+  768–991 band hid the worst structural defect of the 2026-08-04 round (the
+  footer renders 2-column there on live and was 1-column here), so tablet is
+  gated on every page, never sampled. **Anchors:** one per census section,
+  derived from live in matching/census-live-1440.txt (git-ignored); every list
+  ends with "Want to learn more" so the FOOTER is its own region — without it
+  the closing-CTA region swallows the footer plus its map embed, pinning "Ready
+  for great" at ~22% on all six nav pages. **contact's first anchor** is
+  "OFFICE HOURS", not a button label: MarkUp pin 5980c9d7 #3 renamed the button
+  to "Request Appointment" while the reference still says "Book", and an anchor
+  must resolve as a text PREFIX on both pages. The ref band's adjacent
+  `.footer-contact-*` divs concatenate without whitespace
+  ("CONTACT(310) 378-9241…"), so a CONTACT-phone anchor dies on the missing
+  space; the OFFICE-HOURS header div is a clean prefix on both. **REF:**
+  www.beachfrontdentistry.com cut over to our own Netlify build after the
+  2026-08-07 qafix0807 run, and as of 2026-09-08 the webflow.io staging host
+  404s on every path — so there is no live reference at all. gate.sh now
+  refuses rather than comparing the candidate with itself.
