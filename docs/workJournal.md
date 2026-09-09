@@ -69,3 +69,104 @@ exists. The gap is visible in this entry: six weeks of a scored, phase-gated
 campaign left its numbers in `LEDGER.md` and its conclusions in `CLAUDE.md`, but
 had nowhere chronological to say why a round went the way it did — so that
 reasoning survives only where someone happened to write a good commit subject.
+
+## 2026-09-09 — The page table becomes data, and the gate learns to refuse (`chore/matching-harness-consolidation`)
+
+The harness had many copies of one table, and they had drifted. On 2026-08-10
+only `gate.sh` was repointed at the Webflow staging host; every other script
+kept `www.beachfrontdentistry.com`, which by then served our own Netlify build.
+So the style census, the hover sweep, the states gate, the walkthrough and the
+anchor-parity probe had spent four weeks comparing the candidate with itself and
+reporting clean. `probe-anchor-parity.mjs:84` was also still cutting `contact`
+on "Book Appointment" — its comment said "must mirror gate.sh exactly", and that
+promise is what a comment is worth.
+
+**What is here now.** `matching/harness.json` holds the nine pages plus the
+hosts, matrix, thresholds and fingerprints; `matching/harness.mjs` is the only
+reader, exporting `REF`/`CAND`/`MATRIX`/`THRESHOLD`/`PAGES`/`byKey`/`TOTALS` and
+a CLI (`--env`, `--table`, `--check-ref`) so the two bash gates hold no second
+copy. TOTALS are derived — `(anchors + 1) × 3` — and the derived map equals the
+old hand-typed one exactly, which is how we know the derivation is the right
+one. `--table` prints the nine deleted `run` lines byte-identically; that
+byte-identity was the invariant every task on this branch re-proved, each time
+with a one-byte negative control to show the check could fail.
+
+**The belief this corrects.** The 08-10 note in `gate.sh` said the Webflow
+original "is still published at its staging domain; that is the reference now."
+It is not. Measured today by the gate's own preflight:
+`GET https://beachfront-dentistry.webflow.io/ → HTTP 404`. There is no live
+reference in either direction. The only surviving capture is
+`matching/pages/*.live.html` + `matching/spec/`, both git-ignored, both on one
+machine. That is why the preflight is fail-closed and requires a positive
+fingerprint rather than a 200: a 200 is exactly what both dead hosts produce for
+the wrong reasons.
+
+**Numbers, measured.** 247 tracked files under `matching/` before, 234 after: 16
+`sweep*.sh` deleted (checked before deleting, not assumed — all 16 set
+`REF="https://www.beachfrontdentistry.com"`, all 16 pass `--viewports 1440,390`
+against a 1440/834/390 matrix, and all 16 are round-scoped copies of the same
+`page-diff` invocation `gate.sh` now drives), three added. 215 of the 234 are
+now `.prettierignore`d so the recipe can byte-compare them on upgrade; the 16
+`.md` files and `states/*.mjs` were deliberately left in scope, because the
+fleet has already been bitten once by `prettier --check .` silently covering
+nothing, and exempting the directory wholesale would repeat it on the records.
+
+**A census that was wrong twice before it was measured.** `harness.mjs` claimed
+"the nine-row page table: 5 copies", naming `gate.sh`. That was true when
+written and false one commit later, when the table left `gate.sh` — and it had
+never named `states/index.mjs` or `probe-chrome-count.mjs`, both nine-row
+carriers at the time. A second recount during this work also got it wrong, by
+grepping key tokens anywhere in a file instead of counting table rows, which
+inflates `probe-anchors.mjs` (5 rows) and `hover-sweep.mjs` (6) into nine-row
+tables and still misses `probe-chrome-count.mjs`, whose array-of-pairs shape no
+`key:` pattern matches. The measured figure is **6 before, 1 after**. The
+comment now carries its own method so it can be re-run rather than recalled.
+A census is a claim about code; it has to be measured against the tree.
+
+**Report schema.** Every report now carries `meta.schemaVersion`, `page-diff
+--version` prints it, and `gate.sh` compares before spending a run. Honest
+accounting: this makes `next.mjs` exit 2 on this repo's entire corpus, because
+every historical report predates the field — 377 run directories, every one
+holding a `report.json`, zero carrying `schemaVersion`. That is correct and it
+is also inert: matching has been PAUSED since 09-01 and `next.mjs` exits at the
+pause switch first. `strikes.mjs` still reads the legacy history, because it
+needs only `mismatchFraction` and `pass`, and all 6379 regions across those 377
+reports carry both.
+
+**One page vocabulary.** `strikes.mjs` derived a page name from the report's ref
+URL, which disagreed with the gate key on exactly six of the nine pages
+(`team`, `svc`, `qa`, `yfv`, `atd`, `contact`). It now asks the table. The
+practical effect is that `strikes.mjs yfv` matches 63 runs where it used to
+match 58 — the five it was missing are hand-named probe directories whose ref is
+`/your-first-visit`.
+
+**`/dev/match` shipped with every build.** The route renders seed assemblies,
+reads `cookies` and queries Prismic, and a production build served it 200. Worse
+than the pages: its own not-found branch returned
+`no matching assembly for "…" (have: home, your-first-visit, our-team,
+services, ask-the-doctor)` to anonymous traffic, disclosing the page inventory.
+`if (!dev) error(404)` is now the first statement of `load`. Verified on a real
+build with `/dev/a11y-fixtures` as the 200 control, and separately shown to
+still serve 200 under `vite dev` — a guard proven only to refuse is not proven.
+
+**Two traps worth writing down.** The plan's test bound `pnpm preview` to port
+4173; that port was held by an orphaned `vite preview` from an unrelated repo
+that had been running since 09-06, so the literal command would have measured a
+three-day-old build from another project. And `pnpm vite:dev -- --port N`
+silently binds 5173 — pnpm inserts a `--` that vite treats as end-of-options, so
+`--port` _and the `--strictPort` that would have made the failure loud_ are both
+discarded. Both are the same shape: a measurement pointed at something other
+than the thing under test.
+
+**Found, not fixed, filed.** #47 (four sites resolve their own directory with
+`URL#pathname`, which `harness.mjs` documents as wrong — the `strikes.mjs` one
+resolves `PAUSED`, so the pause switch fails _open_ under a percent-encoding
+path), #48 (`strikes.mjs`'s "known pages" list offers a retired vocabulary and
+15 probe-dir names as if they were pages), #49 (`SPEC.md` is stale against its
+own generator — the next `build-spec.mjs` run silently deletes 37 lines that
+were hand-written into the generated file and never into its source section),
+#50 (the shared heading predicate interpolates the page key into a pattern
+unescaped), #51 (12 probes still point `REF` at a host serving our own build),
+#52 (the `vite:dev` port trap above), #53 (five `/dev` fixture pages still ship
+as public static HTML; the blanket fix would destroy the 200 control that makes
+the guard test meaningful).

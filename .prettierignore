@@ -20,3 +20,17 @@ frozen/
 # Internal planning artifacts (brainstorming specs + implementation plans), not
 # shipped source — kept verbatim, so they aren't style-linted.
 docs/superpowers/
+
+# Matching harness — recipe-owned CODE only. These files are the source the
+# `match-harness` recipe is cut from and are re-installed byte-for-byte across
+# sites whose printWidth differs from this repo's; formatting them per site
+# would make every future upgrade read as a hand edit. harness.json keeps its
+# hand-chosen row layout for the same reason — it is a table, not prose, and
+# prettier would otherwise reflow three of its nine anchor rows. Everything
+# else under matching/ (SPEC.md, LEDGER.md, spec-sections/, states/*.mjs)
+# stays inside `prettier --check .`; eslint already ignores this whole
+# directory (eslint.config.js:52), so that is the only style check the records
+# have.
+matching/*.mjs
+matching/*.sh
+matching/harness.json

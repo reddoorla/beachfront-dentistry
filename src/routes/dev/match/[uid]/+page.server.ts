@@ -1,4 +1,5 @@
 import { error } from "@sveltejs/kit";
+import { dev } from "$app/environment";
 
 import {
   collectionTypesOf,
@@ -53,6 +54,12 @@ function fillFrom(
 }
 
 export async function load({ params, fetch, cookies }) {
+  // Dev aid only. This must be the first statement in load: everything below it
+  // reads fixtures and hits Prismic, and none of that should be reachable from
+  // a production build. `pnpm build && pnpm preview` + a 404 here is the proof;
+  // the launch recipe asserts the same thing against the deployed URL.
+  if (!dev) error(404, { message: "Not found" });
+
   const asm = assemblies(devImg) as Record<string, unknown[]>;
   const slices = asm[params.uid];
   if (!slices)

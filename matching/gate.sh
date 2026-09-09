@@ -1,42 +1,44 @@
 #!/usr/bin/env bash
-# Canonical matching gate for beachfront-dentistry.
+# The matching gate. This file is generic — everything specific to a site lives
+# in matching/harness.json (the data) and matching/LEDGER.md (the why). It is
+# written to be cut into a `reddoor-maint match-harness` recipe; as of
+# 2026-09-09 that recipe does not exist, so this copy is installed by hand.
 #
 #   bash matching/gate.sh <round-tag> [page ...]
 #
-# Runs page-diff for every page (or just the named ones) at the full breakpoint
-# matrix and writes matching/out-<round-tag>-<page>/.
+# Runs page-diff for every page in the table (or just the named ones) at the
+# full breakpoint matrix and writes matching/out-<round-tag>-<page>/.
 #
-# MATRIX = 1440,834,390. Live's real breakpoints are 480/768/992, and the
-# 768-991 band is where the worst structural defect of the 2026-08-04 round was
-# hiding (the footer renders 2-column there on live and was 1-column here), so
-# tablet is gated on every page, not sampled.
+# The matrix, the anchor lists, the reference and the candidate are DATA. Why a
+# site chose them — which live breakpoint band hid what, why an anchor is a
+# heading and not a button label — belongs in matching/LEDGER.md, which is dated
+# and append-only, because JSON holds no comments.
 #
-# ANCHORS: one per census section, derived from live in matching/census-live-1440.txt.
-# Every list ends with "Want to learn more" so the FOOTER is its own region —
-# without it the closing-CTA region swallows the whole footer plus its map
-# embed, which pinned "Ready for great" at ~22% on all six nav pages and hid
-# whatever else was in there.
+# NO MASKS and the threshold from harness.json everywhere: the numbers stay
+# honest and a known floor stays visible as its own region. A media-neutralised
+# secondary read is `node "$PD" ... --neutralize-media`; next.mjs ignores such
+# runs on purpose (next.mjs:57-64).
 #
-# NO MASKS and threshold 0.10 everywhere: the numbers stay honest and the map
-# floor stays visible as its own region. Use gate-chrome.sh for the
-# media-neutralised secondary read on the video/photo-heavy pages.
-#
-# PREFLIGHT (see CLAUDE.md rule 2): a page with no section in matching/SPEC.md
-# has not had Phase 1 done, and its geometry must not be touched. Skipping the
-# spec is how live's root-font ladder, the .content-width ladder and
-# .hero.group-photo's separate height ladder each got discovered reactively,
-# after the region had already failed several rounds. This refuses the run
-# instead of trusting anyone to remember.
+# PREFLIGHT (see the matching rules in CLAUDE.md): a page with no section in
+# matching/SPEC.md has not had Phase 1 done, and its geometry must not be
+# touched. Skipping the spec is how a reference's root-font ladder and its
+# per-component height ladders get found reactively, after the region has
+# already failed several rounds. This refuses the run instead of trusting anyone
+# to remember.
 set -u
-PD="$HOME/.claude/skills/matching-a-page/page-diff.mjs"
-# 2026-08-10: production (www.beachfrontdentistry.com) cut over to OUR Netlify
-# build sometime after the 2026-08-07 qafix0807 run — the old REF now 301s to
-# the rebuild, so gating against it compares the candidate with itself and
-# every run goes silently green. The Webflow original is still published at
-# its staging domain (same data-wf-site 64af3f93339537d6b661b556, same
-# markup classes); that is the reference now. See LEDGER 2026-08-10.
-REF="https://beachfront-dentistry.webflow.io"
-CAND="http://localhost:5173"
+# Everything configurable lives in matching/harness.json; harness.mjs is the one
+# reader. --env emits shell-safe assignments (REF, CAND, MATRIX, VIEWPORTS_SP,
+# THRESHOLD, MAX_HEIGHT_DELTA, PD, SC, REPORT_SCHEMA).
+eval "$(node "$(dirname "$0")/harness.mjs" --env)"
+
+# The skill must be able to write reports this site's scripts can read. Cheap,
+# local, and it fails before any browser starts.
+PD_SCHEMA="$(node "$PD" --version 2>/dev/null | awk '{print $4}')"
+if [ "$PD_SCHEMA" != "$REPORT_SCHEMA" ]; then
+  echo "gate.sh: page-diff writes report schema '${PD_SCHEMA:-none}', this harness reads $REPORT_SCHEMA." >&2
+  echo "         Update matching/harness.mjs REPORT_SCHEMA or the matching-a-page skill." >&2
+  exit 2
+fi
 SPEC="$(dirname "$0")/SPEC.md"
 TAG="${1:?usage: gate.sh <round-tag> [page ...]}"
 # The tag must not contain a hyphen. Output dirs are "out-<TAG>-<page>", and
@@ -57,6 +59,18 @@ case "$TAG" in
 esac
 shift || true
 WANT=("$@")
+
+# Fail closed on the reference before spending a single run. A 200 is NOT
+# evidence: a production host that has cut over to OUR build answers 200, and
+# every region then scores near zero against itself. --check-ref requires an
+# artefact only the reference serves (harness.json refMark) and refuses a
+# redirect, a host listed in selfHosts, and a body carrying candMark. Measured
+# on this site 2026-09-09: 33 of its 230 top-level matching scripts still assign
+# REF a host that is our own build.
+if ! node "$(dirname "$0")/harness.mjs" --check-ref; then
+  echo "gate.sh: refusing to gate against an unverified reference." >&2
+  exit 2
+fi
 
 # Set SPEC_OPTIONAL=1 only for a read-only baseline sweep of pages you are not
 # about to edit. It is recorded in the round tag so the exemption is visible.
@@ -88,7 +102,7 @@ run() { # tag refpath candpath sections
       echo "########## $page ##########"
       echo "REFUSED: no '## $page' section in matching/SPEC.md."
       echo "         Phase 1 (section census + per-section spec, read from"
-      echo "         matching/spec/beachfront.css) comes before geometry."
+      echo "         matching/spec/) comes before geometry."
       echo "         See CLAUDE.md rule 2. SPEC_OPTIONAL=1 for a baseline read."
       FAILED_PREFLIGHT=1
       return 0
@@ -96,44 +110,18 @@ run() { # tag refpath candpath sections
   fi
   echo "########## $page ##########"
   node "$PD" --ref "$REF$refpath" --cand "$CAND$candpath" \
-    --viewports 1440,834,390 --threshold 0.10 \
+    --viewports "$MATRIX" --threshold "$THRESHOLD" \
     --sections "$sections" --out "matching/out-$TAG-$page" \
     > "matching/out-$TAG-$page.log" 2>&1
   echo "$page exit=$?"
 }
 
-# ---- detail templates (densest instance of each) ----
-run team "/team-members/dr-robert-quan" "/team-members/dr-robert-quan" \
-  "Dentist,Back to Team,Ready for great,Want to learn more"
-run svc "/services/dental-exams" "/services/dental-exams" \
-  "What to expect,Back to All Services,Ready for great,Want to learn more"
-run qa "/questions/regular-dental-cleanings-support-your-whole-body-health" \
-  "/questions/regular-dental-cleanings-support-your-whole-body-health" \
-  "At Beachfront Dentistry,Have another question,Ready for great,Want to learn more"
-
-# ---- nav pages ----
-run home "/" "/dev/match/home" \
-  "Finally have a dentist,MEET YOUR TEAM,Serving the South Bay,Your Path to Oral Health,Our dental team in Redondo,Beyond the Smile,Ready for great dental health,Want to learn more"
-run yfv "/your-first-visit" "/dev/match/your-first-visit" \
-  "We want you to feel comfortable,Office Tour,Dr. Robert Quan,To be a long term health partner,Serving the South Bay for over 40 years,Ready for great dental health,Want to learn more"
-run our-team "/our-team" "/dev/match/our-team" \
-  "Our,Dr. Robert Quan,Ready for great dental health,Want to learn more"
-run services "/services" "/dev/match/services" \
-  "Cosmetic Dentistry,General Dentistry,Ready for great dental health,Want to learn more"
-run atd "/ask-the-doctor" "/dev/match/ask-the-doctor" \
-  "Beyond the Smile,Back to Top,Ready for great dental health,Want to learn more"
-# 2026-08-11: the info-band anchor was "Book Appointment", but MarkUp pin
-# 5980c9d7 #3 renamed the button to "Request Appointment" while the REF still
-# says "Book" — an anchor must resolve on BOTH pages (prefix match on rendered
-# text), so no button-label anchor can survive that split. "OFFICE HOURS" is
-# the nearest text both pages share as an element PREFIX: the ref band reuses
-# adjacent `.footer-contact-*` divs whose textContent concatenates with no
-# whitespace ("CONTACT(310) 378-9241…"), so any CONTACT-phone anchor dies on
-# the missing space, while the OFFICE-HOURS header div is a clean prefix on
-# both. The renamed button + CONTACT column now fall in the region ABOVE this
-# anchor ("top"). See LEDGER 2026-08-11 (markup round F).
-run contact "/contact-us" "/contact-us" \
-  "OFFICE HOURS,Ready for great dental health,Want to learn more"
+# The page table is matching/harness.json. Process substitution, NOT a pipe:
+# a pipe would run this loop in a subshell and FAILED_PREFLIGHT would not
+# survive to the check below, so a refused page would exit 0.
+while IFS=$'\t' read -r key refpath candpath anchors; do
+  run "$key" "$refpath" "$candpath" "$anchors"
+done < <(node "$(dirname "$0")/harness.mjs" --table)
 
 if [ "${FAILED_PREFLIGHT:-0}" = "1" ]; then
   echo

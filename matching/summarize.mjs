@@ -2,6 +2,7 @@
 // a previous round so regressions are impossible to miss.
 //   node matching/summarize.mjs <tag> [prev-tag]
 import fs from "node:fs";
+import { PAGES } from "./harness.mjs";
 
 const TAG = process.argv[2];
 const PREV = process.argv[3];
@@ -9,17 +10,7 @@ if (!TAG) {
   console.error("usage: node matching/summarize.mjs <tag> [prev-tag]");
   process.exit(2);
 }
-const PAGES = [
-  "team",
-  "svc",
-  "qa",
-  "home",
-  "yfv",
-  "our-team",
-  "services",
-  "atd",
-  "contact",
-];
+const KEYS = PAGES.map((p) => p.key);
 const load = (tag, p) => {
   const f = `matching/out-${tag}-${p}/report.json`;
   if (!fs.existsSync(f)) return null;
@@ -33,7 +24,7 @@ const load = (tag, p) => {
 let tot = 0,
   pass = 0;
 const regressions = [];
-for (const p of PAGES) {
+for (const p of KEYS) {
   const r = load(TAG, p);
   if (!r) {
     console.log(`\n=== ${p.padEnd(9)} (no report)`);
