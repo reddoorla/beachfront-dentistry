@@ -61,12 +61,40 @@ export const SELF_HOSTS = CFG.selfHosts ?? [];
 export const PAGES = Object.entries(CFG.pages).map(([key, p]) => ({ key, ...p }));
 export const byKey = Object.fromEntries(PAGES.map((p) => [p.key, p]));
 
+/** Can this page's region count be PREDICTED at all? Only with anchors — see
+ *  TOTALS below. Exported beside TOTALS rather than left for each consumer to
+ *  re-derive, because "remember to ask first" is exactly what failed: checkRun
+ *  remembered, next.mjs did not, for two releases. */
+export const scorable = (key) => (byKey[key]?.anchors?.length ?? 0) > 0;
+
 // DERIVED, never hand-typed: page-diff cuts one region before the first anchor
 // ("top") plus one per anchor, at every viewport. The old hand-written map went
 // stale the moment an anchor list changed, and a wrong denominator makes the
 // score a lie in the flattering direction.
+//
+// THAT IDENTITY HOLDS ONLY WITH ANCHORS. `splitRegions` (page-diff.mjs:103-110)
+// only cuts by anchor when there are anchors to cut by; with none it falls back
+// to the page's own <section> boxes, and with none of those to an even four-row
+// grid (lib/regions.mjs:27-35, gridRows = 4, labels `grid-<r>-<c>`). So the
+// count is DATA-DEPENDENT, the two pages need not even agree, and no formula
+// over anchors can predict it.
+//
+// `checkRun` below already reaches this conclusion — its `if (secs.length)`
+// guard declines to assert a region count without anchors, and says why. That
+// fix was applied to the VALIDATOR and never carried to the DENOMINATOR, so
+// next.mjs went on dividing a real pass count by an imaginary total. Measured
+// 2026-09-09 on a seed harness (anchors: [], matrix of 3): page-diff produced
+// 12 grid regions, all passing, and next.mjs printed `SCORE 12/3 regions
+// passing` followed by "Backlog is empty — Phases 5 and 6 are what is left",
+// exit 0. On a matrix of 4 the same seed prints `SCORE 16/4`. The absurd
+// fraction would have been questioned; the sentence would not.
+//
+// So an unpredictable page gets NO NUMBER — `null`, not a plausible-looking
+// integer. That is a SIGNAL, not a barrier: `a + null` is `a`, so a consumer
+// that sums TOTALS without asking `scorable()` still gets a too-small
+// denominator. The barrier is `scorable()` plus next.mjs's exit-2 refusal.
 export const TOTALS = Object.fromEntries(
-  PAGES.map((p) => [p.key, (p.anchors.length + 1) * MATRIX.length]),
+  PAGES.map((p) => [p.key, scorable(p.key) ? (p.anchors.length + 1) * MATRIX.length : null]),
 );
 
 /** The SPEC.md heading predicate, shared by gate.sh's preflight and
