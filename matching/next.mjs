@@ -30,7 +30,15 @@ if (existsSync(PAUSE)) {
 }
 
 import { FLOORS, ACCEPTED } from "./floors.mjs";
-import { TOTALS, THRESHOLD, MAX_HEIGHT_DELTA, REPORT_SCHEMA, uncountable } from "./harness.mjs";
+import {
+  TOTALS,
+  THRESHOLD,
+  MAX_HEIGHT_DELTA,
+  REPORT_SCHEMA,
+  uncountable,
+  scorable,
+  byKey,
+} from "./harness.mjs";
 
 // Reports written by a different page-diff, by page key. Kept rather than
 // dropped: silently ignoring them is how a page vanishes from the score.
@@ -39,7 +47,12 @@ const schemaMismatch = new Set();
 const latest = new Map();
 for (const d of readdirSync(DIR).filter((d) => d.startsWith("out-"))) {
   const m = /^out-[^-]+-(.+)$/.exec(d);
-  if (!m || !TOTALS[m[1]]) continue;
+  // Membership in the page table is asked of the TABLE. `!TOTALS[m[1]]` was a
+  // NUMBER standing in for a fact: it is null for an unanchored page and 0 for
+  // an empty matrix, and either dropped the page out of `latest` while
+  // `Object.keys(TOTALS)` still listed it — so a gate run that had just
+  // SUCCEEDED came back as "no countable gate run".
+  if (!m || !byKey[m[1]]) continue;
   let report, mtime;
   try {
     const p = join(DIR, d, "report.json");
@@ -114,7 +127,22 @@ for (const [page, { dir, report }] of latest) {
   }
 }
 
+// Pages that REPORTED but cannot be scored: no anchors, so their regions are
+// whatever page-diff's fallback cut and there is no model for one to be right
+// against. Kept separate from `scored` and never ranked with it.
+const unscorable = [...latest.entries()]
+  .filter(([p]) => !scorable(p))
+  .map(([p, v]) => ({ p, regions: v.report.regions.length }))
+  .sort((a, b) => a.p.localeCompare(b.p));
+
+// `.filter(scorable)` before `.map`, because the sort below divides by `total`
+// and an unanchored page's ratio is NOT BOUNDED BY 1. A passing one scored
+// 16/4 = 4.0 and sorted LAST, i.e. best, so `worst` could never name the one
+// page whose Phase 1 was not done; a failing one scored 0/4 = 0.0, sorted
+// FIRST, and put `grid-0-0`, `grid-1-0` … on the agenda — an instruction to fix
+// geometry against regions page-diff invented.
 const scored = [...latest.entries()]
+  .filter(([p]) => scorable(p))
   .map(([p, v]) => ({
     p,
     pass: v.report.regions.filter((r) => r.pass).length,
@@ -133,18 +161,38 @@ const unmeasured = Object.keys(TOTALS)
   .filter((p) => !latest.has(p))
   .sort();
 const sum = scored.reduce((a, s) => a + s.pass, 0);
-const max = Object.values(TOTALS).reduce((a, t) => a + t, 0);
+// Summed EXPLICITLY over the scorable pages rather than over TOTALS' values:
+// `a + null` is silently `a`, and a denominator that is right only because of a
+// coercion is the same lie one refactor away.
+const pagesAll = Object.keys(TOTALS).length;
+const pagesScorable = Object.keys(TOTALS).filter((p) => scorable(p)).length;
+const max = Object.keys(TOTALS).reduce((a, p) => a + (scorable(p) ? TOTALS[p] : 0), 0);
+
+// A score is printed only if SOMETHING can carry one. `SCORE 0/0` is a third
+// lie and the one that reads best of all, so it is never printed: with nothing
+// scorable the line says so in words and gives no fraction to quote.
 console.log(
-  `SCORE ${sum}/${max} regions passing` +
-    (unmeasured.length ? ` — ${unmeasured.length} page(s) NOT MEASURED` : "") +
-    "\n",
+  (pagesScorable === 0
+    ? `NO SCORE — 0 of ${pagesAll} page(s) have anchors.`
+    : `SCORE ${sum}/${max} regions passing over ${pagesScorable} of ${pagesAll} page(s)` +
+      (unmeasured.length ? ` — ${unmeasured.length} page(s) NOT MEASURED` : "")) + "\n",
 );
 console.log(
   [
     ...scored.map((s) => `  ${s.p.padEnd(9)} ${String(s.pass).padStart(2)}/${s.total}`),
+    // The run's OWN region count, as EVIDENCE FOR THE REFUSAL — it proves a run
+    // happened and explains why it cannot be scored, so a refusal is not
+    // mistaken for a crash. The pass FRACTION is deliberately withheld: it is
+    // the number with no referent, and the number that gets quoted.
+    ...unscorable.map(
+      (u) =>
+        `  ${u.p.padEnd(9)} ${String(u.regions).padStart(2)} region(s)  NOT SCORABLE — no anchors`,
+    ),
     // `?/N`, never `0/N`: an unmeasured page is not a page that scored zero,
-    // and printing zero would be a different lie.
-    ...unmeasured.map((p) => `  ${p.padEnd(9)}  ?/${TOTALS[p]}   NOT MEASURED`),
+    // and printing zero would be a different lie. `?/?` when the page is ALSO
+    // unanchored — `?/null` would name the denominator "null", which is worse
+    // than the number it replaced.
+    ...unmeasured.map((p) => `  ${p.padEnd(9)}  ?/${TOTALS[p] ?? "?"}   NOT MEASURED`),
   ].join("\n"),
 );
 
@@ -161,6 +209,29 @@ if (accepted.length) {
 // but "this cannot be scored", the one answer rule 5's while-it-exits-1 loop
 // cannot swallow. The score print stays above it so the partial state is still
 // visible.
+// A page with no anchors has not finished Phase 1, so a score has no referent
+// and this refuses to invent one — the same answer `refMark: ""` gets from
+// checkRef and an absent `## <page>` SPEC section gets from gate.sh. All three
+// are seed sentinels, and this was the one that failed OPEN. Repo CLAUDE.md
+// rule 1's corollary is the whole argument: a field that can only observe
+// configuration must never be named after the thing it cannot observe, and
+// "12 of 12 grid rows passed" observes a screenshot cut into quarters, not a
+// design anyone specced.
+//
+// PRINTED here, EXITED below: `unmeasured` and `unscorable` are different pages
+// with different remedies, and exiting inside the first block would hide the
+// second from an operator who then fixes only what was printed.
+if (unscorable.length) {
+  console.error(
+    `\nnext: ${unscorable.length} page(s) have no anchors, so their regions are page-diff's own\n` +
+      `      fallback cut and cannot be scored — ` +
+      unscorable.map((u) => `${u.p} (${u.regions} region(s))`).join(", ") +
+      `.\n      Set "anchors" for them in matching/harness.json to section texts that exist on\n` +
+      `      BOTH the reference and the candidate, then re-run: bash matching/gate.sh <tag> ` +
+      unscorable.map((u) => u.p).join(" "),
+  );
+}
+
 if (unmeasured.length) {
   console.error(
     `\nnext: ${unmeasured.length} page(s) have no countable gate run — ${unmeasured.join(", ")}.\n` +
@@ -168,6 +239,9 @@ if (unmeasured.length) {
   );
   process.exit(2);
 }
+
+// See above: deliberately a second statement, not an `else`.
+if (unscorable.length) process.exit(2);
 
 if (!rows.length) {
   console.log(
@@ -180,6 +254,16 @@ if (!rows.length) {
 }
 
 // Worst page first, then worst region inside it: fix where the model is most wrong.
+//
+// INVARIANT, documented rather than guarded because no test could redden a
+// guard here: `scored[0]` is safe because `scored` is empty only when every
+// page in `latest` is unanchored — and that means `unscorable.length > 0`, so
+// the exit above already fired. (`latest` being empty is caught further up.)
+// `rows` likewise still contains unanchored pages' failing regions; they are
+// never printed because that same exit fires first. Both facts depend on the
+// exit staying ABOVE this line — a second filter here would be a second place
+// to keep in sync, which is how checkRun and next.mjs drifted apart to begin
+// with. If that exit ever moves, this becomes a TypeError.
 const worst = scored[0].p;
 rows.sort(
   (a, b) =>

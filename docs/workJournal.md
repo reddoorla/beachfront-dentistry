@@ -386,3 +386,63 @@ collateral.
 The first mutation is the one that matters: with the identity leg disabled the
 drift case returns to `Phase 3 CLEAN` exit 0, which is the defect, measured
 again at the end rather than predicted at the start.
+
+## 2026-09-09 — next.mjs refuses to score a page with no anchors (reddoorla/reddoor-maintenance#751)
+
+`next.mjs` computed every page's denominator as `TOTALS[page]`, which
+`harness.mjs` derived as `(anchors.length + 1) * MATRIX.length`. That identity
+holds only for an ANCHORED run. `splitRegions` (page-diff.mjs:103-110) cuts by
+anchor only when there are anchors; with none it falls back to the page's own
+`<section>` boxes, and with none of those to an even four-row grid
+(lib/regions.mjs:27-35, `gridRows = 4`). So on the shape every new site starts
+in — `anchors: []` — the numerator counted real grid regions and the
+denominator counted an imaginary anchor cut.
+
+Measured on a seed harness with a matrix of 3: page-diff produced 12 grid
+regions, all passing, and `next.mjs` printed `SCORE 12/3 regions passing`,
+then `No open geometry failures` and `Backlog is empty — Phases 5 (states) and
+6 (adversarial review) are what is left`, exit 0. On a matrix of 4 the same
+seed prints `SCORE 16/4`. The absurd fraction is the harmless half: someone
+would question `12/3`. Nobody questions "Backlog is empty", and it prints from
+the same run, so a fresh site whose page-diff produced a grid nobody specced
+reads as a finished Phase 4.
+
+Two things were worse than the report said. First the RANKING, not just the
+printed number: `scored` sorted by `pass / total`, and an unanchored page's
+ratio is not bounded by 1. A passing one scored `16/4 = 4.0` and sorted LAST,
+i.e. best, so `const worst = scored[0].p` could never name the one page whose
+Phase 1 was not done. A failing one scored `0/4 = 0.0`, sorted FIRST, and
+printed `NEXT: about — worst page` with an agenda of `grid-0-0`, `grid-1-0` …
+— an instruction to fix geometry against regions page-diff invented. Both
+measured before the fix.
+
+The fix is to REFUSE, not to relabel. `harness.mjs` now exports
+`scorable(key)` and gives an unanchored page `TOTALS[key] = null` instead of a
+plausible-looking integer; `next.mjs` filters those out of `scored`, prints the
+run's OWN region count as evidence for the refusal (`home  12 region(s)  NOT
+SCORABLE — no anchors`), and exits 2. The pass FRACTION is deliberately not
+printed: it is the number with no referent and the number that gets quoted.
+With nothing scorable it prints `NO SCORE — 0 of N page(s) have anchors` rather
+than `SCORE 0/0`, which is a third lie and the one that reads best.
+
+The reasoning was not invented here — it was LIFTED from `checkRun`, twenty
+lines below the broken denominator. Its `if (secs.length)` guard already
+declines to assert a region count without anchors and already writes down why,
+dated 2026-09-09, citing the same fallback and the same measurement. That fix
+was applied to the VALIDATOR and never carried to the DENOMINATOR. Choosing
+anything else now would have been answering one question two ways in one file,
+which is the drift `harness.mjs`'s own schema comment exists to warn about.
+
+Rejected: scoring against the run's own regions and labelling it. "12 of 12
+grid rows passed" is arithmetically honest and semantically empty — the grid
+rows are quarters of a screenshot. The label is prose beside a figure, and the
+figure is what gets quoted into a status line. Where a genuine pre-Phase-1
+baseline read is wanted the harness already has `SPEC_OPTIONAL=1`, which prints
+"Do NOT apply geometry fixes off this run."; a baseline score belongs behind an
+explicit opt-in next to that one, not in the default path.
+
+Honest limit, on the record: `null` does not poison arithmetic. `a + null` is
+`a`, so a future consumer that sums `TOTALS` without asking `scorable()` still
+gets a too-small denominator — flattering, the exact direction the comment
+above `TOTALS` warns about. `null` is a SIGNAL, chosen for loud printing and
+JSON-representability. The barrier is the predicate and the exit-2 guard.
