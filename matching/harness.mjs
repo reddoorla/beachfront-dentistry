@@ -61,11 +61,35 @@ export const SELF_HOSTS = CFG.selfHosts ?? [];
 export const PAGES = Object.entries(CFG.pages).map(([key, p]) => ({ key, ...p }));
 export const byKey = Object.fromEntries(PAGES.map((p) => [p.key, p]));
 
-/** Can this page's region count be PREDICTED at all? Only with anchors — see
- *  TOTALS below. Exported beside TOTALS rather than left for each consumer to
- *  re-derive, because "remember to ask first" is exactly what failed: checkRun
- *  remembered, next.mjs did not, for two releases. */
-export const scorable = (key) => (byKey[key]?.anchors?.length ?? 0) > 0;
+/** Can this page's region count be PREDICTED at all? It needs anchors — see
+ *  TOTALS below — AND a matrix to measure them at. Exported beside TOTALS
+ *  rather than left for each consumer to re-derive, because "remember to ask
+ *  first" is exactly what failed: checkRun remembered, next.mjs did not, for
+ *  two releases.
+ *
+ *  `MATRIX.length > 0` is not defensive padding. TOTALS is
+ *  `(anchors + 1) * MATRIX.length`, so an ANCHORED page with `matrix: []`
+ *  yields 0 — truthy-adjacent, arithmetically fatal. Measured on a page with 3
+ *  anchors, an empty matrix and 8 passing regions: without this clause the
+ *  scorer printed `SCORE 8/0 regions passing` and `Backlog is empty — Phases 5
+ *  and 6 are what is left`, exit 0. The absurd fraction would be questioned;
+ *  the sentence would not. `pass/0` is also Infinity, so such a page sorts
+ *  BEST and can never be named `worst` — the same ranking bug this change set
+ *  removed for unanchored pages, one input along. */
+export const scorable = (key) =>
+  (byKey[key]?.anchors?.length ?? 0) > 0 && MATRIX.length > 0;
+
+/** WHY a page is not scorable, in the words of the thing that is actually
+ *  missing. A refusal that states a cause it did not check is the shape
+ *  CLAUDE.md names: a field must never be named after something it cannot
+ *  observe. "no anchors" printed for a page carrying three of them sends the
+ *  operator to edit the one part of harness.json that was already right. */
+export const unscorableWhy = (key) =>
+  (byKey[key]?.anchors?.length ?? 0) === 0
+    ? "no anchors"
+    : MATRIX.length === 0
+      ? "matrix is empty"
+      : null;
 
 // DERIVED, never hand-typed: page-diff cuts one region before the first anchor
 // ("top") plus one per anchor, at every viewport. The old hand-written map went
