@@ -30,6 +30,9 @@
 //   node matching/harness.mjs --env        shell-safe KEY='value' lines
 //   node matching/harness.mjs --table      key<TAB>ref<TAB>cand<TAB>anchors
 //   node matching/harness.mjs --check-ref  the D11 preflight; exit 2 on failure
+//   node matching/harness.mjs --check-run <page> <out-dir> <startedAt-iso>
+//                                         did THIS run leave a countable report?
+//                                         exit 2 when it did not
 import { readFileSync, realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -130,6 +133,160 @@ export async function checkRef() {
   return { ok: true, why: `${REF}/ → 200, no redirect, refMark present, candMark absent` };
 }
 
+/**
+ * Would next.mjs COUNT a run with this meta? Returns the reason it would not,
+ * as a string, or null when it would.
+ *
+ * A reason string and not a boolean, because the two callers must tell the
+ * cases apart: next.mjs treats "schema" as a page BLANKED (it has its own
+ * message and its own exit) and merely skips the rest of the diagnostics,
+ * while gate.sh prints whatever this says.
+ *
+ * It lives HERE rather than inside next.mjs because gate.sh now asks the same
+ * question, and a question asked twice drifts: a gate that greens a run
+ * next.mjs then drops is the same false green one step along. census.sh's
+ * GUARD 2c (census.sh:153-168) records exactly that drift between
+ * style-census's printer and census-count.mjs's parser — a COMPLETE census
+ * reported as 0 mismatches because the two had versioned apart.
+ */
+export function uncountable(m) {
+  // Missing schemaVersion means "written before the field existed" = 0. It is
+  // not an error on its own; it is only fatal when it would blank a page,
+  // which is next.mjs's call to make, not this predicate's.
+  if ((m.schemaVersion ?? 0) !== REPORT_SCHEMA) return "schema";
+  // A masked / media-neutralised run is a DIAGNOSTIC, never the state of the
+  // page. An --mask-photos probe of yfv made `top` @834 read 43.9% while the
+  // real gate had it passing at 1.3%.
+  if ((m.mask?.length ?? 0) > 0) return `mask=[${m.mask.join(", ")}]`;
+  if (m.neutralizeMedia) return "neutralize-media";
+  if (m.maskPhotos) return "mask-photos";
+  if (m.truncated) return "truncated";
+  if (m.threshold !== THRESHOLD) return `threshold ${m.threshold} != ${THRESHOLD}`;
+  return null;
+}
+
+/**
+ * Did THIS run of page-diff leave a report the scorer will actually count?
+ *
+ * gate.sh cannot use page-diff's exit status for this. page-diff exits 1 for a
+ * region that legitimately FAILED (page-diff.mjs:227) and node exits 1 for the
+ * bare `throw e` one line below it, so the status cannot tell a finding from a
+ * crash-before-looking — census.sh:17-32 records the same shape for
+ * style-census. Measured on 29 Navy with the reference alive and no dev
+ * server: every page-diff died in `page.goto`, the gate printed `home exit=1`
+ * and `ALL DONE`, exited 0, and wrote no report at all.
+ *
+ * So the evidence is the artefact only a completed run leaves: the report
+ * next.mjs will read, fresh, over the matrix and anchors the table declares.
+ * Cheapest and most specific arm first.
+ */
+export function checkRun(page, dir, startedAt) {
+  const path = join(dir, "report.json");
+  let report;
+  try {
+    report = JSON.parse(readFileSync(path, "utf8"));
+  } catch (e) {
+    if (e.code === "ENOENT")
+      return { ok: false, why: `${path}: no report.json — the run wrote nothing` };
+    return { ok: false, why: `${path}: ${e.message}` };
+  }
+  const meta = report.meta ?? {};
+
+  const uncount = uncountable(meta);
+  if (uncount)
+    return { ok: false, why: `${path}: next.mjs would not count this run (${uncount})` };
+
+  // FRESHNESS. lib/report.mjs:45 is `mkdirSync(outDir, {recursive:true})` and
+  // nothing ever clears the directory, so a crashed re-run under a tag used
+  // before leaves the PREVIOUS round's report exactly where it was — measured
+  // 2026-09-09, sha unchanged across the crash. Requiring report.json without
+  // this arm reproduces the green one step along. meta.generatedAt is built
+  // after `finally { await browser.close() }` (page-diff.mjs:163-176), so it
+  // is an artefact of the run that wrote it and not of the file's mtime.
+  const since = Date.parse(startedAt);
+  // NOT skipped when startedAt is unusable: a fail-open default is the exact
+  // shape this guard exists to stop.
+  if (!Number.isFinite(since))
+    return {
+      ok: false,
+      why: `startedAt ${JSON.stringify(startedAt)} is not a timestamp — cannot tell this run's report from a previous round's`,
+    };
+  const at = Date.parse(meta.generatedAt ?? "");
+  if (!Number.isFinite(at))
+    return {
+      ok: false,
+      why: `${path}: no usable meta.generatedAt — cannot tell this run's report from a previous round's`,
+    };
+  if (at < since)
+    return {
+      ok: false,
+      why: `${path}: STALE — written ${meta.generatedAt}, this run started ${startedAt}. page-diff never cleared the directory.`,
+    };
+
+  // COVERAGE — what the run was ASKED for, against the table.
+  const vws = meta.viewports ?? [];
+  if (vws.join(",") !== MATRIX.join(","))
+    return {
+      ok: false,
+      why: `${path}: ran viewports [${vws.join(",")}], harness.json matrix is [${MATRIX.join(",")}]`,
+    };
+  const secs = meta.sections ?? [];
+  const want = byKey[page]?.anchors ?? [];
+  if (secs.join("\0") !== want.join("\0"))
+    return {
+      ok: false,
+      why: `${path}: ran sections [${secs.join(" | ")}], harness.json anchors are [${want.join(" | ")}]`,
+    };
+
+  // ...and what it actually PRODUCED. Every viewport the run says it covered
+  // has to appear in the regions. Deliberately compared against the run's own
+  // meta.viewports and not against MATRIX: the arm above owns "the run used the
+  // wrong matrix", and folding the two together would make either one
+  // unfalsifiable on its own.
+  if (!Array.isArray(report.regions) || report.regions.length === 0)
+    return { ok: false, why: `${path}: no regions — nothing was compared` };
+  const seen = new Set(report.regions.map((r) => r.viewport));
+  const missing = vws.filter((v) => !seen.has(v));
+  if (missing.length)
+    return {
+      ok: false,
+      why: `${path}: no region at viewport(s) [${missing.join(",")}] — the run covered [${[...seen].join(",")}]`,
+    };
+
+  // With anchors the region count is an exact identity: page-diff cuts one
+  // region before the first anchor plus one per anchor, at every viewport
+  // (regionsFromAnchors, page-diff.mjs:105-109). Measured over the 298 clean
+  // gate-shaped runs in the corpus this harness was cut from, all of them
+  // anchored: regions.length === (sections + 1) * viewports holds 298/298,
+  // while regions.length === TOTALS[page] holds only 260/298 — the 38 are
+  // legitimately narrower HAND rounds. So the identity is checked against the
+  // run's OWN meta and the matrix/anchors are checked against the table above.
+  //
+  // WITHOUT anchors there is no such identity, and asserting one is a FALSE
+  // REFUSAL of the shape every new site starts in. page-diff falls back to each
+  // page's own <section> boxes and, with none, an even four-row grid
+  // (splitRegions, page-diff.mjs:103-110), so the count is data-dependent and
+  // the two pages need not even agree. Measured 2026-09-09 against the real
+  // page-diff on a seed harness (anchors: [], matrix of 4): 16 regions labelled
+  // grid-0-0 … grid-3-0, not the 4 this identity predicted. The 298/298 above
+  // was measured over anchored runs only and never covered this case.
+  if (secs.length) {
+    const expected = (secs.length + 1) * vws.length;
+    if (report.regions.length !== expected)
+      return {
+        ok: false,
+        why: `${path}: ${report.regions.length} region(s), expected ${expected} = (${secs.length} anchors + 1) x ${vws.length} viewport(s)`,
+      };
+  }
+
+  // A green that STATES what it is made of, so a green over nothing reads
+  // differently from a green over the matrix (census.sh:219's habit).
+  return {
+    ok: true,
+    why: `${report.regions.length} region(s) over ${vws.length} viewport(s), written ${meta.generatedAt}`,
+  };
+}
+
 // CLI. Both sides go through realpathSync. `import.meta.url` is ALREADY the
 // resolved real path (node resolves symlinks unless --preserve-symlinks) while
 // process.argv[1] is the path as typed, so a plain pathToFileURL compare goes
@@ -171,8 +328,19 @@ if (isMain()) {
     const r = await checkRef();
     console.log(`${r.ok ? "REF OK" : "REF REFUSED"} — ${r.why}`);
     process.exit(r.ok ? 0 : 2);
+  } else if (mode === "--check-run") {
+    // startedAt is REQUIRED, never defaulted: an optional one is a fail-open
+    // door in the one guard that decides whether a page was measured at all.
+    const [page, dir, startedAt] = process.argv.slice(3);
+    if (!page || !dir || !startedAt) {
+      console.error("usage: harness.mjs --check-run <page> <out-dir> <startedAt-iso>");
+      process.exit(2);
+    }
+    const r = checkRun(page, dir, startedAt);
+    console.log(`${r.ok ? "RUN OK" : "NO RUN"} — ${r.why}`);
+    process.exit(r.ok ? 0 : 2);
   } else {
-    console.error("usage: harness.mjs --env | --table | --check-ref");
+    console.error("usage: harness.mjs --env | --table | --check-ref | --check-run");
     process.exit(2);
   }
 }

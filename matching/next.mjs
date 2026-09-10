@@ -30,7 +30,7 @@ if (existsSync(PAUSE)) {
 }
 
 import { FLOORS, ACCEPTED } from "./floors.mjs";
-import { TOTALS, THRESHOLD, MAX_HEIGHT_DELTA, REPORT_SCHEMA } from "./harness.mjs";
+import { TOTALS, THRESHOLD, MAX_HEIGHT_DELTA, REPORT_SCHEMA, uncountable } from "./harness.mjs";
 
 // Reports written by a different page-diff, by page key. Kept rather than
 // dropped: silently ignoring them is how a page vanishes from the score.
@@ -51,22 +51,19 @@ for (const d of readdirSync(DIR).filter((d) => d.startsWith("out-"))) {
   // A masked / media-neutralised run is a DIAGNOSTIC, never the state of the
   // page. Picking one up as "latest" silently reports scores nobody can ship —
   // it happened immediately: an --mask-photos probe of yfv made `top` @834 read
-  // 43.9% here while the real gate had it passing at 1.3%.
-  const meta = report.meta ?? {};
-  // Missing schemaVersion means "written before the field existed" = 0. It is
-  // not an error on its own; it is only fatal when it would blank a page.
-  if ((meta.schemaVersion ?? 0) !== REPORT_SCHEMA) {
+  // 43.9% here while the real gate had it passing at 1.3%. Missing
+  // schemaVersion means "written before the field existed" = 0; it is not an
+  // error on its own, only when it would blank a page.
+  //
+  // The predicate itself lives in harness.mjs now, because gate.sh asks the
+  // same question per run and two copies of one question drift — a gate that
+  // greens a run this file then drops is the same false green one step along.
+  const why = uncountable(report.meta ?? {});
+  if (why === "schema") {
     schemaMismatch.add(m[1]);
     continue;
   }
-  if (
-    (meta.mask?.length ?? 0) > 0 ||
-    meta.neutralizeMedia ||
-    meta.maskPhotos ||
-    meta.truncated
-  )
-    continue;
-  if (meta.threshold !== THRESHOLD) continue;
+  if (why) continue;
   const prev = latest.get(m[1]);
   if (!prev || mtime > prev.mtime) latest.set(m[1], { dir: d, mtime, report });
 }
@@ -125,19 +122,51 @@ const scored = [...latest.entries()]
   }))
   .sort((a, b) => a.pass / a.total - b.pass / b.total);
 
+// The denominator is the DECLARED site, not the pages that happened to report.
+// Summed over `scored` it shrank to match the numerator: 8 of 9 pages reporting
+// read SCORE 160/160 while the ninth, whose page-diff had crashed, was in
+// neither the numerator nor the denominator nor the list below. harness.mjs:61-67
+// already gives the reason — "a wrong denominator makes the score a lie in the
+// flattering direction" — and that fix was applied per REGION (`total:
+// TOTALS[p]`) and never per PAGE.
+const unmeasured = Object.keys(TOTALS)
+  .filter((p) => !latest.has(p))
+  .sort();
 const sum = scored.reduce((a, s) => a + s.pass, 0);
-const max = scored.reduce((a, s) => a + s.total, 0);
-console.log(`SCORE ${sum}/${max} regions passing\n`);
+const max = Object.values(TOTALS).reduce((a, t) => a + t, 0);
 console.log(
-  scored
-    .map((s) => `  ${s.p.padEnd(9)} ${String(s.pass).padStart(2)}/${s.total}`)
-    .join("\n"),
+  `SCORE ${sum}/${max} regions passing` +
+    (unmeasured.length ? ` — ${unmeasured.length} page(s) NOT MEASURED` : "") +
+    "\n",
+);
+console.log(
+  [
+    ...scored.map((s) => `  ${s.p.padEnd(9)} ${String(s.pass).padStart(2)}/${s.total}`),
+    // `?/N`, never `0/N`: an unmeasured page is not a page that scored zero,
+    // and printing zero would be a different lie.
+    ...unmeasured.map((p) => `  ${p.padEnd(9)}  ?/${TOTALS[p]}   NOT MEASURED`),
+  ].join("\n"),
 );
 
 if (accepted.length) {
   console.log(`\nOperator-ACCEPTED failures (left failing on purpose):`);
   for (const a of accepted)
     console.log(`  ${a.page} @${a.vw} "${a.label}" — ${a.why.slice(0, 96)}…`);
+}
+
+// BEFORE the `!rows.length` branch, and deliberately so: an unmeasured page
+// contributes no failing region, so that branch would print "Backlog is empty"
+// and exit 0 over a page nobody had looked at. Exit 2 matches the two guards
+// above (`blanked`, `latest.size === 0`) — neither "clean" nor "work remains"
+// but "this cannot be scored", the one answer rule 5's while-it-exits-1 loop
+// cannot swallow. The score print stays above it so the partial state is still
+// visible.
+if (unmeasured.length) {
+  console.error(
+    `\nnext: ${unmeasured.length} page(s) have no countable gate run — ${unmeasured.join(", ")}.\n` +
+      `      Re-run: bash matching/gate.sh <tag> ${unmeasured.join(" ")}`,
+  );
+  process.exit(2);
 }
 
 if (!rows.length) {
