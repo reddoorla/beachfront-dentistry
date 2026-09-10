@@ -37,6 +37,7 @@ import {
   REPORT_SCHEMA,
   uncountable,
   scorable,
+  unscorableWhy,
   byKey,
 } from "./harness.mjs";
 
@@ -173,7 +174,7 @@ const max = Object.keys(TOTALS).reduce((a, p) => a + (scorable(p) ? TOTALS[p] : 
 // scorable the line says so in words and gives no fraction to quote.
 console.log(
   (pagesScorable === 0
-    ? `NO SCORE — 0 of ${pagesAll} page(s) have anchors.`
+    ? `NO SCORE — 0 of ${pagesAll} page(s) can carry one.`
     : `SCORE ${sum}/${max} regions passing over ${pagesScorable} of ${pagesAll} page(s)` +
       (unmeasured.length ? ` — ${unmeasured.length} page(s) NOT MEASURED` : "")) + "\n",
 );
@@ -186,7 +187,7 @@ console.log(
     // the number with no referent, and the number that gets quoted.
     ...unscorable.map(
       (u) =>
-        `  ${u.p.padEnd(9)} ${String(u.regions).padStart(2)} region(s)  NOT SCORABLE — no anchors`,
+        `  ${u.p.padEnd(9)} ${String(u.regions).padStart(2)} region(s)  NOT SCORABLE — ${unscorableWhy(u.p)}`,
     ),
     // `?/N`, never `0/N`: an unmeasured page is not a page that scored zero,
     // and printing zero would be a different lie. `?/?` when the page is ALSO
