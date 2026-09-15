@@ -22,8 +22,9 @@
 // upper bound. Improvement resets the count: real progress earns a fresh start.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { FLOORS } from "./floors.mjs";
+import { FLOORS, ACCEPTED } from "./floors.mjs";
 import {
+  DIR,
   PAGES,
   THRESHOLD,
   MAX_HEIGHT_DELTA,
@@ -34,7 +35,11 @@ import {
 // protocol step 1 is "run strikes.mjs; the stalled regions are the agenda", so
 // this is the second door into the backlog and has to be shut too. Exits 0:
 // there are no strikes to spend when no round is being played.
-const PAUSED = join(new URL(".", import.meta.url).pathname, "PAUSED");
+//
+// DIR is harness.mjs's fileURLToPath'd directory, not URL#pathname: pathname
+// percent-encodes, so under a checkout path with a space this `existsSync` was
+// false and the pause switch failed OPEN — an agenda handed out mid-pause (#47).
+const PAUSED = join(DIR, "PAUSED");
 if (existsSync(PAUSED)) {
   console.log("MATCHING PAUSED — no agenda, and none is to be inferred.\n");
   console.log(readFileSync(PAUSED, "utf8").trimEnd());
@@ -43,7 +48,6 @@ if (existsSync(PAUSED)) {
 
 const IMPROVE_PP = 0.01; // 1 percentage point = the smallest move worth calling progress
 const MAX_STRIKES = 3;
-const ROOT = new URL(".", import.meta.url).pathname;
 const only = process.argv[2] ?? null;
 
 // The gate key for a report, from its ref path. Deriving it by string surgery
@@ -57,10 +61,10 @@ const pageOf = (ref) => {
 
 const runs = [];
 const unreadable = [];
-for (const dir of readdirSync(ROOT).filter((d) => d.startsWith("out-"))) {
+for (const dir of readdirSync(DIR).filter((d) => d.startsWith("out-"))) {
   let report;
   try {
-    report = JSON.parse(readFileSync(join(ROOT, dir, "report.json"), "utf8"));
+    report = JSON.parse(readFileSync(join(DIR, dir, "report.json"), "utf8"));
   } catch {
     continue; // not a completed run dir
   }
@@ -116,18 +120,27 @@ const keyOf = (dir) => /^out-[^-]+-(.+)$/.exec(dir)?.[1] ?? null;
 
 // key -> chronological list of {dir, at, mm, pass, masked}
 const history = new Map();
-const seenNames = new Set();
+// Regions the OPERATOR accepted, by key — counted so the skip is visible, never
+// silent (next.mjs prints them under their own heading for the same reason).
+const acceptedKeys = new Set();
 for (const run of runs) {
   const page = pageOf(run.meta.ref) ?? keyOf(run.dir) ?? "unknown";
   const gateKey = keyOf(run.dir);
-  seenNames.add(page);
-  if (gateKey) seenNames.add(gateKey);
   if (only && page !== only && gateKey !== only) continue;
   for (const r of run.regions) {
     // A DECLARED FLOOR is flat by definition — reporting it as stalled is noise
     // that hides a real stall. It stays in the LEDGER; it does not belong here.
     if (FLOORS.some((fl) => fl.match(r, gateKey || page))) continue;
     const key = `${page}|${r.viewport}|${r.label}`;
+    // An operator-ACCEPTED region will not move either — that is what accepting
+    // it meant — so it is flat by definition too. Left in, it tripped this
+    // detector on every run from the decision onward, and the one lever that
+    // silenced it was the reclassification rule 3 forbids: moving the entry to
+    // FLOORS (reddoorla/reddoor-maintenance#772).
+    if (ACCEPTED.some((a) => a.match(r, gateKey || page))) {
+      acceptedKeys.add(key);
+      continue;
+    }
     if (!history.has(key)) history.set(key, []);
     history.get(key).push({
       dir: run.dir,
@@ -147,14 +160,24 @@ for (const run of runs) {
 // A name that matches no run must NOT report "clear". This check exists to stop
 // work on a stalled region, so failing open is the one thing it may never do —
 // a typo'd or wrong-vocabulary page silently greened rule 3 for six of the nine
-// pages. Fail loud instead, and say what the vocabulary is.
+// pages. Fail loud instead, and say what the vocabulary is — the TABLE's keys,
+// which is all a user should ever type. This used to list every name seen in
+// the corpus (pageOf AND keyOf of every run dir): 26 names on this site, of
+// which 9 were pages, 3 were a retired vocabulary each backed by one legacy run
+// that read as *clear*, and 14 were probe dirs. keyOf stays as the LOOKUP
+// fallback for exactly those dirs; it was never the vocabulary (#48).
 if (only && history.size === 0) {
   console.error(
     `strikes: "${only}" matches no gate run — refusing to report "clear".\n` +
-      `         known pages: ${[...seenNames].sort().join(", ")}`,
+      `         known pages: ${PAGES.map((p) => p.key).sort().join(", ")}`,
   );
   process.exit(2);
 }
+
+if (acceptedKeys.size)
+  console.log(
+    `strikes: ${acceptedKeys.size} region(s) skipped as operator-accepted (floors.mjs ACCEPTED).`,
+  );
 
 const stuck = [];
 for (const [key, all] of history) {

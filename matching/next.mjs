@@ -10,8 +10,10 @@
 // reflects HEAD rather than history (that is strikes.mjs's job).
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
-
-const DIR = new URL(".", import.meta.url).pathname;
+// DIR comes from harness.mjs (imported below — ESM hoists it, so it is bound
+// before the pause check runs). It was `new URL(".", import.meta.url).pathname`
+// here, which percent-encodes, so under a checkout path with a space in it this
+// read a directory that does not exist (#47).
 
 // PAUSE SWITCH. While matching/PAUSED exists this hands out no agenda and
 // exits 0. It is deliberately the FIRST thing that runs: no report is read, no
@@ -31,6 +33,7 @@ if (existsSync(PAUSE)) {
 
 import { FLOORS, ACCEPTED } from "./floors.mjs";
 import {
+  DIR,
   TOTALS,
   THRESHOLD,
   MAX_HEIGHT_DELTA,
@@ -38,6 +41,7 @@ import {
   uncountable,
   scorable,
   unscorableWhy,
+  regionCountWhy,
   byKey,
 } from "./harness.mjs";
 
@@ -161,6 +165,20 @@ const scored = [...latest.entries()]
 const unmeasured = Object.keys(TOTALS)
   .filter((p) => !latest.has(p))
   .sort();
+
+// Pages that REPORTED, are scorable, and whose newest report carries FEWER
+// regions than TOTALS predicts. `uncountable()` cannot see this — none of its
+// arms counts regions — so a short report was fully countable, contributed no
+// failing region, and fell through to "Backlog is empty", exit 0, over regions
+// nobody had measured. The score line stayed honest (`3/6`), which is what made
+// it easy to walk past. The identity is harness.mjs's regionCountWhy, the same
+// one gate.sh's --check-run refuses a run with — asked here of the report being
+// SCORED, because a report can reach `latest` without ever passing through the
+// gate (#756).
+const short = scored
+  .map((s) => ({ p: s.p, why: regionCountWhy(s.p, latest.get(s.p).report) }))
+  .filter((s) => s.why)
+  .sort((a, b) => a.p.localeCompare(b.p));
 const sum = scored.reduce((a, s) => a + s.pass, 0);
 // Summed EXPLICITLY over the scorable pages rather than over TOTALS' values:
 // `a + null` is silently `a`, and a denominator that is right only because of a
@@ -233,6 +251,17 @@ if (unscorable.length) {
   );
 }
 
+if (short.length) {
+  console.error(
+    `\nnext: ${short.length} page(s) reported fewer regions than their anchors predict, so their\n` +
+      `      score has regions nobody measured — ` +
+      short.map((s) => `${s.p}: ${s.why}`).join("; ") +
+      `.\n      An anchor whose text is no longer on the page cuts no region: check the anchors in\n` +
+      `      matching/harness.json against BOTH renders, then re-run: bash matching/gate.sh <tag> ` +
+      short.map((s) => s.p).join(" "),
+  );
+}
+
 if (unmeasured.length) {
   console.error(
     `\nnext: ${unmeasured.length} page(s) have no countable gate run — ${unmeasured.join(", ")}.\n` +
@@ -241,8 +270,10 @@ if (unmeasured.length) {
   process.exit(2);
 }
 
-// See above: deliberately a second statement, not an `else`.
+// See above: deliberately separate statements, not an `else` chain — every
+// refusal is PRINTED before the first one EXITS.
 if (unscorable.length) process.exit(2);
+if (short.length) process.exit(2);
 
 if (!rows.length) {
   console.log(
@@ -284,10 +315,11 @@ for (const r of rows.filter((r) => r.page === worst)) {
     `  @${String(r.vw).padEnd(5)} ${r.label.slice(0, 44).padEnd(45)} ${why.join(" + ")}`,
   );
 }
+// Only scripts the match-harness recipe INSTALLS may be named here: this is the
+// first thing an operator is told to run on a failing agenda, and on every site
+// but this one `probe-anchor-parity.mjs` (a site-specific probe, never shipped)
+// failed module-not-found — reddoorla/reddoor-maintenance#732, #767.
 console.log(`\nBefore treating any of these as geometry:`);
-console.log(
-  `  node matching/probe-anchor-parity.mjs ${worst}   # is the gate cutting comparably?`,
-);
 console.log(
   `  node matching/strikes.mjs ${worst}               # has it stalled? then change the MODEL`,
 );

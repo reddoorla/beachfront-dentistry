@@ -12,9 +12,14 @@ import base from "@reddoorla/maintenance/configs/playwright-a11y";
 // src/audits/smoke.ts) allocates a free port and passes it as
 // REDDOOR_SMOKE_PORT so a zombie vite already squatting the default 5173 can't
 // silently hijack the run and green a stale build. When it's set, bind vite to
-// exactly that port with --strictPort (forwarded through `npm run vite:dev` so
-// it stays portable across pnpm/npm) and aim Playwright's baseURL + readiness
+// exactly that port with --strictPort and aim Playwright's baseURL + readiness
 // probe at it. Unset (local `pnpm test:smoke`) → the shared base's fixed 5173.
+//
+// `pnpm exec vite dev …`, NOT `<runner> run vite:dev -- --port …`: pnpm keeps
+// the `--` in the argv it builds, vite treats it as end-of-options, and both
+// --port AND --strictPort land in a passthrough array — the server binds 5173
+// and the flag that would have made that loud is the one discarded (#52). It
+// worked under npm only, which is why it was easy to hit.
 const smokePort = process.env.REDDOOR_SMOKE_PORT;
 
 export default defineConfig({
@@ -42,7 +47,7 @@ export default defineConfig({
   ...(smokePort
     ? {
         webServer: {
-          command: `npm run vite:dev -- --port ${smokePort} --strictPort`,
+          command: `pnpm exec vite dev --port ${smokePort} --strictPort`,
           url: `http://localhost:${smokePort}/dev/a11y-fixtures`,
           reuseExistingServer: !process.env.CI,
           timeout: 120_000,

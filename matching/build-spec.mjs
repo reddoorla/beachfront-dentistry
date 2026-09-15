@@ -10,9 +10,10 @@
 // no longer build fine here and then re-block its own page at the gate.
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { PAGES, specHeadingRe } from "./harness.mjs";
+// DIR too: harness.mjs resolves it with fileURLToPath, and the URL#pathname
+// form this file used percent-encodes a space in the checkout path (#47).
+import { DIR, PAGES, specHeadingRe } from "./harness.mjs";
 
-const DIR = new URL(".", import.meta.url).pathname;
 const SECTIONS = join(DIR, "spec-sections");
 
 // Order = live's nav order, then the detail templates. Both fall out of the
