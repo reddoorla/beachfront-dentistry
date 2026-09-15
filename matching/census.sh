@@ -31,6 +31,20 @@
 # demands an artefact only a working census produces; none of them can turn a
 # red green.
 set -uo pipefail
+
+# PAUSE SWITCH — the same early exit next.mjs and strikes.mjs take, for the same
+# reason (see next.mjs). This gate is the third door into a round: measured on
+# the site this was cut from, PAUSED since 2026-09-01, a run here would have
+# spent 27 browser pairs against the live reference during a declared pause. A
+# switch two of three gates honour is not a switch
+# (reddoorla/reddoor-maintenance#735).
+if [ -f "$(dirname "$0")/PAUSED" ]; then
+  echo "MATCHING PAUSED — no agenda, and none is to be inferred."
+  echo
+  cat "$(dirname "$0")/PAUSED"
+  exit 0
+fi
+
 # Resolved BEFORE the cd. $0 is the path as TYPED, so a relatively invoked
 # census.sh that resolved the harness afterwards would look for it under
 # whatever root the cd landed on.

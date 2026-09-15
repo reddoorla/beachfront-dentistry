@@ -446,3 +446,58 @@ Honest limit, on the record: `null` does not poison arithmetic. `a + null` is
 gets a too-small denominator — flattering, the exact direction the comment
 above `TOTALS` warns about. `null` is a SIGNAL, chosen for loud printing and
 JSON-representability. The barrier is the predicate and the exit-2 guard.
+
+## 2026-09-15 — Four harness-hygiene issues and four recipe behaviours, in the source the recipe is cut from (#47, #48, #50, #52; reddoorla/reddoor-maintenance#732, #735, #756, #772)
+
+Every edit here is to a file `scripts/gen-match-harness-template.mjs` copies
+byte-for-byte into `@reddoorla/maintenance`'s `match-harness` recipe, so the
+fix lands here first and the recipe regenerates from it; hand-editing the
+template would be overwritten and flagged. The branch sits on
+`fix/p751-unanchored-score` (`b53d1bc`, `69430d8`), which was never pushed: the
+0.95.1 recipe already ships THOSE bodies, so regenerating from `main` alone
+would have silently un-shipped #751. Those two commits ride in this PR verbatim.
+
+**Measured before touching anything.** `scripts/matching-harness.test.ts` was written
+first and run against the unpatched scripts: 9 of 12 cases failed, each on its
+own defect, and the 3 that passed are the GRANT controls (a real key still
+resolves; the real `harness.json` still loads; `vite:dev` still carries
+`--host`). A guard proven only to refuse is not proven, which is why the
+controls exist.
+
+- **#47.** Under `<tmp>/with space/matching/`, `strikes.mjs`, `next.mjs` and
+  `build-spec.mjs` all died with `ENOENT … scandir …/with%20space/matching/`,
+  and with `PAUSED` present `strikes.mjs` never printed `MATCHING PAUSED` — the
+  switch failed open, as the issue predicted. `harness.mjs` now exports its
+  `fileURLToPath`'d `DIR` and the other three import it; the class is gone,
+  not patched four times.
+- **#48.** `strikes.mjs nosuchpage` over a corpus of `out-t1-home` plus a probe
+  dir `out-t1-r1` listed `home, r1`. It now lists `PAGES`' nine keys, and
+  `strikes.mjs r1` still resolves — `keyOf` stays as the lookup fallback.
+- **#50.** Keys are validated once at load in `harness.mjs` against
+  `/^[a-z0-9-]+$/`, throwing with the key's name; `gate.sh` reads keys only
+  through `--table`, so the one check guards both consumers. A fixture with key
+  `a.c` loaded fine before; now `--table` exits non-zero naming `"a.c"`.
+- **#52.** Measured live: `pnpm vite:dev -- --port 5399 --strictPort` printed
+  `Local: http://localhost:5173/`; `pnpm exec vite dev --port 5399 --strictPort`
+  printed `:5399`. `lighthouserc.json` and `playwright.config.ts` now use the
+  latter; the `vite:dev` script keeps `--host` for `pnpm dev`.
+  `scripts/vite-dev-invocation.test.ts` pins the shape.
+- **reddoor-maintenance#732/#767.** `next.mjs` no longer tells the operator to
+  run `probe-anchor-parity.mjs`, which the recipe never installs.
+- **#735.** `census.sh` takes the same `PAUSED` early exit as its two siblings.
+- **#756.** The region-count identity moved out of `checkRun` into an exported
+  `regionCountWhy(page, report)`; `checkRun` calls it after its own matrix and
+  anchor arms, and `next.mjs` calls it per scored page and exits 2 naming the
+  page and count BEFORE the `!rows.length` branch — a short report used to
+  print "Backlog is empty" and exit 0.
+- **#772.** `strikes.mjs` imports `ACCEPTED` beside `FLOORS`, skips both, and
+  prints `N region(s) skipped as operator-accepted` so the skip is visible.
+
+The four recipe behaviours are tested in `reddoorla/reddoor-maintenance`
+against the installed copies (same bytes); the four beachfront issues are
+tested here, under `scripts/` — the first draft sat in `matching/`, and
+`git add` refused it: the recipe's `.gitignore` block ignores `matching/*` and
+whitelists only what it installs, so a test there is invisible to git and to
+vitest's include alike. A test that only ran by hand would not gate a PR.
+
+Verified: `pnpm lint`, `pnpm check` (0 errors), `pnpm test:unit` 803/803.

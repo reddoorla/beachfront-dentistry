@@ -40,9 +40,30 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 // fileURLToPath, not URL#pathname: pathname is percent-encoded, so a checkout
 // under a directory with a space in it would resolve to a path that does not
-// exist.
-const DIR = fileURLToPath(new URL(".", import.meta.url));
+// exist. EXPORTED so next.mjs, strikes.mjs and build-spec.mjs take the resolved
+// directory from here instead of each recomputing it — three of them did, all
+// with the rejected form, and the one with teeth was strikes.mjs's PAUSED path:
+// under a percent-encoding checkout `existsSync` said false and the pause
+// switch failed OPEN (#47).
+export const DIR = fileURLToPath(new URL(".", import.meta.url));
 const CFG = JSON.parse(readFileSync(join(DIR, "harness.json"), "utf8"));
+
+// A page key is interpolated into a RegExp (specHeadingRe, below) and into
+// gate.sh's `grep -qE` — unescaped, in both. Measured: `specHeadingRe("a.c")`
+// matched `## abc` (a WRONG page's section satisfies the check) and
+// `specHeadingRe("a(b")` threw. So the vocabulary is refused ONCE, here, where
+// every consumer reads the table — including gate.sh, which only ever sees keys
+// through `--table` — and a bad key is a load-time error naming itself rather
+// than a fail-open pattern three files away (#50). The set is what a gate key
+// already has to be: it names a run dir, a SPEC heading and a spec-sections
+// file.
+const KEY_RE = /^[a-z0-9-]+$/;
+for (const key of Object.keys(CFG.pages ?? {})) {
+  if (!KEY_RE.test(key))
+    throw new Error(
+      `harness.json: page key ${JSON.stringify(key)} must match ${KEY_RE} — keys are interpolated unescaped into specHeadingRe and gate.sh's grep`,
+    );
+}
 
 // Env overrides exist for one-off probes only. They are NOT how a site is
 // configured — harness.json is, so that what a gate ran against is committed.
@@ -120,6 +141,27 @@ export const unscorableWhy = (key) =>
 export const TOTALS = Object.fromEntries(
   PAGES.map((p) => [p.key, scorable(p.key) ? (p.anchors.length + 1) * MATRIX.length : null]),
 );
+
+/** WHY a report's region count is not the one TOTALS predicts for `page` —
+ *  as a string — or null when it is, or when the page is not scorable and so
+ *  has no identity to hold (an unanchored page's count is page-diff's own;
+ *  see TOTALS).
+ *
+ *  ONE predicate for two callers, because the identity lived only in checkRun
+ *  and only `gate.sh --check-run` asked it: next.mjs gated a report through
+ *  `uncountable(meta)` alone, none of whose arms looks at how many regions a
+ *  report carries, so a page whose report came up SHORT — an anchor whose text
+ *  had gone from the rendered page, the ordinary way, is what a slice rename
+ *  does — contributed no failing region, fell through to "Backlog is empty" and
+ *  exited 0 over three regions nobody measured. Same sentence as the
+ *  `unmeasured` guard beside it, one level down (#756). */
+export function regionCountWhy(page, report) {
+  const expected = TOTALS[page];
+  if (expected == null) return null;
+  const n = Array.isArray(report?.regions) ? report.regions.length : 0;
+  if (n === expected) return null;
+  return `${n} region(s), expected ${expected} = (${byKey[page].anchors.length} anchors + 1) x ${MATRIX.length} viewport(s)`;
+}
 
 /** The SPEC.md heading predicate, shared by gate.sh's preflight and
  *  build-spec.mjs so a section can never build fine and then refuse at the
@@ -311,8 +353,11 @@ export function checkRun(page, dir, startedAt) {
   // gate-shaped runs in the corpus this harness was cut from, all of them
   // anchored: regions.length === (sections + 1) * viewports holds 298/298,
   // while regions.length === TOTALS[page] holds only 260/298 — the 38 are
-  // legitimately narrower HAND rounds. So the identity is checked against the
-  // run's OWN meta and the matrix/anchors are checked against the table above.
+  // legitimately narrower HAND rounds. So the two arms ABOVE hold the run's own
+  // matrix and anchors to the table, and only then is the count asked of
+  // regionCountWhy, whose prediction is the table's: at this point the two
+  // derivations are the same number, and a HAND round has already been refused
+  // by name for its narrower matrix or anchors, not for the count that follows.
   //
   // WITHOUT anchors there is no such identity, and asserting one is a FALSE
   // REFUSAL of the shape every new site starts in. page-diff falls back to each
@@ -322,14 +367,10 @@ export function checkRun(page, dir, startedAt) {
   // page-diff on a seed harness (anchors: [], matrix of 4): 16 regions labelled
   // grid-0-0 … grid-3-0, not the 4 this identity predicted. The 298/298 above
   // was measured over anchored runs only and never covered this case.
-  if (secs.length) {
-    const expected = (secs.length + 1) * vws.length;
-    if (report.regions.length !== expected)
-      return {
-        ok: false,
-        why: `${path}: ${report.regions.length} region(s), expected ${expected} = (${secs.length} anchors + 1) x ${vws.length} viewport(s)`,
-      };
-  }
+  // regionCountWhy returns null for such a page (TOTALS is null there), which
+  // is the `if (secs.length)` guard this used to carry, kept in one place.
+  const count = regionCountWhy(page, report);
+  if (count) return { ok: false, why: `${path}: ${count}` };
 
   // A green that STATES what it is made of, so a green over nothing reads
   // differently from a green over the matrix (census.sh:219's habit).

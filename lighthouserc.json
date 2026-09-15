@@ -2,7 +2,7 @@
   "ci": {
     "collect": {
       "url": ["http://localhost:5173/dev/a11y-fixtures"],
-      "startServerCommand": "pnpm vite:dev",
+      "startServerCommand": "pnpm exec vite dev --port 5173 --strictPort",
       "startServerReadyPattern": "ready in",
       "startServerReadyTimeout": 120000,
       "numberOfRuns": 1,
