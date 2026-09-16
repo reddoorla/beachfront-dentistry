@@ -501,3 +501,72 @@ whitelists only what it installs, so a test there is invisible to git and to
 vitest's include alike. A test that only ran by hand would not gate a PR.
 
 Verified: `pnpm lint`, `pnpm check` (0 errors), `pnpm test:unit` 803/803.
+
+## 2026-09-15 — The anchor-parity probe modelled the cut two ways, and both were not the gate's (`fix/probe-anchor-parity`, reddoorla/reddoor-maintenance#767 Part 2)
+
+`matching/probe-anchor-parity.mjs` is the first thing a failing round is told to
+run, and its verdict decides whether every region score below an anchor is
+believed. It was auditing a cut the gate does not make, in two independent
+ways, and both were visible from the source it claims to mirror:
+
+- It resolved anchors over `document.querySelectorAll("body *")`. `capture.mjs:341`
+  — which does the real cutting — uses a fixed tag list,
+  `h1,h2,h3,h4,h5,h6,p,a,li,span,div,section,button`, that does **not** contain
+  `main`. This build wraps every section in a `<main>` landmark; a Webflow
+  reference has no equivalent. So `body *` resolved the first anchor of a page
+  to `<main>` — the whole document's height — while the gate resolved it to the
+  section wrapper.
+- It flagged on the matched elements' **height ratio**. `regionsFromAnchors`
+  (`regions.mjs:47-64`) cuts on the anchor's top **Y** and nothing else: a
+  region runs from one anchor's y to the next one's, and the cut element's box
+  never enters the arithmetic.
+
+Together those produce a confident false positive on the **first anchor of
+every page of every site rebuilt this way** — systematic, not incidental. It
+had already fired on 29-navy, where it reported `Creative Lofts` as a 4.6×
+MISMATCH (`<div class="section-2">` h=900 against `<main class="flex-1">`
+h=4106) and declared every score below it suspect. Both sides were at y=68, so
+the cut was identical and the region was failing for an unrelated reason — a
+carousel resting on a different slide. The probe sent that round looking for a
+cutting artefact that did not exist.
+
+The probe now uses capture.mjs's exact selector and flags on y divergence with
+a **4px** tolerance — the same gap `regionsFromAnchors` drops as degenerate, so
+anything at or under it provably cannot move a cut — with the height ratio
+demoted to context: a pair that cuts at the same y with 4.6× boxes now prints
+`ok (cut aligned; boxes differ 4.6x)` instead of a mismatch.
+
+**The part that is new here, rather than ported.** The remedy itself came from
+reddoorla/29-navy#20, which landed both changes with no test — the defect was
+found by reading `capture.mjs`, and nothing stops it coming back. The two
+halves that decide a verdict (`readAnchors`, `verdict`) now live in
+`matching/anchor-parity.mjs`, which imports nothing, and `scripts/anchor-parity.test.js`
+drives them over a jsdom fixture of both page shapes. Each refusal sits beside
+the grant it must not swallow: the real 220px `.qa-text` skew from
+ask-the-doctor still flags, an anchor missing on one side still flags, 4px
+passes and 5px does not, and an anchor no landmark wraps resolves identically
+under both selectors — without that last one, dropping `main` from the tag list
+could have been hiding hits rather than choosing the right one.
+
+Measured red before the fix, on exactly this test: **4 failed, 5 passed** —
+`expected 'main' not to be 'main'`, `verdict({y:68,h:900},{y:68,h:4106}).bad`
+expected false, received true, `expected '!! MISMATCH 4.0x' to match /220/`, and
+the 5px case expected true, received false. The five that passed red are the
+grant side, which is what says the test is measuring something.
+
+**The split was forced, not chosen.** The first draft imported the probe
+directly and failed to load at all: `harness.mjs:48` calls
+`fileURLToPath(import.meta.url)`, and under vitest's transform that URL is not
+a `file:` scheme — `TypeError: The URL must be of scheme file`. That is why
+`scripts/matching-harness.test.ts` shells out with `execFile` instead of
+importing. A dependency-free module is the version of the fix a test can reach,
+and it also keeps `page.evaluate` serialization honest: the selector has to stay
+inline in the function, because a module-scope constant would be a
+`ReferenceError` inside the browser.
+
+**Not verified:** the probe has not been run against live pages. It drives
+Playwright, matching is PAUSED, and no local browser was opened for this
+session. What is proven is the logic, not a round.
+
+Verified: `pnpm lint`, `pnpm check` (0 errors, 4673 files), `pnpm test:unit`
+812/812.
