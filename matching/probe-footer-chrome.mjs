@@ -2,15 +2,24 @@
 // widget, ours = a cross-origin iframe that can't composite in a full-page
 // capture) and pixel-diff what's left. Answers the question the region score
 // can't: does the footer's own structure match, under the embed floor?
-import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
 import pixelmatch from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/pixelmatch/index.js";
 import { PNG } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/pngjs/lib/png.js";
 import fs from "node:fs";
+import {
+  REF as REF_BASE,
+  CAND as CAND_BASE,
+  PLAYWRIGHT,
+  assertRef,
+  page,
+} from "./probe-ref.mjs";
 
-const PAGE = process.argv[2] || "/services/dental-exams";
+await assertRef();
+const { chromium } = await import(PLAYWRIGHT);
+
+const PAGE = process.argv[2] || page("svc").ref;
 const VW = Number(process.argv[3] || 390);
-const REF = "https://www.beachfrontdentistry.com" + PAGE;
-const CAND = "http://localhost:5173" + PAGE;
+const REF = REF_BASE + PAGE;
+const CAND = CAND_BASE + PAGE;
 
 const shoot = async (b, url, side) => {
   const p = await b.newPage({

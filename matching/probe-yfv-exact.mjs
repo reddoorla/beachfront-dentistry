@@ -1,5 +1,9 @@
-import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
-const REF = "https://www.beachfrontdentistry.com/your-first-visit";
+import { PLAYWRIGHT, assertRef, refUrl } from "./probe-ref.mjs";
+
+await assertRef();
+const { chromium } = await import(PLAYWRIGHT);
+
+const REF = refUrl("yfv");
 const b = await chromium.launch();
 try {
   const p = await b.newPage({ viewport: { width: 1440, height: 900 } });

@@ -1,13 +1,12 @@
 // Confirm the 3 rebuilt detail routes render (200 + expected h1) on the local
 // candidate, using the live slugs so the gate can compare like-for-like.
-const routes = [
-  ["team", "http://localhost:5173/team-members/dr-robert-quan"],
-  ["svc", "http://localhost:5173/services/dental-exams"],
-  [
-    "qa",
-    "http://localhost:5173/questions/regular-dental-cleanings-support-your-whole-body-health",
-  ],
-];
+//
+// CAND-ONLY: nothing here reads the reference, so there is deliberately no
+// assertRef() — there is no comparison to invalidate. The routes and the host
+// were a three-row hand copy and come from harness.json now.
+import { CAND, group } from "./probe-ref.mjs";
+
+const routes = group("detail").map((p) => [p.key, CAND + p.cand]);
 for (const [k, url] of routes) {
   try {
     const r = await fetch(url);
@@ -20,7 +19,7 @@ for (const [k, url] of routes) {
       /Internal Error|500|SvelteKitError|ReferenceError/i.test(t) &&
       r.status !== 200;
     console.log(
-      `${k}  ${r.status}  h1="${h1.slice(0, 40)}"  ${url.replace("http://localhost:5173", "")}`,
+      `${k}  ${r.status}  h1="${h1.slice(0, 40)}"  ${url.replace(CAND, "")}`,
     );
   } catch (e) {
     console.log(`${k}  ERR ${e.message}`);

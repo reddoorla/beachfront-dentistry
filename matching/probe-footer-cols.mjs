@@ -1,7 +1,12 @@
-import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
+import { PLAYWRIGHT, assertRef, refUrl, candUrl } from "./probe-ref.mjs";
 
-const REF = "https://www.beachfrontdentistry.com/services/dental-exams";
-const CAND = "http://localhost:5173/services/dental-exams";
+await assertRef();
+const { chromium } = await import(PLAYWRIGHT);
+
+// svc's two paths come from harness.json, so re-pointing the site at a new
+// reference re-points this probe too.
+const REF = refUrl("svc");
+const CAND = candUrl("svc");
 
 const b = await chromium.launch();
 try {

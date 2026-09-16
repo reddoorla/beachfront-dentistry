@@ -1,15 +1,16 @@
-import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
-const O = "https://www.beachfrontdentistry.com";
-const pages = {
-  team: "/team-members/dr-robert-quan",
-  svc: "/services/dental-exams",
-  qa: "/questions/regular-dental-cleanings-support-your-whole-body-health",
-};
+import { REF, PLAYWRIGHT, assertRef, group } from "./probe-ref.mjs";
+
+await assertRef();
+const { chromium } = await import(PLAYWRIGHT);
+
+// the team/svc/qa triple, from harness.json's `group: "detail"` — was a
+// three-row hand copy, and `O` was a self-host so this read our own build
+const pages = Object.fromEntries(group("detail").map((p) => [p.key, p.ref]));
 const b = await chromium.launch();
 try {
   const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
   for (const [k, path] of Object.entries(pages)) {
-    await p.goto(O + path, { waitUntil: "networkidle", timeout: 60000 });
+    await p.goto(REF + path, { waitUntil: "networkidle", timeout: 60000 });
     const info = await p.evaluate(() => {
       const paras = [...document.querySelectorAll("p")].filter(
         (e) => (e.textContent || "").length > 80,

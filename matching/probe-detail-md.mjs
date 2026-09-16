@@ -1,15 +1,17 @@
-import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
+import { REF, CAND, PLAYWRIGHT, assertRef, group } from "./probe-ref.mjs";
 
-const PAGES = [
-  ["team", "/team-members/dr-robert-quan", /^Dr\.? Robert Quan/, /^Dentist$/],
-  ["svc", "/services/dental-exams", /^Services\s*\/?/, /^Dental Exams$/],
-  [
-    "qa",
-    "/questions/regular-dental-cleanings-support-your-whole-body-health",
-    /^Blog\s*\/?/,
-    /^Beyond the Smile|^Regular Dental/,
-  ],
-];
+await assertRef();
+const { chromium } = await import(PLAYWRIGHT);
+
+// The label/title regexes are this probe's OWN — they are not table data and
+// stay here. Only the ROUTES were a hand copy; they come from harness.json's
+// `group: "detail"` now, so a slug change reaches this probe.
+const MD = {
+  team: [/^Dr\.? Robert Quan/, /^Dentist$/],
+  svc: [/^Services\s*\/?/, /^Dental Exams$/],
+  qa: [/^Blog\s*\/?/, /^Beyond the Smile|^Regular Dental/],
+};
+const PAGES = group("detail").map((p) => [p.key, p.ref, ...MD[p.key]]);
 const VWS = [768, 834, 991];
 
 const b = await chromium.launch();
@@ -18,8 +20,8 @@ try {
     for (const vw of VWS) {
       const line = [];
       for (const [side, base] of [
-        ["ref", "https://www.beachfrontdentistry.com"],
-        ["cand", "http://localhost:5173"],
+        ["ref", REF],
+        ["cand", CAND],
       ]) {
         const p = await b.newPage({ viewport: { width: vw, height: 900 } });
         await p.goto(base + path, { waitUntil: "networkidle", timeout: 60000 });

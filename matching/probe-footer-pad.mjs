@@ -1,6 +1,9 @@
-import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
+import { PLAYWRIGHT, assertRef, refUrl } from "./probe-ref.mjs";
 
-const REF = "https://www.beachfrontdentistry.com/services/dental-exams";
+await assertRef();
+const { chromium } = await import(PLAYWRIGHT);
+
+const REF = refUrl("svc");
 const b = await chromium.launch();
 try {
   for (const vw of [390, 479, 480, 650, 767, 768, 834, 991, 992, 1440]) {

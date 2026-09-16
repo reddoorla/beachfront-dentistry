@@ -8,10 +8,7 @@
 // per-child value: a child live has and we do not (or vice versa) is a
 // structural defect, and no amount of correct px on the children we share
 // will close it.
-import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
-
-const REF = "https://www.beachfrontdentistry.com";
-const CAND = "http://localhost:5173";
+import { REF, CAND, PLAYWRIGHT, assertRef } from "./probe-ref.mjs";
 
 const [refPath, candPath, anchor, vwArg, depthArg] = process.argv.slice(2);
 if (!refPath || !candPath || !anchor) {
@@ -22,6 +19,9 @@ if (!refPath || !candPath || !anchor) {
 }
 const VWS = (vwArg ?? "1440,834,390").split(",").map(Number);
 const DEPTH = Number(depthArg ?? 1);
+
+await assertRef();
+const { chromium } = await import(PLAYWRIGHT);
 
 const b = await chromium.launch();
 try {
