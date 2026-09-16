@@ -1,21 +1,21 @@
-import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
-const O = "https://www.beachfrontdentistry.com";
+import { REF, PLAYWRIGHT, assertRef, group } from "./probe-ref.mjs";
+
+await assertRef();
+const { chromium } = await import(PLAYWRIGHT);
+
 const fmt = (el) => {
   if (!el) return null;
   const cs = getComputedStyle(el);
   const r = el.getBoundingClientRect();
   return `${cs.fontFamily.split(",")[0]} w${cs.fontWeight} ${cs.fontSize}/${cs.lineHeight} ls=${cs.letterSpacing} ${cs.color} x=${Math.round(r.left)} y=${Math.round(r.top + scrollY)} w=${Math.round(r.width)}`;
 };
-const pages = {
-  team: "/team-members/dr-robert-quan",
-  svc: "/services/dental-exams",
-  qa: "/questions/regular-dental-cleanings-support-your-whole-body-health",
-};
+// the team/svc/qa triple, from harness.json's `group: "detail"`
+const pages = Object.fromEntries(group("detail").map((p) => [p.key, p.ref]));
 const b = await chromium.launch();
 try {
   const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
   for (const [k, path] of Object.entries(pages)) {
-    await p.goto(O + path, { waitUntil: "networkidle", timeout: 60000 });
+    await p.goto(REF + path, { waitUntil: "networkidle", timeout: 60000 });
     const out = await p.evaluate((fmtSrc) => {
       const fmt = eval("(" + fmtSrc + ")");
       const hero = document.querySelector(".hero");

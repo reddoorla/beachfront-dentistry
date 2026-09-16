@@ -1,8 +1,13 @@
-import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
+// CAND-ONLY: nothing here reads the reference, so there is deliberately no
+// assertRef() — there is no comparison to invalidate. The four /dev/match
+// routes were a hand copy and come from harness.json now.
+import { PLAYWRIGHT, candUrl } from "./probe-ref.mjs";
+const { chromium } = await import(PLAYWRIGHT);
+
 const b = await chromium.launch();
 try {
   const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
-  await p.goto("http://localhost:5173/dev/match/our-team", {
+  await p.goto(candUrl("our-team"), {
     waitUntil: "networkidle",
     timeout: 60000,
   });
@@ -33,7 +38,7 @@ try {
     ),
   );
 
-  await p.goto("http://localhost:5173/dev/match/services", {
+  await p.goto(candUrl("services"), {
     waitUntil: "networkidle",
     timeout: 60000,
   });
@@ -53,7 +58,7 @@ try {
     ),
   );
 
-  await p.goto("http://localhost:5173/dev/match/ask-the-doctor", {
+  await p.goto(candUrl("atd"), {
     waitUntil: "networkidle",
     timeout: 60000,
   });
@@ -67,7 +72,7 @@ try {
     ),
   );
 
-  await p.goto("http://localhost:5173/dev/match/home", {
+  await p.goto(candUrl("home"), {
     waitUntil: "networkidle",
     timeout: 60000,
   });

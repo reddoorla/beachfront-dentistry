@@ -2,72 +2,25 @@
 // dh failure points at the block that owns the extra/missing space instead of
 // being guessed at. Mirrors page-diff's cut rule: the first element in document
 // order whose collapsed textContent starts with the anchor.
-import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
+import {
+  REF,
+  CAND,
+  PLAYWRIGHT,
+  assertRef,
+  page as tableRow,
+} from "./probe-ref.mjs";
 
-const [, , page = "home", vwArg = "834"] = process.argv;
+const [, , pageKey = "home", vwArg = "834"] = process.argv;
 const VW = Number(vwArg);
 
-const PAGES = {
-  home: [
-    "/",
-    "/dev/match/home",
-    [
-      "Finally have a dentist",
-      "MEET YOUR TEAM",
-      "Serving the South Bay",
-      "Your Path to Oral Health",
-      "Our dental team in Redondo",
-      "Beyond the Smile",
-      "Ready for great dental health",
-      "Want to learn more",
-    ],
-  ],
-  yfv: [
-    "/your-first-visit",
-    "/dev/match/your-first-visit",
-    [
-      "We want you to feel comfortable",
-      "Office Tour",
-      "Dr. Robert Quan",
-      "To be a long term health partner",
-      "Serving the South Bay for over 40 years",
-      "Ready for great dental health",
-      "Want to learn more",
-    ],
-  ],
-  services: [
-    "/services",
-    "/dev/match/services",
-    [
-      "Cosmetic Dentistry",
-      "General Dentistry",
-      "Ready for great dental health",
-      "Want to learn more",
-    ],
-  ],
-  "our-team": [
-    "/our-team",
-    "/dev/match/our-team",
-    [
-      "Our",
-      "Dr. Robert Quan",
-      "Ready for great dental health",
-      "Want to learn more",
-    ],
-  ],
-  atd: [
-    "/ask-the-doctor",
-    "/dev/match/ask-the-doctor",
-    [
-      "Beyond the Smile",
-      "Back to Top",
-      "Ready for great dental health",
-      "Want to learn more",
-    ],
-  ],
-};
+await assertRef();
+const { chromium } = await import(PLAYWRIGHT);
 
-const [refPath, candPath, anchors] = PAGES[page];
+// Was a FIVE-row hand copy (home/yfv/services/our-team/atd) of a nine-row
+// table, so the four detail pages could not be probed at all and the anchors
+// drifted from harness.json silently. From the table it is all nine, and an
+// unknown key now names the keys that exist instead of destructuring undefined.
+const { ref: refPath, cand: candPath, anchors } = tableRow(pageKey);
 const settle = async (p) => {
   await p.evaluate(async () => {
     for (let y = 0; y < document.body.scrollHeight; y += 250) {
@@ -105,8 +58,8 @@ const b = await chromium.launch();
 const res = {};
 try {
   for (const [name, url] of [
-    ["live", `https://www.beachfrontdentistry.com${refPath}`],
-    ["ours", `http://localhost:5173${candPath}`],
+    ["live", REF + refPath],
+    ["ours", CAND + candPath],
   ]) {
     const p = await b.newPage({ viewport: { width: VW, height: 900 } });
     await p.goto(url, { waitUntil: "networkidle", timeout: 60000 });
@@ -118,7 +71,7 @@ try {
   await b.close();
 }
 
-console.log(`${page} @${VW}`);
+console.log(`${pageKey} @${VW}`);
 console.log("region".padEnd(34) + "liveTop  ourTop  Δtop   liveH  ourH   ΔH");
 const rows = [["top", 0], ...anchors.map((a) => [a, null])];
 for (let i = 0; i < rows.length; i++) {

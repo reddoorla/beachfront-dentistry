@@ -570,3 +570,89 @@ session. What is proven is the logic, not a round.
 
 Verified: `pnpm lint`, `pnpm check` (0 errors, 4673 files), `pnpm test:unit`
 812/812.
+
+## 2026-09-16 — Twelve probes that could not fail, and the census shape that missed five more (closes #51)
+
+`www.beachfrontdentistry.com` has served our own Netlify build since the
+2026-08-07 qafix0807 cutover, and both of its hostnames are listed in
+`harness.json`'s `selfHosts`. Twelve probes under `matching/` still opened with
+`const REF = "https://[www.]beachfrontdentistry.com"` next to
+`const CAND = "http://localhost:5173"`, so each was comparing the candidate
+with itself. That is the worst shape a measurement can take: the arithmetic is
+real, it is simply over the wrong pair of pages, so the output is
+indistinguishable from a clean result until someone asks which host was read.
+A further eight carried a hand-typed copy of the page table. The two sets
+overlap in `probe-chrome-count.mjs`, which was both the last full nine-row copy
+and one of the twelve.
+
+All 19 now import from a new `matching/probe-ref.mjs`, which re-exports the
+harness and adds `assertRef()`. It is site-local rather than folded into
+`harness.mjs` because that file is recipe-owned — its sha256 is pinned in
+`scripts/match-harness-bodies.sha256` over in the maintenance repo, so a hand
+edit here is flagged on the next `match-harness` run. `assertRef()` is not a
+second opinion either: it spends `harness.mjs`'s own `checkRef`, the same
+preflight `gate.sh` runs before every gated round, because a question asked
+twice in two implementations drifts — which is exactly the failure
+`harness.mjs`'s schema comment already records between style-census's printer
+and census-count's parser. Seventeen probes call it and exit 2 before a browser
+launches; `probe-content-verify` and `probe-detail-routes` are CAND-only, make
+no comparison, and so took the table without a guard.
+
+**The first belief corrected: `const REF =` is not the class.** Five of the
+eight table carriers navigate to a selfHost by a different syntactic shape and
+were therefore invisible to the census that produced the figure 12 —
+`probe-anchors.mjs` via an inline template literal, `probe-body-desktop.mjs`
+and `probe-detail-styles.mjs` via `const O = …`, `probe-detail-md.mjs` and
+`probe-shared.mjs` via a literal inside a sides array. The issue that filed
+this warned "count rows, not token occurrences"; this is the same error
+inverted, a pattern narrow enough to miss real members. A plain token grep for
+the host over tracked `.mjs`/`.sh` under `matching/` returns **160 files**. That
+number is written down here only so it is never quoted as a class: it is a
+token count, it has not been measured, and the remainder belongs to
+reddoor-maintenance#728, which is the operator's call.
+
+**The proof, control first.** A guard that has only ever refused is an untested
+assertion — it would refuse just as convincingly if `checkRef` were
+`return {ok:false}`, and `harness.json`'s reference 404s today, so refusal is
+all this one could do in situ. `matching/probe-ref.test.mjs` therefore serves a
+real reference over loopback, built from harness.json's own `refMark` /
+`candMark` so the fixture cannot silently decouple from what the guard looks
+for. 25/25 in 2.25s; the first test is the PASS (`REF OK`, 185ms), and only
+then the six refusal arms and all 17 guarded probes exiting 2.
+
+**The real-difference measurement.** Two loopback fixtures of
+`/services/dental-exams`: 8081 the reference (260px footer columns, 60px gap,
+420px map), 8082 our build (200px columns, 32px gap, 300px map). Same probe,
+same command shape, only REF moves. With both sides pointed at one host — what
+production and localhost both being our build amounted to — `probe-footer-cols`
+printed all 21 rows identical across 768/834/991: zero difference, exit 0.
+Repointed, it separates everywhere: "Want to learn more" x=60→24 and w=176→200;
+OFFICE HOURS x=296→256 @768, 318→256 @834, 370→256 @991; "Redondo Beach, CA"
+x=532→488, 576→488, 681→488; MAP w=420→300 at every viewport; y 1833→1830. The
+largest single delta is **193px** — `Redondo Beach, CA` @991 — and in the old
+configuration that number was 0. `probe-chrome-count` now walks all nine
+harness.json rows in table order and counts 13 interactive chrome elements per
+page on the reference; pointed at our own build it refuses,
+`served 200 but WITHOUT refMark`, exit 2.
+
+**Two instruments caught lying, both mine, both cheap to have checked.** The
+first draft of the test used `spawnSync` to run the child that fetches the
+fixture — but the fixture server runs in the test process, and `spawnSync`
+blocks that process's event loop until the child exits, so the child's request
+could never be answered. Each affected test took **301,284 ms** and ended in
+`fetch failed`. It presents as a slow test, not a broken one, which is why it
+is worth the line in `probe-ref.test.mjs`. The second: I concluded "the fixture
+servers aren't up" from an `lsof` that had only ever returned empty, on a
+machine where `ps` is denied outright by the sandbox. Running `lsof` against a
+port I had just bound printed the row, so the reading was sound — but it was
+sound by luck, and an instrument that has only ever returned nothing is not
+evidence of nothing.
+
+**Honest accounting.** Nothing here re-derives any number these probes printed
+historically; those remain unverified and this change does not make them
+trustworthy. It establishes only that the probes can now see a difference and
+refuse when they cannot. Against committed `harness.json` all 17 guarded probes
+refuse today, because `beachfront-dentistry.webflow.io` still 404s and there is
+no live reference to point at — the same answer `gate.sh` already gives.
+Matching remains PAUSED; no round was run and no local browser was opened
+against live pages.

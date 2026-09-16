@@ -1,8 +1,10 @@
-import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
+import { PLAYWRIGHT, assertRef, refUrl, candUrl } from "./probe-ref.mjs";
 
-const PATH = "/team-members/dr-robert-quan";
-const REF = "https://www.beachfrontdentistry.com" + PATH;
-const CAND = "http://localhost:5173" + PATH;
+await assertRef();
+const { chromium } = await import(PLAYWRIGHT);
+
+const REF = refUrl("team");
+const CAND = candUrl("team");
 const VW = Number(process.argv[2] || 390);
 
 const b = await chromium.launch();

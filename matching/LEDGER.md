@@ -4784,3 +4784,63 @@ gradients, which paint over white at the screen edges.
   deleted and the four probes converted in #54. The figure was correct when
   written and went stale the moment that PR landed — which is the argument for
   keeping counts in a dated record rather than in a doc comment.
+
+- [record 2026-09-16] The twelve self-comparing probes are converted, and the
+  census SHAPE that found them was itself under-counting. beachfront#51 named
+  12 scripts assigning `const REF = "https://[www.]beachfrontdentistry.com"`
+  and 8 carrying a hand copy of the page table; the union is **19 files**, and
+  all 19 now take both hosts and the table from `harness.mjs` through a new
+  site-local `matching/probe-ref.mjs`. Seventeen call `assertRef()` — which is
+  `checkRef`, the same preflight `gate.sh` spends, not a second opinion — and
+  exit 2 before a browser launches. The two CAND-only probes
+  (`probe-content-verify`, `probe-detail-routes`) read no reference and so have
+  nothing to refuse; they took the table only.
+
+  `probe-ref.mjs` is site-local because `harness.mjs` is recipe-owned: its
+  sha256 is pinned in `scripts/match-harness-bodies.sha256` in the maintenance
+  repo, so a hand edit here is flagged on the next `match-harness` run.
+
+  **`const REF =` is not the class.** Five of the eight table carriers
+  navigated to a selfHost by a different SHAPE and were therefore absent from
+  the 12: `probe-anchors.mjs` (an inline template literal),
+  `probe-body-desktop.mjs` and `probe-detail-styles.mjs` (`const O = …`),
+  `probe-detail-md.mjs` and `probe-shared.mjs` (a literal inside a sides
+  array). A plain token grep for the host over tracked `.mjs`/`.sh` under
+  `matching/` returns **160 files** — that is a TOKEN COUNT and not a measured
+  class, recorded here so nobody quotes it as one. The remainder is
+  reddoor-maintenance#728's scope, not this site's.
+
+  **Measured, control first.** `node --test matching/probe-ref.test.mjs` →
+  25/25 in 2.25s, and the first test is the control: a loopback fixture
+  carrying harness.json's own `refMark` and not its `candMark` makes the guard
+  PASS (`REF OK`, 185ms). Only then do the six refusal arms count — selfHosts,
+  REF host == CAND host, a body carrying `candMark`, a 200 without `refMark`, a
+  404, and each of the 17 guarded probes exiting 2.
+
+  **The real-difference measurement**, two loopback fixtures at
+  `/services/dental-exams`: 8081 is the reference (260px footer columns, 60px
+  gap, 420px map, carries `refMark`), 8082 is our build (200px columns, 32px
+  gap, 300px map, carries `candMark`). Same probe, same command shape, only REF
+  moves. Pointed at ONE host for both sides — which is what production and
+  localhost both being our build amounted to — `probe-footer-cols` printed all
+  21 rows identical across 768/834/991: **zero difference, exit 0**. Repointed
+  at 8081-vs-8082 it separates at every viewport: "Want to learn more"
+  x=60→24, w=176→200; OFFICE HOURS x=296→256 @768, 318→256 @834, 370→256 @991;
+  "Redondo Beach, CA" x=532→488, 576→488, 681→488; MAP w=420→300 throughout;
+  y 1833→1830. The largest single delta is 193px (`Redondo Beach, CA` @991) —
+  in the old configuration every one of those read 0.
+
+  `probe-chrome-count.mjs`, which was the LAST full nine-row hand copy and also
+  one of the 12, now enumerates all nine rows in harness.json order
+  (team/svc/qa/home/yfv/our-team/services/atd/contact rather than its own
+  former order) and counted 13 interactive chrome elements per page on the
+  reference fixture. Pointed at our own build it refuses instead:
+  `served 200 but WITHOUT refMark … that is not the reference`, exit 2.
+
+  **What is NOT proven:** no probe has been run against the real reference,
+  because there still isn't one — `beachfront-dentistry.webflow.io` 404s, so
+  against committed `harness.json` all 17 guarded probes refuse, which is the
+  same answer `gate.sh` gives. None of the numbers these probes printed
+  historically has been re-derived; they remain unverified, and this change
+  does not make them trustworthy. What it establishes is that the probes can
+  now SEE a difference and DO refuse when they cannot.

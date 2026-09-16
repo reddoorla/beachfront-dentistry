@@ -14,10 +14,7 @@
 // Prints, per side/viewport: the matched element for each anchor, the resulting
 // region height, and the ancestor chain of the first element (any tag) whose
 // text starts with the first anchor — so a tag/box mismatch is visible directly.
-import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
-
-const REF = "https://www.beachfrontdentistry.com";
-const CAND = "http://localhost:5173";
+import { REF, CAND, PLAYWRIGHT, assertRef } from "./probe-ref.mjs";
 
 const [refPath, candPath, anchorArg, vwArg] = process.argv.slice(2);
 if (!refPath || !candPath || !anchorArg) {
@@ -28,6 +25,9 @@ if (!refPath || !candPath || !anchorArg) {
 }
 const ANCHORS = anchorArg.split(",").map((s) => s.trim());
 const VWS = (vwArg ?? "1440,834,390").split(",").map(Number);
+
+await assertRef();
+const { chromium } = await import(PLAYWRIGHT);
 
 const b = await chromium.launch();
 try {

@@ -12,20 +12,16 @@
 // §3-5 specifies. Prints a per-page breakdown so a genuine per-page difference
 // (a page that really lacks a band) is visible as a region row rather than
 // hidden inside a total.
-import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
+import { REF, PAGES, PLAYWRIGHT, assertRef } from "./probe-ref.mjs";
 
-const REF = "https://www.beachfrontdentistry.com";
-const PAGES = [
-  ["home", "/"],
-  ["yfv", "/your-first-visit"],
-  ["our-team", "/our-team"],
-  ["services", "/services"],
-  ["atd", "/ask-the-doctor"],
-  ["contact", "/contact-us"],
-  ["svc", "/services/dental-exams"],
-  ["team", "/team-members/dr-robert-quan"],
-  ["qa", "/questions/regular-dental-cleanings-support-your-whole-body-health"],
-];
+await assertRef();
+const { chromium } = await import(PLAYWRIGHT);
+
+// The nine rows now come from harness.json. This file carried the LAST full
+// nine-row hand copy of the page table under matching/, and it was also one of
+// the twelve probes whose REF pointed at a host serving our own build — so its
+// per-page chrome counts were counts of the candidate, presented as the
+// reference's. Rows print in harness.json order now, not this file's own.
 
 // The chrome regions _chrome.md specs, in its own section order.
 const REGIONS = [
@@ -45,7 +41,7 @@ const REGIONS = [
 const b = await chromium.launch();
 try {
   const rows = [];
-  for (const [tag, path] of PAGES) {
+  for (const { key: tag, ref: path } of PAGES) {
     const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
     await p.goto(REF + path, { waitUntil: "networkidle", timeout: 60000 });
     await p.waitForTimeout(500);
@@ -106,7 +102,7 @@ try {
     );
   const chromeCounts = new Set(rows.map((r) => r.chrome));
   console.log(
-    `\nchrome total is ${chromeCounts.size === 1 ? "IDENTICAL" : "NOT identical"} across the nine pages: ${[...chromeCounts].join(", ")}`,
+    `\nchrome total is ${chromeCounts.size === 1 ? "IDENTICAL" : "NOT identical"} across the ${rows.length} pages: ${[...chromeCounts].join(", ")}`,
   );
 } finally {
   await b.close();

@@ -1,13 +1,24 @@
-import { chromium } from "file:///Users/tuckerlemos/.claude/skills/matching-a-page/node_modules/playwright/index.mjs";
+import {
+  REF,
+  CAND,
+  MATRIX,
+  PLAYWRIGHT,
+  assertRef,
+  page,
+} from "./probe-ref.mjs";
+
+await assertRef();
+const { chromium } = await import(PLAYWRIGHT);
 
 // Verify the shared-chrome batch: subpage hero heading, hero wave, CTA heading,
 // FIJI band. live vs candidate at the 3 matrix viewports.
-const PAGES = [
-  ["our-team", "/our-team", "/dev/match/our-team"],
-  ["services", "/services", "/dev/match/services"],
-  ["contact", "/contact-us", "/contact-us"],
-];
-const VWS = [1440, 834, 390];
+//
+// Which three pages is this probe's own choice; their PATHS were a hand copy.
+const PAGES = ["our-team", "services", "contact"].map((k) => {
+  const p = page(k);
+  return [k, p.ref, p.cand];
+});
+const VWS = MATRIX;
 
 const read = async (p) =>
   p.evaluate(() => {
@@ -57,8 +68,8 @@ try {
     for (const vw of VWS) {
       const row = [];
       for (const [side, base, path] of [
-        ["ref ", "https://www.beachfrontdentistry.com", livePath],
-        ["cand", "http://localhost:5173", candPath],
+        ["ref ", REF, livePath],
+        ["cand", CAND, candPath],
       ]) {
         const p = await b.newPage({ viewport: { width: vw, height: 900 } });
         await p.goto(base + path, { waitUntil: "networkidle", timeout: 60000 });
