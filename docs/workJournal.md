@@ -656,3 +656,57 @@ refuse today, because `beachfront-dentistry.webflow.io` still 404s and there is
 no live reference to point at — the same answer `gate.sh` already gives.
 Matching remains PAUSED; no round was run and no local browser was opened
 against live pages.
+
+## 2026-09-29 — 101 matching scripts that could only compare our build with itself, deleted (reddoorla/reddoor-maintenance#728)
+
+The operator decided on 2026-09-29 that the matching scripts with no live
+reference go, rather than being routed through the read layer. This is that
+deletion, and the count is not the one the issue carried.
+
+**The class, measured on `5221c02`.** #728 said 33 scripts pointed REF at our
+own hosts. The class measured here is every tracked top-level `matching/*.mjs`
+or `*.sh` that writes a literal `https://[www.]beachfrontdentistry.com` or
+`beachfront-dentistry.webflow.io` URL: **147 files**. Of those, **101** were
+deleted: each also loads a candidate (localhost / `BASE` / `CAND`), none calls
+`assertRef`/`checkRef`, and nothing outside `matching/LEDGER.md` names them.
+98 carry an own-host URL and 3 the webflow host (`probe-markup-align`,
+`probe-markup-i2-z`, `probe-markup-i2-z2`). The guard grep was checked against
+`probe-cut.mjs`, a known-guarded probe, before its empty result on the 101 was
+believed. 33 is not reproducible from this tree; as with the 12-vs-33 record in
+LEDGER 2026-09-09, the number depends on the grep shape, so the shape is
+written above.
+
+**Re-probed today.** `beachfront-dentistry.webflow.io/` → 404, 906 bytes,
+`server: cloudflare`. `www.beachfrontdentistry.com/` → 301 to the apex,
+`server: Netlify`. The apex → 200, 349,529 bytes, `server: Netlify`, and it
+carries harness.json's `candMark` (`_app/immutable`) 29 times, so it is our
+build by fingerprint, not by inference.
+
+**Kept, and why.** The harness the recipe owns (`gate.sh`, `census.sh`,
+`harness.mjs`, `next.mjs`, `strikes.mjs`, `build-spec.mjs`, `census-count.mjs`,
+and the site records `floors.mjs`, `census-deviations.mjs`, `harness.json`):
+this repo is the source `gen-match-harness-template.mjs` is cut from, and
+CLAUDE.md tells every session to run `gate.sh`, `strikes.mjs` and `next.mjs`.
+`gate.sh` was on the brief's delete list because #728 described its REF as the
+dead webflow host; it now reads REF from harness.json and refuses through
+`--check-ref` rather than comparing, so it is not the class. The 17 probes
+guarded in #65, `probe-ref.mjs` and `probe-ref.test.mjs`, which names them: they
+refuse loudly, which is the opposite of the silent always-match #728 is about.
+Config-driven tools that take REF from harness.json (`walk.mjs`,
+`hover-sweep.mjs`, `states.mjs`, `probe-anchor-parity.mjs`) hard-code no host
+and would work against a live reference if harness.json had one. 37 scripts
+that read only the reference host and load no candidate (`probe-atd.mjs`,
+`probe-services*.mjs`, `shot-details-live.mjs`, …): they measure, they do not
+compare, so they cannot report a false match; what they measure today is our
+own build. Seven literal-host scripts named from outside the directory
+(`probe-body-dom`, `probe-content-capture2`, `probe-contact`, `probe-qa2`,
+`probe-team`, `-team2`, `-team3`, cited from `src/`, `gen-entities.mjs` or
+`SPEC.md`). And `probe-markup-i2-z3`/`-z4`/`-z5`: the brief's
+`probe-markup-i2-z*` glob covered them, but they are before/after shots of
+localhost only, with no reference at all.
+
+Nothing outside `matching/` referenced a deleted file: `package.json`, the
+three workflows, `vite.config.ts` (vitest reads `src/` and `scripts/` only),
+the ESLint and Prettier ignores, and every source comment were checked. The
+directory goes from 226 entries to 125. Matching remains PAUSED; no probe was
+run.
