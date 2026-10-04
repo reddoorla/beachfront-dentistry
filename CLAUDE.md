@@ -158,6 +158,20 @@ If a session produced nothing worth an entry, that is itself worth one line.
   round-trips through Prismic. `src/lib/beachfront-pages.test.ts` is the
   mechanical check for both; after any seed, diff a real route against its
   `/dev/match/*` twin rather than assuming they agree.
+- **`src/lib/slices/index.ts` and `prismicio-types.d.ts` are generated** by
+  the Prismic CLI (`pnpm prismic:gen`; Slice Machine is gone, deprecated by
+  Prismic 2026-09-18, and `scripts/regen-prismic-types.mjs` went with it).
+  Edit a model's JSON, regenerate, commit both; the `prismic-codegen` job fails
+  a PR whose generated files are stale. Both are in `.prettierignore`. The
+  types file sits at the project root; the modules that import document types
+  reach it by relative path, which also brings its `@prismicio/client`
+  augmentation into the program. Run by an agent, the CLI refuses without
+  `--task-id` and `--user-intent`, so an agent runs `pnpm exec prismic task-id`
+  once, then
+  `pnpm exec prismic gen types --task-id <id> --user-intent "<the ask>"` and
+  the same for `gen slice-index`. Never `prismic push` or
+  `prismic pull`: both delete to match. Pushing models to Prismic stays with
+  `prismic-models.yml` on merge and `scripts/push-*.mjs`.
 - Commit per logical round and push `feat/detail-templates-and-footer`. **No PR**
   unless asked.
 - Seed scripts read `BEACHFRONT_DENTISTRY_WRITE_TOKEN` from

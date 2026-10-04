@@ -1,7 +1,7 @@
 import { error } from "@sveltejs/kit";
 import { asText } from "@prismicio/client";
 import { createClient, isPlaceholderRepo } from "$lib/prismicio";
-import type { NewsArticleDocument } from "../../../prismicio-types";
+import type { NewsArticleDocument } from "../../../../prismicio-types";
 
 // Same shape as services/[slug] (itself mirroring products/[slug]), against
 // `news_article` — the "future /questions/<uid> detail page" QuestionList's

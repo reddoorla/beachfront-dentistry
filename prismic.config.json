@@ -1,0 +1,5 @@
+{
+  "repositoryName": "48bb12d1",
+  "libraries": ["./src/lib/slices"],
+  "routes": []
+}

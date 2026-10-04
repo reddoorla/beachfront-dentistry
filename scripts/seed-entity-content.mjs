@@ -24,7 +24,8 @@
 //
 // Push the custom-type changes to Prismic BEFORE running this, or the new
 // fields land on documents whose model has no home for them:
-//   npx @slicemachine/adapter-sveltekit push-types   (or Slice Machine's UI)
+//   node scripts/push-custom-types.mjs --apply   (or merge the model change to
+//   main, where prismic-models.yml pushes it)
 //
 // Everything lands in the SAME unpublished Migration release as the pages, so
 // one publish takes the whole rebuild live.

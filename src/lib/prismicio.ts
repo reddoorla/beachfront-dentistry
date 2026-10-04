@@ -3,7 +3,7 @@ import {
   enableAutoPreviews,
   type CreateClientConfig,
 } from "@prismicio/svelte/kit";
-import config from "../../slicemachine.config.json";
+import config from "../../prismic.config.json";
 import { frozenArtifacts } from "./blux-frozen/artifacts";
 
 export const repositoryName =
