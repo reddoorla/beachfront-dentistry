@@ -787,3 +787,13 @@ against the generator's own output, so it cannot also be prettier's.
 
 The nightly drift sweep read this site's 39 models as matching Prismic at
 `b0e14c9`, the base of this change, so nothing was owed to Prismic first.
+
+## 2026-10-04 — The simulator leaves every public page's bundle; an encoded path gets the simulator's framing (`fix/simulator-chunk-and-encoded-framing`)
+
+Ported from reddoor-starter#168, following caltex-landing#70 and vida-legacy-foundation#90; the starter's entry records the bundle fixes that failed before this one. `/slice-simulator` imports `SliceSimulator` from the `@prismicio/svelte` barrel, which re-exports it statically, so Rolldown put the simulator into the barrel's shared chunk (`DELQHYgd.js` on `main`), and every node that renders a `SliceZone` loaded it. `scripts/prismic-barrel.ts` declares that re-export-only module side-effect-free, and `SliceZone` is then bound directly.
+
+Measured from the build manifest as each client node's static-import closure, gzipped, `main` → branch. Home went 83,431 → 79,067, `[uid]` 97,247 → 92,879, `/contact-us` 43,815 → 39,108, `/questions/[slug]` 42,888 → 38,178, `/services/[slug]` 43,212 → 38,503 and `/team-members/[slug]` 42,875 → 38,165. The `/dev` fixture and match routes dropped by the same ~4.4 KB. Every one of them reached the simulator chunk before, and none does after. `/slice-simulator` went 81,002 → 81,192 and carries the code in its own node. The root layout (61,820 → 61,816) never reached it.
+
+The hook asked `isCmsFramedRoute(event.url.pathname)`, the raw path, while SvelteKit routes on the decoded one. From `vite preview` of `main`, `/slice%2Dsimulator` and `/slice%2dsimulator` rendered the simulator with `X-Frame-Options: SAMEORIGIN` and `frame-ancestors 'self'`. That failed closed, but it was the wrong route test. The hook now asks `event.route.id`, and both encoded paths answer like `/slice-simulator`.
+
+The plugin and its test are the starter's, rewrapped by this repo's Prettier width. The bundle check lives in vitest (`scripts/` is already in `include`), so the smoke spec carries only the framing tests, with `/contact-us` as the 200 control. `vite.config.ts` imports the plugin without an extension, because this tsconfig does not set `allowImportingTsExtensions`. Against a `main` build, with the plugin file present but unregistered so that the test file could import it, vitest failed 4 of 16 (the bundle check, the encoded path, the null route and the exact match), and the smoke spec failed 2 of 4 (both encoded paths). On the branch, everything passes. With the plugin removed and the site rebuilt, the bundle check fails on the first `/dev` node. With the hook back on the pathname, the encoded-path and null-route tests fail.
