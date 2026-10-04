@@ -1,6 +1,6 @@
 import { isFilled, type Client, type ImageField } from "@prismicio/client";
 import { isPlaceholderRepo } from "$lib/prismicio";
-import type { SettingsDocument } from "../prismicio-types";
+import type { SettingsDocument } from "../../prismicio-types";
 
 /**
  * The four photographs that are shared across routes rather than owned by one

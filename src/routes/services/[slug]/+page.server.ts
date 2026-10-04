@@ -1,7 +1,7 @@
 import { error } from "@sveltejs/kit";
 import { asText } from "@prismicio/client";
 import { createClient, isPlaceholderRepo } from "$lib/prismicio";
-import type { CollectionItemDocument } from "../../../prismicio-types";
+import type { CollectionItemDocument } from "../../../../prismicio-types";
 
 // Mirrors src/routes/products/[slug]/+page.server.ts's shape (entries +
 // load, no-throw `error()` call, `isPlaceholderRepo`-gated prerender list),

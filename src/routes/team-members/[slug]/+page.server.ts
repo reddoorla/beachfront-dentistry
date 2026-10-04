@@ -1,7 +1,7 @@
 import { error } from "@sveltejs/kit";
 import { asText, isFilled } from "@prismicio/client";
 import { createClient, isPlaceholderRepo } from "$lib/prismicio";
-import type { PersonDocument } from "../../../prismicio-types";
+import type { PersonDocument } from "../../../../prismicio-types";
 
 // Same shape as services/[slug] and questions/[slug], against `person`.
 export async function load({ params, fetch, cookies }) {

@@ -710,3 +710,80 @@ three workflows, `vite.config.ts` (vitest reads `src/` and `scripts/` only),
 the ESLint and Prettier ignores, and every source comment were checked. The
 directory goes from 226 entries to 125. Matching remains PAUSED; no probe was
 run.
+
+## 2026-10-04 — Off Slice Machine, onto the Prismic CLI (reddoor-maintenance#1090, `a3e5718`)
+
+Phase 4 of the fleet migration (reddoor-maintenance
+`docs/prismic-migration-plan-2026-10.md` §9), following espada's port of
+reddoor-starter#166. Slice Machine is deprecated by Prismic since 2026-09-18;
+models are now edited in the Type Builder and the generated files come from
+`pnpm prismic:gen`. Matching stays PAUSED; nothing under `matching/` was
+touched, and eslint still ignores that directory wholesale.
+
+**`scripts/regen-prismic-types.mjs` is gone, and so is the reason it existed.**
+It drove `@slicemachine/manager`'s write hook to regenerate the types without
+the UI, because on 2026-08-12 the committed file was missing 39 types. It
+resolved the manager through `slice-machine-ui`, which this change removes, so
+it could not have kept running. The CLI regenerates both generated files from
+the models on disk, headlessly, and the new `prismic-codegen` job fails a PR
+whose generated files are stale.
+
+**Regenerating found one stale model.** The new types add
+`FormRepliesDocument`, `FormRepliesDocumentData` and
+`FormRepliesDocumentDataRepliesItem` (147 exported names before, 149 after):
+`customtypes/form_replies` arrived with the shared forms work and the old
+generator was never re-run after it. Nothing else changed: the slice index maps
+the same 30 slices to the same components. `reply-copy.ts`'s comment, which
+described exactly that gap, now says it is closed.
+
+**Six modules import the types by relative path, so no `app.d.ts` import was
+needed.** `site-settings.ts`, the two `blux-catalog/page-doc` files and the
+three detail routes' `+page.server.ts` now reach the root file one level
+further up. svelte-check reported 0 errors before (4846 files, at `b0e14c9`)
+and after (4832). A probe file assigning `"nope"` to
+`Content.PageDocument["type"]` turned it red with 1 error, so the augmentation
+is in the program and the 0 is not an empty check.
+
+**`/slice-simulator` could not be framed by Prismic in production, for a
+different reason than the dev server suggests.** The root layout's
+`prerender = "auto"` made it a static file (`slice-simulator.html` in the
+prerender output at `b0e14c9`), so Netlify served it with netlify.toml's `/*`
+`X-Frame-Options: SAMEORIGIN` and its CSP only as a `<meta>` tag, which
+cannot carry frame-ancestors. Measured on beachfrontdentistry.com on 2026-10-04
+21:57 UTC: `/slice-simulator` and `/` both `X-Frame-Options: SAMEORIGIN`
+with no CSP header, `/contact-us` (server-rendered) `SAMEORIGIN` plus
+`frame-ancestors 'self'`. `vite preview` showed neither header on the
+prerendered pages, because it does not apply netlify.toml. The route is now
+`prerender = false`, and the hook (which set SAMEORIGIN on every response)
+drops X-Frame-Options and widens frame-ancestors to
+`'self' http://localhost:* https://*.prismic.io https://prismic.io` on that
+route only, via the starter's `cms-framing.ts`. Re-measured from `vite
+preview`: `/slice-simulator` carries no X-Frame-Options and exactly one
+frame-ancestors, the widened one; `/`, `/our-team` (prerendered, no headers),
+`/contact-us` and `/health` (SAMEORIGIN, plus `frame-ancestors 'self'` on
+`/contact-us`) are unchanged. Netlify's static headers not reaching a
+server-rendered response is caltex-landing's measurement, not this site's: here
+every SSR response gets SAMEORIGIN from the hook anyway, so the live site
+cannot tell the two sources apart. The first deploy is where to confirm it.
+
+**What the tests prove, by mutation.** `src/hooks.server.test.ts` (ported from
+the starter, 5 tests; the unit suite is 817 tests in 115 files) went red when
+the hook ignored the route, when it kept X-Frame-Options there, when it framed
+every route, when the widening kept the old frame-ancestors, and when a
+trailing slash stopped matching. Setting `prerender = true` back on the route
+turned nothing red: the build quietly emits `slice-simulator.html` again. The
+codegen gate went red for a field added to a slice model, a field added to a
+custom type, and a new slice folder, and green again after each was restored.
+
+**Left alone on purpose.** Five slices (`Carousel`, `CollectionList`,
+`QuestionList`, `SectionGrid`, `ServiceCategoryBand`) widen their types locally
+with comments saying regenerating "needs a wired Slice Machine session". Those
+comments are now wrong, and the widenings may be removable, but that is a code
+change for its own PR. The tracked `scratchpad/regen-types.mjs` and the
+`docs/superpowers/` plans describe the old generator as history. The generated
+files are now raw CLI output and listed in `.prettierignore`, which reverses
+this repo's earlier rule of formatting the types file: CI's gate compares
+against the generator's own output, so it cannot also be prettier's.
+
+The nightly drift sweep read this site's 39 models as matching Prismic at
+`b0e14c9`, the base of this change, so nothing was owed to Prismic first.
