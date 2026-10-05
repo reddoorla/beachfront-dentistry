@@ -1,5 +1,5 @@
 import { describe, expect, it, afterEach, beforeEach, vi } from "vitest";
-import { render, fireEvent, cleanup } from "@testing-library/svelte";
+import { render, fireEvent, cleanup, screen } from "@testing-library/svelte";
 import LocationMap from "./LocationMap.svelte";
 import { loadMapsApi, type GMapsNS } from "./maps-loader";
 import type { MapRenderConfig } from "./presentation";
@@ -86,6 +86,10 @@ const config: MapRenderConfig = {
   styles: [],
 };
 
+// The toggle chips, by accessible name, in toggle order.
+const toggleChips = () =>
+  config.toggles.map((t) => screen.getByRole("button", { name: t.label }));
+
 describe("LocationMap", () => {
   it("renders the keyless placeholder and never injects the Maps script", () => {
     const { container } = render(LocationMap, { props: { map: config } });
@@ -94,41 +98,39 @@ describe("LocationMap", () => {
   });
 
   it("renders one tab button per toggle with its label (glyph outside the name)", () => {
-    const { getAllByRole, getByRole } = render(LocationMap, {
+    const { getByRole } = render(LocationMap, {
       props: { map: config },
     });
-    const chips = getAllByRole("button");
-    expect(chips).toHaveLength(3);
     // The plus/minus state glyph is aria-hidden: the accessible name is the
     // bare label, so `name:`-based queries keep working.
     for (const label of ["All", "Dining", "Parks"]) {
       expect(getByRole("button", { name: label })).toBeDefined();
     }
-    // Full-width equal tabs (the original's 25%-per-tab bar): every tab flexes
-    // to an equal share of the row instead of hugging its label.
-    for (const c of chips) expect(c.className).toContain("flex-1");
   });
 
-  it("active tab shows a minus glyph, inactive tabs a plus", async () => {
-    const { getAllByRole } = render(LocationMap, { props: { map: config } });
+  it("the active tab's state glyph differs from the inactive tabs' and follows the press", async () => {
+    render(LocationMap, { props: { map: config } });
+    // The glyph is the active cue that is not colour; which glyph is design,
+    // so each is compared to its siblings, never to a character.
     const glyphs = () =>
-      getAllByRole("button").map((c) =>
-        c.querySelector("[aria-hidden]")?.textContent?.trim(),
-      );
-    expect(glyphs()).toEqual(["−", "+", "+"]);
-    const chips = getAllByRole("button");
-    const second = chips[1];
+      toggleChips().map((c) => c.querySelector("[aria-hidden]"));
+    const [a, b, c] = glyphs();
+    expect(a?.isEqualNode(b ?? null)).toBe(false);
+    expect(b?.isEqualNode(c ?? null)).toBe(true);
+    const second = toggleChips()[1];
     if (!second) throw new Error("missing chip");
     await fireEvent.click(second);
-    expect(glyphs()).toEqual(["+", "−", "+"]);
+    const [a2, b2, c2] = glyphs();
+    expect(b2?.isEqualNode(a2 ?? null)).toBe(false);
+    expect(a2?.isEqualNode(c2 ?? null)).toBe(true);
   });
 
   it("selecting a tab notifies the owner via onselect (no prop mutation)", async () => {
     const seen: number[] = [];
-    const { getAllByRole } = render(LocationMap, {
+    render(LocationMap, {
       props: { map: config, onselect: (i: number) => seen.push(i) },
     });
-    const chips = getAllByRole("button");
+    const chips = toggleChips();
     const third = chips[2];
     if (!third) throw new Error("missing chip");
     await fireEvent.click(third);
@@ -139,8 +141,8 @@ describe("LocationMap", () => {
   });
 
   it("chips are radio-style: first pressed by default, click moves the press", async () => {
-    const { getAllByRole } = render(LocationMap, { props: { map: config } });
-    const chips = getAllByRole("button");
+    render(LocationMap, { props: { map: config } });
+    const chips = toggleChips();
     expect(chips.map((c) => c.getAttribute("aria-pressed"))).toEqual([
       "true",
       "false",

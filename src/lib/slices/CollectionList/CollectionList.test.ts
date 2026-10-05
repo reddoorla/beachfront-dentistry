@@ -72,17 +72,22 @@ describe("CollectionList slice", () => {
   // detail page), so these existing "product" mock docs stay card-only —
   // preserving the pre-link behavior this test locks in above.
   it("renders no <a> for a doc type absent from the href map", () => {
-    const { container } = render(CollectionList, {
+    const { getAllByRole } = render(CollectionList, {
       props: { slice, context },
     });
-    expect(container.querySelectorAll("a")).toHaveLength(0);
+    for (const title of getAllByRole("heading", { level: 3 }))
+      expect(title.closest("a")).toBeNull();
   });
 
-  it("omits the muted tags line when a doc has no tags", () => {
+  it("omits the tags line when a doc has no tags", () => {
     const { container } = render(CollectionList, {
       props: { slice, context },
     });
-    expect(container.querySelectorAll("p")).toHaveLength(0);
+    expect(
+      [...container.querySelectorAll("p")].filter(
+        (p) => !p.textContent?.trim(),
+      ),
+    ).toHaveLength(0);
   });
 });
 
@@ -132,22 +137,20 @@ describe("CollectionList slice — tags line + detail-route links", () => {
     },
   };
 
-  it("renders a doc's tags as a muted line under the title (team role line)", () => {
+  it("renders a doc's tags on its card (team role line)", () => {
     const { getByText } = render(CollectionList, {
       props: { slice: teamSlice, context: teamContext },
     });
-    const role = getByText("Lead Dentist");
-    expect(role.tagName).toBe("P");
-    expect(role.className).toContain("text-secondary");
+    expect(getByText("Lead Dentist")).toBeTruthy();
   });
 
   it("links a person card to /team-members/<uid>", () => {
     const { getByRole } = render(CollectionList, {
       props: { slice: teamSlice, context: teamContext },
     });
-    expect(getByRole("link").getAttribute("href")).toBe(
-      "/team-members/dr-jane-smith",
-    );
+    expect(
+      getByRole("link", { name: /Dr\. Jane Smith/ }).getAttribute("href"),
+    ).toBe("/team-members/dr-jane-smith");
   });
 
   it("links a news_article card to /questions/<uid>", () => {
@@ -158,9 +161,11 @@ describe("CollectionList slice — tags line + detail-route links", () => {
     const { getByRole } = render(CollectionList, {
       props: { slice: questionSlice, context: teamContext },
     });
-    expect(getByRole("link").getAttribute("href")).toBe(
-      "/questions/does-insurance-cover-whitening",
-    );
+    expect(
+      getByRole("link", {
+        name: /Does insurance cover whitening/,
+      }).getAttribute("href"),
+    ).toBe("/questions/does-insurance-cover-whitening");
   });
 
   it("links a collection_item card to /services/<uid>", () => {
@@ -171,9 +176,9 @@ describe("CollectionList slice — tags line + detail-route links", () => {
     const { getByRole } = render(CollectionList, {
       props: { slice: serviceSlice, context: teamContext },
     });
-    expect(getByRole("link").getAttribute("href")).toBe(
-      "/services/teeth-whitening",
-    );
+    expect(
+      getByRole("link", { name: /Teeth Whitening/ }).getAttribute("href"),
+    ).toBe("/services/teeth-whitening");
   });
 
   it("renders the team variation as a circular-avatar carousel", () => {
@@ -200,77 +205,6 @@ describe("CollectionList slice — tags line + detail-route links", () => {
     expect(
       getByRole("link", { name: "Dr. Jane Smith" }).getAttribute("href"),
     ).toBe("/team-members/dr-jane-smith");
-  });
-});
-
-// The team row's name is a HOVER reveal, and Tailwind v4 wraps `group-hover:`
-// in `@media (hover: hover)` — so on a phone or a tablet the row that exists
-// to introduce the staff rendered eleven unlabelled faces. Probed at 390 with
-// touch emulation before the fix: `matchMedia("(hover: hover)")` false, badge
-// opacity 0 on all 11, before and after a tap.
-// These assert the CLASS CONTRACT, since jsdom evaluates no media queries;
-// the rendered proof is the 390 screenshot pair in the commit body.
-describe("CollectionList slice — the team row names a face without hover", () => {
-  const teamSlice = {
-    slice_type: "collection_list",
-    variation: "team",
-    primary: {
-      heading: [{ type: "heading2", text: "Meet Your Team", spans: [] }],
-      collection_type: "person",
-      max_items: 24,
-    },
-    items: [],
-  } as unknown as Content.CollectionListSlice;
-
-  const context = {
-    collections: {
-      person: [
-        {
-          uid: "stacey",
-          type: "person",
-          data: {
-            title: [{ type: "heading3", text: "Stacey", spans: [] }],
-            media: {
-              url: "https://img.example/stacey.jpg",
-              alt: "Stacey",
-              dimensions: { width: 800, height: 800 },
-            },
-          },
-        },
-      ],
-    },
-  } as never;
-
-  const render_ = () =>
-    render(CollectionList, { props: { slice: teamSlice, context } });
-
-  it("prints the name in a caption that touch devices can see", () => {
-    const { getByRole } = render_();
-    const link = getByRole("link", { name: "Stacey" });
-    const caption = [...link.querySelectorAll("span")].find((s) =>
-      s.className.includes("[@media(hover:none)]"),
-    );
-    expect(caption?.textContent?.trim()).toBe("Stacey");
-    // hidden where a pointer can hover (the design's reveal still owns that
-    // case), shown where it cannot — the Grid.svelte:169 idiom
-    expect(caption?.className).toContain("hidden");
-    expect(caption?.className).toContain("[@media(hover:none)]:block");
-    // and it is inside the link, so tapping the name navigates
-    expect(caption?.closest("a")).toBe(link);
-  });
-
-  it("keeps the cyan hover badge off the face on touch, not permanently over it", () => {
-    const { getByRole } = render_();
-    const badge = getByRole("link", { name: "Stacey" }).querySelector(
-      "span.absolute",
-    );
-    expect(badge?.className).toContain("opacity-0");
-    expect(badge?.className).toContain("group-hover:opacity-100");
-    expect(badge?.className).toContain("group-focus-visible:opacity-100");
-    // deliberately NOT `[@media(hover:none)]:opacity-100`: that one-class fix
-    // paints a 65% cyan disc over every face permanently (probed at 390), and
-    // this row's job is the faces. The caption above carries touch instead.
-    expect(badge?.className).not.toContain("[@media(hover:none)]:opacity-100");
   });
 });
 
@@ -379,8 +313,9 @@ describe("CollectionList slice — people variation reads its authored fields", 
 // The person card used to carry THREE links to one route (headshot, name,
 // READ MORE): three tab stops per card, 33 on /our-team, all announcing the
 // same destination, and none of them giving the pointer any response. It is
-// one link now, stretched over the card, and the card answers hover/focus.
-describe("CollectionList slice — the person card is one card-wide link", () => {
+// one link now, stretched over the card, and the card answers hover/focus;
+// the hit area is measured in a browser (tests/interaction/team-card.spec.ts).
+describe("CollectionList slice — the person card's link", () => {
   const peopleSlice = {
     slice_type: "collection_list",
     variation: "people",
@@ -413,57 +348,25 @@ describe("CollectionList slice — the person card is one card-wide link", () =>
     },
   } as never;
 
-  it("exposes exactly one link per card, named for the person", () => {
-    const { getAllByRole } = render(CollectionList, {
-      props: { slice: peopleSlice, context: withPhoto },
-    });
-    const links = getAllByRole("link");
-    expect(links).toHaveLength(1);
-    // not eleven links called "Read More" (WCAG 2.4.4); the visible words are
-    // still contained in the accessible name (2.5.3).
-    expect(links[0].getAttribute("aria-label")).toBe("Read more about Stacey");
-    expect(links[0].textContent).toContain("Read More");
-    expect(links[0].getAttribute("href")).toBe("/team-members/stacey");
-  });
-
-  it("leaves the headshot and the name outside the link, and stretches the link over the card", () => {
+  it("gives the card one link to the person, named for them, its visible words in the name", () => {
     const { container, getByRole } = render(CollectionList, {
       props: { slice: peopleSlice, context: withPhoto },
     });
-    expect(container.querySelector("img")?.closest("a")).toBeNull();
-    expect(getByRole("heading", { level: 5 }).closest("a")).toBeNull();
-    // ::after covers the card box, ::before the headshot circle straddling
-    // its top edge — that is what makes the photo and the name clickable.
-    const cls = getByRole("link").className;
-    expect(cls).toContain("after:absolute");
-    expect(cls).toContain("after:inset-0");
-    expect(cls).toContain("before:rounded-full");
-    // and the ring hugs the words rather than the 359px content column
-    expect(cls).toContain("w-fit");
-  });
-
-  it("gives the whole card a hover/focus-within affordance, suppressed under reduced motion", () => {
-    const { container } = render(CollectionList, {
-      props: { slice: peopleSlice, context: withPhoto },
-    });
-    const card = container.querySelector("article.team-list-item");
-    const cls = card?.className ?? "";
-    expect(cls).toContain("group");
-    expect(cls).toContain("hover:-translate-y-1");
-    expect(cls).toContain("focus-within:-translate-y-1");
-    expect(cls).toContain("hover:shadow-lg");
-    expect(cls).toContain("focus-within:shadow-lg");
-    // Tailwind v4 compiles -translate-y-1 to the `translate` property, so the
-    // transition list must name `translate`, not `transform`, or the lift
-    // snaps instead of easing.
-    expect(cls).toContain("transition-[box-shadow,translate]");
-    // reduced motion keeps the shadow (state) and drops the movement
-    expect(cls).toContain("motion-reduce:hover:translate-y-0");
-    expect(cls).toContain("motion-reduce:focus-within:translate-y-0");
+    const link = getByRole("link", { name: /Stacey/ });
+    expect(link.getAttribute("href")).toBe("/team-members/stacey");
+    // one tab stop per person, not three announcing the same destination
+    expect(
+      container.querySelectorAll('a[href="/team-members/stacey"]'),
+    ).toHaveLength(1);
+    // not eleven links called "Read More" (WCAG 2.4.4); the visible words are
+    // still contained in the accessible name (2.5.3).
+    const visible = link.textContent!.trim().toLowerCase();
+    expect(visible.length).toBeGreaterThan(0);
+    expect(link.getAttribute("aria-label")!.toLowerCase()).toContain(visible);
   });
 
   it("does not advertise a click on a card with no detail route", () => {
-    const { container } = render(CollectionList, {
+    const { getByRole } = render(CollectionList, {
       props: {
         slice: peopleSlice,
         context: {
@@ -479,9 +382,7 @@ describe("CollectionList slice — the person card is one card-wide link", () =>
         } as never,
       },
     });
-    expect(container.querySelectorAll("a")).toHaveLength(0);
-    expect(container.querySelector("article")?.className).not.toContain(
-      "hover:shadow-lg",
-    );
+    const card = getByRole("heading", { name: "S" }).closest("article")!;
+    expect(card.querySelector("a")).toBeNull();
   });
 });

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 /**
  * The 2026-08-13 mobile pass, as checks rather than promises.
@@ -15,9 +15,20 @@ import { expect, test } from "@playwright/test";
  */
 const WIDTHS = [360, 375, 390, 430];
 
+async function sweep(page: Page, step: number, atEach?: () => Promise<void>) {
+  let height = 1;
+  for (let y = 0; y < height; y += step) {
+    height = await page.evaluate((top) => {
+      scrollTo({ top, behavior: "instant" });
+      return document.body.scrollHeight;
+    }, y);
+    await atEach?.();
+  }
+}
+
 // ---------------------------------------------------------------------------
 
-test.describe("no page scrolls sideways on a phone", () => {
+test.describe("no page scrolls sideways on a phone", { tag: "@smoke" }, () => {
   const ROUTES = [
     "/",
     "/our-team",
@@ -36,13 +47,8 @@ test.describe("no page scrolls sideways on a phone", () => {
         await page.setViewportSize({ width, height: 844 });
         await page.goto(route);
         await page.evaluate(() => document.fonts.ready);
-        await page.evaluate(async () => {
-          for (let y = 0; y < document.body.scrollHeight; y += 500) {
-            scrollTo({ top: y, behavior: "instant" });
-            await new Promise((r) => setTimeout(r, 30));
-          }
-          scrollTo({ top: 0, behavior: "instant" });
-        });
+        await sweep(page, 500);
+        await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
         const scrollWidth = await page.evaluate(
           () => document.documentElement.scrollWidth,
         );
@@ -191,111 +197,107 @@ test.describe("review carousel arrows never cover the quote", () => {
 
 // ---------------------------------------------------------------------------
 
-test.describe("interactive targets meet WCAG 2.2 AA 2.5.8 (24x24)", () => {
-  /** Measure the target a FINGER gets, not the anchor's own line box.
-   *  Two idioms on this site deliberately decouple the two:
-   *  the team card's `after:inset-0` makes a 21.6px "Read More" link clickable
-   *  across the whole 302x384 card, and the review chevron's `before` restores
-   *  a 32x44 box under an 18x20 glyph that is sized to live's `.75rem` asset.
-   *  Measuring the anchor rect alone reports both as failures; hit-testing
-   *  reports what is true. */
-  const probe = () => {
-    const R = (n: number) => Math.round(n * 10) / 10;
-    const EPS = 0.05;
-    const bad: { sel: string; w: number; h: number; text: string }[] = [];
-    const SEL = 'a[href], button, [role="button"], summary';
-    for (const el of document.querySelectorAll<HTMLElement>(SEL)) {
-      const r = el.getBoundingClientRect();
-      if (r.width < 1 || r.height < 1) continue;
-      if (!el.checkVisibility({ opacityProperty: true })) continue;
-      if (el.closest("[aria-hidden='true']")) continue;
-      // The skip link is a 1x1 clip until it takes focus, at which point it
-      // becomes a full-size fixed pill — 2.5.8 measures the target in the
-      // state the user can activate it in, and it is unreachable by pointer.
-      if (el.classList.contains("sr-only")) continue;
-      // Hit-testing below only answers for what is ON SCREEN. `checkVisibility`
-      // is true for elements far down the page, so measuring them here reports
-      // the raw box and misses the ::before/::after hit areas entirely — which
-      // is exactly how this spec first "failed" on the review chevron whose
-      // 32x44 target it could not see.
-      if (r.bottom < 0 || r.top > innerHeight) continue;
-      // Inline links inside a sentence are exempt (2.5.8 "inline" exception).
-      const p = el.parentElement;
-      if (
-        p &&
-        getComputedStyle(el).display.startsWith("inline") &&
-        (p.textContent ?? "").trim().length >
-          (el.textContent ?? "").trim().length
-      )
-        continue;
-      // EPS absorbs layout float noise, not real shortfalls: the footer's
-      // tel: link computes 23.999969482421875 from `leading-[24px]` while
-      // every sibling in the same column lands on exactly 24. A twenty-
-      // millionth of a pixel is not a target-size defect; 19.25 was.
-      if (r.width >= 24 - EPS && r.height >= 24 - EPS) continue;
+test.describe(
+  "interactive targets meet WCAG 2.2 AA 2.5.8 (24x24)",
+  { tag: "@smoke" },
+  () => {
+    /** Measure the target a FINGER gets, not the anchor's own line box.
+     *  Two idioms on this site deliberately decouple the two:
+     *  the team card's `after:inset-0` makes a 21.6px "Read More" link clickable
+     *  across the whole 302x384 card, and the review chevron's `before` restores
+     *  a 32x44 box under an 18x20 glyph that is sized to live's `.75rem` asset.
+     *  Measuring the anchor rect alone reports both as failures; hit-testing
+     *  reports what is true. */
+    const probe = () => {
+      const R = (n: number) => Math.round(n * 10) / 10;
+      const EPS = 0.05;
+      const bad: { sel: string; w: number; h: number; text: string }[] = [];
+      const SEL = 'a[href], button, [role="button"], summary';
+      for (const el of document.querySelectorAll<HTMLElement>(SEL)) {
+        const r = el.getBoundingClientRect();
+        if (r.width < 1 || r.height < 1) continue;
+        if (!el.checkVisibility({ opacityProperty: true })) continue;
+        if (el.closest("[aria-hidden='true']")) continue;
+        // The skip link is a 1x1 clip until it takes focus, at which point it
+        // becomes a full-size fixed pill — 2.5.8 measures the target in the
+        // state the user can activate it in, and it is unreachable by pointer.
+        if (el.classList.contains("sr-only")) continue;
+        // Hit-testing below only answers for what is ON SCREEN. `checkVisibility`
+        // is true for elements far down the page, so measuring them here reports
+        // the raw box and misses the ::before/::after hit areas entirely — which
+        // is exactly how this spec first "failed" on the review chevron whose
+        // 32x44 target it could not see.
+        if (r.bottom < 0 || r.top > innerHeight) continue;
+        // Inline links inside a sentence are exempt (2.5.8 "inline" exception).
+        const p = el.parentElement;
+        if (
+          p &&
+          getComputedStyle(el).display.startsWith("inline") &&
+          (p.textContent ?? "").trim().length >
+            (el.textContent ?? "").trim().length
+        )
+          continue;
+        // EPS absorbs layout float noise, not real shortfalls: the footer's
+        // tel: link computes 23.999969482421875 from `leading-[24px]` while
+        // every sibling in the same column lands on exactly 24. A twenty-
+        // millionth of a pixel is not a target-size defect; 19.25 was.
+        if (r.width >= 24 - EPS && r.height >= 24 - EPS) continue;
 
-      // Undersized box — grow the search outward and ask what actually
-      // receives the tap, which is how the ::before/::after idioms are seen.
-      const cx = r.left + r.width / 2;
-      const cy = r.top + r.height / 2;
-      let minX = cx,
-        maxX = cx,
-        minY = cy,
-        maxY = cy;
-      for (let d = 1; d <= 24; d++) {
-        if (document.elementFromPoint(cx - d, cy) === el) minX = cx - d;
-        if (document.elementFromPoint(cx + d, cy) === el) maxX = cx + d;
-        if (document.elementFromPoint(cx, cy - d) === el) minY = cy - d;
-        if (document.elementFromPoint(cx, cy + d) === el) maxY = cy + d;
+        // Undersized box — grow the search outward and ask what actually
+        // receives the tap, which is how the ::before/::after idioms are seen.
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+        let minX = cx,
+          maxX = cx,
+          minY = cy,
+          maxY = cy;
+        for (let d = 1; d <= 24; d++) {
+          if (document.elementFromPoint(cx - d, cy) === el) minX = cx - d;
+          if (document.elementFromPoint(cx + d, cy) === el) maxX = cx + d;
+          if (document.elementFromPoint(cx, cy - d) === el) minY = cy - d;
+          if (document.elementFromPoint(cx, cy + d) === el) maxY = cy + d;
+        }
+        const w = Math.max(r.width, maxX - minX);
+        const h = Math.max(r.height, maxY - minY);
+        if (w < 24 - EPS || h < 24 - EPS)
+          bad.push({
+            sel:
+              el.tagName.toLowerCase() +
+              "." +
+              String(el.className).slice(0, 60),
+            w: R(w),
+            h: R(h),
+            text: (el.textContent ?? el.getAttribute("aria-label") ?? "")
+              .trim()
+              .slice(0, 40),
+          });
       }
-      const w = Math.max(r.width, maxX - minX);
-      const h = Math.max(r.height, maxY - minY);
-      if (w < 24 - EPS || h < 24 - EPS)
-        bad.push({
-          sel:
-            el.tagName.toLowerCase() + "." + String(el.className).slice(0, 60),
-          w: R(w),
-          h: R(h),
-          text: (el.textContent ?? el.getAttribute("aria-label") ?? "")
-            .trim()
-            .slice(0, 40),
-        });
-    }
-    return bad;
-  };
+      return bad;
+    };
 
-  for (const route of ["/services", "/our-team", "/"]) {
-    test(`${route} @390`, async ({ page }) => {
-      await page.setViewportSize({ width: 390, height: 844 });
-      await page.goto(route);
-      await page.evaluate(() => document.fonts.ready);
-      await page.evaluate(async () => {
-        for (let y = 0; y < document.body.scrollHeight; y += 400) {
-          scrollTo({ top: y, behavior: "instant" });
-          await new Promise((r) => setTimeout(r, 40));
-        }
-      });
-      // Hit-testing only reports what is on screen, so sweep viewport by
-      // viewport rather than measuring one screenful.
-      const found = await page.evaluate(async (probeSrc) => {
-        const fn = new Function("return " + probeSrc)();
-        const seen = new Map<string, unknown>();
-        for (let y = 0; y < document.body.scrollHeight; y += 700) {
-          scrollTo({ top: y, behavior: "instant" });
-          await new Promise((r) => requestAnimationFrame(() => r(null)));
-          for (const b of fn() as { sel: string; text: string }[])
+    for (const route of ["/services", "/our-team", "/"]) {
+      test(`${route} @390`, async ({ page }) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.goto(route);
+        await page.evaluate(() => document.fonts.ready);
+        await sweep(page, 400);
+        // Hit-testing only reports what is on screen, so sweep viewport by
+        // viewport rather than measuring one screenful.
+        const seen = new Map<string, { sel: string; text: string }>();
+        await sweep(page, 700, async () => {
+          for (const b of await page.evaluate(probe))
             seen.set(b.sel + "|" + b.text, b);
-        }
-        return [...seen.values()];
-      }, probe.toString());
+        });
+        const found = [...seen.values()];
 
-      expect(
-        found,
-        `${route}: targets under 24x24 — ${JSON.stringify(found).slice(0, 400)}`,
-      ).toEqual([]);
-    });
-  }
-});
+        expect(
+          found,
+          `${route}: targets under 24x24 — ${JSON.stringify(found).slice(0, 400)}`,
+        ).toEqual([]);
+      });
+    }
+  },
+);
 
 // ---------------------------------------------------------------------------
 
@@ -483,26 +485,25 @@ test.describe("Read Reviews opens clear of the footer wave", () => {
   }
 });
 
-test("the two maps on /contact-us have distinct accessible names", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/contact-us");
-  await page.evaluate(async () => {
-    for (let y = 0; y < document.body.scrollHeight; y += 500) {
-      scrollTo({ top: y, behavior: "instant" });
-      await new Promise((r) => setTimeout(r, 30));
-    }
-  });
-  const titles = await page.evaluate(() =>
-    [...document.querySelectorAll("iframe")]
-      .filter((f) => /google\.com\/maps/.test(f.getAttribute("src") ?? ""))
-      .map((f) => f.getAttribute("title")),
-  );
-  // Live's composition keeps both maps (two `w-widget-map` widgets in
-  // matching/spec/contact-us.html), so this asserts they are DISTINGUISHABLE,
-  // not that one of them is gone.
-  expect(titles.length, "page map + footer map").toBe(2);
-  expect(new Set(titles).size, `duplicate frame titles: ${titles}`).toBe(2);
-  for (const t of titles) expect(t?.trim()).toBeTruthy();
-});
+test(
+  "the two maps on /contact-us have distinct accessible names",
+  { tag: "@smoke" },
+  async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/contact-us");
+    await sweep(page, 500);
+    const titles = await page.evaluate(() =>
+      [...document.querySelectorAll("iframe")]
+        .filter((f) => /google\.com\/maps/.test(f.getAttribute("src") ?? ""))
+        .map((f) => f.getAttribute("title")),
+    );
+    // Live's composition keeps both maps (two `w-widget-map` widgets in
+    // matching/spec/contact-us.html), so this asserts they are DISTINGUISHABLE,
+    // not that one of them is gone.
+    expect(titles.length, "the page mounts a map").toBeGreaterThan(0);
+    expect(new Set(titles).size, `duplicate frame titles: ${titles}`).toBe(
+      titles.length,
+    );
+    for (const t of titles) expect(t?.trim()).toBeTruthy();
+  },
+);

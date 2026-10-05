@@ -1,6 +1,7 @@
 import { render, cleanup } from "@testing-library/svelte";
 import { describe, it, expect, afterEach } from "vitest";
 import type { Content } from "@prismicio/client";
+import { GRID_GUTTER } from "$lib/blux-catalog/layout";
 import BluxSection from "./index.svelte";
 
 afterEach(() => cleanup());
@@ -109,7 +110,7 @@ describe("BluxSection slice", () => {
     expect(link.closest("a")?.getAttribute("href")).toBe("https://ex.com");
   });
 
-  it("gives each cell a --cell-basis reserving the 4% gutter for the cell count", () => {
+  it("gives each cell a --cell-basis reserving the gutter for the cell count", () => {
     const twoCol = {
       slice_type: "blux_section",
       variation: "default",
@@ -137,10 +138,10 @@ describe("BluxSection slice", () => {
       ".blux-section__cells > .blux-cell",
     );
     expect(cells[0].style.getPropertyValue("--cell-basis")).toBe(
-      "calc(50% - 2%)",
+      `calc(50% - ${GRID_GUTTER / 2}%)`,
     );
     expect(cells[1].style.getPropertyValue("--cell-basis")).toBe(
-      "calc(70% - 2%)",
+      `calc(70% - ${GRID_GUTTER / 2}%)`,
     );
   });
 

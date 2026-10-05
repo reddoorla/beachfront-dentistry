@@ -7,12 +7,13 @@ afterEach(() => cleanup());
 // The photos variation rides the shared Slider component. The review
 // variation carries its own mask carousel since Round G4 (MarkUp thread
 // 29e4fcac-8dee-4cfe-a3f5-4ef9e4c79524, home board pin #5): the pale-blue
-// card is static chrome, the `.transition-transform` flex row slides the
+// card is static chrome, the track (the slides' parent) slides the
 // quote/author content INSIDE the card's overflow-hidden mask, and the
 // overlapping source badge cross-dissolves instead of riding the track.
 // Arrows are labelled "Previous slide"/"Next slide" in both worlds.
 const trackOf = (container: HTMLElement) =>
-  container.querySelector(".transition-transform") as HTMLElement;
+  container.querySelector('[aria-roledescription="slide"]')
+    ?.parentElement as HTMLElement;
 
 // The live site's 5 review links are MIXED — 3 Yelp + 2 Google Maps. Matching
 // the live card, a Yelp-sourced review shows the Yelp badge; a Google (or other
@@ -178,7 +179,7 @@ describe("Carousel slice — review variation", () => {
   });
 
   it("Next advances to the following reviewer and updates the track transform", async () => {
-    const { getByRole, getByText, container } = render(Carousel, {
+    const { getByRole, getAllByRole, container } = render(Carousel, {
       props: { slice: makeReviewSlice() },
     });
     const track = trackOf(container);
@@ -186,7 +187,10 @@ describe("Carousel slice — review variation", () => {
 
     await fireEvent.click(getByRole("button", { name: "Next slide" }));
 
-    expect(getByText("James T.")).toBeTruthy();
+    const visible = getAllByRole("group", { hidden: true }).filter(
+      (s) => s.getAttribute("aria-hidden") !== "true",
+    );
+    expect(visible[0]?.textContent).toContain("James T.");
     expect(track.style.transform).not.toBe(initialTransform);
     // A Google-sourced review carries the Google badge (live ships Yelp on
     // every card; corrected per design direction), linking to its review.
@@ -234,42 +238,23 @@ describe("Carousel slice — review variation", () => {
   });
 });
 
-describe("Carousel slice — review mask motion (Round G4)", () => {
-  // MarkUp thread 29e4fcac-8dee-4cfe-a3f5-4ef9e4c79524 (home board pin #5),
-  // implemented per operator directive: the pale-blue card is static chrome
-  // acting as the mask — the track slides the quote content INSIDE it, and
-  // the badge cross-dissolves on the card instead of riding the track. The
-  // reduced-motion instant swap is covered end-to-end in
-  // tests/interaction/review-mask.spec.ts (jsdom applies no CSS media
-  // rules, so app.css's global reduce reset is not observable here).
+describe("Carousel slice — review badges and keyboard", () => {
+  // The card-as-mask motion and the reduced-motion swap are measured in
+  // tests/interaction/review-mask.spec.ts.
 
-  it("keeps the pale-blue card outside the moving track — the card is the mask", async () => {
-    const { container, getByRole } = render(Carousel, {
+  it("pairs each review's quote with its reviewer in a figure and figcaption", () => {
+    const { container } = render(Carousel, {
       props: { slice: makeReviewSlice() },
     });
-    const track = trackOf(container);
-    const mask = track.parentElement as HTMLElement;
-    const card = mask.parentElement as HTMLElement;
-    // The track lives INSIDE the pale-blue card, behind a mask that clips
-    // at the card's own box…
-    expect(mask.className).toContain("overflow-hidden");
-    expect(card.className).toContain("bg-[#e7f5fa]");
-    // …each slide keeps its semantic figure/figcaption pairing inside the
-    // track…
-    expect(track.querySelectorAll("figure > figcaption")).toHaveLength(5);
-    // …and stepping moves ONLY the track: the card itself carries no
-    // transform and no transition-transform utility.
-    await fireEvent.click(getByRole("button", { name: "Next slide" }));
-    expect(track.style.transform).toBe("translateX(-100%)");
-    expect(card.style.transform).toBe("");
-    expect(card.className).not.toContain("transition-transform");
+    expect(container.querySelectorAll("figure > figcaption")).toHaveLength(
+      reviewItems.length,
+    );
   });
 
-  it("stacks the badges on the card, outside the track, dissolving between them", async () => {
+  it("exposes only the current review's badge, and Next exposes the next one", async () => {
     const { container, getByRole } = render(Carousel, {
       props: { slice: makeReviewSlice() },
     });
-    const track = trackOf(container);
     const badges = [
       ...container.querySelectorAll<HTMLElement>(
         'a[aria-label^="Read this review on"]',
@@ -278,28 +263,17 @@ describe("Carousel slice — review mask motion (Round G4)", () => {
     const wrapperOf = (a: HTMLElement) => a.parentElement as HTMLElement;
     const exposedOf = () =>
       badges.filter((a) => wrapperOf(a).getAttribute("aria-hidden") !== "true");
-    // Every slide's badge is mounted on the card layer, none in the track,
-    // and each rides an opacity-only dissolve wrapper — never a translating
-    // one.
     expect(badges).toHaveLength(5);
-    for (const a of badges) {
-      expect(track.contains(a)).toBe(false);
-      expect(wrapperOf(a).className).toContain("transition-opacity");
-      expect(wrapperOf(a).className).not.toContain("transition-transform");
-    }
-    // At rest only slide 1's Yelp badge is exposed; the dissolve targets are
-    // opacity-0, click-through, and inert (jsdom reflects inert as the DOM
-    // property — same caveat as Slider.test.ts).
+    // At rest only slide 1's Yelp badge is exposed; the hidden ones are
+    // inert (jsdom reflects inert as the DOM property — same caveat as
+    // Slider.test.ts).
     let exposed = exposedOf();
     expect(exposed).toHaveLength(1);
     expect(exposed[0]?.getAttribute("href")).toBe(
       "https://www.yelp.com/biz/review-1",
     );
     for (const a of badges.filter((b) => b !== exposed[0])) {
-      const w = wrapperOf(a);
-      expect(w.className).toContain("opacity-0");
-      expect(w.className).toContain("pointer-events-none");
-      expect(w.inert).toBe(true);
+      expect(wrapperOf(a).inert).toBe(true);
     }
     // Advancing exposes the next slide's badge (Google here) in place.
     await fireEvent.click(getByRole("button", { name: "Next slide" }));

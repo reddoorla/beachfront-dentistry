@@ -1,8 +1,97 @@
 import { render, cleanup } from "@testing-library/svelte";
 import { describe, it, expect, afterEach } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import Footer from "./Footer.svelte";
 
 afterEach(() => cleanup());
+
+/** The theme's colours, read from app.css's `@theme` block (cwd-relative:
+ *  under jsdom `import.meta.url` is not a file: URL). */
+const THEME: Record<string, string> = (() => {
+  const css = readFileSync(resolve(process.cwd(), "src/app.css"), "utf8");
+  const body = /@theme\s*\{([\s\S]*?)\n\}/.exec(css)?.[1] ?? "";
+  const out: Record<string, string> = {};
+  for (const m of body.matchAll(
+    /--color-([a-z0-9-]+):\s*(#[0-9a-f]{6}|white|black)\s*;/gi,
+  )) {
+    out[m[1]] =
+      m[2] === "white" ? "#ffffff" : m[2] === "black" ? "#000000" : m[2];
+  }
+  return out;
+})();
+
+type Rgb = [number, number, number];
+
+const over = (top: Rgb, alpha: number, ground: Rgb) =>
+  top.map((v, i) => alpha * v + (1 - alpha) * ground[i]) as Rgb;
+
+/** An element's inline `rgb(r, g, b)` colour. */
+function rgbOf(css: string): Rgb {
+  const m = /^rgb\((\d+), (\d+), (\d+)\)$/.exec(css);
+  expect(m, `"${css}" is not an opaque rgb()`).not.toBeNull();
+  return [Number(m![1]), Number(m![2]), Number(m![3])];
+}
+
+/** A `text-`/`bg-` class's colour and alpha: a theme token or an arbitrary
+ *  `[#rrggbb]` / `[#rrggbbaa]`, with any `/<pct>`. Anything else
+ *  (`text-[15px]`, `bg-transparent`) is not a colour. */
+function colour(cls: string, utility: "text" | "bg") {
+  const m = new RegExp(
+    `^${utility}-(?:\\[(#[0-9a-f]{6})([0-9a-f]{2})?\\]|([a-z][a-z0-9-]*))(?:/(\\d+))?$`,
+    "i",
+  ).exec(cls);
+  const hex = m && (m[1] ?? THEME[m[3]]);
+  if (!m || !hex) return undefined;
+  const rgb = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) as Rgb;
+  const alpha =
+    (m[2] ? parseInt(m[2], 16) / 255 : 1) *
+    (m[4] === undefined ? 1 : Number(m[4]) / 100);
+  return { rgb, alpha };
+}
+
+/** WCAG 2.x contrast between two sRGB colours. */
+function contrast(a: Rgb, b: Rgb): number {
+  const luminance = (rgb: Rgb) => {
+    const [r, g, bl] = rgb.map((v) => {
+      const c = v / 255;
+      return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * bl;
+  };
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+/** A control's label against its own fill over `ground`, at rest and on hover.
+ *  The hover fill replaces the rest fill, the hover ink falls back to the rest
+ *  ink, and an `opacity-*` fades label and fill together toward the ground. */
+function labelContrast(className: string, ground: Rgb) {
+  const under = (variant: string) =>
+    className.split(/\s+/).flatMap((c) => {
+      const at = c.lastIndexOf(":");
+      return c.slice(0, Math.max(at, 0)) === variant ? [c.slice(at + 1)] : [];
+    });
+  const first = <T>(variant: string, read: (c: string) => T | undefined) =>
+    [variant, ""]
+      .flatMap(under)
+      .map(read)
+      .find((v) => v !== undefined);
+  const fade = (c: string) => {
+    const m = /^opacity-(\d+)$/.exec(c);
+    return m ? Number(m[1]) / 100 : undefined;
+  };
+  const measure = (variant: string) => {
+    const fill = first(variant, (c) => colour(c, "bg"));
+    const ink = first(variant, (c) => colour(c, "text"));
+    if (!ink) return NaN;
+    const box = fill ? over(fill.rgb, fill.alpha, ground) : ground;
+    const label = over(ink.rgb, ink.alpha, box);
+    const alpha = first(variant, fade) ?? 1;
+    return contrast(over(label, alpha, ground), over(box, alpha, ground));
+  };
+  return { rest: measure(""), hover: measure("hover") };
+}
 
 describe("Footer", () => {
   // --- columns chrome (Blux catalog page-data; takes precedence) ---
@@ -79,10 +168,10 @@ describe("Footer", () => {
     expect(anchor?.getAttribute("target")).toBe("_blank");
     expect(anchor?.getAttribute("rel")).toBe("noopener noreferrer");
 
-    // Two images total; only the href'd one is wrapped in an anchor.
-    const imgs = container.querySelectorAll("img");
-    expect(imgs.length).toBe(2);
-    expect(container.querySelectorAll("a > img").length).toBe(1);
+    // Only the href'd image is wrapped in an anchor.
+    const plain = container.querySelector("img[src='https://cdn/plain.png']");
+    expect(plain).not.toBeNull();
+    expect(plain?.closest("a")).toBeNull();
   });
 
   it("linked logo exposes its alt as the link's accessible name (a11y)", () => {
@@ -237,28 +326,21 @@ describe("Footer", () => {
     );
   });
 
-  // The payment pill is one of the four sites that cannot literally BE an
-  // <OutlineButton> (it needs linkAttrs' target/rel and its own column
-  // margins), so this pins that it still takes the shared language rather than
-  // drifting back into a hand-authored copy. Asserted as a class contract, not
-  // a computed style: jsdom applies no Tailwind, and a headless browser can
-  // report a running transition frozen at its start value.
-  it("the payment pill speaks the shared hover/press language, with no opacity fade", () => {
-    const { getByRole } = render(Footer, {
+  // The fade this pill used to take, hover:opacity-60, made its label harder
+  // to read on hover; the hover fill has to leave the label at AA too.
+  it("the payment pill's label clears AA on the footer canvas at rest and on hover", () => {
+    const { container, getByRole } = render(Footer, {
       props: { columns: beachfrontColumns },
     });
-    const cls = getByRole("link", { name: "Make a Payment" }).className;
-
-    expect(cls).toContain("hover:bg-[#129ecc4a]");
-    expect(cls).toContain("hover:border-[#129ecc]");
-    expect(cls).toContain("active:translate-y-px");
-    expect(cls).toContain("ease-[var(--transition-out-expo)]");
-    // Tailwind v4 compiles `translate-y-px` to the independent `translate`
-    // property; a transition list naming `transform` would animate nothing.
-    expect(cls).toContain("translate]");
-    expect(cls).not.toContain("transform]");
-    // The defect this replaced: fading the label made it harder to read.
-    expect(cls).not.toMatch(/opacity/);
+    const ground = rgbOf(
+      container.querySelector("footer")!.style.backgroundColor,
+    );
+    const { rest, hover } = labelContrast(
+      getByRole("link", { name: "Make a Payment" }).className,
+      ground,
+    );
+    expect(rest, "at rest").toBeGreaterThanOrEqual(4.5);
+    expect(hover, "on hover").toBeGreaterThanOrEqual(4.5);
   });
 
   it("renders a wave divider at the footer's top edge", () => {
@@ -273,9 +355,13 @@ describe("Footer", () => {
     const light = render(Footer, { props: { columns: beachfrontColumns } });
     // Defaults to the footer's own pale-teal canvas so the wave reads as its
     // top edge dipping into whatever band sits above.
-    expect(light.container.querySelector("path")?.getAttribute("fill")).toBe(
-      "#e7f5fa",
-    );
+    const canvas =
+      light.container.querySelector("footer")!.style.backgroundColor;
+    expect(canvas).not.toBe("");
+    const fill = document.createElement("i");
+    fill.style.color =
+      light.container.querySelector("path")?.getAttribute("fill") ?? "";
+    expect(fill.style.color).toBe(canvas);
     cleanup();
 
     // A page ending in a dark band passes its own fill through.

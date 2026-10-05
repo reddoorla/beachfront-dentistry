@@ -102,10 +102,10 @@ describe("SectionGrid slice", () => {
     } as unknown as Content.SectionGridSlice;
     const { container } = render(SectionGrid, { props: { slice: linked } });
     const toggle = container.querySelector("button[aria-expanded]")!;
-    const card = toggle.closest("div[class*='rounded-[25px]']")!;
+    const photo = container.querySelector("img")!;
 
-    // the photo/wash surface, i.e. the card itself
-    await fireEvent.click(card);
+    // the photo, not the bar
+    await fireEvent.click(photo);
     expect(toggle.getAttribute("aria-expanded")).toBe("true");
 
     // the bar's own button: one toggle, not two
@@ -113,14 +113,14 @@ describe("SectionGrid slice", () => {
     expect(toggle.getAttribute("aria-expanded")).toBe("false");
 
     // a link inside the body copy navigates and does NOT toggle
-    await fireEvent.click(card);
+    await fireEvent.click(photo);
     expect(toggle.getAttribute("aria-expanded")).toBe("true");
     const link = container.querySelector("a[href='https://example.com']")!;
     await fireEvent.click(link);
     expect(toggle.getAttribute("aria-expanded")).toBe("true");
 
     // Escape closes, as on the Q&A card
-    await fireEvent.keyDown(card, { key: "Escape" });
+    await fireEvent.keyDown(toggle, { key: "Escape" });
     expect(toggle.getAttribute("aria-expanded")).toBe("false");
   });
 

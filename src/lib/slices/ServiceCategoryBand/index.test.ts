@@ -66,14 +66,20 @@ const sliceData = {
 };
 const slice = sliceData as never;
 
+// The panel's service links, by href: another link on the band (a "view all")
+// is the designer's to add, and is not a service.
+const serviceHrefs = (links: HTMLElement[]) =>
+  links
+    .map((link) => link.getAttribute("href"))
+    .filter((href) => href?.startsWith("/services/"));
+
 describe("ServiceCategoryBand slice", () => {
   it("renders only docs whose parsed tags include the category tag, as links to /services/<uid>", () => {
     const { getAllByRole } = render(ServiceCategoryBand, {
       props: { slice, context },
     });
-    const links = getAllByRole("link");
-    expect(links).toHaveLength(3);
-    const hrefs = links.map((link) => link.getAttribute("href"));
+    const hrefs = serviceHrefs(getAllByRole("link"));
+    expect(hrefs).toHaveLength(3);
     expect(hrefs).toEqual(
       expect.arrayContaining([
         "/services/veneers",
@@ -109,15 +115,22 @@ describe("ServiceCategoryBand slice", () => {
     ).not.toBeNull();
   });
 
-  it("renders an aria-hidden arrow glyph inside each link", () => {
-    const { container } = render(ServiceCategoryBand, {
+  it("names each service link by its title alone, any glyph in it hidden from AT", () => {
+    const { getByRole } = render(ServiceCategoryBand, {
       props: { slice, context },
     });
-    const arrows = container.querySelectorAll('a [aria-hidden="true"]');
-    expect(arrows).toHaveLength(3);
+    for (const [name, uid] of [
+      ["Porcelain Veneers", "veneers"],
+      ["Teeth Whitening", "whitening"],
+      ["Invisalign", "invisalign"],
+    ]) {
+      expect(getByRole("link", { name }).getAttribute("href")).toBe(
+        `/services/${uid}`,
+      );
+    }
   });
 
-  it("an empty match list still renders heading/intro, with an empty panel (no links)", () => {
+  it("an empty match list still renders heading/intro, with an empty panel (no service links)", () => {
     const noMatchSlice = {
       ...sliceData,
       primary: { ...sliceData.primary, category_tag: "Orthodontics" },
@@ -128,7 +141,7 @@ describe("ServiceCategoryBand slice", () => {
     expect(getByRole("heading", { level: 3 }).textContent).toContain(
       "Cosmetic Dentistry",
     );
-    expect(queryAllByRole("link")).toHaveLength(0);
+    expect(serviceHrefs(queryAllByRole("link"))).toHaveLength(0);
   });
 });
 
@@ -189,7 +202,7 @@ describe("ServiceCategoryBand slice — authored label + order", () => {
     const { getAllByRole } = render(ServiceCategoryBand, {
       props: { slice, context: labelledContext },
     });
-    expect(getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual([
+    expect(serviceHrefs(getAllByRole("link"))).toEqual([
       "/services/whitening",
       "/services/bonding",
       "/services/veneers",

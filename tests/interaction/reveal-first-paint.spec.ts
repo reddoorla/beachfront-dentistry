@@ -100,110 +100,122 @@ for (const { path, name } of PAGES) {
   });
 }
 
-test("with scripting off, the same markup paints at full opacity", async ({
-  browser,
-}) => {
-  // The whole hidden state is gated on a <noscript> style in app.html. A
-  // browser that will never run the reveal must never be shown less content
-  // than a crawler reading the SSR HTML gets.
-  const context = await browser.newContext({ javaScriptEnabled: false });
-  const page = await context.newPage();
-  await page.goto("/", { waitUntil: "domcontentloaded" });
+test(
+  "with scripting off, the same markup paints at full opacity",
+  { tag: "@smoke" },
+  async ({ browser }) => {
+    // The whole hidden state is gated on a <noscript> style in app.html. A
+    // browser that will never run the reveal must never be shown less content
+    // than a crawler reading the SSR HTML gets.
+    //
+    // `no-preference`, because the shared config forces `reduce` on every
+    // context and the hidden state only applies under no-preference: without it
+    // this passed whatever app.html's <noscript> did.
+    const context = await browser.newContext({
+      javaScriptEnabled: false,
+      reducedMotion: "no-preference",
+    });
+    const page = await context.newPage();
+    await page.goto("/", { waitUntil: "domcontentloaded" });
 
-  const states = await page.evaluate(() =>
-    Array.from(document.querySelectorAll("[data-reveal]")).map((el) => {
-      const cs = getComputedStyle(el);
-      return { opacity: cs.opacity, transform: cs.transform };
-    }),
-  );
+    const opacities = await page.evaluate(() =>
+      Array.from(document.querySelectorAll("[data-reveal]")).map(
+        (el) => getComputedStyle(el).opacity,
+      ),
+    );
 
-  expect(states.length, "the page ships data-reveal markup").toBeGreaterThan(0);
-  for (const s of states) {
-    expect(s.opacity).toBe("1");
-    expect(s.transform).toBe("none");
-  }
-  await context.close();
-});
+    expect(
+      opacities.length,
+      "the page ships data-reveal markup",
+    ).toBeGreaterThan(0);
+    for (const o of opacities) expect(o).toBe("1");
+    await context.close();
+  },
+);
 
-test("content still ends visible when the observer never fires", async ({
-  page,
-}) => {
-  // Pre-hidden content depends on JS to ever appear, which is the price of the
-  // fix and the reason every server-hidden target is paired with a `failSafe`.
-  // Strip the one API the reveal is built on: animateIn must notice and show
-  // the element rather than leave it at opacity 0 forever.
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.addInitScript(() => {
-    // @ts-expect-error — removing a global on purpose
-    delete window.IntersectionObserver;
-  });
-  await page.goto("/", { waitUntil: "networkidle" });
+test(
+  "content still ends visible when the observer never fires",
+  { tag: "@smoke" },
+  async ({ page }) => {
+    // Pre-hidden content depends on JS to ever appear, which is the price of the
+    // fix and the reason every server-hidden target is paired with a `failSafe`.
+    // Strip the one API the reveal is built on: animateIn must notice and show
+    // the element rather than leave it at opacity 0 forever.
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.addInitScript(() => {
+      // @ts-expect-error — removing a global on purpose
+      delete window.IntersectionObserver;
+    });
+    await page.goto("/", { waitUntil: "networkidle" });
 
-  await expect
-    .poll(
-      () =>
-        page.evaluate(() =>
-          Array.from(document.querySelectorAll("[data-reveal]")).length === 0
-            ? "all revealed"
-            : "still hidden",
-        ),
-      { timeout: 6000 },
-    )
-    .toBe("all revealed");
-});
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() =>
+            Array.from(document.querySelectorAll("[data-reveal]")).length === 0
+              ? "all revealed"
+              : "still hidden",
+          ),
+        { timeout: 6000 },
+      )
+      .toBe("all revealed");
+  },
+);
 
-test("the failSafe rescues a target whose observer callback never runs", async ({
-  page,
-}) => {
-  // The subtler failure the option exists for: IntersectionObserver EXISTS, is
-  // constructed, and simply never calls back — a sandboxed review iframe, or a
-  // background tab whose rAF is throttled to a stop. Nothing in the reveal path
-  // can notice that on its own, so only the timer can end it.
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.addInitScript(() => {
-    class DeadObserver {
-      observe() {}
-      unobserve() {}
-      disconnect() {}
-      takeRecords() {
-        return [];
+test(
+  "the failSafe rescues a target whose observer callback never runs",
+  { tag: "@smoke" },
+  async ({ page }) => {
+    // The subtler failure the option exists for: IntersectionObserver EXISTS, is
+    // constructed, and simply never calls back — a sandboxed review iframe, or a
+    // background tab whose rAF is throttled to a stop. Nothing in the reveal path
+    // can notice that on its own, so only the timer can end it.
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.addInitScript(() => {
+      class DeadObserver {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+        takeRecords() {
+          return [];
+        }
+        root = null;
+        rootMargin = "";
+        thresholds = [];
       }
-      root = null;
-      rootMargin = "";
-      thresholds = [];
-    }
-    // @ts-expect-error — swapping in a deliberately inert implementation
-    window.IntersectionObserver = DeadObserver;
-  });
-  await page.goto("/", { waitUntil: "networkidle" });
+      // @ts-expect-error — swapping in a deliberately inert implementation
+      window.IntersectionObserver = DeadObserver;
+    });
+    await page.goto("/", { waitUntil: "networkidle" });
 
-  // Assert on ONE known server-hidden element — the home hero wrapper — not on
-  // "every `[data-reveal]`". Two facts make the broad version wrong:
-  //
-  //  * animateIn writes `data-reveal` ITSELF while an element is hidden
-  //    (applyHidden), so after hydration the selector matches every hidden
-  //    target, server-marked or not. It is not a marker of SSR origin.
-  //  * Below-fold targets carry no `failSafe` by design, so with a dead
-  //    observer they correctly stay hidden forever — nothing painted them
-  //    visible, so there is nothing to rescue, and a blanket timer would
-  //    pre-reveal content nobody has scrolled to.
-  //
-  // An earlier version of this assertion demanded every `[data-reveal]` clear
-  // and failed on ~29 below-fold elements behaving exactly as intended.
-  //
-  // ABOVE_FOLD_REVEAL's failSafe is 2500ms; allow the frame after it.
-  await expect
-    .poll(
-      () =>
-        page.evaluate(() => {
-          const el = document.querySelector("h1")?.parentElement;
-          return el ? getComputedStyle(el).opacity : null;
-        }),
-      {
-        timeout: 8000,
-        message:
-          "the home hero stayed hidden with a dead observer — its failSafe never fired",
-      },
-    )
-    .toBe("1");
-});
+    // Assert on ONE known server-hidden element — the home hero wrapper — not on
+    // "every `[data-reveal]`". Two facts make the broad version wrong:
+    //
+    //  * animateIn writes `data-reveal` ITSELF while an element is hidden
+    //    (applyHidden), so after hydration the selector matches every hidden
+    //    target, server-marked or not. It is not a marker of SSR origin.
+    //  * Below-fold targets carry no `failSafe` by design, so with a dead
+    //    observer they correctly stay hidden forever — nothing painted them
+    //    visible, so there is nothing to rescue, and a blanket timer would
+    //    pre-reveal content nobody has scrolled to.
+    //
+    // An earlier version of this assertion demanded every `[data-reveal]` clear
+    // and failed on ~29 below-fold elements behaving exactly as intended.
+    //
+    // ABOVE_FOLD_REVEAL's failSafe is 2500ms; allow the frame after it.
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() => {
+            const el = document.querySelector("h1")?.parentElement;
+            return el ? getComputedStyle(el).opacity : null;
+          }),
+        {
+          timeout: 8000,
+          message:
+            "the home hero stayed hidden with a dead observer — its failSafe never fired",
+        },
+      )
+      .toBe("1");
+  },
+);

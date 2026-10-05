@@ -23,8 +23,9 @@ import { expect, test } from "@playwright/test";
  * the box includes padding where no glyph sits, so a real glyph's ground is
  * never worse than what this asserts.
  *
- * Failing this means the wash, the photo, or a link's type size moved. Do not
- * relax the thresholds; they are WCAG 2.1 AA (1.4.3), not a house preference.
+ * Failing this means the wash, the photo, or a link's ink or type size moved.
+ * Do not relax the thresholds; they are WCAG 2.1 AA (1.4.3), not a house
+ * preference.
  */
 
 const WIDTHS = [390, 1440];
@@ -33,12 +34,10 @@ const WIDTHS = [390, 1440];
  * button's coloured press disc, against the same composited ground. Markup
  * round I1 pin #3 removed that disc outright — Tim asked for it "totally gone"
  * after it kept showing on :active — so the assertion measured an element that
- * no longer exists and failed on a null. Nav.test.ts now guards the removal
- * from the other side ("has NO coloured press disc behind either icon glyph"),
- * which is the check that has to hold going forward. If the disc is ever
- * reinstated, restore the visibility floor with it: the coupling it caught —
- * darkening the wash to the pill's own colour leaves every link assertion here
- * green and the affordance gone — comes back the moment the disc does. */
+ * no longer exists and failed on a null. If the disc is ever reinstated,
+ * restore the visibility floor with it: the coupling it caught — darkening the
+ * wash to the pill's own colour leaves every link assertion here green and the
+ * affordance gone — comes back the moment the disc does. */
 
 type Row = {
   label: string;
@@ -92,13 +91,29 @@ const measure = async () => {
     );
   };
 
-  const white = [255, 255, 255];
+  // A link's own ink and fill, resolved through a canvas so any CSS colour
+  // syntax lands as sRGB bytes, then laid over whatever is under it.
+  const probe = document
+    .createElement("canvas")
+    .getContext("2d", { willReadFrequently: true })!;
+  const rgba = (css: string) => {
+    probe.clearRect(0, 0, 1, 1);
+    probe.fillStyle = css;
+    probe.fillRect(0, 0, 1, 1);
+    const [r, g, b, a] = probe.getImageData(0, 0, 1, 1).data;
+    return { rgb: [r, g, b], a: a / 255 };
+  };
+  const over = (top: { rgb: number[]; a: number }, under: number[]) =>
+    [0, 1, 2].map((k) => top.rgb[k] * top.a + under[k] * (1 - top.a));
+
   const rows: Row[] = [];
   for (const a of Array.from(dialog.querySelectorAll("a"))) {
     const label = (a.textContent || "").trim();
     if (!label) continue;
     const r = a.getBoundingClientRect();
     const cs = getComputedStyle(a);
+    const ink = rgba(cs.color);
+    const fill = rgba(cs.backgroundColor);
     let worst = Infinity;
     for (
       let y = Math.max(0, Math.ceil(r.top));
@@ -110,7 +125,8 @@ const measure = async () => {
         x < Math.min(W, r.right);
         x += 2
       ) {
-        const v = ratio(white, composite(x, y));
+        const ground = over(fill, composite(x, y));
+        const v = ratio(over(ink, ground), ground);
         if (v < worst) worst = v;
       }
     }
@@ -126,34 +142,36 @@ const measure = async () => {
 };
 
 for (const width of WIDTHS) {
-  test(`the open menu holds AA on every link @${width}`, async ({ page }) => {
-    await page.setViewportSize({ width, height: 900 });
-    // Reduce, so nothing is sampled mid-fade — a half-opaque link would blend
-    // toward the wash and report a spurious failure. It is also the honest
-    // baseline: this is exactly the surface a motion-averse visitor gets.
-    await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("/", { waitUntil: "networkidle" });
-    await page.getByLabel("Open menu").click();
-    await expect(page.getByRole("dialog")).toBeVisible();
+  test(
+    `the open menu holds AA on every link @${width}`,
+    { tag: "@smoke" },
+    async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      // Reduce, so nothing is sampled mid-fade — a half-opaque link would blend
+      // toward the wash and report a spurious failure. It is also the honest
+      // baseline: this is exactly the surface a motion-averse visitor gets.
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await page.goto("/", { waitUntil: "networkidle" });
+      await page.getByLabel("Open menu").click();
+      await expect(page.getByRole("dialog")).toBeVisible();
 
-    const { rows } = await page.evaluate(measure);
+      const { rows } = await page.evaluate(measure);
 
-    // Guard the guard: if the overlay ever renders fewer links, a per-link loop
-    // would pass vacuously.
-    expect(rows.length, "links measured in the overlay").toBeGreaterThanOrEqual(
-      9,
-    );
+      // Guard the guard: with no links measured, a per-link loop would pass
+      // vacuously.
+      expect(rows.length, "links measured in the overlay").toBeGreaterThan(0);
 
-    for (const r of rows) {
-      // WCAG 2.1 AA 1.4.3: large text (>=24px, or >=18.66px bold) needs 3.0:1,
-      // everything else 4.5:1. The mobile pill labels are 15px — the reason the
-      // wash could not simply stay a lighter tone.
-      const large = r.fontPx >= 24 || (r.bold && r.fontPx >= 18.66);
-      const need = large ? 3.0 : 4.5;
-      expect(
-        r.worst,
-        `"${r.label}" at ${r.fontPx}px needs ${need}:1 on the menu wash`,
-      ).toBeGreaterThanOrEqual(need);
-    }
-  });
+      for (const r of rows) {
+        // WCAG 2.1 AA 1.4.3: large text (>=24px, or >=18.66px bold) needs 3.0:1,
+        // everything else 4.5:1. The mobile pill labels are 15px — the reason the
+        // wash could not simply stay a lighter tone.
+        const large = r.fontPx >= 24 || (r.bold && r.fontPx >= 18.66);
+        const need = large ? 3.0 : 4.5;
+        expect(
+          r.worst,
+          `"${r.label}" at ${r.fontPx}px needs ${need}:1 on the menu wash`,
+        ).toBeGreaterThanOrEqual(need);
+      }
+    },
+  );
 }

@@ -404,35 +404,33 @@ test("reduced motion: the answer is simply THERE on the next frame", async ({
   expect(m.insideAfterOneFrame).toBe(true);
 });
 
-test("collapsed card hides the answer and keeps it untabbable", async ({
-  page,
-}) => {
-  // The other half of the contract: the answer is clipped ON PURPOSE while
-  // closed, and `inert` keeps the hidden Read More link out of the tab order.
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/", { waitUntil: "networkidle" });
+test(
+  "collapsed card hides the answer and keeps it untabbable",
+  { tag: "@smoke" },
+  async ({ page }) => {
+    // The other half of the contract: the answer is clipped ON PURPOSE while
+    // closed, and `inert` keeps the hidden Read More link out of the tab order.
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/", { waitUntil: "networkidle" });
 
-  const card = page.locator(".qa-item").first();
-  await card.scrollIntoViewIfNeeded();
-  await expect(card.locator("button[aria-expanded]")).toHaveAttribute(
-    "aria-expanded",
-    "false",
-  );
+    const card = page.locator(".qa-item").first();
+    await card.scrollIntoViewIfNeeded();
+    await expect(card.locator("button[aria-expanded]")).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
 
-  const hidden = await card.evaluate((el) => {
-    const panel = el.querySelector('[id^="qa-panel-"]') as HTMLElement;
-    const box = panel.parentElement as HTMLElement;
-    return {
-      inert: panel.hasAttribute("inert"),
-      // Collapsed, the answer is translated out of the box entirely.
-      answerBelowBox:
-        panel.getBoundingClientRect().top >=
-        box.getBoundingClientRect().bottom - 1,
-    };
-  });
-  expect(hidden.inert).toBe(true);
-  expect(hidden.answerBelowBox).toBe(true);
-});
+    const inert = await card.evaluate((el) =>
+      el.querySelector('[id^="qa-panel-"]')!.hasAttribute("inert"),
+    );
+    expect(inert).toBe(true);
+
+    // Collapsed, the answer is clipped out of sight: IntersectionObserver
+    // applies the overflow-hidden box's clip, so a painted answer reads in view.
+    await expect(card.locator("button[aria-expanded]")).toBeInViewport();
+    await expect(card.locator('[id^="qa-panel-"]')).not.toBeInViewport();
+  },
+);
 
 // ONE GESTURE PER PAGE — the "Finally…" cards (SectionGrid's `cards` layout)
 // sit a screen above these Q&A cards on the home page and are their visual

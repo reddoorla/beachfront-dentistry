@@ -36,7 +36,7 @@
   // mobile, but collapse to a "+" accordion on desktop. Gate the mobile overlay
   // on the viewport store (JS, not a `lg:hidden` CSS class) so it isn't in the
   // DOM at the test's default 1024px width — the accordion test asserts the body
-  // is absent until the toggle is clicked, which must stay true on desktop.
+  // is inert until the toggle is clicked, which must stay true on desktop.
   // 992 (not 1024) to match the CSS desktop breakpoint (--breakpoint-lg): live
   // renders desktop from 992, so the accordion-card structure must switch there
   // too, or the 992–1023 seam shows stacked mobile cards inside the 3-up grid.

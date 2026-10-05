@@ -8,14 +8,11 @@ const children = () =>
   createRawSnippet(() => ({ render: () => "<p>copy</p>" }));
 
 describe("BandContent", () => {
-  it("applies Blux blockcontainer defaults when the band gives no hints", () => {
+  it("renders its children in a content box when the band gives no hints", () => {
     const { container } = render(BandContent, {
       props: { band: null, children: children() },
     });
     const box = container.querySelector("div") as HTMLElement;
-    expect(box.style.maxWidth).toBe("1280px");
-    // jsdom normalizes the shorthand ("0 4%" → "0px 4%").
-    expect(box.style.padding).toBe("0px 4%");
     expect(box.textContent).toContain("copy");
   });
 

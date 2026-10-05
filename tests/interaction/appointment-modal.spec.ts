@@ -46,7 +46,10 @@ async function openModal(page: Page) {
       timeout: 1500,
     });
   }).toPass({ timeout: 15_000 });
-  // The entrance is a 240ms CSS transition; let it land before measuring.
+}
+
+/** The entrance is a 240ms CSS transition; let it land before measuring. */
+async function settle(page: Page) {
   await page.waitForTimeout(400);
 }
 
@@ -88,6 +91,7 @@ for (const vp of [
     await page.setViewportSize(vp);
     await gotoContact(page);
     await openModal(page);
+    await settle(page);
 
     const r = await page.evaluate(() => {
       const d = document.querySelector("dialog")!.getBoundingClientRect();
@@ -100,76 +104,79 @@ for (const vp of [
     // …and it still keeps a gutter rather than running edge to edge.
     expect(r.x).toBeGreaterThanOrEqual(15);
     expect(r.width).toBeLessThanOrEqual(Math.min(512, vp.width - 32) + 1);
+
+    // The page behind holds still under a wheel over the backdrop. Probed
+    // before the lock, this moved the document 0 → 600; `body.style.overflow`
+    // alone cannot show it. The wheel heads whichever way the page CAN move.
+    const anchored = await page.evaluate(() => window.scrollY);
+    await page.mouse.move(5, 5);
+    await page.mouse.wheel(0, anchored > 0 ? -600 : 600);
+    await page.waitForTimeout(500);
+    expect(
+      await page.evaluate(() => window.scrollY),
+      "a wheel over the open modal scrolled the page behind it",
+    ).toBe(anchored);
   });
 }
 
-test("the page behind cannot scroll while the modal is open, on every close path", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await gotoContact(page);
+test(
+  "the page behind cannot scroll while the modal is open, on every close path",
+  { tag: "@smoke" },
+  async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await gotoContact(page);
 
-  for (const path of ["escape", "backdrop", "close-button"] as const) {
-    if (path !== "escape") await openModal(page);
-    else await openModal(page);
+    for (const path of ["escape", "backdrop", "close-button"] as const) {
+      await openModal(page);
 
-    const anchored = await page.evaluate(() => window.scrollY);
-    expect(await page.evaluate(() => document.body.style.overflow)).toBe(
-      "hidden",
-    );
-
-    // Probed before the fix: this moved the document 0 → 600.
-    await page.mouse.wheel(0, 600);
-    await page.waitForTimeout(250);
-    expect(await page.evaluate(() => window.scrollY)).toBe(anchored);
-
-    if (path === "escape") await page.keyboard.press("Escape");
-    else if (path === "backdrop")
-      await page.evaluate(() =>
-        (document.querySelector("dialog") as HTMLDialogElement).click(),
+      const anchored = await page.evaluate(() => window.scrollY);
+      expect(await page.evaluate(() => document.body.style.overflow)).toBe(
+        "hidden",
       );
-    else await page.click('dialog button[aria-label="Close"]');
 
-    await page.waitForTimeout(400);
-    // A lock that outlives its modal is the worse bug: the page would be
-    // permanently unscrollable. Assert the release, then prove it by scrolling.
-    expect(await page.evaluate(() => document.body.style.overflow)).toBe("");
-    expect(await page.evaluate(() => document.body.style.paddingRight)).toBe(
-      "",
-    );
-    await page.mouse.wheel(0, 300);
-    await page.waitForTimeout(250);
-    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(anchored);
-    await page.evaluate(() => window.scrollTo(0, 0));
-  }
-});
+      if (path === "escape") await page.keyboard.press("Escape");
+      else if (path === "backdrop")
+        await page.evaluate(() =>
+          (document.querySelector("dialog") as HTMLDialogElement).click(),
+        );
+      else await page.click('dialog button[aria-label="Close"]');
 
-test("the modal opens onto the Name field, and the ✕ is a real touch target", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await gotoContact(page);
-  await openModal(page);
+      await expect(page.locator(DIALOG)).toHaveCount(0);
+      // A lock that outlives its modal is the worse bug: the page would be
+      // permanently unscrollable. Assert the release, then prove it by scrolling.
+      await expect
+        .poll(() => page.evaluate(() => document.body.style.overflow))
+        .toBe("");
+      await expect
+        .poll(() => page.evaluate(() => document.body.style.paddingRight))
+        .toBe("");
+      await page.mouse.wheel(0, 300);
+      await expect
+        .poll(() => page.evaluate(() => window.scrollY))
+        .toBeGreaterThan(anchored);
+      await page.evaluate(() => window.scrollTo(0, 0));
+    }
+  },
+);
 
-  const s = await page.evaluate(() => {
-    const d = document.querySelector("dialog")!;
-    const close = d.querySelector<HTMLElement>('button[aria-label="Close"]')!;
-    const box = close.getBoundingClientRect();
-    return {
-      activeName: (document.activeElement as HTMLInputElement)?.name ?? null,
-      activeIsCloseButton: document.activeElement === close,
-      closeW: box.width,
-      closeH: box.height,
-    };
-  });
+test(
+  "the modal opens onto the Name field, and the ✕ is a real touch target",
+  { tag: "@smoke" },
+  async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await gotoContact(page);
+    await openModal(page);
 
-  // It used to be the ✕ — the keyboard path to booking started on the exit.
-  expect(s.activeIsCloseButton).toBe(false);
-  expect(s.activeName).toBe("name");
-  // WCAG 2.2 2.5.8 AA wants ≥24x24; the site's own icon controls are 44.
-  expect(s.closeW).toBeGreaterThanOrEqual(44);
-  expect(s.closeH).toBeGreaterThanOrEqual(44);
-});
+    // It used to be the ✕ — the keyboard path to booking started on the exit.
+    const close = page.locator('dialog button[aria-label="Close"]');
+    await expect(page.locator('dialog input[name="name"]')).toBeFocused();
+    await expect(close).not.toBeFocused();
+    // WCAG 2.2 2.5.8 AA wants ≥24x24.
+    const box = (await close.boundingBox())!;
+    expect(box.width).toBeGreaterThanOrEqual(24);
+    expect(box.height).toBeGreaterThanOrEqual(24);
+  },
+);
 
 test("the panel and the scrim arrive and leave together", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
@@ -181,6 +188,7 @@ test("the panel and the scrim arrive and leave together", async ({ page }) => {
   // @starting-style applies on every display:none → displayed transition, so
   // measuring the REopen is the same contract.
   await openModal(page);
+  await settle(page);
   await page.keyboard.press("Escape");
   await page.waitForTimeout(500);
 
@@ -252,6 +260,7 @@ test("prefers-reduced-motion: both the panel and the scrim collapse to nothing",
   await page.setViewportSize({ width: 1440, height: 900 });
   await gotoContact(page);
   await openModal(page);
+  await settle(page);
 
   const collapsed = await page.evaluate(() => {
     const d = document.querySelector("dialog")!;
@@ -298,31 +307,40 @@ test("prefers-reduced-motion: both the panel and the scrim collapse to nothing",
 // C — the fields
 // ---------------------------------------------------------------------------
 
-test("a resting field border is visible against the white card (≥3:1)", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await gotoContact(page);
-  await openModal(page);
-  // Nothing on screen in a focus state, so this is the RESTING border.
-  await page.evaluate(() => (document.activeElement as HTMLElement)?.blur());
-  await page.waitForTimeout(250);
+test(
+  "a resting field border is visible against the white card (≥3:1)",
+  { tag: "@smoke" },
+  async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await gotoContact(page);
+    await openModal(page);
+    // Nothing on screen in a focus state, so this is the RESTING border.
+    await page.evaluate(() => (document.activeElement as HTMLElement)?.blur());
+    await expect
+      .poll(() => page.evaluate(() => document.activeElement?.tagName))
+      .not.toBe("INPUT");
 
-  const measured = await page.evaluate((contrastSrc) => {
-    const contrast = eval(contrastSrc) as (a: string, b: string) => number;
-    const d = document.querySelector("dialog")!;
-    const field = d.querySelector<HTMLElement>('input[name="email"]')!;
-    const card =
-      d.querySelector<HTMLElement>(".bg-white") ?? field.parentElement!;
-    const border = getComputedStyle(field).borderTopColor;
-    const bg = getComputedStyle(card).backgroundColor;
-    return { border, bg, ratio: contrast(border, bg) };
-  }, CONTRAST_FN);
+    const measured = await page.evaluate((contrastSrc) => {
+      const contrast = eval(contrastSrc) as (a: string, b: string) => number;
+      const d = document.querySelector("dialog")!;
+      const field = d.querySelector<HTMLElement>('input[name="email"]')!;
+      // The card is the first painted ground behind the field.
+      let card = field.parentElement;
+      while (
+        card &&
+        getComputedStyle(card).backgroundColor === "rgba(0, 0, 0, 0)"
+      )
+        card = card.parentElement;
+      const border = getComputedStyle(field).borderTopColor;
+      const bg = getComputedStyle(card ?? document.body).backgroundColor;
+      return { border, bg, ratio: contrast(border, bg) };
+    }, CONTRAST_FN);
 
-  // `--color-light` (#fafafa) measured 1.04:1 here — the inputs were invisible
-  // boxes on white. 3:1 is the WCAG 1.4.11 non-text minimum.
-  expect(measured.ratio).toBeGreaterThanOrEqual(3);
-});
+    // `--color-light` (#fafafa) measured 1.04:1 here — the inputs were invisible
+    // boxes on white. 3:1 is the WCAG 1.4.11 non-text minimum.
+    expect(measured.ratio).toBeGreaterThanOrEqual(3);
+  },
+);
 
 test("focusing a field steps the border and the ring in together, over 150ms", async ({
   page,
@@ -336,6 +354,7 @@ test("focusing a field steps the border and the ring in together, over 150ms", a
   await page.setViewportSize({ width: 1440, height: 900 });
   await gotoContact(page);
   await openModal(page);
+  await settle(page);
 
   const before = await page.evaluate(() => {
     const cs = getComputedStyle(
@@ -377,30 +396,32 @@ test("focusing a field steps the border and the ring in together, over 150ms", a
   expect(combined.afterShadow).toContain("rgb(14, 119, 153)");
 });
 
-test("forced-colors: the focus ring survives (outline-hidden, not outline-none)", async ({
-  page,
-}) => {
-  await page.emulateMedia({ forcedColors: "active" });
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await gotoContact(page);
-  await openModal(page);
+test(
+  "forced-colors: the focus ring survives (outline-hidden, not outline-none)",
+  { tag: "@smoke" },
+  async ({ page }) => {
+    await page.emulateMedia({ forcedColors: "active" });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await gotoContact(page);
+    await openModal(page);
 
-  const outline = await page.evaluate(() => {
-    const field = document
-      .querySelector("dialog")!
-      .querySelector<HTMLInputElement>('input[name="email"]')!;
-    field.focus();
-    const cs = getComputedStyle(field);
-    return { style: cs.outlineStyle, width: cs.outlineWidth };
-  });
+    const outline = await page.evaluate(() => {
+      const field = document
+        .querySelector("dialog")!
+        .querySelector<HTMLInputElement>('input[name="email"]')!;
+      field.focus();
+      const cs = getComputedStyle(field);
+      return { style: cs.outlineStyle, width: cs.outlineWidth };
+    });
 
-  // Tailwind v4's `outline-none` resolves to `outline-style: none` and takes
-  // the forced-colors fallback with it; `outline-hidden` keeps a 2px
-  // transparent outline that the forced-colors palette repaints. Under
-  // forced colours the box-shadow ring is dropped by the engine, so this
-  // outline is the ONLY focus affordance left — which is the whole point.
-  expect(outline.style).not.toBe("none");
-});
+    // Tailwind v4's `outline-none` resolves to `outline-style: none` and takes
+    // the forced-colors fallback with it; `outline-hidden` keeps a 2px
+    // transparent outline that the forced-colors palette repaints. Under
+    // forced colours the box-shadow ring is dropped by the engine, so this
+    // outline is the ONLY focus affordance left — which is the whole point.
+    expect(outline.style).not.toBe("none");
+  },
+);
 
 // ---------------------------------------------------------------------------
 // B + D — the submit button
@@ -415,6 +436,7 @@ test("the submit button acknowledges hover, press and focus", async ({
   await page.setViewportSize({ width: 1440, height: 900 });
   await gotoContact(page);
   await openModal(page);
+  await settle(page);
 
   const resting = await page.evaluate((sel) => {
     const cs = getComputedStyle(document.querySelector(sel)!);
@@ -471,62 +493,82 @@ test("the submit button acknowledges hover, press and focus", async ({
   expect(focused.shadow).not.toBe("none");
 });
 
-test('"Sending…" stays readable — full-strength button, AA label, aria-busy', async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await gotoContact(page);
+test(
+  '"Sending…" stays readable — full-strength button, AA label, aria-busy',
+  { tag: "@smoke" },
+  async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await gotoContact(page);
 
-  // Hold the POST open so the in-flight state can actually be measured.
-  await page.route("**/contact-us**", async (route) => {
-    if (route.request().method() !== "POST") return route.fallback();
-    await new Promise((r) => setTimeout(r, 2500));
-    await route.fulfill({
-      status: 502,
-      contentType: "application/json",
-      body: JSON.stringify({
-        type: "failure",
+    // Hold the POST open so the in-flight state can actually be measured.
+    let release!: () => void;
+    const held = new Promise<void>((r) => (release = r));
+    await page.route("**/contact-us**", async (route) => {
+      if (route.request().method() !== "POST") return route.fallback();
+      await held;
+      await route.fulfill({
         status: 502,
-        data: '[{"error":1},"We could not send that just now."]',
-      }),
+        contentType: "application/json",
+        body: JSON.stringify({
+          type: "failure",
+          status: 502,
+          data: '[{"error":1},"We could not send that just now."]',
+        }),
+      });
     });
-  });
 
-  await openModal(page);
-  await page.fill('dialog input[name="name"]', "Casey Patient");
-  await page.fill('dialog input[name="email"]', "casey@example.com");
-  await page.fill('dialog input[name="phone"]', "3103789241");
-  await page.click(SUBMIT, { noWaitAfter: true });
-  await page.waitForTimeout(500);
+    await openModal(page);
+    await page.fill('dialog input[name="name"]', "Casey Patient");
+    await page.fill('dialog input[name="email"]', "casey@example.com");
+    await page.fill('dialog input[name="phone"]', "3103789241");
+    await page.click(SUBMIT, { noWaitAfter: true });
+    // The state change has to reach a screen reader, not just mutate the name.
+    await expect(page.locator(SUBMIT)).toHaveAttribute("aria-busy", "true");
 
-  const sending = await page.evaluate(
-    ([sel, contrastSrc]) => {
-      const contrast = eval(contrastSrc) as (a: string, b: string) => number;
-      const b = document.querySelector<HTMLButtonElement>(sel)!;
-      const cs = getComputedStyle(b);
-      return {
-        label: b.textContent?.trim(),
-        ariaBusy: b.getAttribute("aria-busy"),
-        disabled: b.disabled,
-        opacity: cs.opacity,
-        ratio: contrast(cs.color, cs.backgroundColor),
-      };
-    },
-    [SUBMIT, CONTRAST_FN] as const,
-  );
+    const sending = await page.evaluate(
+      ([sel, contrastSrc]) => {
+        const contrast = eval(contrastSrc) as (a: string, b: string) => number;
+        const b = document.querySelector<HTMLButtonElement>(sel)!;
+        const cs = getComputedStyle(b);
+        let ground = b.parentElement;
+        while (
+          ground &&
+          getComputedStyle(ground).backgroundColor === "rgba(0, 0, 0, 0)"
+        )
+          ground = ground.parentElement;
+        const rgb = (c: string) =>
+          c
+            .match(/[\d.]+/g)!
+            .slice(0, 3)
+            .map(Number);
+        const under = rgb(
+          getComputedStyle(ground ?? document.body).backgroundColor,
+        );
+        const alpha = Number(cs.opacity);
+        const painted = (c: string) =>
+          `rgb(${rgb(c)
+            .map((v, i) => v * alpha + under[i]! * (1 - alpha))
+            .join(", ")})`;
+        return {
+          disabled: b.disabled,
+          ratio: contrast(painted(cs.color), painted(cs.backgroundColor)),
+        };
+      },
+      [SUBMIT, CONTRAST_FN] as const,
+    );
 
-  expect(sending.label).toBe("Sending…");
-  // The state change has to reach a screen reader, not just mutate the name.
-  expect(sending.ariaBusy).toBe("true");
-  // AppointmentModal.test.ts pins the `disabled` attribute; only its STYLING
-  // changed.
-  expect(sending.disabled).toBe(true);
-  // `disabled:opacity-60` composited the label to 1.78:1 against the faded
-  // button — the least readable state on the site, at the exact moment the
-  // user is waiting and deciding whether to click again.
-  expect(sending.opacity).toBe("1");
-  expect(sending.ratio).toBeGreaterThanOrEqual(4.5);
-});
+    // The in-flight `disabled` is asserted here; only its STYLING changed.
+    expect(sending.disabled).toBe(true);
+    // `disabled:opacity-60` composited the label to 1.78:1 against the faded
+    // button — the least readable state on the site, at the exact moment the
+    // user is waiting and deciding whether to click again. So the ratio is taken
+    // on both colours as painted through the button's opacity.
+    expect(sending.ratio).toBeGreaterThanOrEqual(4.5);
+
+    release();
+    await expect(page.locator('dialog [role="alert"]')).toBeVisible();
+  },
+);
 
 test("a failure lands above the fields and barely moves the submit button", async ({
   page,
@@ -548,6 +590,7 @@ test("a failure lands above the fields and barely moves the submit button", asyn
   });
 
   await openModal(page);
+  await settle(page);
   await page.fill('dialog input[name="name"]', "Casey Patient");
   await page.fill('dialog input[name="email"]', "casey@example.com");
   await page.fill('dialog input[name="phone"]', "3103789241");

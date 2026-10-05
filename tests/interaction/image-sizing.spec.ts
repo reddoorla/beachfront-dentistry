@@ -223,24 +223,26 @@ test("the non-monotonic boxes are not understated on a 2x tablet", async ({
   await context.close();
 });
 
-test("every Prismic photo declares sizes and a loading strategy", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/", { waitUntil: "networkidle" });
-  const missing = await page.evaluate(() =>
-    Array.from(document.images)
-      .filter((img) => /images\.prismic\.io/.test(img.currentSrc || img.src))
-      .filter(
-        (img) => !img.getAttribute("sizes") || !img.getAttribute("loading"),
-      )
-      .map(
-        (img) =>
-          `${(img.currentSrc || img.src).split("/").pop()?.split("?")[0]} sizes=${img.getAttribute("sizes")} loading=${img.getAttribute("loading")}`,
-      ),
-  );
-  expect(
-    missing,
-    "a Prismic photo is rendering without PrismicPhoto — it will default to 100vw",
-  ).toEqual([]);
-});
+test(
+  "every Prismic photo declares sizes and a loading strategy",
+  { tag: "@smoke" },
+  async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/", { waitUntil: "networkidle" });
+    const missing = await page.evaluate(() =>
+      Array.from(document.images)
+        .filter((img) => /images\.prismic\.io/.test(img.currentSrc || img.src))
+        .filter(
+          (img) => !img.getAttribute("sizes") || !img.getAttribute("loading"),
+        )
+        .map(
+          (img) =>
+            `${(img.currentSrc || img.src).split("/").pop()?.split("?")[0]} sizes=${img.getAttribute("sizes")} loading=${img.getAttribute("loading")}`,
+        ),
+    );
+    expect(
+      missing,
+      "a Prismic photo is rendering without PrismicPhoto — it will default to 100vw",
+    ).toEqual([]);
+  },
+);
