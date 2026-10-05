@@ -51,8 +51,9 @@ const orNull = (image: ImageField | undefined): ImageField | null =>
  * photo instead of taking the page down.
  *
  * The cost of that choice is that a missing document is quiet, so it gets a
- * loud check somewhere else: tests/content/shared-photos.spec.ts asserts all
- * four render from images.prismic.io on the real routes, and fails if any of
+ * loud check somewhere else: tests/content/shared-photos.spec.ts asserts the
+ * photos that render on a real route come from images.prismic.io, checks
+ * `team_member_hero` against the Prismic document itself, and fails if any of
  * them silently reverts to nothing.
  */
 export async function loadSiteImages(client: Client): Promise<SiteImages> {

@@ -168,7 +168,7 @@ describe("ScreenWidthMedia quality reveal", () => {
 
     player.handlers.get("bufferend")!();
     await tick();
-    expect(iframe.className).toContain("opacity-100");
+    expect(iframe.className).not.toContain("opacity-0");
   });
 
   it("soft cap: reveals 1.2s after the quality change is accepted", async () => {
@@ -179,14 +179,14 @@ describe("ScreenWidthMedia quality reveal", () => {
 
     vi.advanceTimersByTime(1200);
     await tick();
-    expect(iframe.className).toContain("opacity-100");
+    expect(iframe.className).not.toContain("opacity-0");
   });
 
   it("hard cap: reveals after 6s even if setQuality never settles", async () => {
     const { iframe } = await renderWithPlayer();
     vi.advanceTimersByTime(6000);
     await tick();
-    expect(iframe.className).toContain("opacity-100");
+    expect(iframe.className).not.toContain("opacity-0");
   });
 
   it("falls back to the poster and destroys the player on error", async () => {

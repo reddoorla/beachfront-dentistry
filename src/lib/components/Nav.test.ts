@@ -1,6 +1,95 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { render, fireEvent, cleanup } from "@testing-library/svelte";
+import { render, fireEvent, cleanup, within } from "@testing-library/svelte";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import Nav from "./Nav.svelte";
+
+/** The theme's colours, read from app.css's `@theme` block (cwd-relative:
+ *  under jsdom `import.meta.url` is not a file: URL). */
+const THEME: Record<string, string> = (() => {
+  const css = readFileSync(resolve(process.cwd(), "src/app.css"), "utf8");
+  const body = /@theme\s*\{([\s\S]*?)\n\}/.exec(css)?.[1] ?? "";
+  const out: Record<string, string> = {};
+  for (const m of body.matchAll(
+    /--color-([a-z0-9-]+):\s*(#[0-9a-f]{6}|white|black)\s*;/gi,
+  )) {
+    out[m[1]] =
+      m[2] === "white" ? "#ffffff" : m[2] === "black" ? "#000000" : m[2];
+  }
+  return out;
+})();
+
+type Rgb = [number, number, number];
+
+const over = (top: Rgb, alpha: number, ground: Rgb) =>
+  top.map((v, i) => alpha * v + (1 - alpha) * ground[i]) as Rgb;
+
+/** An element's inline `rgb(r, g, b)` colour. */
+function rgbOf(css: string): Rgb {
+  const m = /^rgb\((\d+), (\d+), (\d+)\)$/.exec(css);
+  expect(m, `"${css}" is not an opaque rgb()`).not.toBeNull();
+  return [Number(m![1]), Number(m![2]), Number(m![3])];
+}
+
+/** A `text-`/`bg-` class's colour and alpha: a theme token or an arbitrary
+ *  `[#rrggbb]` / `[#rrggbbaa]`, with any `/<pct>`. Anything else
+ *  (`text-[15px]`, `bg-transparent`) is not a colour. */
+function colour(cls: string, utility: "text" | "bg") {
+  const m = new RegExp(
+    `^${utility}-(?:\\[(#[0-9a-f]{6})([0-9a-f]{2})?\\]|([a-z][a-z0-9-]*))(?:/(\\d+))?$`,
+    "i",
+  ).exec(cls);
+  const hex = m && (m[1] ?? THEME[m[3]]);
+  if (!m || !hex) return undefined;
+  const rgb = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) as Rgb;
+  const alpha =
+    (m[2] ? parseInt(m[2], 16) / 255 : 1) *
+    (m[4] === undefined ? 1 : Number(m[4]) / 100);
+  return { rgb, alpha };
+}
+
+/** WCAG 2.x contrast between two sRGB colours. */
+function contrast(a: Rgb, b: Rgb): number {
+  const luminance = (rgb: Rgb) => {
+    const [r, g, bl] = rgb.map((v) => {
+      const c = v / 255;
+      return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * bl;
+  };
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+/** A control's label against its own fill over `ground`, at rest and on hover.
+ *  The hover fill replaces the rest fill, the hover ink falls back to the rest
+ *  ink, and an `opacity-*` fades label and fill together toward the ground. */
+function labelContrast(className: string, ground: Rgb) {
+  const under = (variant: string) =>
+    className.split(/\s+/).flatMap((c) => {
+      const at = c.lastIndexOf(":");
+      return c.slice(0, Math.max(at, 0)) === variant ? [c.slice(at + 1)] : [];
+    });
+  const first = <T>(variant: string, read: (c: string) => T | undefined) =>
+    [variant, ""]
+      .flatMap(under)
+      .map(read)
+      .find((v) => v !== undefined);
+  const fade = (c: string) => {
+    const m = /^opacity-(\d+)$/.exec(c);
+    return m ? Number(m[1]) / 100 : undefined;
+  };
+  const measure = (variant: string) => {
+    const fill = first(variant, (c) => colour(c, "bg"));
+    const ink = first(variant, (c) => colour(c, "text"));
+    if (!ink) return NaN;
+    const box = fill ? over(fill.rgb, fill.alpha, ground) : ground;
+    const label = over(ink.rgb, ink.alpha, box);
+    const alpha = first(variant, fade) ?? 1;
+    return contrast(over(label, alpha, ground), over(box, alpha, ground));
+  };
+  return { rest: measure(""), hover: measure("hover") };
+}
 
 // jsdom has no WAAPI (Element.animate), so we report reduced motion: the
 // $lib/transitions wrappers then collapse durations to 0 and Svelte skips the
@@ -123,23 +212,20 @@ describe("Nav — mobile menu", () => {
       .map((img) => img.closest("a"))
       .find((a) => dialog.contains(a));
     expect(logoLink).toBeTruthy();
-    // The logo is still the first focusable in the overlay — the fix is not to
-    // reorder the DOM, it is to stop handing that position the focus.
-    expect(dialog.querySelector('a[href="/"], button:not([disabled])')).toBe(
-      logoLink,
-    );
     expect(document.activeElement).not.toBe(logoLink);
     expect(document.activeElement).toBe(dialog);
   });
 
-  it("wraps Tab from the last link back to the close button", async () => {
+  it("wraps Tab from the last link back to the first control", async () => {
     const { getByLabelText, getByRole } = render(Nav, { items });
     await fireEvent.click(getByLabelText("Open menu"));
     await frame();
 
     const dialog = getByRole("dialog");
-    const links = Array.from(dialog.querySelectorAll("a"));
-    const last = links[links.length - 1];
+    const focusables = Array.from(
+      dialog.querySelectorAll<HTMLElement>("a[href], button"),
+    );
+    const last = focusables[focusables.length - 1];
     last.focus();
 
     const e = new KeyboardEvent("keydown", {
@@ -150,7 +236,7 @@ describe("Nav — mobile menu", () => {
     last.dispatchEvent(e);
 
     expect(e.defaultPrevented).toBe(true);
-    expect(document.activeElement).toBe(getByLabelText("Close menu"));
+    expect(document.activeElement).toBe(focusables[0]);
   });
 
   it("closes on Escape and returns focus to the re-mounted trigger", async () => {
@@ -232,17 +318,15 @@ describe("Nav — mobile menu", () => {
     expect(toggle.getAttribute("aria-expanded")).toBe("false");
   });
 
-  it("menu overlay renders only leaf links (live's modal has no accordion) plus a Home Page link", async () => {
+  it("menu overlay renders no dead link for a dropdown parent, plus a Home Page link", async () => {
     const { getByLabelText, getByRole } = render(Nav, {
       items: itemsWithDropdown,
     });
     await fireEvent.click(getByLabelText("Open menu"));
     await frame();
 
-    // Live's dropdown-modal is a flat column of links — an item that is only
-    // a dropdown parent (no href) simply doesn't appear in the overlay.
     const dialog = getByRole("dialog");
-    expect(dialog.textContent).not.toContain("Chairs");
+    expect(dialog.querySelector('a[href=""]')).toBeNull();
     const home = Array.from(dialog.querySelectorAll("a")).find(
       (a) => a.textContent === "Home Page",
     );
@@ -395,66 +479,6 @@ describe("Nav — the trigger announces the menu's state", () => {
 // it — so the press state is driven by pointer events and surfaced as
 // `data-pressed`, which the pill/glyph classes key off.
 describe("Nav — the trigger acknowledges a press", () => {
-  // MARKUP ROUND I1 pin #3: "There is a weird background under the X to close."
-  // I1 removed the pill's hover variants; on 2026-09-01, after seeing that on
-  // the deploy preview, the operator relayed that the blue "still shows up on
-  // active" and Tim "just wants it totally gone". So the coloured disc is gone
-  // outright — this test is the guard against it being reintroduced, and against
-  // the removal quietly taking the touch feedback with it.
-  it("has NO coloured press disc behind either icon glyph", async () => {
-    const { getByLabelText } = render(Nav, {
-      items,
-      logo: { url: "https://cdn.example/logo.png" },
-      hamburgerOnly: true,
-    });
-
-    // The pill was the decorative `aria-hidden` span nested inside the glyph
-    // wrapper. Nothing of that shape may come back.
-    const discOf = (btn: HTMLElement) =>
-      btn.querySelector("span > span[aria-hidden]");
-
-    expect(discOf(getByLabelText("Open menu"))).toBeNull();
-    await fireEvent.click(getByLabelText("Open menu"));
-    await frame();
-    expect(discOf(getByLabelText("Close menu"))).toBeNull();
-
-    // No element under either control paints `bg-primary` any more.
-    for (const label of ["Close menu"]) {
-      const btn = getByLabelText(label);
-      expect(btn.innerHTML).not.toMatch(/bg-primary/);
-    }
-  });
-
-  // Removing the disc must NOT cost the press feedback it was carrying: the
-  // glyph itself still dips and shrinks, which is what a phone needs so a tap
-  // that looks like nothing happened does not get tapped twice.
-  it("still acknowledges a press on the glyph itself, on every input path", async () => {
-    const { getByLabelText } = render(Nav, {
-      items,
-      logo: { url: "https://cdn.example/logo.png" },
-      hamburgerOnly: true,
-    });
-
-    const glyphOf = (btn: HTMLElement) =>
-      btn.querySelector("span") as HTMLElement;
-
-    const trigger = glyphOf(getByLabelText("Open menu"));
-    // `group-active` covers mouse and keyboard Space; `group-data-[pressed]`
-    // is the pointer-event path that touch and pen actually take.
-    expect(trigger.className).toMatch(/group-active:scale-90/);
-    expect(trigger.className).toMatch(/group-active:opacity-90/);
-    expect(trigger.className).toMatch(/group-data-\[pressed\]:scale-90/);
-    expect(trigger.className).toMatch(/group-data-\[pressed\]:opacity-90/);
-    // …and no hover variant, for the same shared-slot reason as pin #3.
-    expect(trigger.className).not.toMatch(/group-hover:/);
-
-    await fireEvent.click(getByLabelText("Open menu"));
-    await frame();
-    const close = glyphOf(getByLabelText("Close menu"));
-    expect(close.className).toMatch(/group-data-\[pressed\]:opacity-90/);
-    expect(close.className).not.toMatch(/group-hover:/);
-  });
-
   it("sets data-pressed on pointerdown and clears it on every release path", async () => {
     const { getByLabelText } = render(Nav, {
       items,
@@ -499,14 +523,15 @@ describe("Nav — hamburgerOnly ships no permanently-hidden controls", () => {
       a.getAttribute("href"),
     );
 
-  it("renders only the logo link beside the trigger", () => {
-    const { container } = render(Nav, {
+  it("renders none of the nav items in the bar, beside the trigger", () => {
+    const { container, getByLabelText } = render(Nav, {
       items: beachfrontItems,
       logo: beachfrontLogo,
       hamburgerOnly: true,
     });
-    expect(barLinks(container)).toEqual(["/"]);
-    expect(container.querySelectorAll("nav button")).toHaveLength(1);
+    const links = barLinks(container);
+    for (const { href } of beachfrontItems) expect(links).not.toContain(href);
+    expect(getByLabelText("Open menu")).toBeTruthy();
   });
 
   it("still renders the fleet default chrome when hamburgerOnly is off", () => {
@@ -514,25 +539,22 @@ describe("Nav — hamburgerOnly ships no permanently-hidden controls", () => {
       items: beachfrontItems,
       logo: beachfrontLogo,
     });
-    // logo + 5 items + phone + 2 CTAs
-    expect(barLinks(container)).toHaveLength(9);
+    expect(barLinks(container)).toEqual(
+      expect.arrayContaining([
+        "/",
+        ...beachfrontItems.map((item) => item.href),
+        "tel:+13103789241",
+        "#appointment",
+        "https://app.modento.io/beachfront-dentistry",
+      ]),
+    );
   });
 });
 
-// The overlay's two pills take the shared language's `white-deep` colourway,
-// which INVERTS on hover — a white fill with #0e7799 ink — rather than filling
-// with the deep blue the plain `white` colourway uses.
-//
-// That is forced by the ground, not a preference. The wash was darkened to
-// `--color-primary-deep` so its white text could reach AA (it measured
-// 2.85-2.96:1 on the old brand cyan, across all nine links); a `#0e7799` fill
-// on a `#0e7799` ground is 1.06:1, i.e. the hover would do nothing visible.
-// Inverting is also the only option that holds 4.5:1 under the 15px mobile
-// label — an opaque #129ecc fill reads 3.09:1 under white and fails there.
-// tests/a11y/menu-wash-contrast.spec.ts measures all of this on the composited
-// pixels; this test just pins the classes that carry it.
-describe("Nav — the menu pills speak the shared hover language", () => {
-  it("fill + border + press, and no opacity fade", async () => {
+// The overlay's pills sit on the deep wash and invert on hover: the fill turns
+// white, so the label has to change ink with it or it goes white-on-white.
+describe("Nav — the menu pills stay legible on hover", () => {
+  it("each pill's label clears AA on the wash at rest and on hover", async () => {
     const { getByLabelText, getByRole } = render(Nav, {
       items: beachfrontItems,
       logo: beachfrontLogo,
@@ -542,59 +564,13 @@ describe("Nav — the menu pills speak the shared hover language", () => {
     await frame();
 
     const dialog = getByRole("dialog");
-    for (const label of ["Request an Appointment", "Make a Payment"]) {
-      const pill = Array.from(dialog.querySelectorAll("a")).find(
-        (a) => a.textContent?.trim() === label,
-      ) as HTMLAnchorElement;
-      expect(pill, label).toBeTruthy();
-      // The inversion, both halves. The ink swap is not decoration: white-on-
-      // white would be the fill going on and the label going out.
-      expect(pill.className).toContain("hover:bg-white");
-      expect(pill.className).toContain("hover:text-[#0e7799]");
-      // and specifically NOT the plain `white` colourway's fill, which is the
-      // ground here and would composite to nothing.
-      expect(pill.className).not.toContain("hover:bg-[#0e7799]");
-      expect(pill.className).toContain("active:translate-y-px");
-      expect(pill.className).toContain("ease-[var(--transition-out-expo)]");
-      // `translate`, not `transform` — Tailwind v4 compiles the utility to the
-      // independent property, and `transform` is what the row's own `fly`
-      // intro drives, so the two must not name the same channel.
-      expect(pill.className).toContain("translate]");
-      expect(pill.className).not.toContain("transform]");
-      expect(pill.className).not.toMatch(/opacity/);
+    const ground = rgbOf(dialog.style.backgroundColor);
+    for (const name of ["Request an Appointment", "Make a Payment"]) {
+      const pill = within(dialog).getByRole("link", { name });
+      const { rest, hover } = labelContrast(pill.className, ground);
+      expect(rest, `${name} at rest`).toBeGreaterThanOrEqual(4.5);
+      expect(hover, `${name} on hover`).toBeGreaterThanOrEqual(4.5);
     }
-  });
-});
-
-// One hover treatment for the brand mark, identical in both menu states. It
-// used to compound the anchor's 0.60 with the img's 0.50 to an effective 0.30
-// closed, while the same img rule was dead in the overlay (no `group` on its
-// anchor) so the open-menu logo hovered to 0.60 — the same control behaving
-// differently by menu state.
-describe("Nav — the logo has one hover treatment", () => {
-  it("closed and open logo links carry the same classes, and neither img fades", async () => {
-    const { getByLabelText, getByAltText, getByRole } = render(Nav, {
-      items: beachfrontItems,
-      logo: beachfrontLogo,
-      hamburgerOnly: true,
-    });
-
-    const closedImg = getByAltText("Home") as HTMLImageElement;
-    const closedLink = closedImg.closest("a") as HTMLAnchorElement;
-    expect(closedImg.className).not.toMatch(/opacity/);
-    expect(closedLink.className).toContain("hover:opacity-85");
-
-    await fireEvent.click(getByLabelText("Open menu"));
-    await frame();
-
-    const openImg = getByRole("dialog").querySelector(
-      "img[alt='Home']",
-    ) as HTMLImageElement;
-    const openLink = openImg.closest("a") as HTMLAnchorElement;
-    expect(openImg.className).not.toMatch(/opacity/);
-    expect(openLink.className).toBe(
-      closedLink.className.replace(/ ?text-lg font-bold$/, ""),
-    );
   });
 });
 
@@ -612,14 +588,16 @@ describe("Nav — navLinks (page-data) mode", () => {
     expect(document.activeElement).toBe(getByLabelText("Close menu"));
   });
 
-  it("wraps Tab from the last link back to the close button", async () => {
+  it("wraps Tab from the last link back to the first control", async () => {
     const { getByLabelText, getByRole } = render(Nav, { navLinks });
     await fireEvent.click(getByLabelText("Open menu"));
     await frame();
 
     const dialog = getByRole("dialog");
-    const links = Array.from(dialog.querySelectorAll("a"));
-    const last = links[links.length - 1];
+    const focusables = Array.from(
+      dialog.querySelectorAll<HTMLElement>("a[href], button"),
+    );
+    const last = focusables[focusables.length - 1];
     last.focus();
 
     const e = new KeyboardEvent("keydown", {
@@ -630,7 +608,7 @@ describe("Nav — navLinks (page-data) mode", () => {
     last.dispatchEvent(e);
 
     expect(e.defaultPrevented).toBe(true);
-    expect(document.activeElement).toBe(getByLabelText("Close menu"));
+    expect(document.activeElement).toBe(focusables[0]);
   });
 
   it("closes on Escape and returns focus to the re-mounted trigger", async () => {

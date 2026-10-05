@@ -355,7 +355,8 @@
            the only other gap between the panel's resting bottom edge and the
            box's. The trailing +1px is deliberate — it parks the panel's top
            one pixel BELOW the clip line so an under-travel leak still fails
-           tests/interaction/qa-expand.spec.ts's `top >= box.bottom - 1`.
+           the collapsed panel's `not.toBeInViewport()` in
+           tests/interaction/qa-expand.spec.ts.
            This was a flat 400px, which started the panel ~537px below a 183px
            journey: measured 237/246/238ms (home) and 253/253/260ms (atd) at
            1440/834/390 before the answer's first pixel cleared the mask, so a

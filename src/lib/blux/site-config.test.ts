@@ -1,5 +1,44 @@
 import { describe, it, expect } from "vitest";
+import { existsSync, readdirSync } from "node:fs";
+import { resolve } from "node:path";
 import { loadSiteConfig, footerColumns, type SiteConfig } from "./site-config";
+import { TITLES } from "$lib/beachfront-pages.js";
+import {
+  COLLECTION_ITEM_CONTENT,
+  NEWS_ARTICLE_CONTENT,
+  PERSON_CONTENT,
+} from "$lib/beachfront-entities.js";
+
+/** Every path this site answers with a page, from what the repo itself
+ *  defines: the seeded `page` documents behind the `[uid]` catch-all, the
+ *  seeded entities behind each `[slug]` route, and every static route
+ *  directory. The catch-all routes ANY one-segment path, so the route table
+ *  alone cannot tell `/our-team` from `/our-teams`; only the documents can. A
+ *  page published in Prismic without a seed entry is not visible from here;
+ *  add it to the seed (src/lib/beachfront-pages.js) before linking to it. */
+function servedPaths(): Set<string> {
+  const routes = resolve(process.cwd(), "src/routes");
+  const staticRoutes = readdirSync(routes, { withFileTypes: true })
+    .filter((d) => d.isDirectory() && !/[[(]/.test(d.name))
+    .filter((d) =>
+      ["+page.svelte", "+page.server.ts", "+page.ts"].some((f) =>
+        existsSync(resolve(routes, d.name, f)),
+      ),
+    )
+    .map((d) => `/${d.name}`);
+  const under = (prefix: string, uids: object) =>
+    Object.keys(uids).map((uid) => `${prefix}/${uid}`);
+  return new Set([
+    "/",
+    ...Object.keys(TITLES)
+      .filter((uid) => uid !== "home")
+      .map((uid) => `/${uid}`),
+    ...under("/services", COLLECTION_ITEM_CONTENT),
+    ...under("/team-members", PERSON_CONTENT),
+    ...under("/questions", NEWS_ARTICLE_CONTENT),
+    ...staticRoutes,
+  ]);
+}
 
 describe("loadSiteConfig", () => {
   it("returns a well-formed config", () => {
@@ -15,14 +54,31 @@ describe("loadSiteConfig", () => {
     // conforms to the SiteConfig shape.
     const config: SiteConfig = loadSiteConfig();
 
-    expect(config.nav.items).toHaveLength(5);
-    expect(config.nav.items.map((item) => item.href)).toEqual([
-      "/your-first-visit",
-      "/our-team",
-      "/services",
-      "/ask-the-doctor",
-      "/contact-us",
-    ]);
+    // The practice's five destinations stay reachable from the menu. A
+    // designer may add entries or reorder them; that is not a bug.
+    expect(config.nav.items.map((item) => item.href)).toEqual(
+      expect.arrayContaining([
+        "/your-first-visit",
+        "/our-team",
+        "/services",
+        "/ask-the-doctor",
+        "/contact-us",
+      ]),
+    );
+  });
+
+  it("points every internal nav link at a page this site serves", () => {
+    const served = servedPaths();
+    // Guard the guard: an empty set would fail every link for the wrong reason.
+    expect(served.has("/our-team")).toBe(true);
+    const internal = loadSiteConfig()
+      .nav.items.map((item) => item.href)
+      .filter((href) => href.startsWith("/"));
+    expect(internal.length).toBeGreaterThan(0);
+    for (const href of internal) {
+      const path = href.replace(/[?#].*$/, "").replace(/(.)\/$/, "$1");
+      expect(served.has(path), `${href} resolves to no page`).toBe(true);
+    }
   });
 });
 

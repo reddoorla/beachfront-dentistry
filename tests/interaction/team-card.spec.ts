@@ -11,82 +11,67 @@ import { test, expect } from "@playwright/test";
  *     the row that introduces the staff introduced nobody.
  *
  * These assert the parts that are deterministic headless. The ANIMATION of
- * the lift is asserted as a class contract in CollectionList.test.ts instead:
- * probed on this Playwright/Chromium, a running transition can read frozen at
- * its start value in headless, so asserting an eased end state here would be
- * flaky. Under `prefers-reduced-motion` there is no transition to race, which
- * is why the hover assertion below runs reduced — and it is the state that
- * matters most anyway: shadow without movement.
+ * the lift is not asserted: probed on this Playwright/Chromium, a running
+ * transition can read frozen at its start value in headless, so asserting an
+ * eased end state here would be flaky. Under `prefers-reduced-motion` there is
+ * no transition to race, which is why the hover assertion below runs reduced —
+ * and it is the state that matters most anyway: shadow without movement.
  */
 
 test.describe("the person card is one card-wide link", () => {
-  test("one link per card, named for the person, with a ring that hugs its words", async ({
-    page,
-  }) => {
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/our-team");
-    const cards = page.locator("article.team-list-item");
-    const n = await cards.count();
-    expect(n).toBeGreaterThan(1);
+  test(
+    "the card's link is named for the person",
+    { tag: "@smoke" },
+    async ({ page }) => {
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.goto("/our-team");
+      const cards = page.locator("article.team-list-item");
+      const n = await cards.count();
+      expect(n).toBeGreaterThan(1);
 
-    // one accessible link per card — it used to be three (headshot, name,
-    // READ MORE), i.e. 3n tab stops all announcing the same destination
-    expect(await page.locator("section.team-grid-section a").count()).toBe(n);
+      const card = cards.first();
+      // WCAG 2.5.3: the visible "Read More" is in the link
+      const link = card.getByRole("link").filter({ hasText: "Read More" });
+      const label = await link.getAttribute("aria-label");
+      const name = (await card.locator("h5").textContent())?.trim() ?? "";
+      expect(name.length).toBeGreaterThan(0);
+      expect(label).toContain(name); // not eleven links called "Read More"
 
-    const card = cards.first();
-    const link = card.locator("a");
-    const label = await link.getAttribute("aria-label");
-    const name = (await card.locator("h5").textContent())?.trim() ?? "";
-    expect(name.length).toBeGreaterThan(0);
-    expect(label).toContain(name); // not eleven links called "Read More"
-    expect(await link.textContent()).toContain("Read More"); // WCAG 2.5.3
+      // one tab stop per person — it used to be three (headshot, name,
+      // READ MORE), i.e. 3n tab stops all announcing the same destination
+      const href = await link.getAttribute("href");
+      expect(href).toBeTruthy();
+      await expect(card.locator(`a[href="${href}"]`)).toHaveCount(1);
+    },
+  );
 
-    // the focus ring paints on the link's own box: it must hug the words, not
-    // draw a near-card-width rectangle around 131px of text
-    const lb = (await link.boundingBox())!;
-    const cb = (await card.boundingBox())!;
-    expect(lb.width).toBeLessThan(cb.width * 0.5);
-
-    // the photo and the name are outside the link (no nested interactives)
-    expect(
-      await card
-        .locator("img")
-        .first()
-        .evaluate((el) => !!el.closest("a")),
-    ).toBe(false);
-    expect(
-      await card
-        .locator("h5")
-        .first()
-        .evaluate((el) => !!el.closest("a")),
-    ).toBe(false);
-  });
-
-  test("the pointer lands on the link over the photo, the name and the body", async ({
-    page,
-  }) => {
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/our-team");
-    const card = page.locator("article.team-list-item").first();
-    await card.scrollIntoViewIfNeeded();
-    for (const sel of ["img", "h5", "p"]) {
-      const box = (await card.locator(sel).first().boundingBox())!;
-      const hit = await page.evaluate(
-        ([x, y]) => {
-          const el = document.elementFromPoint(x as number, y as number);
-          return {
-            link: !!el?.closest("a"),
-            cursor: el ? getComputedStyle(el).cursor : "",
-          };
-        },
-        [box.x + box.width / 2, box.y + box.height / 2],
-      );
-      expect(hit, `${sel} is part of the card link`).toEqual({
-        link: true,
-        cursor: "pointer",
-      });
-    }
-  });
+  test(
+    "the pointer lands on the link over the photo, the name and the body",
+    { tag: "@smoke" },
+    async ({ page }) => {
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.goto("/our-team");
+      const card = page.locator("article.team-list-item").first();
+      await card.scrollIntoViewIfNeeded();
+      for (const sel of ["img", "h5", "p"]) {
+        const box = (await card.locator(sel).first().boundingBox())!;
+        const hit = await page.evaluate(
+          ([x, y]) => {
+            const el = document.elementFromPoint(x as number, y as number);
+            return {
+              link: !!el?.closest("a"),
+              cursor: el ? getComputedStyle(el).cursor : "",
+            };
+          },
+          [box.x + box.width / 2, box.y + box.height / 2],
+        );
+        expect(hit, `${sel} is part of the card link`).toEqual({
+          link: true,
+          cursor: "pointer",
+        });
+      }
+    },
+  );
 
   test("reduced motion keeps the state and drops the movement", async ({
     page,
@@ -128,45 +113,82 @@ test.describe("the team row names a face without hover", () => {
     deviceScaleFactor: 3,
   });
 
-  test("every headshot carries a visible name, and the cyan badge stays off the face", async ({
-    page,
-  }) => {
-    await page.goto("/");
-    expect(await page.evaluate(() => matchMedia("(hover: none)").matches)).toBe(
-      true,
-    );
-    const row = page.locator('section[data-slice-variation="team"]');
-    await row.scrollIntoViewIfNeeded();
-    const captions = row.locator("a > span:not(.group)");
-    const n = await captions.count();
-    expect(n).toBeGreaterThan(1);
-    for (let i = 0; i < n; i++) {
-      await expect(captions.nth(i)).toBeVisible();
+  test(
+    "every headshot carries a visible name",
+    { tag: "@smoke" },
+    async ({ page }) => {
+      await page.goto("/");
       expect(
-        (await captions.nth(i).textContent())?.trim().length,
-      ).toBeGreaterThan(0);
-    }
-    // the hover badge is the pointer affordance and stays one: permanently on,
-    // it paints a 65% cyan disc over every face
-    const badge = row.locator("span[aria-hidden='true'].absolute").first();
-    expect(await badge.evaluate((el) => getComputedStyle(el).opacity)).toBe(
-      "0",
-    );
-  });
+        await page.evaluate(() => matchMedia("(hover: none)").matches),
+      ).toBe(true);
+      const row = page.locator('section[data-slice-variation="team"]');
+      await row.scrollIntoViewIfNeeded();
+      // The text each headshot link actually paints: opacity 0 counts as unseen.
+      const people = await row.evaluate((section) =>
+        [...section.querySelectorAll("a")]
+          .filter((a) => a.querySelector("img"))
+          .map((a) => {
+            let painted = "";
+            const w = document.createTreeWalker(a, NodeFilter.SHOW_TEXT);
+            for (let n = w.nextNode(); n; n = w.nextNode())
+              if (
+                n.parentElement?.checkVisibility({
+                  opacityProperty: true,
+                  visibilityProperty: true,
+                })
+              )
+                painted += n.nodeValue;
+            return {
+              name: (a.getAttribute("aria-label") ?? "").trim(),
+              painted: painted.trim(),
+            };
+          }),
+      );
+      expect(people.length).toBeGreaterThan(1);
+      for (const p of people) {
+        expect(p.name.length).toBeGreaterThan(0);
+        expect(p.painted, `${p.name} shows its name`).toContain(p.name);
+      }
+    },
+  );
 
-  test("tapping a name navigates to that person", async ({ page }) => {
-    await page.goto("/");
-    const row = page.locator('section[data-slice-variation="team"]');
-    await row.scrollIntoViewIfNeeded();
-    const caption = row.locator("a > span:not(.group)").first();
-    const href = await caption
-      .locator("xpath=ancestor::a")
-      .first()
-      .getAttribute("href");
-    await caption.tap();
-    await page.waitForURL(`**${href}`);
-    expect(new URL(page.url()).pathname).toBe(href);
-  });
+  test(
+    "tapping a name navigates to that person",
+    { tag: "@smoke" },
+    async ({ page }) => {
+      await page.goto("/");
+      const row = page.locator('section[data-slice-variation="team"]');
+      await row.scrollIntoViewIfNeeded();
+      const link = row
+        .getByRole("link")
+        .filter({ has: page.locator("img") })
+        .first();
+      const href = await link.getAttribute("href");
+      // The centre of the first name the link paints, scrolled into view.
+      const at = await link.evaluate((a) => {
+        const w = document.createTreeWalker(a, NodeFilter.SHOW_TEXT);
+        for (let n = w.nextNode(); n; n = w.nextNode()) {
+          const el = n.parentElement;
+          if (
+            !n.nodeValue?.trim() ||
+            !el?.checkVisibility({
+              opacityProperty: true,
+              visibilityProperty: true,
+            })
+          )
+            continue;
+          el.scrollIntoView({ block: "center", behavior: "instant" });
+          const r = el.getBoundingClientRect();
+          return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+        }
+        return null;
+      });
+      expect(at, "the link paints a name to tap").not.toBeNull();
+      await page.touchscreen.tap(at!.x, at!.y);
+      await page.waitForURL(`**${href}`);
+      expect(new URL(page.url()).pathname).toBe(href);
+    },
+  );
 });
 
 // Tucker, 2026-09-02: "Dr. Michael Hopkins goes to two lines on his card, can

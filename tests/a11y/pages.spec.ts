@@ -47,7 +47,7 @@ const pages = [
  */
 
 for (const { path, name } of pages) {
-  test(`${name} has no axe violations`, async ({ page }) => {
+  test(`${name} has no axe violations`, { tag: "@smoke" }, async ({ page }) => {
     // Same reasoning as fixtures.spec.ts: audit under reduced motion so axe
     // never samples a mid-fade element, whose blended colour would trip a
     // spurious color-contrast violation. It is also the correct baseline —

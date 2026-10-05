@@ -797,3 +797,63 @@ Measured from the build manifest as each client node's static-import closure, gz
 The hook asked `isCmsFramedRoute(event.url.pathname)`, the raw path, while SvelteKit routes on the decoded one. From `vite preview` of `main`, `/slice%2Dsimulator` and `/slice%2dsimulator` rendered the simulator with `X-Frame-Options: SAMEORIGIN` and `frame-ancestors 'self'`. That failed closed, but it was the wrong route test. The hook now asks `event.route.id`, and both encoded paths answer like `/slice-simulator`.
 
 The plugin and its test are the starter's, rewrapped by this repo's Prettier width. The bundle check lives in vitest (`scripts/` is already in `include`), so the smoke spec carries only the framing tests, with `/contact-us` as the 200 control. `vite.config.ts` imports the plugin without an extension, because this tsconfig does not set `allowImportingTsExtensions`. Against a `main` build, with the plugin file present but unregistered so that the test file could import it, vitest failed 4 of 16 (the bundle check, the encoded path, the null route and the exact match), and the smoke spec failed 2 of 4 (both encoded paths). On the branch, everything passes. With the plugin removed and the site rebuilt, the bundle check fails on the first `/dev` node. With the hook back on the pathname, the encoded-path and null-route tests fail.
+
+## 2026-10-05 — Tests build; they don't freeze: the match's pins leave the gate while matching stays paused (#84)
+
+Matching has been paused since 2026-09-01, but the specs written during it still ran inside `ci / ci`. About 45% of the Playwright assertions pinned px, colours, durations or counts left over from the Webflow match and Tim's MarkUp rounds. A taller hero, a moved footer wave, a ninth nav link or a new hover colour each turned the gate red without a bug. The model is reddoorla/roalson-interests#256, which the native template now ships as reddoor-starter#180.
+
+**What a red now means.**
+
+- **The gate.** 86 of 254 Playwright tests are tagged `@smoke`, and vitest has had its pins removed:
+  - Gone: class lists and the WaveDivider knot path.
+  - Containment checks now: the nav's `toHaveLength(9)` and "Make a Payment last", the ServiceCategoryBand link lists, and the review badge track.
+- **Nightly.** `test:nightly` runs nine motion and timing files: page transitions, the review mask, the team slider loop, hero video, the reveal, accordion timing and the nav menu. It blocks nothing.
+- **Scaffold.** `test:scaffold` holds the rest. No test was deleted.
+- **Hook.** The pre-commit prettier hook from reddoor-starter#169 is in.
+- **Matching.** `matching/` is untouched and `matching/PAUSED` stays.
+
+**Measured.** On `main` the full suite was 254 tests in 13.1 min locally, with 5 red under load: three qa-expand runs and two reveal-first-paint runs. `ci / ci` on this branch passed in 3 min 32 s. Locally, vitest passes 810 and svelte-check reports 0 errors.
+
+**Tailwind scans test files.** Deleting `hover:bg-[#0e7799]` from Nav.test.ts drops one utility from the CSS bundle. It appears in no non-test source, so no page changes.
+
+**Comments.** One comment that cited a removed assertion was retargeted (QuestionCard → qa-expand's `not.toBeInViewport()`). Three that were already wrong were corrected: site-settings, appointment-modal and SectionGrid.
+
+**Found and filed.**
+
+- #74: the menu overlay never renders a dropdown's children.
+- #75: no browser test covers the Turnstile reservation.
+- #76: no browser test covers the map's focus ring.
+- #77: the Blux gutter copies are synced by comment only.
+- #78: overlay captions on touch and focus are unmeasured.
+- #79: the modal's wheel scroll-lock check is gone.
+- #80: prove the re-tiered `@smoke` specs in a browser.
+- #81: footer and menu links drop to 2.70:1 and 2.87:1 on hover.
+- #82: menu-wash-contrast assumes white links.
+- #83: the cyan pill's ink swap is untested.
+
+## 2026-10-05 — The freeze round: designer edits stay green, real bugs go red (#84)
+
+The tiers entry above claimed the gate no longer freezes design. This entry is that claim tested. Each edit below was made to the site source, run through the whole gate (vitest and the `@smoke` tier), and then reverted.
+
+**Designer edits.** Four were applied together:
+
+- a tenth menu row, "Invisalign";
+- the teal pill hover border and the menu-pill hover ink moved to other AA-passing colours;
+- the modal field focus ramp changed from 150ms to 200ms, with the ring moved to #0b6180;
+- the review card raised from 400px to 440px.
+
+On main the four turned 8 tests red: 3 in vitest (the site-config link count, the Footer hover border, the Nav hover ink) and 5 in Playwright (`rows toHaveLength(9)`, the 1354×930 fit twice, the `0.15s` ramp, `card.h` 400).
+
+On this branch, one red was left. `src/lib/blux/site-config.test.ts` still pinned `toHaveLength(5)` and the exact href list. It now asserts that the five core destinations are among the menu links, plus a new property: every internal nav link points at a page this site serves. The served set is built from the seeded pages, services, people and questions, plus the static route directories. After that rewrite, the gate was green. In vitest, the rewritten file passed 6/6 and the other 115 files passed in the same run. The `@smoke` tier passed 86/86.
+
+**Real bugs.** Each one was applied alone:
+
+- Removing the Name field's `autofocus` went red in `AppointmentModal.test.ts` and in the `@smoke` "opens onto the Name field".
+- Putting the menu wash back to brand cyan #129ecc (about 2.9:1) went red in the Nav pill AA unit test and in menu-wash-contrast at 390 and 1440.
+- Pointing "Meet Our Team" at `/our-teams` went red in both new site-config checks.
+
+A probe with a new menu item to a dead target, the core links intact, turned only the link-target check red.
+
+**Honest accounting.** The `@smoke` tier never follows a menu link. The broken-link bug was caught only by the unit test, and the full `@smoke` run stayed 86/86 green under it. The link-target check knows a page exists only from the seed module, so a nav link to a page published in Prismic but missing from `beachfront-pages.js` also goes red. Its failure message names the file to update.
+
+Two `@smoke` tests use `boundingBox`: "the ✕ is a real touch target" and the 24×24 targets block. They stay in the gate deliberately. A WCAG 2.5.8 minimum is a contract, not a design value, so they are an exception to the letter of the `@smoke` rule.

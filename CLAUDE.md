@@ -81,6 +81,52 @@ empty agenda and a paused one end the round the same way.
 **Check:** `node matching/next.mjs` — exits 1 while any non-floor region fails.
 **Operator's challenge:** _"what does next.mjs say?"_
 
+## Tests build; they don't freeze
+
+Tests are how an agent builds against a reference without a human watching:
+the geometry and colour specs written during the pixel match are exactly the
+instruments that got the match right. Matching has been paused since
+2026-09-01, and from then on the same specs fence in design decisions a human
+is entitled to make: a taller hero, a moved footer wave, a ninth nav link or a
+new hover colour all turned the required check red without a bug. Since
+2026-10-05 the suite is tiered by what a red _means_, on the model of
+roalson-interests#256. The matching gates under `matching/` are a separate,
+paused instrument and are not part of any tier below.
+
+| Tier                | Command                                     | Runs                                    | Holds                                                                                                                                                           |
+| ------------------- | ------------------------------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Gate** (contract) | `pnpm test` (vitest + Playwright `@smoke`)  | every PR, inside the required `ci / ci` | what a client would call a bug: links and their targets, the form, keyboard and focus, no-JS, accessible names, AA contrast, data, SEO, CSP                     |
+| **Nightly**         | `pnpm test:nightly`                         | `nightly.yml`, never blocks a merge     | page transitions, the review mask, the team slider loop, hero video, reveal and accordion timing; real behaviour, but every assertion is a race against a clock |
+| **Scaffold**        | `pnpm test:scaffold` (`pnpm test:e2e`: all) | on demand, while building               | comp geometry, pixel and computed-style pins, the numbers a slice was built to                                                                                  |
+
+- **A human's design change wins.** When a size, spacing, colour that still
+  passes AA, duration, border, or an added button or link turns a test red,
+  the test is what is wrong: update it or delete it in the same PR. Never revert
+  the change to satisfy the test, and never argue for the pinned value.
+- **Design values never enter the gate.** A gate test asserts what a user or a
+  caller observes, never a Tailwind class list, a px, a ms, an opacity, or a
+  recorded contrast ratio to four places (assert `>= 4.5`). Exact-list equality
+  over things a designer may add to (every link on the page, every button,
+  "exactly nine") is a pin: assert the item that matters is _in_ the list.
+- **Never assert on source as text.** A test that reads a `.svelte` or `.css`
+  file and regexes a class out of it restates the implementation, so every
+  edit is two edits. Parsing `@theme` tokens to compute contrast is fine: that
+  computes a property, it does not restate a string.
+- **Build against the comp freely.** New geometry and timing specs are welcome
+  while a slice is being built; leave them untagged and they land in the
+  scaffold tier, where they are allowed to go stale once a human takes over the
+  design.
+- **`@smoke` is earned.** A test tagged `{ tag: "@smoke" }` has no fixed
+  sleeps, no frame counting, no animation windows, no `boundingBox`/`near()`,
+  no computed-style colour or size, and no element count a new button would
+  change.
+- **A flaky timing test leaves the gate; its window does not widen.** Move it to
+  the nightly list, or delete it if it guards nothing a client would notice.
+
+`pnpm install` also installs a pre-commit hook (`simple-git-hooks` and
+`lint-staged`) that runs `prettier --write` on the staged files; a checkout with
+no `node_modules` commits unformatted, with a `pre-commit:` line saying so.
+
 ## The work journal
 
 **Every working session appends a dated entry to `docs/workJournal.md`** — what

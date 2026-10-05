@@ -39,32 +39,38 @@ const delaysOf = (page: import("@playwright/test").Page) =>
     return out;
   });
 
-test("reduced motion zeroes transition and animation DELAY, not only duration", async ({
-  page,
-}) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/", { waitUntil: "domcontentloaded" });
+test(
+  "reduced motion zeroes transition and animation DELAY, not only duration",
+  { tag: "@smoke" },
+  async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
 
-  const computed = await delaysOf(page);
-  expect(computed.transitionDelay).toBe("0s");
-  expect(computed.animationDelay).toBe("0s");
-  // The two the reset always covered, asserted so a rewrite can't trade one
-  // hole for another. 0.01ms serialises as 1e-05s.
-  expect(computed.transitionDuration).toBe("1e-05s");
-  expect(computed.animationDuration).toBe("1e-05s");
-});
+    const computed = await delaysOf(page);
+    expect(computed.transitionDelay).toBe("0s");
+    expect(computed.animationDelay).toBe("0s");
+    // The two the reset always covered, asserted so a rewrite can't trade one
+    // hole for another. 0.01ms serialises as 1e-05s, so compare seconds.
+    const seconds = (v: string) =>
+      v.endsWith("ms") ? Number(v.slice(0, -2)) / 1000 : Number(v.slice(0, -1));
+    expect(seconds(computed.transitionDuration)).toBeLessThanOrEqual(0.001);
+    expect(seconds(computed.animationDuration)).toBeLessThanOrEqual(0.001);
+  },
+);
 
-test("with motion on, the same element keeps every one of its 1200ms", async ({
-  page,
-}) => {
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("/", { waitUntil: "domcontentloaded" });
+test(
+  "with motion on, the same element keeps every one of its 1200ms",
+  { tag: "@smoke" },
+  async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
 
-  const computed = await delaysOf(page);
-  expect(computed.transitionDelay).toBe("1.2s");
-  expect(computed.animationDelay).toBe("1.2s");
-  expect(computed.transitionDuration).toBe("1.2s");
-});
+    const computed = await delaysOf(page);
+    expect(computed.transitionDelay).toBe("1.2s");
+    expect(computed.animationDelay).toBe("1.2s");
+    expect(computed.transitionDuration).toBe("1.2s");
+  },
+);
 
 test("the nav cascade is fully landed on the first frame under reduced motion", async ({
   page,

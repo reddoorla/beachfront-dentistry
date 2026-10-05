@@ -16,9 +16,9 @@ afterEach(() => cleanup());
 const wrapper = (c: HTMLElement) =>
   c.querySelector("iframe")!.parentElement as HTMLElement;
 
-/** The exact token, not a substring — `focus-within:ring-2` and `ring-offset-2`
- *  are always on the wrapper and both contain "ring-2". */
-const ringed = (c: HTMLElement) => wrapper(c).classList.contains("ring-2");
+/** The indicator's state, not the token that paints it. */
+const ringed = (c: HTMLElement) =>
+  wrapper(c).getAttribute("data-map-focus") === "true";
 
 describe("MapEmbed focus indicator", () => {
   it("has no ring while focus is elsewhere", () => {
@@ -29,6 +29,7 @@ describe("MapEmbed focus indicator", () => {
   it("rings the wrapper when focus crosses into the frame", async () => {
     const { container } = render(MapEmbed);
     const frame = container.querySelector("iframe")!;
+    const resting = wrapper(container).className;
 
     frame.focus();
     window.dispatchEvent(new Event("blur"));
@@ -36,12 +37,14 @@ describe("MapEmbed focus indicator", () => {
 
     expect(document.activeElement).toBe(frame);
     expect(ringed(container)).toBe(true);
-    expect(wrapper(container).getAttribute("data-map-focus")).toBe("true");
+    // The flag must change what is painted, whatever the ring is drawn with.
+    expect(wrapper(container).className).not.toBe(resting);
   });
 
   it("drops the ring when focus lands back in this document", async () => {
     const { container } = render(MapEmbed);
     const frame = container.querySelector("iframe")!;
+    const resting = wrapper(container).className;
     frame.focus();
     window.dispatchEvent(new Event("blur"));
     await tick();
@@ -53,12 +56,13 @@ describe("MapEmbed focus indicator", () => {
     await tick();
 
     expect(ringed(container)).toBe(false);
-    expect(wrapper(container).getAttribute("data-map-focus")).toBeNull();
+    expect(wrapper(container).className).toBe(resting);
     elsewhere.remove();
   });
 
   it("ignores a window blur that is the browser losing focus, not the map", async () => {
     const { container } = render(MapEmbed);
+    const resting = wrapper(container).className;
     const elsewhere = document.createElement("button");
     document.body.appendChild(elsewhere);
     elsewhere.focus();
@@ -68,6 +72,7 @@ describe("MapEmbed focus indicator", () => {
     await tick();
 
     expect(ringed(container)).toBe(false);
+    expect(wrapper(container).className).toBe(resting);
     elsewhere.remove();
   });
 });

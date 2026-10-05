@@ -1,6 +1,7 @@
 import { render, cleanup } from "@testing-library/svelte";
 import { describe, it, expect, afterEach } from "vitest";
 import BluxCell from "./BluxCell.svelte";
+import { GRID_GUTTER } from "./layout";
 import type { BluxCellData } from "./cell";
 
 afterEach(() => cleanup());
@@ -73,7 +74,7 @@ describe("BluxCell visual fields", () => {
     );
     expect(subCells).toHaveLength(2);
     expect(subCells[0].style.getPropertyValue("--cell-basis")).toBe(
-      "calc(50% - 2%)",
+      `calc(50% - ${GRID_GUTTER / 2}%)`,
     );
   });
 });

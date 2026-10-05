@@ -33,76 +33,80 @@ const GIF =
   "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
 for (const path of ROUTES) {
-  test(`${path}: Svelte's image event-replay stub runs without a CSP violation`, async ({
-    page,
-  }) => {
-    // (1) the served markup carries the stub — otherwise this test is about
-    // nothing and must say so rather than pass.
-    const html = await (await page.request.get(path)).text();
-    const stubs = (html.match(/onload="this\.__e=event"/g) ?? []).length;
-    expect(
-      stubs,
-      "images carrying Svelte's replay stub in the SSR HTML",
-    ).toBeGreaterThan(0);
+  test(
+    `${path}: Svelte's image event-replay stub runs without a CSP violation`,
+    { tag: "@smoke" },
+    async ({ page }) => {
+      // (1) the served markup carries the stub — otherwise this test is about
+      // nothing and must say so rather than pass.
+      const html = await (await page.request.get(path)).text();
+      const stubs = (html.match(/onload="this\.__e=event"/g) ?? []).length;
+      expect(
+        stubs,
+        "images carrying Svelte's replay stub in the SSR HTML",
+      ).toBeGreaterThan(0);
 
-    const reports: string[] = [];
-    page.on("request", (req) => {
-      if (req.method() === "POST" && req.url().includes("/api/csp-report")) {
-        reports.push(req.postData() ?? "");
-      }
-    });
-    const refused: string[] = [];
-    page.on("console", (msg) => {
-      const text = msg.text();
-      if (/Content Security Policy|Refused to execute/i.test(text)) {
-        refused.push(`[${msg.type()}] ${text}`);
-      }
-    });
-    await page.addInitScript(() => {
-      window.__cspViolations = [];
-      document.addEventListener("securitypolicyviolation", (e) => {
-        window.__cspViolations?.push(
-          `${e.violatedDirective} ${e.blockedURI} ${e.sample ?? ""}`.trim(),
+      const reports: string[] = [];
+      page.on("request", (req) => {
+        if (req.method() === "POST" && req.url().includes("/api/csp-report")) {
+          reports.push(req.postData() ?? "");
+        }
+      });
+      const refused: string[] = [];
+      page.on("console", (msg) => {
+        const text = msg.text();
+        if (/Content Security Policy|Refused to execute/i.test(text)) {
+          refused.push(`[${msg.type()}] ${text}`);
+        }
+      });
+      await page.addInitScript(() => {
+        window.__cspViolations = [];
+        document.addEventListener("securitypolicyviolation", (e) => {
+          window.__cspViolations?.push(
+            `${e.violatedDirective} ${e.blockedURI} ${e.sample ?? ""}`.trim(),
+          );
+        });
+      });
+
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.goto(path, { waitUntil: "networkidle" });
+
+      // (2) the deterministic probe: the exact stub, parser-inserted, on an image
+      // that loads immediately. Either the policy lets it run (`__e` is set) or
+      // the browser refuses it (a securitypolicyviolation event fires).
+      const probe = await page.evaluate(async (gif) => {
+        const before = window.__cspViolations?.length ?? 0;
+        document.body.insertAdjacentHTML(
+          "beforeend",
+          `<img data-csp-probe onload="this.__e=event" src="${gif}" alt="">`,
         );
-      });
-    });
+        const img = document.querySelector(
+          "img[data-csp-probe]",
+        ) as HTMLImageElement & {
+          __e?: Event;
+        };
+        await new Promise<void>((resolve) => {
+          if (img.complete) resolve();
+          else img.addEventListener("load", () => resolve(), { once: true });
+        });
+        await new Promise((r) => setTimeout(r, 0));
+        return {
+          ran: img.__e?.type ?? null,
+          violations: (window.__cspViolations ?? []).slice(before),
+        };
+      }, GIF);
 
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto(path, { waitUntil: "networkidle" });
+      expect(
+        probe.violations,
+        "securitypolicyviolation events for the stub",
+      ).toEqual([]);
+      expect(probe.ran, "the stub ran and stashed the event").toBe("load");
 
-    // (2) the deterministic probe: the exact stub, parser-inserted, on an image
-    // that loads immediately. Either the policy lets it run (`__e` is set) or
-    // the browser refuses it (a securitypolicyviolation event fires).
-    const probe = await page.evaluate(async (gif) => {
-      const before = window.__cspViolations?.length ?? 0;
-      document.body.insertAdjacentHTML(
-        "beforeend",
-        `<img data-csp-probe onload="this.__e=event" src="${gif}" alt="">`,
+      // (3) and the real page load reported nothing either.
+      expect(refused, "CSP refusals logged to the console").toEqual([]);
+      expect(reports, "violation reports POSTed to /api/csp-report").toEqual(
+        [],
       );
-      const img = document.querySelector(
-        "img[data-csp-probe]",
-      ) as HTMLImageElement & {
-        __e?: Event;
-      };
-      await new Promise<void>((resolve) => {
-        if (img.complete) resolve();
-        else img.addEventListener("load", () => resolve(), { once: true });
-      });
-      await new Promise((r) => setTimeout(r, 0));
-      return {
-        ran: img.__e?.type ?? null,
-        violations: (window.__cspViolations ?? []).slice(before),
-      };
-    }, GIF);
-
-    expect(
-      probe.violations,
-      "securitypolicyviolation events for the stub",
-    ).toEqual([]);
-    expect(probe.ran, "the stub ran and stashed the event").toBe("load");
-
-    // (3) and the real page load reported nothing either.
-    expect(refused, "CSP refusals logged to the console").toEqual([]);
-    expect(reports, "violation reports POSTed to /api/csp-report").toEqual([]);
-  });
+    },
+  );
 }

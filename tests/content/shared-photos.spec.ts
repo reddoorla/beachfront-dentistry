@@ -46,6 +46,29 @@ const photos = (page: import("@playwright/test").Page) =>
     })),
   );
 
+/** An image URL without its imgix parameters: the photograph, not the crop. */
+const base = (u?: string) => {
+  if (!u) return "";
+  const url = new URL(u);
+  return url.origin + url.pathname;
+};
+
+/** The published `settings` singleton, straight from Prismic's API. */
+const settings = async (
+  request: import("@playwright/test").APIRequestContext,
+) => {
+  const repo = "48bb12d1";
+  const api = await (
+    await request.get(`https://${repo}.prismic.io/api/v2`)
+  ).json();
+  const ref = api.refs.find((r: { isMasterRef: boolean }) => r.isMasterRef).ref;
+  return (
+    await request.get(
+      `https://${repo}.prismic.io/api/v2/documents/search?ref=${ref}&pageSize=1&q=${encodeURIComponent('[[at(document.type,"settings")]]')}`,
+    )
+  ).json();
+};
+
 test("/contact-us serves both of its photographs from Prismic", async ({
   page,
 }) => {
@@ -72,99 +95,105 @@ test("a service with no image of its own falls back to the Prismic settings hero
   expect(hero!.src, "the fallback hero is Prismic-hosted").toMatch(PRISMIC);
 });
 
-test("a service WITH its own image still shows it, not the fallback", async ({
-  page,
-}) => {
-  // The regression this swap could introduce: reading the fallback
-  // unconditionally instead of only when `media` is unfilled.
-  const withMedia = await page.goto(SERVICE_WITH_MEDIA, {
-    waitUntil: "networkidle",
-  });
-  expect(withMedia?.ok()).toBe(true);
-  const own = (await photos(page)).find((r) => r.w > 300);
-
-  await page.goto(SERVICE_WITHOUT_MEDIA, { waitUntil: "networkidle" });
-  const fallback = (await photos(page)).find((r) => r.w > 300);
-
-  const base = (u?: string) => (u ?? "").split("?")[0];
-  expect(
-    base(own?.src),
-    "a service with its own media must not render the shared fallback",
-  ).not.toBe(base(fallback?.src));
-});
+test(
+  "a service WITH its own image still shows it, not the fallback",
+  { tag: "@smoke" },
+  async ({ page, request }) => {
+    // The regression this swap could introduce: reading the fallback
+    // unconditionally instead of only when `media` is unfilled. Matched on the
+    // settings photo's own URL, so no layout guess has to pick the hero.
+    const q = await settings(request);
+    const fallback = base(q.results?.[0]?.data?.service_hero?.url);
+    expect(fallback, "the settings singleton carries service_hero").not.toBe(
+      "",
+    );
+    const showsFallback = async (path: string) => {
+      const res = await page.goto(path, { waitUntil: "networkidle" });
+      expect(res?.ok(), `${path} renders`).toBe(true);
+      return (await photos(page)).some((r) => base(r.src) === fallback);
+    };
+    expect(
+      await showsFallback(SERVICE_WITHOUT_MEDIA),
+      "a service with no media of its own renders the shared fallback",
+    ).toBe(true);
+    expect(
+      await showsFallback(SERVICE_WITH_MEDIA),
+      "a service with its own media must not render the shared fallback",
+    ).toBe(false);
+  },
+);
 
 for (const path of [TEAM_MEMBER, QUESTION]) {
-  test(`the closing CTA beach on ${path} comes from Prismic`, async ({
-    page,
-  }) => {
-    await page.goto(path, { waitUntil: "networkidle" });
-    // Scoped to the band itself via `data-band="cta"`, NOT "the last full-bleed
-    // photo on the page". The loose version passed on both of these routes
-    // while the band was empty, because it fell through to the hero above —
-    // which is Prismic-hosted for reasons that have nothing to do with this
-    // change. A test that cannot fail is not a check.
-    const src = await page.evaluate(() => {
-      const band = document.querySelector('[data-band="cta"]');
-      const img = band?.querySelector("img");
-      return img ? img.currentSrc || img.src : null;
-    });
-    expect(src, "the closing band renders its beach").not.toBeNull();
-    expect(src!).toMatch(PRISMIC);
-  });
+  test(
+    `the closing CTA beach on ${path} comes from Prismic`,
+    { tag: "@smoke" },
+    async ({ page }) => {
+      await page.goto(path, { waitUntil: "networkidle" });
+      // Scoped to the band itself via `data-band="cta"`, NOT "the last full-bleed
+      // photo on the page". The loose version passed on both of these routes
+      // while the band was empty, because it fell through to the hero above —
+      // which is Prismic-hosted for reasons that have nothing to do with this
+      // change. A test that cannot fail is not a check.
+      const src = await page.evaluate(() => {
+        const band = document.querySelector('[data-band="cta"]');
+        const img = band?.querySelector("img");
+        return img ? img.currentSrc || img.src : null;
+      });
+      expect(src, "the closing band renders its beach").not.toBeNull();
+      expect(src!).toMatch(PRISMIC);
+    },
+  );
 }
 
-test("no route serves a photograph out of the repo", async ({ page }) => {
-  // The whole point of the change, stated as the thing that must stay true.
-  // `/images/` was the static photo directory; an <img> pointing back into it
-  // means a photo has been re-added to the repo instead of to Prismic.
-  for (const path of [
-    "/",
-    "/contact-us",
-    "/our-team",
-    "/your-first-visit",
-    "/services",
-    "/ask-the-doctor",
-    SERVICE_WITHOUT_MEDIA,
-    TEAM_MEMBER,
-    QUESTION,
-  ]) {
-    await page.goto(path, { waitUntil: "networkidle" });
-    const repoServed = (await photos(page))
-      .map((r) => r.src)
-      .filter((src) => /\/images\//.test(new URL(src, "http://x").pathname));
-    expect(repoServed, `${path} serves a photo from the repo`).toEqual([]);
-  }
-});
+test(
+  "no route serves a photograph out of the repo",
+  { tag: "@smoke" },
+  async ({ page }) => {
+    // The whole point of the change, stated as the thing that must stay true.
+    // `/images/` was the static photo directory; an <img> pointing back into it
+    // means a photo has been re-added to the repo instead of to Prismic.
+    for (const path of [
+      "/",
+      "/contact-us",
+      "/our-team",
+      "/your-first-visit",
+      "/services",
+      "/ask-the-doctor",
+      SERVICE_WITHOUT_MEDIA,
+      TEAM_MEMBER,
+      QUESTION,
+    ]) {
+      await page.goto(path, { waitUntil: "networkidle" });
+      const repoServed = (await photos(page))
+        .map((r) => r.src)
+        .filter((src) => /\/images\//.test(new URL(src, "http://x").pathname));
+      expect(repoServed, `${path} serves a photo from the repo`).toEqual([]);
+    }
+  },
+);
 
-test("the settings singleton carries all four photographs", async ({
-  request,
-}) => {
-  // The only check that can see `team_member_hero`, which has no live consumer
-  // today: all 11 people have a favorite beach, so the fallback it exists for
-  // is dormant. An unfilled field here would surface the first time a person is
-  // added without one — on that person's page, in production.
-  const repo = "48bb12d1";
-  const api = await (
-    await request.get(`https://${repo}.prismic.io/api/v2`)
-  ).json();
-  const ref = api.refs.find((r: { isMasterRef: boolean }) => r.isMasterRef).ref;
-  const q = await (
-    await request.get(
-      `https://${repo}.prismic.io/api/v2/documents/search?ref=${ref}&pageSize=1&q=${encodeURIComponent('[[at(document.type,"settings")]]')}`,
-    )
-  ).json();
+test(
+  "the settings singleton carries all four photographs",
+  { tag: "@smoke" },
+  async ({ request }) => {
+    // The only check that can see `team_member_hero`, which has no live consumer
+    // today: all 11 people have a favorite beach, so the fallback it exists for
+    // is dormant. An unfilled field here would surface the first time a person is
+    // added without one — on that person's page, in production.
+    const q = await settings(request);
 
-  expect(
-    q.results?.length,
-    "the `settings` singleton is published — the migration release must be published, not just staged",
-  ).toBe(1);
+    expect(
+      q.results?.length,
+      "the `settings` singleton is published — the migration release must be published, not just staged",
+    ).toBe(1);
 
-  const data = q.results[0].data;
-  const unfilled = [
-    "cta_beach",
-    "contact_hero",
-    "service_hero",
-    "team_member_hero",
-  ].filter((f) => !data[f]?.url);
-  expect(unfilled, "every shared photo is filled in Prismic").toEqual([]);
-});
+    const data = q.results[0].data;
+    const unfilled = [
+      "cta_beach",
+      "contact_hero",
+      "service_hero",
+      "team_member_hero",
+    ].filter((f) => !data[f]?.url);
+    expect(unfilled, "every shared photo is filled in Prismic").toEqual([]);
+  },
+);
