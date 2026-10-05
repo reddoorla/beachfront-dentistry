@@ -797,3 +797,36 @@ Measured from the build manifest as each client node's static-import closure, gz
 The hook asked `isCmsFramedRoute(event.url.pathname)`, the raw path, while SvelteKit routes on the decoded one. From `vite preview` of `main`, `/slice%2Dsimulator` and `/slice%2dsimulator` rendered the simulator with `X-Frame-Options: SAMEORIGIN` and `frame-ancestors 'self'`. That failed closed, but it was the wrong route test. The hook now asks `event.route.id`, and both encoded paths answer like `/slice-simulator`.
 
 The plugin and its test are the starter's, rewrapped by this repo's Prettier width. The bundle check lives in vitest (`scripts/` is already in `include`), so the smoke spec carries only the framing tests, with `/contact-us` as the 200 control. `vite.config.ts` imports the plugin without an extension, because this tsconfig does not set `allowImportingTsExtensions`. Against a `main` build, with the plugin file present but unregistered so that the test file could import it, vitest failed 4 of 16 (the bundle check, the encoded path, the null route and the exact match), and the smoke spec failed 2 of 4 (both encoded paths). On the branch, everything passes. With the plugin removed and the site rebuilt, the bundle check fails on the first `/dev` node. With the hook back on the pathname, the encoded-path and null-route tests fail.
+
+## 2026-10-05 — Tests build; they don't freeze: the match's pins leave the gate while matching stays paused (#84)
+
+Matching has been paused since 2026-09-01, but the specs written during it still ran inside `ci / ci`. About 45% of the Playwright assertions pinned px, colours, durations or counts left over from the Webflow match and Tim's MarkUp rounds. A taller hero, a moved footer wave, a ninth nav link or a new hover colour each turned the gate red without a bug. The model is reddoorla/roalson-interests#256, which the native template now ships as reddoor-starter#180.
+
+**What a red now means.**
+
+- **The gate.** 86 of 254 Playwright tests are tagged `@smoke`, and vitest has had its pins removed:
+  - Gone: class lists and the WaveDivider knot path.
+  - Containment checks now: the nav's `toHaveLength(9)` and "Make a Payment last", the ServiceCategoryBand link lists, and the review badge track.
+- **Nightly.** `test:nightly` runs nine motion and timing files: page transitions, the review mask, the team slider loop, hero video, the reveal, accordion timing and the nav menu. It blocks nothing.
+- **Scaffold.** `test:scaffold` holds the rest. No test was deleted.
+- **Hook.** The pre-commit prettier hook from reddoor-starter#169 is in.
+- **Matching.** `matching/` is untouched and `matching/PAUSED` stays.
+
+**Measured.** On `main` the full suite was 254 tests in 13.1 min locally, with 5 red under load: three qa-expand runs and two reveal-first-paint runs. `ci / ci` on this branch passed in 3 min 32 s. Locally, vitest passes 810 and svelte-check reports 0 errors.
+
+**Tailwind scans test files.** Deleting `hover:bg-[#0e7799]` from Nav.test.ts drops one utility from the CSS bundle. It appears in no non-test source, so no page changes.
+
+**Comments.** One comment that cited a removed assertion was retargeted (QuestionCard → qa-expand's `not.toBeInViewport()`). Three that were already wrong were corrected: site-settings, appointment-modal and SectionGrid.
+
+**Found and filed.**
+
+- #74: the menu overlay never renders a dropdown's children.
+- #75: no browser test covers the Turnstile reservation.
+- #76: no browser test covers the map's focus ring.
+- #77: the Blux gutter copies are synced by comment only.
+- #78: overlay captions on touch and focus are unmeasured.
+- #79: the modal's wheel scroll-lock check is gone.
+- #80: prove the re-tiered `@smoke` specs in a browser.
+- #81: footer and menu links drop to 2.70:1 and 2.87:1 on hover.
+- #82: menu-wash-contrast assumes white links.
+- #83: the cyan pill's ink swap is untested.
