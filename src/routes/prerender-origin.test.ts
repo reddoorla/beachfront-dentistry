@@ -83,7 +83,10 @@ function walk(dir: string, out: string[] = []): string[] {
 // Where a source file builds an origin from kit's url. Two reads are not
 // origins put into output: $lib/seo's own siteOrigin, and PrismicPreview
 // comparing a navigation's origin with the current one.
-const isComment = (line: string) => /^\s*(\/\/|\*|\/\*|<!--)/.test(line);
+// A line that is only a comment; a block comment before code still counts.
+const isComment = (line: string) =>
+  /^\s*(\/\/|\*(?!\/)|<!--)/.test(line) ||
+  /^\s*\/\*/.test(line.replace(/\/\*.*?\*\//g, "").trimStart() ? "" : line);
 const ALLOWED = new Set(["lib/seo.ts", "lib/components/PrismicPreview.svelte"]);
 
 describe("every absolute URL in prerendered output takes siteOrigin", () => {
