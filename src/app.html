@@ -39,7 +39,7 @@
          HTML gives a crawler.
          WHY A STYLE AND NOT AN INLINE `classList.add("js")` SCRIPT: measured on
          the real build, an unhashed inline script in this template is governed
-         by the site's own CSP (svelte.config.js `kit.csp`, script-src with no
+         by the site's own CSP (sveltekit.config.js `csp`, script-src with no
          'unsafe-inline'). On prerendered routes it survives only because the
          policy ships as a <meta> tag emitted after it; on server-rendered
          routes the policy is an HTTP header carrying a nonce, and the script is

@@ -1,14 +1,15 @@
-import { NOINDEX_ENFORCED, NOINDEX_PREFIXES } from "$lib/seo";
+import { NOINDEX_ENFORCED, NOINDEX_PREFIXES, siteOrigin } from "$lib/seo";
 import type { RequestHandler } from "./$types";
 
 export const prerender = true;
 
 // Replaces static/robots.txt so the Sitemap line can carry an absolute URL —
 // the robots spec requires one, and a static file can't know its own origin.
-// During prerender, `url.origin` comes from kit.prerender.origin (set from
-// Netlify's URL env in svelte.config.js); local builds fall back to
-// SvelteKit's placeholder origin, which is fine — robots.txt only matters
-// on the deployed site.
+// During prerender the origin is Netlify's URL at build time, through
+// $lib/seo's siteOrigin (kit 3 removed prerender.origin; sveltekit.config.js
+// says why paths.origin is not set); local builds fall back to SvelteKit's
+// placeholder origin, which is fine — robots.txt only matters on the
+// deployed site.
 export const GET: RequestHandler = ({ url }) => {
   // Fence crawlers off the dev/tooling routes (which `prerender = "auto"`
   // still emits as public static HTML) and Prismic preview URLs (which
@@ -18,7 +19,7 @@ export const GET: RequestHandler = ({ url }) => {
   const body = `User-agent: *
 ${NOINDEX_ENFORCED ? NOINDEX_PREFIXES.map((p) => `Disallow: ${p}`).join("\n") : "Disallow:"}
 
-Sitemap: ${url.origin}/sitemap.xml
+Sitemap: ${siteOrigin(url)}/sitemap.xml
 `;
 
   return new Response(body, {

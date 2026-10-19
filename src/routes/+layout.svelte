@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { PrismicPreview } from "@prismicio/svelte/kit";
+  import PrismicPreview from "$lib/components/PrismicPreview.svelte";
   import { page } from "$app/state";
   import { afterNavigate, beforeNavigate } from "$app/navigation";
   import { repositoryName } from "$lib/prismicio";
@@ -12,6 +12,7 @@
     NOINDEX_ENFORCED,
     organizationJsonLd,
     SITE_NAME,
+    siteOrigin,
   } from "$lib/seo";
   import {
     ADDRESS,
@@ -118,7 +119,7 @@
   imageAlt={page.data.meta_image_alt}
   url={page.url}
   noindex={NOINDEX_ENFORCED && isNoindexPath(page.url.pathname)}
-  jsonLd={practiceJsonLd(page.url.origin)}
+  jsonLd={practiceJsonLd(siteOrigin(page.url))}
 />
 <!-- Above the frozen branch on purpose: frozen Blux pages are real site pages
      and must report analytics like every other route. -->

@@ -1,5 +1,5 @@
 import { error } from "@sveltejs/kit";
-import { dev } from "$app/environment";
+import { dev } from "$app/env";
 
 import {
   collectionTypesOf,
@@ -58,14 +58,15 @@ export async function load({ params, fetch, cookies }) {
   // reads fixtures and hits Prismic, and none of that should be reachable from
   // a production build. `pnpm build && pnpm preview` + a 404 here is the proof;
   // the launch recipe asserts the same thing against the deployed URL.
-  if (!dev) error(404, { message: "Not found" });
+  if (!dev) error(404, "Not found");
 
   const asm = assemblies(devImg) as Record<string, unknown[]>;
   const slices = asm[params.uid];
   if (!slices)
-    error(404, {
-      message: `no matching assembly for "${params.uid}" (have: ${Object.keys(asm).join(", ")})`,
-    });
+    error(
+      404,
+      `no matching assembly for "${params.uid}" (have: ${Object.keys(asm).join(", ")})`,
+    );
 
   const client = createClient({ fetch, cookies });
   const collections = await loadCollections(

@@ -31,7 +31,7 @@ export async function load({ params, fetch, cookies }) {
       meta_image: doc.data.media?.url,
     };
   } catch {
-    error(404, { message: "Team member not found" });
+    error(404, "Team member not found");
   }
 }
 
