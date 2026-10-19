@@ -20,7 +20,19 @@ vi.mock("$lib/seo", async (importOriginal) => {
   };
 });
 
+// The sitemap reads Prismic; the same mock convention as its own server.test.ts.
+vi.mock("$lib/prismicio", () => ({
+  createClient: () => ({
+    getAllByType: async (type: string) =>
+      type === "page" ? [{ uid: "home" }, { uid: "about" }] : [],
+  }),
+  isPlaceholderRepo: false,
+  isFrozenSite: false,
+}));
+vi.mock("$lib/blux-frozen/load", () => ({ frozenUids: () => [] }));
+
 const robots = await import("./robots.txt/+server");
+const sitemap = await import("./sitemap.xml/+server");
 
 const PLACEHOLDER = "http://sveltekit-prerender";
 const src = join(import.meta.dirname, "..");
@@ -35,6 +47,23 @@ describe("prerendered while the build had a production URL", () => {
       "Sitemap: https://beachfrontdentistry.com/sitemap.xml",
     );
     expect(body).not.toContain(PLACEHOLDER);
+  });
+
+  it("sitemap.xml lists production URLs only, not the placeholder", async () => {
+    const res = await (
+      sitemap.GET as unknown as (e: {
+        fetch: typeof fetch;
+        url: URL;
+      }) => Promise<Response>
+    )({ fetch, url: new URL(`${PLACEHOLDER}/sitemap.xml`) });
+    const xml = await res.text();
+    const locs = [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map(
+      ([, loc]) => loc,
+    );
+    expect(locs).toContain("https://beachfrontdentistry.com/about");
+    expect(
+      locs.filter((loc) => !loc.startsWith("https://beachfrontdentistry.com/")),
+    ).toEqual([]);
   });
 });
 
@@ -54,6 +83,7 @@ function walk(dir: string, out: string[] = []): string[] {
 // Where a source file builds an origin from kit's url. Two reads are not
 // origins put into output: $lib/seo's own siteOrigin, and PrismicPreview
 // comparing a navigation's origin with the current one.
+const isComment = (line: string) => /^\s*(\/\/|\*|\/\*|<!--)/.test(line);
 const ALLOWED = new Set(["lib/seo.ts", "lib/components/PrismicPreview.svelte"]);
 
 describe("every absolute URL in prerendered output takes siteOrigin", () => {
@@ -64,7 +94,7 @@ describe("every absolute URL in prerendered output takes siteOrigin", () => {
       return readFileSync(file, "utf8")
         .split("\n")
         .flatMap((line, i) =>
-          /\burl\.origin\b(?!\.length)/.test(line)
+          !isComment(line) && /\burl\.origin\b(?!\.length)/.test(line)
             ? [`${rel}:${i + 1}: ${line.trim()}`]
             : [],
         );
