@@ -1,13 +1,13 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { dev } from "$app/environment";
+  import { dev } from "$app/env";
   import { GA_MEASUREMENT_ID, shouldLoadAnalytics } from "$utils/analytics";
 
   // Everything happens in onMount, nothing in markup: an inline snippet in
   // app.html is silently dropped by the CSP header on server-rendered routes
   // (see the app.html <noscript> comment for the measured failure), while a
   // bundle-owned bootstrap is 'self' on every route. The loader host is
-  // allowlisted in svelte.config.js script-src.
+  // allowlisted in sveltekit.config.js script-src.
   onMount(() => {
     if (!shouldLoadAnalytics(location.hostname, dev)) return;
 

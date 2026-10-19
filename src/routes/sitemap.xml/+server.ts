@@ -2,6 +2,7 @@ import { createClient, isFrozenSite, isPlaceholderRepo } from "$lib/prismicio";
 import { frozenUids } from "$lib/blux-frozen/load";
 import { loadCollections } from "$lib/blux-catalog/collections-load";
 import { ENTITY_ROUTE_PREFIX } from "$lib/blux-catalog/entity-routes";
+import { siteOrigin } from "$lib/seo";
 import type { RequestHandler } from "./$types";
 
 export const prerender = true;
@@ -23,7 +24,8 @@ export const prerender = true;
 const STATIC_ROUTES = ["/contact-us"];
 
 export const GET: RequestHandler = async ({ fetch, url }) => {
-  const origin = url.origin;
+  // Prerendered: Netlify's URL at build time, in place of kit's placeholder.
+  const origin = siteOrigin(url);
 
   // Sitemap entries as { path, lastmod }. A frozen Blux site's pages ARE its
   // committed frozen artifacts (home renders at "/"), never native `page` docs —

@@ -61,7 +61,7 @@ Opt-in patterns that need an extra dependency live in [`docs/recipes/`](docs/rec
 
 ## SEO routes
 
-`robots.txt` and `sitemap.xml` are prerendered server routes (not static files) so both can emit absolute URLs on the deploy origin — Netlify's `URL` build env feeds `kit.prerender.origin` in `svelte.config.js`.
+`robots.txt` and `sitemap.xml` are prerendered server routes (not static files) so both can emit absolute URLs on the deploy origin — Netlify's `URL` build env reaches them through `productionOrigin` in `sveltekit.config.js` and `siteOrigin` in `src/lib/seo.ts` (kit 3 removed `prerender.origin`, and `paths.origin` is deliberately not set: it would also become the only origin the contact form's CSRF check accepts).
 
 ### Focus trap action — `use:trapFocus`
 

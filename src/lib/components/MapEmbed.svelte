@@ -1,6 +1,6 @@
 <script lang="ts">
   // Simple Google Maps embed iframe — no API key required (unlike the Maps JS
-  // surface the frozen Blux sites hydrate, gated in svelte.config.js's
+  // surface the frozen Blux sites hydrate, gated in sveltekit.config.js's
   // wantsMapsCsp). Only https://www.google.com needs to be in frame-src.
   interface Props {
     query?: string;
