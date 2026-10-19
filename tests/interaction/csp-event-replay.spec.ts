@@ -14,7 +14,7 @@ declare global {
 // counted in the live DOM. Under a nonce CSP the inline attribute is refused
 // unless `script-src` also carries `'unsafe-hashes'` + the stub's SHA-256 (see
 // SVELTE_EVENT_REPLAY_HASH in @reddoorla/maintenance/configs/svelte — which
-// this site's svelte.config.js must carry itself, because it overrides
+// this site's sveltekit.config.js must carry itself, because it overrides
 // `script-src` wholesale).
 //
 // When refused: the pre-hydration load/error is silently dropped, Chromium

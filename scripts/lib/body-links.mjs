@@ -13,7 +13,10 @@
 // production domain (18 of them across 9 paths). Two problems.
 //
 // 1. They are a latent build-breaker. SvelteKit's prerenderer only crawls
-//    SAME-ORIGIN links, and `kit.prerender.origin` comes from Netlify's `URL`.
+//    SAME-ORIGIN links, and under kit 2 `kit.prerender.origin` came from
+//    Netlify's `URL`. (Kit 3 removed it; the site no longer sets any prerender
+//    origin, so the crawler's origin is kit's placeholder and these links are
+//    external on every build. Point 2 still holds.)
 //    Today that is the *.netlify.app preview domain, so a beachfrontdentistry.com
 //    link is external and skipped. The moment the site is served from the real
 //    domain those links become internal, get crawled, and `pnpm build` fails on

@@ -2,6 +2,7 @@
   import { page } from "$app/state";
   import BrandIcon from "./BrandIcon.svelte";
   import { categorySlug, type Product } from "$lib/blux/product-types";
+  import { siteOrigin } from "$lib/seo";
 
   interface Props {
     product: Product;
@@ -27,9 +28,12 @@
   let activeIndex = $state(0);
   const active = $derived(images[activeIndex]);
 
-  // Share targets need the page's absolute url (client + prerender both resolve
-  // it from the request origin).
-  const pageUrl = $derived(page.url.href);
+  // Share targets need the page's absolute url. Per request it is the host
+  // that asked; while prerendering, siteOrigin swaps kit 3's placeholder
+  // origin for Netlify's production URL (kit 2 took it from prerender.origin).
+  const pageUrl = $derived(
+    siteOrigin(page.url) + page.url.href.slice(page.url.origin.length),
+  );
   const shares = $derived([
     {
       network: "facebook",

@@ -25,7 +25,7 @@ export async function load({ params, fetch, cookies }) {
       meta_image: doc.data.media?.url,
     };
   } catch {
-    error(404, { message: "Question not found" });
+    error(404, "Question not found");
   }
 }
 
