@@ -8,18 +8,22 @@
 // it builds the site exactly as Netlify does, with URL set, and fails on any
 // built file that still names the placeholder.
 import { spawnSync } from "node:child_process";
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { readFileSync, readdirSync, realpathSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
+import { pathToFileURL } from "node:url";
 
 export const PLACEHOLDER = "http://sveltekit-prerender";
+// The bare host, so an encoded (`http%3A%2F%2Fsveltekit-prerender`), host-only
+// or protocol-relative form of the placeholder is caught too. A clean build
+// names it nowhere outside `_app/immutable`, where $lib/seo's own constant is.
+const NEEDLE = "sveltekit-prerender";
 const PRODUCTION = "https://beachfrontdentistry.com";
-const TEXT = /\.(html|xml|txt|json|js)$/;
 
 export function walk(dir, out = []) {
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry);
     if (statSync(full).isDirectory()) walk(full, out);
-    else if (TEXT.test(entry)) out.push(full);
+    else out.push(full);
   }
   return out;
 }
@@ -32,14 +36,21 @@ export function scan(root) {
   const offenders = [];
   let production = 0;
   for (const file of files) {
-    const text = readFileSync(file, "utf8");
-    if (text.includes(PLACEHOLDER)) offenders.push(relative(root, file));
+    // Every file, whatever its extension (a prerendered endpoint can be named
+    // anything); a NUL byte marks a binary (image, font), which cannot carry it.
+    const bytes = readFileSync(file);
+    if (bytes.includes(0)) continue;
+    const text = bytes.toString("utf8");
+    if (text.includes(NEEDLE)) offenders.push(relative(root, file));
     if (text.includes(PRODUCTION)) production++;
   }
   return { files: files.length, offenders, production };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href
+) {
   const env = { ...process.env, URL: PRODUCTION };
   delete env.VITEST;
   const built = spawnSync("pnpm", ["exec", "vite", "build"], {
