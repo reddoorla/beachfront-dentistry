@@ -18,6 +18,10 @@ export const PLACEHOLDER = "http://sveltekit-prerender";
 // names it nowhere outside `_app/immutable`, where $lib/seo's own constant is.
 const NEEDLE = "sveltekit-prerender";
 const PRODUCTION = "https://beachfrontdentistry.com";
+// The production origin as a whole origin (not a prefix of another host), for
+// the control's count. A regex, not `includes`: CodeQL reads a URL literal in
+// `includes` as a host check (js/incomplete-url-substring-sanitization).
+const CARRIES_PRODUCTION = /https:\/\/beachfrontdentistry\.com(?![\w.-])/;
 
 export function walk(dir, out = []) {
   for (const entry of readdirSync(dir)) {
@@ -42,7 +46,7 @@ export function scan(root) {
     if (bytes.includes(0)) continue;
     const text = bytes.toString("utf8");
     if (text.includes(NEEDLE)) offenders.push(relative(root, file));
-    if (text.includes(PRODUCTION)) production++;
+    if (CARRIES_PRODUCTION.test(text)) production++;
   }
   return { files: files.length, offenders, production };
 }
