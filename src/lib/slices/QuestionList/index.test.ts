@@ -196,6 +196,45 @@ describe("QuestionList slice — numbered variation", () => {
   });
 });
 
+// WCAG 2.5.3 (Label in Name): a toggle's visible text must sit inside its
+// accessible name, so a voice-control user can say what they see. axe runs
+// this as `label-content-name-mismatch` from 4.14. Checked as the property
+// itself, in both variations and both states.
+describe("QuestionList slice — label in name", () => {
+  const expectLabelInName = (container: HTMLElement) => {
+    const toggles = [
+      ...container.querySelectorAll<HTMLButtonElement>("button[aria-expanded]"),
+    ];
+    expect(toggles.length).toBeGreaterThan(0);
+    for (const toggle of toggles) {
+      const visible = toggle.textContent!.trim().toLowerCase();
+      if (!visible) continue;
+      expect(toggle.getAttribute("aria-label")!.toLowerCase()).toContain(
+        visible,
+      );
+    }
+  };
+
+  for (const [variation, slice] of [
+    ["teaser", teaserSlice],
+    ["numbered", numberedSlice],
+  ] as const) {
+    it(`${variation}: every toggle's visible text is in its name, collapsed and expanded`, async () => {
+      const { container } = render(QuestionList, { props: { slice, context } });
+      expectLabelInName(container);
+      for (const toggle of container.querySelectorAll<HTMLButtonElement>(
+        "button[aria-expanded]",
+      )) {
+        await fireEvent.click(toggle);
+      }
+      expect(
+        container.querySelectorAll('button[aria-expanded="true"]').length,
+      ).toBeGreaterThan(0);
+      expectLabelInName(container);
+    });
+  }
+});
+
 // The card excerpt and the home page's featured row are AUTHORED fields
 // (news_article.summary / news_article.home_order), not derived from the body
 // and not "newest N" — see the notes on `teaserText` and `teaserCards`.
