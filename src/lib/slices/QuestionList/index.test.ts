@@ -188,26 +188,51 @@ describe("QuestionList slice — numbered variation", () => {
     });
   });
 
-  it("names each toggle by its visible number first, so the label is in the name (WCAG 2.5.3)", () => {
-    const { getAllByRole } = render(QuestionList, {
-      props: { slice: numberedSlice, context },
-    });
-    const names = getAllByRole("button", { expanded: false }).map(
-      (b) => b.getAttribute("aria-label") ?? "",
-    );
-    expectedOrder.forEach(([, , title], i) => {
-      const number = String(i + 1).padStart(2, "0");
-      const name = names.find((n) => n.includes(title));
-      expect(name?.startsWith(number), `${name}`).toBe(true);
-    });
-  });
-
   it("does not truncate to a max — all 8 render even though teaser's max_items is 6", () => {
     const { container } = render(QuestionList, {
       props: { slice: numberedSlice, context },
     });
     expect(container.querySelectorAll(".qa-item")).toHaveLength(8);
   });
+});
+
+// WCAG 2.5.3 (Label in Name): a toggle's visible text must sit inside its
+// accessible name, so a voice-control user can say what they see. axe runs
+// this as `label-content-name-mismatch` from 4.14. Checked as the property
+// itself, in both variations and both states.
+describe("QuestionList slice — label in name", () => {
+  const expectLabelInName = (container: HTMLElement) => {
+    const toggles = [
+      ...container.querySelectorAll<HTMLButtonElement>("button[aria-expanded]"),
+    ];
+    expect(toggles.length).toBeGreaterThan(0);
+    for (const toggle of toggles) {
+      const visible = toggle.textContent!.trim().toLowerCase();
+      if (!visible) continue;
+      expect(toggle.getAttribute("aria-label")!.toLowerCase()).toContain(
+        visible,
+      );
+    }
+  };
+
+  for (const [variation, slice] of [
+    ["teaser", teaserSlice],
+    ["numbered", numberedSlice],
+  ] as const) {
+    it(`${variation}: every toggle's visible text is in its name, collapsed and expanded`, async () => {
+      const { container } = render(QuestionList, { props: { slice, context } });
+      expectLabelInName(container);
+      for (const toggle of container.querySelectorAll<HTMLButtonElement>(
+        "button[aria-expanded]",
+      )) {
+        await fireEvent.click(toggle);
+      }
+      expect(
+        container.querySelectorAll('button[aria-expanded="true"]').length,
+      ).toBeGreaterThan(0);
+      expectLabelInName(container);
+    });
+  }
 });
 
 // The card excerpt and the home page's featured row are AUTHORED fields
