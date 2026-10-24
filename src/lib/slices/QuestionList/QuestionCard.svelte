@@ -287,11 +287,18 @@
          is the actual control, so it brightens one step (#e7f5fa -> #d9eef7)
          under `group-hover` from the card while the card itself lifts on
          shadow — see cardTransition above for what this replaced. -->
+    <!-- The name starts with the circled number when there is one: WCAG 2.5.3
+         (Label in Name) needs the visible text inside the accessible name, so
+         a voice-control user who says "click 01" reaches this button. axe
+         4.14 runs that rule (`label-content-name-mismatch`) by default; under
+         "Expand: <title>" alone it failed every numbered card. -->
     <button
       type="button"
       aria-expanded={expanded}
       aria-controls={panelId}
-      aria-label="{expanded ? 'Collapse' : 'Expand'}: {titleText}"
+      aria-label="{number !== null ? `${pad2(number)}. ` : ''}{expanded
+        ? 'Collapse'
+        : 'Expand'}: {titleText}"
       onclick={toggle}
       class="focus-visible:ring-primary-deep relative z-10 flex h-12 w-full cursor-pointer items-center justify-between rounded-t-[25px] bg-[#e7f5fa] px-5 transition-colors duration-200 group-hover:bg-[#d9eef7] focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden motion-reduce:transition-none md:h-16 lg:h-20 lg:px-5"
     >

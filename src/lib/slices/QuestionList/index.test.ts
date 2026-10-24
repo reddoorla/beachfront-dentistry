@@ -188,6 +188,20 @@ describe("QuestionList slice — numbered variation", () => {
     });
   });
 
+  it("names each toggle by its visible number first, so the label is in the name (WCAG 2.5.3)", () => {
+    const { getAllByRole } = render(QuestionList, {
+      props: { slice: numberedSlice, context },
+    });
+    const names = getAllByRole("button", { expanded: false }).map(
+      (b) => b.getAttribute("aria-label") ?? "",
+    );
+    expectedOrder.forEach(([, , title], i) => {
+      const number = String(i + 1).padStart(2, "0");
+      const name = names.find((n) => n.includes(title));
+      expect(name?.startsWith(number), `${name}`).toBe(true);
+    });
+  });
+
   it("does not truncate to a max — all 8 render even though teaser's max_items is 6", () => {
     const { container } = render(QuestionList, {
       props: { slice: numberedSlice, context },
