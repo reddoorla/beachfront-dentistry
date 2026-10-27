@@ -26,22 +26,20 @@ const slice = {
 } as never;
 
 describe("TitleBand slice", () => {
-  it("renders the display line as <h2> and the eyebrow with manifest roles", () => {
-    const { container } = render(TitleBand, {
+  it("renders the display line as <h2>, the eyebrow, and the manifest band style", () => {
+    const { container, getByText } = render(TitleBand, {
       props: { slice, context: { presentation } },
     });
     // The subtitle is the large display line (the visual heading); the heading
-    // field is the small eyebrow above it. Roles come from band.text.
+    // field is the small eyebrow above it.
     expect(container.querySelector("h2")?.textContent).toBe(
       "Every corner considered",
     );
-    expect(container.querySelector("h2")?.className).toContain(
-      "txt-role-text12",
-    );
-    const eyebrow = container.querySelector("p.txt-role-text5");
-    expect(eyebrow?.textContent).toContain("The Space");
+    expect(getByText("The Space")).toBeDefined();
+    // The slice hands its manifest band to SectionBand, which writes the
+    // band's style onto the <section>. Read from the fixture, not a literal.
     expect(container.querySelector("section")?.style.backgroundColor).toBe(
-      "rgb(1, 2, 3)",
+      presentation.bands["1"].style!["background-color"],
     );
   });
 

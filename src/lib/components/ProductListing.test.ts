@@ -34,9 +34,36 @@ describe("ProductListing", () => {
     expect(getByRole("heading", { level: 1 }).textContent).toContain(
       "Upholstered",
     );
-    const links = getAllByRole("link");
-    expect(links).toHaveLength(3);
-    expect(links[0]!.getAttribute("href")).toBe("/products/aria");
+    const hrefs = getAllByRole("link").map((l) => l.getAttribute("href"));
+    for (const p of products) expect(hrefs).toContain(`/products/${p.slug}`);
+  });
+
+  it("gives each product exactly one link to its detail page", () => {
+    const { getAllByRole } = render(ProductListing, {
+      category: "Upholstered",
+      products,
+    });
+    const hrefs = getAllByRole("link").map((l) => l.getAttribute("href"));
+    for (const p of products) {
+      expect(hrefs.filter((h) => h === `/products/${p.slug}`)).toHaveLength(1);
+    }
+  });
+
+  it("keeps the catalog order of products within each sub-category", () => {
+    const { container } = render(ProductListing, {
+      category: "Upholstered",
+      products,
+    });
+    for (const sub of ["Lounge", "Sofa"]) {
+      const section = container.querySelector(`section#${sub.toLowerCase()}`);
+      const hrefs = [...section!.querySelectorAll("a[href]")]
+        .map((a) => a.getAttribute("href"))
+        .filter((h, i, all) => all.indexOf(h) === i);
+      const expected = products
+        .filter((p) => p.subCategory === sub)
+        .map((p) => `/products/${p.slug}`);
+      expect(hrefs).toEqual(expected);
+    }
   });
 
   it("groups by sub-category with an id anchor (back-link #<subcat> target)", () => {

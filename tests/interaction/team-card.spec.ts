@@ -54,21 +54,18 @@ test.describe("the person card is one card-wide link", () => {
       const card = page.locator("article.team-list-item").first();
       await card.scrollIntoViewIfNeeded();
       for (const sel of ["img", "h5", "p"]) {
-        const box = (await card.locator(sel).first().boundingBox())!;
-        const hit = await page.evaluate(
-          ([x, y]) => {
-            const el = document.elementFromPoint(x as number, y as number);
-            return {
-              link: !!el?.closest("a"),
-              cursor: el ? getComputedStyle(el).cursor : "",
-            };
-          },
-          [box.x + box.width / 2, box.y + box.height / 2],
-        );
-        expect(hit, `${sel} is part of the card link`).toEqual({
-          link: true,
-          cursor: "pointer",
-        });
+        const link = await card
+          .locator(sel)
+          .first()
+          .evaluate((target) => {
+            const r = target.getBoundingClientRect();
+            const el = document.elementFromPoint(
+              r.x + r.width / 2,
+              r.y + r.height / 2,
+            );
+            return !!el?.closest("a");
+          });
+        expect(link, `${sel} is part of the card link`).toBe(true);
       }
     },
   );

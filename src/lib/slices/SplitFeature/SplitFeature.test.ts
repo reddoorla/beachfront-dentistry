@@ -37,12 +37,15 @@ describe("SplitFeature slice", () => {
     expect(cells[1]?.querySelector("img")?.getAttribute("src")).toBe(
       "https://cdn/split.jpg",
     );
-    expect(
-      (cells[0] as HTMLElement).style.getPropertyValue("--cell-basis"),
-    ).toBe("60%");
+    // The manifest's split.ratio is the media cell's share; the text cell
+    // takes the rest. Read from the fixture, not a designer's numbers.
+    const ratio = presentation.bands["1"].split!.ratio;
     expect(
       (cells[1] as HTMLElement).style.getPropertyValue("--cell-basis"),
-    ).toBe("40%");
+    ).toBe(`${ratio}%`);
+    expect(
+      (cells[0] as HTMLElement).style.getPropertyValue("--cell-basis"),
+    ).toBe(`${100 - ratio}%`);
   });
 
   it("lays media-left out differently from media-right, keeping text-first DOM order", () => {

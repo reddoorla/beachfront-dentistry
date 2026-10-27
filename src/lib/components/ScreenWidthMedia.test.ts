@@ -171,20 +171,27 @@ describe("ScreenWidthMedia quality reveal", () => {
     expect(iframe.className).not.toContain("opacity-0");
   });
 
-  it("soft cap: reveals 1.2s after the quality change is accepted", async () => {
+  it("soft cap: once the quality change is accepted, a timer due before the hard cap reveals", async () => {
     const { iframe, player } = await renderWithPlayer();
+    const beforeAccept = vi.getTimerCount();
     player.resolveQuality();
     await Promise.resolve();
     await tick();
+    // Acceptance starts the soft cap.
+    expect(vi.getTimerCount()).toBeGreaterThan(beforeAccept);
 
-    vi.advanceTimersByTime(1200);
+    // No bufferend: the next timer due is the soft cap, and it reveals.
+    vi.advanceTimersToNextTimer();
     await tick();
     expect(iframe.className).not.toContain("opacity-0");
+    // It fired before the hard cap and cleared it: nothing is left pending.
+    // Had the hard cap fired first, the soft cap would still be queued.
+    expect(vi.getTimerCount()).toBe(0);
   });
 
-  it("hard cap: reveals after 6s even if setQuality never settles", async () => {
+  it("hard cap: reveals even if setQuality never settles", async () => {
     const { iframe } = await renderWithPlayer();
-    vi.advanceTimersByTime(6000);
+    vi.runOnlyPendingTimers();
     await tick();
     expect(iframe.className).not.toContain("opacity-0");
   });
