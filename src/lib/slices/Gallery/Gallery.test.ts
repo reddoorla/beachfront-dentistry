@@ -57,6 +57,10 @@ describe("Gallery slice", () => {
     const { container, getByText } = render(Gallery, {
       props: { slice, context: { presentation: captioned } },
     });
+    // Captioned grid, not a full-bleed frame — and never a slider (source
+    // slider bands are `carousel` slices in the starter).
+    expect(container.querySelector('[role="region"]')).toBeNull();
+    expect(container.querySelector("[data-gallery-cell]")).toBeNull();
     expect(container.querySelectorAll("img")).toHaveLength(2);
     expect(getByText("one")).toBeDefined();
     expect(getByText("two")).toBeDefined();

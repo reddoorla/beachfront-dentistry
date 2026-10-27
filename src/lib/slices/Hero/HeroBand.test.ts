@@ -32,6 +32,10 @@ describe("Hero band variation", () => {
     expect(container.querySelector("img")?.getAttribute("src")).toBe(
       "https://cdn/hero-bg.jpg",
     );
+    // The manifest band's style reaches the <section> (read from the fixture).
+    expect(container.querySelector("section")?.style.minHeight).toBe(
+      presentation.bands["7"].style!["min-height"],
+    );
   });
 
   it("tolerates an absent presentation (unconverted site)", () => {

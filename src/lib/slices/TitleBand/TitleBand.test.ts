@@ -26,7 +26,7 @@ const slice = {
 } as never;
 
 describe("TitleBand slice", () => {
-  it("renders the display line as <h2> and the eyebrow with manifest roles", () => {
+  it("renders the display line as <h2>, the eyebrow, and the manifest band style", () => {
     const { container, getByText } = render(TitleBand, {
       props: { slice, context: { presentation } },
     });
@@ -36,6 +36,11 @@ describe("TitleBand slice", () => {
       "Every corner considered",
     );
     expect(getByText("The Space")).toBeDefined();
+    // The slice hands its manifest band to SectionBand, which writes the
+    // band's style onto the <section>. Read from the fixture, not a literal.
+    expect(container.querySelector("section")?.style.backgroundColor).toBe(
+      presentation.bands["1"].style!["background-color"],
+    );
   });
 
   it("renders a heading-only band without roles when the manifest has none", () => {
