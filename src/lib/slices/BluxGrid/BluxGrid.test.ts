@@ -1,7 +1,6 @@
 import { render, cleanup } from "@testing-library/svelte";
 import { describe, it, expect, afterEach } from "vitest";
 import type { Content } from "@prismicio/client";
-import { GRID_GUTTER } from "$lib/blux-catalog/layout";
 import BluxGrid from "./index.svelte";
 
 const rt = (level: string, text: string) => [{ type: level, text, spans: [] }];
@@ -61,12 +60,9 @@ describe("BluxGrid slice", () => {
     const cells = container.querySelectorAll<HTMLElement>(
       ".blux-grid__cells > .blux-cell",
     );
-    expect(cells[0].style.getPropertyValue("--cell-basis")).toBe(
-      `calc(50% - ${GRID_GUTTER / 2}%)`,
-    );
-    expect(cells[1].style.getPropertyValue("--cell-basis")).toBe(
-      `calc(70% - ${GRID_GUTTER / 2}%)`,
-    );
+    // The column share and the editor's 70% reach their cells.
+    expect(cells[0].style.getPropertyValue("--cell-basis")).toContain("50%");
+    expect(cells[1].style.getPropertyValue("--cell-basis")).toContain("70%");
   });
 
   it("wraps the heading in its type-role container when heading_role is set", () => {

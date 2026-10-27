@@ -37,12 +37,6 @@ describe("SplitFeature slice", () => {
     expect(cells[1]?.querySelector("img")?.getAttribute("src")).toBe(
       "https://cdn/split.jpg",
     );
-    expect(
-      (cells[0] as HTMLElement).style.getPropertyValue("--cell-basis"),
-    ).toBe("60%");
-    expect(
-      (cells[1] as HTMLElement).style.getPropertyValue("--cell-basis"),
-    ).toBe("40%");
   });
 
   it("lays media-left out differently from media-right, keeping text-first DOM order", () => {

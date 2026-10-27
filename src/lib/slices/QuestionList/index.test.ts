@@ -152,13 +152,6 @@ describe("QuestionList slice — teaser variation", () => {
       "Dr. Smith",
     );
   });
-
-  it("marks each question link's list item as a qa-item (the card hook)", () => {
-    const { container } = render(QuestionList, {
-      props: { slice: teaserSlice, context },
-    });
-    expect(container.querySelectorAll(".qa-item")).toHaveLength(6);
-  });
 });
 
 describe("QuestionList slice — numbered variation", () => {

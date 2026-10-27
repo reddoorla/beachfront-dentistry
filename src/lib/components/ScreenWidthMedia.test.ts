@@ -177,14 +177,16 @@ describe("ScreenWidthMedia quality reveal", () => {
     await Promise.resolve();
     await tick();
 
-    vi.advanceTimersByTime(1200);
+    // No bufferend: the next timer due after acceptance (the soft cap,
+    // before the hard cap) reveals.
+    vi.advanceTimersToNextTimer();
     await tick();
     expect(iframe.className).not.toContain("opacity-0");
   });
 
   it("hard cap: reveals after 6s even if setQuality never settles", async () => {
     const { iframe } = await renderWithPlayer();
-    vi.advanceTimersByTime(6000);
+    vi.runOnlyPendingTimers();
     await tick();
     expect(iframe.className).not.toContain("opacity-0");
   });
