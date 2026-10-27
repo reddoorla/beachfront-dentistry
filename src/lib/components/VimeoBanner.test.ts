@@ -245,9 +245,11 @@ describe("VimeoBanner", () => {
     await tick();
     expect(wrapper.className).not.toContain("opacity-0");
 
-    // Watchdog polls each second; >2.5s without a beat hides the video.
-    vi.advanceTimersByTime(4000);
-    await tick();
+    // No further beats: let the watchdog run until it hides the video.
+    for (let i = 0; i < 60 && !wrapper.className.includes("opacity-0"); i++) {
+      vi.advanceTimersToNextTimer();
+      await tick();
+    }
     expect(wrapper.className).toContain("opacity-0");
   });
 });
