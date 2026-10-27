@@ -890,7 +890,7 @@ Lock-file maintenance #91 had been red since 2026-10-23 9:15am PT. Two `@smoke` 
 
 **Promotion prep.** `main` held squashed copies of #101 (the last promotion) and #102 (vite 8.3.3, fast-tracked). The two branches conflicted only on `pnpm-lock.yaml`. #105 merges `main` into `staging` and keeps `staging`'s lock, since #91's vite 8.3.5 already satisfies #102. `pnpm install` left that lock unchanged. #105 landed as a merge commit, so the promotion PR has `main` as an ancestor.
 
-## 2026-10-27 — Inherit the starters' test-pin fixes (#TBD)
+## 2026-10-27 — Inherit the starters' test-pin fixes (#114)
 
 Batch C of the fleet test audit (`reddoorla/reddoor-workspace` `audits/2026-10-26-fleet-test-audit/report.md`) fixed design-value and exact-count pins in the starters, and this site carries the starters' copies of those tests, so the same fixes are ported here. The hunks applied cleanly; the intent is the starters' own, with no design value, no source read as text and no exact list.
 
