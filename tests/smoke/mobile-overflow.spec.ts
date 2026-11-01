@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 
-// No page may be wider than a phone or a tablet, and no text a visitor can see
+// No page may be wider than the screen, and no text a visitor can see
 // may run past the right edge. Ported from williamson-construction-co
 // tests/smoke/mobile-overflow.spec.ts (reddoorla/williamson-construction-co#46),
 // itself from medical-solutions-of-texas (reddoorla/medical-solutions-of-texas#100)
@@ -261,8 +261,10 @@ for (const width of WIDTHS) {
 }
 
 // Without JavaScript the team Slider keeps its server layout, the 1024 one, at
-// every width, so at 768 and 820 its cards run past their 383px cells and the
-// text past the screen edge ("Dr. Robert Quan" from 472 to 948 at 768). That is
+// every width, so its cards run past their cells and the text past the screen
+// edge ("Dr. Robert Quan" from 472 to 948 at 768). Measured without JS on a
+// preview build, that cuts text at 480, 600, 767, 768 and 820, on this route
+// only; these tests take the two widths in WIDTHS. That is
 // reddoorla/beachfront-dentistry#119, not this spec's to fix. These are marked
 // as expected failures, so they report loudly as soon as #119 is fixed: then
 // delete the `test.fail` line.
