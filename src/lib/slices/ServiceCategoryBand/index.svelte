@@ -140,8 +140,15 @@
          deviation (LEDGER 2026-08-13) — deliberately keyed to `max-[374px]`,
          BELOW every width the gate samples, so 390/834/1440 render byte-for-
          byte as before and only the phones that were broken change. -->
+    <!-- One centred 640px column from 992 to 1279, two from 1280 (P1-90,
+         reddoorla/reddoor-maintenance#1876, the operator's pick). Two 640px
+         tracks are wider than the content column below 1280, so /services
+         scrolled sideways there (1132px at 1024). Live does the same: its
+         `1fr` track resolves to 512 at 992 and the grid overflows by 128px
+         (matching/spec-sections/services.md §B.4.1). A deliberate deviation,
+         LEDGER 2026-11-01. -->
     <div
-      class="mb-12 grid grid-cols-[384px] justify-start justify-items-center gap-y-[96px] py-12 max-[374px]:grid-cols-[minmax(0,100%)] md:mb-16 md:grid-cols-[512px] md:justify-center md:gap-y-[128px] md:py-16 lg:mb-20 lg:grid-cols-[640px_640px] lg:gap-y-[160px] lg:py-20"
+      class="mb-12 grid grid-cols-[384px] justify-start justify-items-center gap-y-[96px] py-12 max-[374px]:grid-cols-[minmax(0,100%)] md:mb-16 md:grid-cols-[512px] md:justify-center md:gap-y-[128px] md:py-16 lg:mb-20 lg:grid-cols-[640px] lg:justify-center xl:grid-cols-[640px_640px] lg:gap-y-[160px] lg:py-20"
     >
       {#each categories as cat (asText((cat.heading ?? []) as RichTextField))}
         {@const [col1, col2] = splitCols(docsFor(cat.category_tag))}

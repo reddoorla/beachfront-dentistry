@@ -917,3 +917,18 @@ This was a migration to a major, so it went to the operator as reddoor-workspace
 Not proven: no test renders `/slice-simulator` inside Prismic's builder. The evidence that it works on v3 is the type check, the build, and a review that read v3's component (it renders `children?.({ slices })` inside its root, and with no simulator message yet it shows only the empty white overlay).
 
 Backlog: P1-80.
+
+## 2026-11-01 — /services stops scrolling sideways from 992 to 1279, and a mobile-overflow spec (P1-90, `fix/p1-90-services-grid`)
+
+P1-90's census (reddoorla/reddoor-maintenance#1876) read `/services` as 1132px wide at 1024. The census tested only up to 1024, but the overflow runs from 992 to 1279. The cause is ServiceCategoryBand's two 640px tracks, which are wider than the content column below 1280. The reference does it too: its `1fr` track resolves to 512 at 992 and its grid overflows by 128px (§B.4.1). The operator picked one centred 640px column from 992 to 1279 (option 1 of three). Before it was built, it was injected on production: no overflow at 992, 1024, 1100 or 1279, and the cards kept their 600×640 with nothing cut. On a production build of this branch, the same holds at every width from 390 to 1440, and 1280 and up are unchanged. The LEDGER carries the deviation.
+
+`tests/smoke/mobile-overflow.spec.ts` is ported from williamson-construction-co#46. Its `measure()` went through four rounds of adversarial review there, and the same function sits in the-tower-burbank#40 and the-pointe-burbank#56. It covers one route per template (the list `tests/a11y/pages.spec.ts` uses, since `tests/smoke/routes.ts` holds only `/`) at 320, 390, 768, 820, 1024, 1100 and 1280. It is untagged: `measure()` reads layout rects, which "`@smoke` is earned" keeps out of the gate, and `mobile-ux.spec.ts`'s `@smoke` sideways check already covers 360–430. Reduced motion is set with `page.emulateMedia`, which `playwright.config.ts` records as the form that takes effect here.
+
+With the grid change reverted, the spec fails `/services` at 1024 and 1100, on both of two runs.
+
+**It also fails `/your-first-visit` at 768 and 820, and this PR does not fix that (#119).** The spec measures at `load` with no settle wait. Before hydration, the team Slider is laid out for desktop at every width, so at 768 "Dr. Robert Quan" runs from 472 to 948. Without JS it stays that way, with cards overflowing their 383px cells. After hydration, the peeking slide is `inert` and wholly off-screen. The test is left red rather than skipped. The section clips on x, so the page does not scroll sideways.
+
+**Beliefs corrected.**
+
+- The first full run failed `/your-first-visit` from 768 to 1280 on the team Slider's next card. Above 991 that card sits under the operator-directed edge fade, and below that it is a bare peek. Either way it is designed. The Slider marks every slide not on view `inert`, so the shared `measure()` now skips inert text.
+- Inside Playwright's test runner, the page is measured before hydration more often than in a standalone script. The two disagreed about the same card at 768 until the no-JS render showed why.
