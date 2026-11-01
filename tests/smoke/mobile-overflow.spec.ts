@@ -6,9 +6,11 @@ import { test, expect, type Page } from "@playwright/test";
 // itself from medical-solutions-of-texas (reddoorla/medical-solutions-of-texas#100)
 // by way of vineyard-custom-homes (reddoorla/vineyard-custom-homes#108), for
 // P1-90 (reddoorla/reddoor-maintenance#1876). On 2026-11-01 /services was
-// 1132px wide at 1024: ServiceCategoryBand's two 640px tracks are wider than
-// the content column everywhere from 992 to 1279. 1100 and 1280 are in the
-// widths for that band; `mobile-ux.spec.ts` already covers 360-430.
+// 1132px wide at 1024: ServiceCategoryBand's two 640px tracks made the page
+// scroll sideways from 992 to 1239. From 1240 to 1279 the two cards fitted, but
+// flush with the screen, 0-20px from its edges. The band is one column from 992
+// to 1279 now, so 992, 1024, 1100 and 1279 sit inside it and 1280 is the first
+// two-column width. `mobile-ux.spec.ts` already covers 360-430.
 //
 // A plain desktop context at the device width, because Chromium's mobile
 // emulation zooms the page out to fit and hides the overflow. Three changes
@@ -37,18 +39,34 @@ const ROUTES = [
   "/questions/how-to-stop-a-toothache-fast",
   "/team-members/dr-robert-quan",
 ];
-const WIDTHS = [320, 390, 768, 820, 1024, 1100, 1280];
+const WIDTHS = [320, 390, 768, 820, 992, 1024, 1100, 1279, 1280];
 
-async function gotoLoaded(page: Page, path: string) {
+async function gotoLoaded(page: Page, path: string, hydrated = true) {
   // Reduced motion, so scroll reveals do not hold below-the-fold text at
   // opacity 0 at load (the visibility check would skip it, and a cut there
-  // would pass). Set with emulateMedia, which playwright.config.ts records as
-  // the form that reliably takes effect here.
+  // would pass). @reddoorla/maintenance 0.90.1 and later already set it in
+  // `contextOptions.reducedMotion`; this call is a redundant safeguard.
   await page.emulateMedia({ reducedMotion: "reduce" });
   const res = await page.goto(path, { waitUntil: "load" });
   // An unpublished page would otherwise measure the error page and pass.
   expect(res?.ok(), `${path} answered ${res?.status()}`).toBe(true);
   await page.evaluate(() => document.fonts.ready);
+  if (!hydrated) return;
+  // Measure the hydrated page. Before hydration the viewport store reads its
+  // server default (1024) at every width, so a Slider is laid out for that
+  // width (#119). Measured at `load`, /your-first-visit at 768 and 820 went red
+  // on 6 of 6 dev-server runs and 0 of 40 preview runs: a race, not a signal.
+  // SvelteKit sets `history.scrollRestoration` to "manual" in `_start_router()`,
+  // which runs only once `_hydrate()` has returned (kit 3.1.0, client.js
+  // `start`); on a fresh load nothing sets it earlier. Two frames then let the
+  // effects that hydration scheduled (the viewport store's commit) render.
+  await page.waitForFunction(() => history.scrollRestoration === "manual");
+  await page.evaluate(
+    () =>
+      new Promise((done) =>
+        requestAnimationFrame(() => requestAnimationFrame(done)),
+      ),
+  );
 }
 
 function measure(page: Page) {
@@ -241,3 +259,28 @@ for (const width of WIDTHS) {
     }
   });
 }
+
+// Without JavaScript the team Slider keeps its server layout, the 1024 one, at
+// every width, so at 768 and 820 its cards run past their 383px cells and the
+// text past the screen edge ("Dr. Robert Quan" from 472 to 948 at 768). That is
+// reddoorla/beachfront-dentistry#119, not this spec's to fix. These are marked
+// as expected failures, so they report loudly as soon as #119 is fixed: then
+// delete the `test.fail` line.
+test.describe("without JavaScript", () => {
+  test.use({ javaScriptEnabled: false });
+  for (const width of [768, 820]) {
+    test.describe(`at ${width}px`, () => {
+      test.use({ viewport: { width, height: 800 } });
+      test("/your-first-visit has no horizontal overflow", async ({ page }) => {
+        test.fail(true, "#119: the team Slider's no-JS layout is desktop's");
+        await gotoLoaded(page, "/your-first-visit", false);
+        const { scrollWidth, clientWidth, cut } = await measure(page);
+        expect(
+          scrollWidth,
+          `page is wider than ${clientWidth}px`,
+        ).toBeLessThanOrEqual(clientWidth);
+        expect(cut, `text cut off at the ${clientWidth}px edge`).toEqual([]);
+      });
+    });
+  }
+});

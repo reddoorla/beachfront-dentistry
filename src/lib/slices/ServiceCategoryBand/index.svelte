@@ -141,12 +141,19 @@
          BELOW every width the gate samples, so 390/834/1440 render byte-for-
          byte as before and only the phones that were broken change. -->
     <!-- One centred 640px column from 992 to 1279, two from 1280 (P1-90,
-         reddoorla/reddoor-maintenance#1876, the operator's pick). Two 640px
-         tracks are wider than the content column below 1280, so /services
-         scrolled sideways there (1132px at 1024). Live does the same: its
-         `1fr` track resolves to 512 at 992 and the grid overflows by 128px
-         (matching/spec-sections/services.md §B.4.1). A deliberate deviation,
-         LEDGER 2026-11-01. -->
+         reddoorla/reddoor-maintenance#1876, the operator's pick). The two
+         640px tracks are wider than the content column at every width up to
+         1399, and they made /services scroll sideways from 992 to 1239
+         (1132px wide at 1024). From 1240 to 1279 they fit the screen, but only
+         by spilling into the section's 60px side padding: the cards sat 0–20px
+         from the screen edge (20px at 1280). The operator kept one column to
+         1279, so that band changes from two flush cards to one centred card,
+         and `xl` (1280) is a breakpoint the repo already uses. Live overflows
+         the same way: its `1fr` track resolves to 512 at 992 and the grid
+         overflows by 128px (matching/spec-sections/services.md §B.4.1). A
+         deliberate deviation, LEDGER 2026-11-01. `lg:justify-center` repeats
+         what `md:justify-center` already sets; it is the operator's exact
+         string, so it stays. -->
     <div
       class="mb-12 grid grid-cols-[384px] justify-start justify-items-center gap-y-[96px] py-12 max-[374px]:grid-cols-[minmax(0,100%)] md:mb-16 md:grid-cols-[512px] md:justify-center md:gap-y-[128px] md:py-16 lg:mb-20 lg:grid-cols-[640px] lg:justify-center xl:grid-cols-[640px_640px] lg:gap-y-[160px] lg:py-20"
     >
