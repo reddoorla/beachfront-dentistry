@@ -404,8 +404,16 @@ describe("Slider infinite mode", () => {
   // docs/superpowers/specs/2026-09-02-team-slider-infinite-loop-and-name-design.md
   const track = (container: HTMLElement) =>
     container.querySelector<HTMLElement>('[style*="transform"]')!;
-  const indexOf = (container: HTMLElement) =>
-    Number(/calc\((\d+) \*/.exec(track(container).style.transform)?.[1]);
+  // The track writes `translateX(calc(i * (-100% - gap) / n))`, and jsdom 31
+  // simplifies the calc() as a browser does, to `calc(P% - Grem)` with
+  // P = -100 * i / n. These tests run at the default one card per view, so the
+  // index is the percent term over -100 (`+ 0` turns -0 into 0).
+  const indexOf = (container: HTMLElement) => {
+    const pct = /^translateX\(calc\((-?[\d.]+)% [+-] /.exec(
+      track(container).style.transform,
+    )?.[1];
+    return Number(pct) / -100 + 0;
+  };
   const settle = async () => {
     await tick();
     await tick();
