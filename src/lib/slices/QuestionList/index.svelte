@@ -228,11 +228,11 @@
                  `.filter-to-primary-dark` — the exact computed chain below
                  (read off live 2026-08-02), not a recoloured asset. -->
             <!-- Lossless WebP of live's PNG (alpha and every visible pixel
-                 identical as decoded by sharp; 55 KB → 24 KB), lazy because it sits below the
-                 fold and was being fetched beside the LCP hero poster. -->
+                 identical as decoded by sharp; 55 KB → 24 KB), not lazy: animateIn reveals it on
+                 intersection, and a lazy fetch could lose that race and fade
+                 in an empty box. -->
             <img
               src="/annotations/ask-the-doctor.webp"
-              loading="lazy"
               decoding="async"
               alt=""
               class="absolute right-[144px] bottom-[26px] w-[120px] max-w-none lg:top-[120px] lg:right-full lg:bottom-auto lg:mr-[10px] lg:w-[210px]"
