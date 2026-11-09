@@ -28,9 +28,26 @@
       name="google-site-verification"
       content="YuoEeFMzztDea346sXvNqeCm0fWj1NJT5eFqaqiOVp0"
     />
-    <link rel="preconnect" href="https://use.typekit.net" />
-    <link rel="preconnect" href="https://p.typekit.net" crossorigin />
+    <!-- Typekit is two render-blocking hops: tao4byj.css, then the p.css it
+         @imports (Adobe's licence pageview counter, a few bytes). Measured on
+         the 2026-11-09 Lighthouse runs, p.css could not start until tao4byj.css
+         landed and held first paint ~330 ms past the site's own CSS. The
+         preload below fetches it in parallel; it MUST stay byte-identical to
+         the @import URL in https://use.typekit.net/tao4byj.css (re-read it if
+         the kit is republished), or it is a wasted request and the chain is
+         back. Fonts are fetched with CORS and the stylesheets without, and a
+         browser keeps those on separate connections: hence a crossorigin
+         preconnect for use.typekit.net's fonts (its stylesheet, right below,
+         is found by the preload scanner anyway), and one without for
+         p.typekit.net, which serves only the no-CORS p.css. -->
+    <link rel="preconnect" href="https://use.typekit.net" crossorigin />
+    <link rel="preconnect" href="https://p.typekit.net" />
     <link rel="stylesheet" href="https://use.typekit.net/tao4byj.css" />
+    <link
+      rel="preload"
+      as="style"
+      href="https://p.typekit.net/p.css?s=1&k=tao4byj&ht=tk&f=2005.2006.2007.2008.2026.2027.2028.2029.2030.2031.2032.2033.2036.2037.52856.52863.52864.52866&a=25763742&app=typekit&e=css"
+    />
     <!-- The no-JS half of the scroll-reveal's first-paint hidden state (app.css,
          `[data-reveal]`). With scripting off this style applies and every
          revealed element paints normally; with scripting on the browser ignores

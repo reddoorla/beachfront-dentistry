@@ -82,6 +82,12 @@ describe("QuestionList slice — teaser variation", () => {
       expect(link.getAttribute("href")).toBe(`/questions/${uid}`);
       expect(link.textContent).toContain("Read More");
     });
+    // Each link's text names its own question, so crawlers (Lighthouse SEO's
+    // link-text audit) and a screen reader's links list can tell them apart.
+    readMoreLinks.forEach((link, i) => {
+      const [, , title] = expectedOrder[i]!;
+      expect(link.textContent).toContain(title);
+    });
     const titles = getAllByRole("heading", { level: 3 }).map((h) =>
       h.textContent?.trim(),
     );
@@ -177,7 +183,10 @@ describe("QuestionList slice — numbered variation", () => {
 
       // "Read More" navigates to the detail route (the card itself is not a link).
       const link = card.querySelector(`a[href="/questions/${uid}"]`);
-      expect(link?.textContent?.trim()).toBe("Read More");
+      // Visible "Read More" first (WCAG 2.5.3), then the question as sr-only
+      // text so each link's text is distinct (Lighthouse SEO link-text).
+      expect(link?.textContent).toMatch(/^\s*Read More/);
+      expect(link?.textContent).toContain(title);
     });
   });
 
