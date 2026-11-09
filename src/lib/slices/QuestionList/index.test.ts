@@ -183,7 +183,9 @@ describe("QuestionList slice — numbered variation", () => {
 
       // "Read More" navigates to the detail route (the card itself is not a link).
       const link = card.querySelector(`a[href="/questions/${uid}"]`);
-      expect(link?.textContent?.trim()).toBe("Read More");
+      // Visible "Read More" first (WCAG 2.5.3), then the question as sr-only
+      // text so each link's text is distinct (Lighthouse SEO link-text).
+      expect(link?.textContent?.trim()).toBe(`Read More: ${title}`);
     });
   });
 
