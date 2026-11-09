@@ -227,8 +227,8 @@
             <!-- Live ships the raw handwriting PNG and turns it dark blue with
                  `.filter-to-primary-dark` — the exact computed chain below
                  (read off live 2026-08-02), not a recoloured asset. -->
-            <!-- Lossless WebP of live's PNG (every visible pixel and alpha
-                 identical; 55 KB → 24 KB), lazy because it sits below the
+            <!-- Lossless WebP of live's PNG (alpha and every visible pixel
+                 identical as decoded by sharp; 55 KB → 24 KB), lazy because it sits below the
                  fold and was being fetched beside the LCP hero poster. -->
             <img
               src="/annotations/ask-the-doctor.webp"

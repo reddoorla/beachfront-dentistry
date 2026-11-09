@@ -380,12 +380,15 @@
             class="pointer-events-none absolute -top-4 -left-32 z-10 hidden w-60 lg:block xl:top-0 xl:-left-[176px]"
           >
             <!-- Lossless WebP of the PNG (visible pixels identical; 79 KB →
-                 29 KB). Lazy: below the fold, and `hidden` below lg, where a
+                 29 KB). Intrinsic size given so the arrow below keeps its
+                 place before the lazy image lands. Lazy: below the fold, and `hidden` below lg, where a
                  lazy image in a display:none box is never fetched at all. -->
             <img
               src="/annotations/what-they-say.webp"
               alt=""
               class="w-full"
+              width="1090"
+              height="260"
               loading="lazy"
               decoding="async"
             />

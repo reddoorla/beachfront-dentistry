@@ -52,4 +52,47 @@ describe("AppointmentModal and Turnstile", () => {
     await act(() => appointmentOpen.set(true));
     expect(loadTurnstile).toHaveBeenCalledTimes(1);
   });
+
+  it("keeps the widget mounted across close and reopen (no collapse mid-fade, no fresh challenge)", async () => {
+    const { container } = render(AppointmentModal);
+    await act(() => appointmentOpen.set(true));
+    const mount = container.querySelector("form .cf-turnstile");
+    expect(mount).not.toBeNull();
+    await act(() => appointmentOpen.set(false));
+    expect(mount!.isConnected).toBe(true);
+    await act(() => appointmentOpen.set(true));
+    expect(container.querySelector("form .cf-turnstile")).toBe(mount);
+    expect(loadTurnstile).toHaveBeenCalledTimes(1);
+  });
+
+  it("starts loading api.js when a pointer or focus reaches an #appointment link, before any click", async () => {
+    render(AppointmentModal);
+    const cta = document.createElement("a");
+    cta.href = "#appointment";
+    cta.innerHTML = "<span>Make Appointment</span>";
+    document.body.append(cta);
+    try {
+      await act();
+      cta.firstElementChild!.dispatchEvent(
+        new Event("pointerover", { bubbles: true }),
+      );
+      expect(loadTurnstile).toHaveBeenCalledTimes(1);
+    } finally {
+      cta.remove();
+    }
+  });
+
+  it("does not warm on other links", async () => {
+    render(AppointmentModal);
+    const other = document.createElement("a");
+    other.href = "/services";
+    document.body.append(other);
+    try {
+      await act();
+      other.dispatchEvent(new Event("focusin", { bubbles: true }));
+      expect(loadTurnstile).not.toHaveBeenCalled();
+    } finally {
+      other.remove();
+    }
+  });
 });

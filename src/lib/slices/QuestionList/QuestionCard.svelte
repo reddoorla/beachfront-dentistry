@@ -396,7 +396,8 @@
                screen-reader links list read six identical entries. In the
                text, not an aria-label, because crawlers read text; the
                visible words still start the name (WCAG 2.5.3). -->
-          Read More<span class="sr-only">: {titleText}</span>
+          Read More{#if titleText}<span class="sr-only">: {titleText}</span
+            >{/if}
         </a>
       </div>
     </div>
