@@ -381,8 +381,9 @@
           >
             <!-- Lossless WebP of the PNG (visible pixels identical; 79 KB →
                  29 KB). Intrinsic size given so the arrow below keeps its
-                 place before the lazy image lands. Lazy: below the fold, and `hidden` below lg, where a
-                 lazy image in a display:none box is never fetched at all. -->
+                 place before the lazy image lands. Lazy: below the fold, and
+                 `hidden` below lg, where a lazy image in a display:none box
+                 is never fetched at all. -->
             <img
               src="/annotations/what-they-say.webp"
               alt=""
