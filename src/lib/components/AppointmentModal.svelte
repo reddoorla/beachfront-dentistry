@@ -6,6 +6,37 @@
   import { appointmentOpen } from "$lib/stores/appointment";
   import { PHONE } from "$lib/site";
   import { fade, slide } from "$lib/transitions";
+  import * as env from "$app/env/public";
+  import { loadTurnstile } from "$lib/turnstile";
+
+  // The Turnstile widget mounts on the first open, not on page load (see the
+  // form below). Its challenge then starts at open, so a fast first submit can
+  // go out with no token: on this site that only weakens screening, since
+  // `require_turnstile` is off for it. To narrow the window, Cloudflare's
+  // api.js starts loading the moment a pointer or focus reaches any
+  // #appointment link, before the click lands.
+  let everOpened = $state(false);
+  $effect(() => {
+    if ($appointmentOpen) everOpened = true;
+  });
+  $effect(() => {
+    if (!env.PUBLIC_TURNSTILE_SITE_KEY?.trim()) return;
+    const warmTurnstile = (e: Event) => {
+      if (
+        (e.target as HTMLElement | null)?.closest?.('a[href="#appointment"]')
+      ) {
+        stop();
+        loadTurnstile().catch(() => {});
+      }
+    };
+    const stop = () => {
+      document.removeEventListener("pointerover", warmTurnstile);
+      document.removeEventListener("focusin", warmTurnstile);
+    };
+    document.addEventListener("pointerover", warmTurnstile);
+    document.addEventListener("focusin", warmTurnstile);
+    return stop;
+  });
 
   /** Used when the server gave us no copy of its own — a thrown exception, a
    *  dropped connection, or a failure payload without an `error` string. */
@@ -205,8 +236,19 @@
            injects its hidden cf-turnstile-response input here, and the action's
            createIngestAction forwards it as the verification token. The widget
            reserves its own ~65px box before the iframe arrives — see
-           TurnstileWidget.svelte. -->
-      <TurnstileWidget />
+           TurnstileWidget.svelte.
+           `{#if everOpened}`: the native <dialog> keeps its children in the
+           DOM while closed, and this modal lives in the root layout, so
+           without the guard every page load fetched Cloudflare's api.js and
+           ran a challenge for a form nobody had opened (and the challenge's
+           console error cost the nightly's best-practices score). Once opened
+           it stays mounted: unmounting on close collapsed its 65px box during
+           the dialog's 240ms exit fade, jumping the button. The token race
+           this opens is narrowed by warmTurnstile above.
+           AppointmentModal.turnstile.test.ts pins it. -->
+      {#if everOpened}
+        <TurnstileWidget />
+      {/if}
 
       <!-- The last click in the booking flow, and it used to acknowledge
            nothing: probed transition-duration 0s, and the hovered background

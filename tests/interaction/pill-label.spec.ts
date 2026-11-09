@@ -34,11 +34,20 @@ for (const path of ROUTES) {
           if (getComputedStyle(a).lineHeight !== "0px") continue;
           const label = (a.textContent ?? "").trim();
           if (!label) continue;
-          const range = document.createRange();
-          range.selectNodeContents(a);
-          const frags = Array.from(range.getClientRects()).filter(
-            (r) => r.width > 0,
-          );
+          // Painted text only: a `.sr-only` span (the question-card "Read
+          // More: <question>") is clipped to 1px but its range still reports
+          // a full-width rect, which is not a second painted line.
+          const frags: DOMRect[] = [];
+          const walker = document.createTreeWalker(a, NodeFilter.SHOW_TEXT);
+          for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+            if (!n.textContent?.trim()) continue;
+            if (n.parentElement?.closest(".sr-only")) continue;
+            const range = document.createRange();
+            range.selectNodeContents(n);
+            frags.push(
+              ...Array.from(range.getClientRects()).filter((r) => r.width > 0),
+            );
+          }
           if (frags.length > 1) {
             const r = a.getBoundingClientRect();
             out.push(
