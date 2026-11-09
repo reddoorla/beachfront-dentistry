@@ -379,7 +379,16 @@
             aria-hidden="true"
             class="pointer-events-none absolute -top-4 -left-32 z-10 hidden w-60 lg:block xl:top-0 xl:-left-[176px]"
           >
-            <img src="/annotations/what-they-say.png" alt="" class="w-full" />
+            <!-- Lossless WebP of the PNG (visible pixels identical; 79 KB →
+                 29 KB). Lazy: below the fold, and `hidden` below lg, where a
+                 lazy image in a display:none box is never fetched at all. -->
+            <img
+              src="/annotations/what-they-say.webp"
+              alt=""
+              class="w-full"
+              loading="lazy"
+              decoding="async"
+            />
             <img
               src="/annotations/what-they-say-arrow.svg"
               alt=""

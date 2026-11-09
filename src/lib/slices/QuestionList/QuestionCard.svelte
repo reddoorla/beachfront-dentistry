@@ -391,7 +391,12 @@
             'white',
           )} mt-[46px] px-[1em] py-[1.3em] text-[15px] leading-[0] md:text-[20px] lg:mt-[36px] lg:text-[25px]"
         >
-          Read More
+          <!-- The question rides along as hidden text: six links reading only
+               "Read More" failed Lighthouse SEO's link-text audit (92), and a
+               screen-reader links list read six identical entries. In the
+               text, not an aria-label, because crawlers read text; the
+               visible words still start the name (WCAG 2.5.3). -->
+          Read More<span class="sr-only">: {titleText}</span>
         </a>
       </div>
     </div>

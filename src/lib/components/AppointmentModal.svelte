@@ -205,8 +205,16 @@
            injects its hidden cf-turnstile-response input here, and the action's
            createIngestAction forwards it as the verification token. The widget
            reserves its own ~65px box before the iframe arrives — see
-           TurnstileWidget.svelte. -->
-      <TurnstileWidget />
+           TurnstileWidget.svelte.
+           `{#if $appointmentOpen}`: the native <dialog> keeps its children in
+           the DOM while closed, and this modal lives in the root layout, so
+           without the guard every page load fetched Cloudflare's api.js and
+           ran a challenge for a form nobody had opened (and the challenge's
+           console error cost the nightly's best-practices score).
+           AppointmentModal.turnstile.test.ts pins it. -->
+      {#if $appointmentOpen}
+        <TurnstileWidget />
+      {/if}
 
       <!-- The last click in the booking flow, and it used to acknowledge
            nothing: probed transition-duration 0s, and the hovered background
