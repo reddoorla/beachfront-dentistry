@@ -64,6 +64,9 @@
   //
   // `timeupdate` fires only ~4x/s, hence a generous 0.7s threshold: at 250ms
   // granularity a tighter window could be stepped over entirely.
+  // PROTOTYPE (measurement only): start the flyover this long after the
+  // window load event instead of at hydration; the poster shows until then.
+  const HERO_START_AFTER_LOAD_MS = 2500;
   const WRAP_LEAD = 0.7;
   const WRAP_BACK = 0.3;
   let dissolving = $state(false);
@@ -84,7 +87,10 @@
       }
       // muted playback is allowed to autostart; ignore the promise rejection
       // that some browsers throw if the tab is backgrounded at mount.
-      el.play().catch(() => {});
+      const start = () =>
+        setTimeout(() => el.play().catch(() => {}), HERO_START_AFTER_LOAD_MS);
+      if (document.readyState === "complete") start();
+      else window.addEventListener("load", start, { once: true });
     });
 
     const onTime = () => {
