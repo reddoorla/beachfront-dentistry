@@ -985,3 +985,15 @@ Tried and abandoned: delaying the flyover until 2.5 s after load (draft #139, cl
 The operator's decision (`reddoor-workspace` `decisions/2026-11-09-2058-beachfront-hero-video-lighthouse.md`): keep the autoplaying flyover. It is the client's signature, matched to the original site, and it is the written reason for the gap to 95. He also approved moving the fleet row's `url` to the apex, done in Turso at 1:14pm PT. `search_console_property` stays on `www`, because the service account has no access to an apex property. That `www` URL-prefix property returns no position for the brand query, which a Domain property would fix.
 
 Review: two Opus rounds. Round 1: two majors and five minors, all fixed or filed (#140). Round 2: one pre-existing minor (#141, a spent Turnstile token resent after a failed submit) and nits, so it closed clean.
+
+## 2026-11-17 — Monday–Thursday closes at 4pm (#147 into `staging`)
+
+Tim asked in Discord (11-17, 9:39am PT) for Monday–Thursday to read 7am to 4pm instead of 5pm, with Friday and the weekend unchanged. The opening time was already 7am on live, so only the close moved.
+
+Every hours statement on the site comes from two sources in code, and none from Prismic. A fetch of all 81 sitemap pages on live found hours in three renderings only: the footer (`site-config.json`, every page), the info band on `/contact-us` and `/your-first-visit` (`HOURS` in `src/lib/site.ts`), and the JSON-LD `openingHoursSpecification`, which `+layout.svelte` derives from `HOURS`. Both sources changed; the JSON-LD close went from `17:00` to `16:00`. Friday (`7am - 2pm`, `07:00`–`14:00`) and `Saturday - Sunday / Closed` are byte-identical before and after. No meta description states times. The build carries no `7am - 5pm` or `"closes":"17:00"`; vitest ran 847 passed, 1 skipped.
+
+The tests that named 5pm were updated in the same change, per "a human's design change wins": `site.test.ts`'s `16:00`, the contact-us page test, and the Footer fixture. The first two, and the `HOURS`-to-footer drift guard, fail on the old value, so the change is pinned rather than merely tolerated.
+
+One Opus review round, three lenses: clean, one nit (`docs/improvements.md:112` still describes the planned JSON-LD as 07:00–17:00, a backlog note nothing renders; left as is).
+
+Production waits on the operator: this site's `CLAUDE.md` gives an agent no authority to promote `staging` to `main`, so the promotion PR is open for him to merge. It also carries the two lock-file maintenance PRs already on `staging` (#135, #146). Google Business Profile hours are outside the repo; Tim should change them there so Google's panel agrees with the site.
