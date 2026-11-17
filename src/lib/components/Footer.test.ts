@@ -286,7 +286,7 @@ describe("Footer", () => {
     {
       items: [
         { text: "OFFICE HOURS" },
-        { text: "Monday - Thursday / 7am - 5pm" },
+        { text: "Monday - Thursday / 7am - 4pm" },
         { text: "Friday / 7am - 2pm" },
       ],
     },
