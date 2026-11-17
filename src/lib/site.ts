@@ -31,9 +31,9 @@ export const ADDRESS = {
 
 /** Office hours as [day-range, time-range] pairs, in display order. The
  * footer renders these joined as "<day> / <time>" (site-config.json's
- * "Monday - Thursday / 7am - 5pm" row) — see site.test.ts's drift guard. */
+ * "Monday - Thursday / 7am - 4pm" row) — see site.test.ts's drift guard. */
 export const HOURS: [string, string][] = [
-  ["Monday - Thursday", "7am - 5pm"],
+  ["Monday - Thursday", "7am - 4pm"],
   ["Friday", "7am - 2pm"],
   ["Saturday - Sunday", "Closed"],
 ];

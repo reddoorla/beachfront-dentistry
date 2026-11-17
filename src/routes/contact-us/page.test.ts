@@ -56,7 +56,7 @@ describe("contact-us page", () => {
   it("renders the CONTACT / OFFICE HOURS info with a phone link", () => {
     const { getByText } = renderPage();
 
-    expect(getByText("Monday - Thursday / 7am - 5pm")).toBeTruthy();
+    expect(getByText("Monday - Thursday / 7am - 4pm")).toBeTruthy();
     expect(getByText("Friday / 7am - 2pm")).toBeTruthy();
     expect(getByText("Saturday - Sunday / Closed")).toBeTruthy();
 
