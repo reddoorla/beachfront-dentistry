@@ -95,7 +95,7 @@ describe("openingHoursSpecification()", () => {
   it("converts 12-hour display times to 24-hour schema times", () => {
     const weekdays = spec.find((s) => s.dayOfWeek.includes("Monday"))!;
     expect(weekdays.opens).toBe("07:00");
-    expect(weekdays.closes).toBe("17:00");
+    expect(weekdays.closes).toBe("16:00");
     const friday = spec.find((s) => s.dayOfWeek.join() === "Friday")!;
     expect(friday.closes).toBe("14:00");
   });
