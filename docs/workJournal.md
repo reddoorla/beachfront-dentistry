@@ -997,3 +997,5 @@ The tests that named 5pm were updated in the same change, per "a human's design 
 One Opus review round, three lenses: clean, one nit (`docs/improvements.md:112` still describes the planned JSON-LD as 07:00–17:00, a backlog note nothing renders; left as is).
 
 Production waits on the operator: this site's `CLAUDE.md` gives an agent no authority to promote `staging` to `main`, so the promotion PR is open for him to merge. It also carries the two lock-file maintenance PRs already on `staging` (#135, #146). Google Business Profile hours are outside the repo; Tim should change them there so Google's panel agrees with the site.
+
+Usage: not readable (`get_session` returned no `external_metadata.usage` at 9:56am PT).
