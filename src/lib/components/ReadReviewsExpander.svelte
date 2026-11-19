@@ -53,8 +53,9 @@
          the style census. -->
     <span
       class="font-slab mr-3 text-[14px] leading-[2.75] font-light text-[#365b6d] xs:text-[15px] md:text-[20px] lg:mr-[30px] lg:text-[25px]"
-      >Read Reviews</span
     >
+      Read Reviews
+    </span>
     <!-- Live's plus/minus crossfade: the (pre-rotated) plus fades out over
          .65s while the minus bar sits underneath. -->
     <span class="relative block size-[15px] lg:size-[25px]" aria-hidden="true">

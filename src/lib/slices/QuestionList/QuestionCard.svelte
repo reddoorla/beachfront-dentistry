@@ -307,8 +307,9 @@
              full-strength 1px #365b6d ring, ~52px disc at desktop. -->
         <span
           class="font-slab grid size-10 place-items-center rounded-full border border-[#365b6d] text-[15px] leading-[15px] font-bold tracking-[1.28px] text-[#365b6d] uppercase md:text-[20px] lg:size-[52px] lg:text-[25px] lg:leading-[30px]"
-          >{pad2(number)}</span
         >
+          {pad2(number)}
+        </span>
       {:else}
         <span aria-hidden="true"></span>
       {/if}
@@ -396,8 +397,9 @@
                screen-reader links list read six identical entries. In the
                text, not an aria-label, because crawlers read text; the
                visible words still start the name (WCAG 2.5.3). -->
-          Read More{#if titleText}<span class="sr-only">: {titleText}</span
-            >{/if}
+          Read More{#if titleText}<span class="sr-only">
+              : {titleText}
+            </span>{/if}
         </a>
       </div>
     </div>

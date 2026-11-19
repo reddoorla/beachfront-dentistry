@@ -100,9 +100,9 @@
           onclick={() => select(i)}
         >
           <span class="truncate">{t.label}</span>
-          <span aria-hidden="true" class="ml-2 shrink-0"
-            >{active === i ? "−" : "+"}</span
-          >
+          <span aria-hidden="true" class="ml-2 shrink-0">
+            {active === i ? "−" : "+"}
+          </span>
         </button>
       {/each}
     </div>
