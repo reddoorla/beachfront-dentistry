@@ -362,8 +362,9 @@
                             <a
                               href={child.href}
                               class="block px-3 py-2 hover:opacity-70"
-                              >{child.label}</a
                             >
+                              {child.label}
+                            </a>
                           {:else}
                             <span class="block px-3 py-2">{child.label}</span>
                           {/if}
@@ -376,8 +377,9 @@
                     <a
                       href={item.href}
                       class="hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
-                      >{item.label}</a
                     >
+                      {item.label}
+                    </a>
                   </li>
                 {:else}
                   <li><span>{item.label}</span></li>
@@ -402,19 +404,23 @@
               <a
                 href={PHONE.href}
                 class="hidden font-slab focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden xl:inline"
-                >{PHONE.display}</a
               >
+                {PHONE.display}
+              </a>
               <a
                 href="#appointment"
                 class="rounded-full bg-white px-5 py-2 font-semibold text-primary-deep hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
-                >Request Appointment</a
               >
+                Request Appointment
+              </a>
               <a
                 href={MODENTO_URL}
                 class="rounded-full border border-white px-5 py-2 text-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-deep focus-visible:outline-hidden"
                 target="_blank"
-                rel="noopener">Make a Payment</a
+                rel="noopener"
               >
+                Make a Payment
+              </a>
             </div>
           {/if}
 
@@ -501,8 +507,9 @@
       </button>
 
       {#each navLinks as link (link.href)}
-        <a href={link.href} class="px-4 py-3" onclick={closeMenu}>{link.text}</a
-        >
+        <a href={link.href} class="px-4 py-3" onclick={closeMenu}>
+          {link.text}
+        </a>
       {/each}
     </div>
   {:else}
@@ -658,24 +665,27 @@
           onclick={closeMenu}
           in:fly|global={linkIn(0)}
           class="font-slab text-[30px] leading-[40px] font-light text-white transition-colors duration-[350ms] hover:text-[#9fc9d6] lg:text-[40px] lg:leading-[50px]"
-          >Home Page</a
         >
+          Home Page
+        </a>
         {#each menuLeafItems as item, i (i)}
           <a
             href={item.href}
             onclick={closeMenu}
             in:fly|global={linkIn(i + 1)}
             class="font-slab text-[30px] leading-[40px] font-light text-white transition-colors duration-[350ms] hover:text-[#9fc9d6] lg:text-[40px] lg:leading-[50px]"
-            >{item.label}</a
           >
+            {item.label}
+          </a>
         {/each}
         <a
           href={PHONE.href}
           onclick={closeMenu}
           in:fly|global={linkIn(menuLeafItems.length + 1)}
           class="font-slab text-[30px] leading-[40px] font-light text-white transition-colors duration-[350ms] hover:text-[#9fc9d6] lg:text-[40px] lg:leading-[50px]"
-          >{PHONE.display}</a
         >
+          {PHONE.display}
+        </a>
         <a
           href="#appointment"
           onclick={closeMenu}
@@ -683,8 +693,9 @@
           class="{pillClass(
             'white-deep',
           )} px-[1em] py-[1.3em] leading-[0] text-[15px] lg:text-[25px]"
-          >Request an Appointment</a
         >
+          Request an Appointment
+        </a>
         <a
           href={MODENTO_URL}
           target="_blank"
@@ -694,8 +705,9 @@
           class="{pillClass(
             'white-deep',
           )} px-[1em] py-[1.3em] leading-[0] text-[15px] lg:text-[25px]"
-          >Make a Payment</a
         >
+          Make a Payment
+        </a>
       </nav>
     </div>
   {/if}

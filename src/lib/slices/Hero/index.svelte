@@ -386,8 +386,9 @@
       >
         {#if brandParts}
           <h1>
-            {brandParts.before}<strong>{brandParts.brand}</strong
-            >{brandParts.after}
+            {brandParts.before}<strong>
+              {brandParts.brand}
+            </strong>{brandParts.after}
           </h1>
         {:else}
           <PrismicRichText field={slice.primary.heading} />

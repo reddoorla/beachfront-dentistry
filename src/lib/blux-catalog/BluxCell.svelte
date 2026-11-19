@@ -78,9 +78,9 @@
     <!-- eslint-disable-next-line svelte/no-at-html-tags -- trusted Blux migration HTML, sanitized at the Emit stage (spec §6) -->
     {@html cell.embed_html}
   {/if}
-  {#if isFilled.link(cell.link)}<PrismicLink field={cell.link}
-      >{cell.link_label || "Read more"}</PrismicLink
-    >{/if}
+  {#if isFilled.link(cell.link)}<PrismicLink field={cell.link}>
+      {cell.link_label || "Read more"}
+    </PrismicLink>{/if}
   {#if sub.length}
     <div class="blux-subgrid" data-cells={sub.length}>
       {#each sub as s, i (s)}<Self cell={s} basis={subBases[i]} />{/each}
