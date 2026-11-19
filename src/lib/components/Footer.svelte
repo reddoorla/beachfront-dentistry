@@ -151,15 +151,18 @@
           class="{pillClass(
             'teal',
           )} px-[1em] py-[1.3em] leading-[0] mt-[42px] mb-[36px] w-fit text-[14px] whitespace-nowrap xs:text-[15px] md:mt-[33px] md:mb-0 md:text-[20px] lg:mt-[27px] lg:text-[25px]"
-          >{item.text}</a
         >
+          {item.text}
+        </a>
       {:else if item.href}
         <a
           {...linkAttrs(item.href)}
           class="transition-opacity hover:opacity-60 {linkRhythm
             ? 'my-[6px] first:mt-0 md:my-[8px] lg:my-[10px]'
-            : ''}">{item.text}</a
+            : ''}"
         >
+          {item.text}
+        </a>
       {:else if item.text === item.text.toUpperCase()}
         <!-- ALL-CAPS non-link rows are live's column labels (OFFICE HOURS,
              CONTACT): museo-slab, weight 500, 16/32 mobile and 20/40 desktop. -->

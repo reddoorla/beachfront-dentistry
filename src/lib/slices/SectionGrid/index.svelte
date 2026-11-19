@@ -243,8 +243,9 @@
                    live @390), 40px/50px at desktop. -->
               <span
                 class="font-slab text-[21px] leading-[26px] font-light text-white lg:text-[40px] lg:leading-[50px]"
-                >{label}</span
               >
+                {label}
+              </span>
             </PrismicLink>
           </li>
         {/each}
@@ -561,8 +562,9 @@
               >
                 <span
                   class="font-slab text-[24px] leading-[36px] font-bold text-[#365b6d] xs:text-[30px] xs:leading-[45px] md:text-[30px] md:leading-[45px] lg:text-[30px] lg:leading-[45px]"
-                  >{label}</span
                 >
+                  {label}
+                </span>
                 <!-- Live hides the +/- control on these cards at mobile (its
                      .plus-minus-block computes to 0x0 there — the class is
                      literally `display-block-desk-none-mobile`), because the
@@ -695,8 +697,9 @@
                 >
                   <span
                     class="font-slab text-[30px] leading-[45px] font-bold text-[#365b6d]"
-                    >{label}</span
                   >
+                    {label}
+                  </span>
                   <!-- Live swaps + for − when open (not a rotated ×) — its
                        own Plus.svg / minus.svg assets, 25px wide. -->
                   {#if open}
@@ -721,8 +724,9 @@
                 >
                   <span
                     class="font-slab text-[30px] leading-[45px] font-bold text-[#365b6d]"
-                    >{label}</span
                   >
+                    {label}
+                  </span>
                 </div>
               {/if}
             </div>

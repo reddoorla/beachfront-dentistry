@@ -246,14 +246,15 @@
                           viewBox="0 0 10 11"
                           fill="none"
                           aria-hidden="true"
-                          ><path
+                        >
+                          <path
                             d="M1 5.5h7M5 2l3 3.5L5 9"
                             stroke="currentColor"
                             stroke-width="1.2"
                             stroke-linecap="round"
                             stroke-linejoin="round"
-                          /></svg
-                        >
+                          />
+                        </svg>
                       </a>
                     </li>
                   {/each}
