@@ -49,7 +49,8 @@
       />{/if}
     {#if isFilled.link(slice.primary.link)}<PrismicLink
         field={slice.primary.link}
-        >{slice.primary.link_label || "Learn more"}</PrismicLink
-      >{/if}
+      >
+        {slice.primary.link_label || "Learn more"}
+      </PrismicLink>{/if}
   </div>
 </div>

@@ -66,14 +66,16 @@
                 class="flex w-full max-w-[1280px] flex-col gap-1 bg-white px-[30px] py-[15px] text-center"
               >
                 {#if frame.caption}
-                  <span class={frame.role ? `txt-role-${frame.role}` : ""}
-                    >{frame.caption}</span
-                  >
+                  <span class={frame.role ? `txt-role-${frame.role}` : ""}>
+                    {frame.caption}
+                  </span>
                 {/if}
                 {#if frame.subcaption}
-                  <span class={frame.subrole ? `txt-role-${frame.subrole}` : ""}
-                    >{frame.subcaption}</span
+                  <span
+                    class={frame.subrole ? `txt-role-${frame.subrole}` : ""}
                   >
+                    {frame.subcaption}
+                  </span>
                 {/if}
               </span>
             </figcaption>
