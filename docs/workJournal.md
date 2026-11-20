@@ -1033,3 +1033,19 @@ The operator, about 2:40pm PT: "also view all posts on the blog isn't linked". E
 What is not fixed is the crumb's contrast, which the brief also asked for. I measured white against the pixels in a 2px ring around each letter, with the text hidden. A solid-black control reads 21.00:1, and the probe agreed with what the screenshots show. Every sampled hero is below AA at some width: 12 of 12 articles and 8 of 8 services. The worst is 1.47:1 on `/services/oraverse`, and `/questions/how-to-stop-a-toothache-fast` reads 1.58:1 at 390, where the crumb sits on a white blanket. The reviewer measured it independently at 1.83–1.97:1. It is the original Webflow design, not a regression, and axe can't see it: it reports text over an image as "incomplete", which is why the a11y suite was green. Soft shadows reach only 2.1–3.0:1, and a 1px deep-teal halo 1.9:1, because the photo shows through just outside the halo. Only an opaque backing holds for any photo: white on `#0e7799` is 4.98:1. That would change every detail hero, so it went to the operator as the workspace decision `2026-11-20-2308-beachfront-detail-crumb-contrast.md`, with a solid deep-teal tag as the pick.
 
 Usage: $4.75, 645/42,123 tokens, 11,085,202/248,265 cache, rate limit allowed.
+
+## 2026-11-20 — The detail-hero crumb sits on an opaque deep-teal tag, AA on any photo (#163, `04e274f`, into `staging`); #162 promoted the link
+
+The previous entry ended with the crumb's contrast with the operator. At about 3:25pm PT he chose the solid deep-teal tag, and also merged the link's promotion. #162 landed on `main` at 3:31pm PT as merge commit `074980e`, pinned to `9c22627` (`land-prs.mjs` refuses promotions by design, so it went through the GitHub connector, as #154 did). At 3:32pm PT on production, the 4th Tab reached the crumb at 390, 834 and 1440, and Enter and a click both landed on `/ask-the-doctor`.
+
+#163 gives both crumb variants (the linked article crumb and the plain service crumb) `rounded-md bg-primary-deep px-3 py-1`, and leaves the team-member name alone. White on `#0e7799` is 4.98:1 whatever the photo, and the ring probe now reads 5.10:1 on every ring pixel at 390, 834 and 1440, on the abscess article, the toothache article and `/services/oraverse`. Before, those read 1.47–1.58:1 at their worst. The gate is `src/lib/components/DetailHero.test.ts`. On the `Footer.test.ts` model, it reads the crumb's own fill from `@theme`, then asserts four things: one base fill; that fill and every state variant opaque and at least 4.5:1; no inline background; no `opacity-*` on the crumb or its wrapper. Six mutations each turn it red: the tag removed, `/80`, brand cyan (3.09:1), `hover:bg-primary/40`, `opacity-80` on the wrapper, and a second `bg-white`.
+
+One Opus round, minors only, all folded into `9e4eee3`:
+
+- A long service category at 390 ran the tag to the viewport edge (x 20 to 390). `w-fit` plus a max-width of the viewport less both gutters now wraps it with a 20.0px right gutter.
+- The first version of the test read only the first `bg-*` class, so a translucent hover fill, a fade or an inline background would have passed. It now checks all of these.
+- The wave-clearance comment was stale. The tag's padding grows upward, so its bottom edge now sits flush on the top of the wave's box (gap 0), still clear of the curve.
+
+The tag is a deliberate departure from the Webflow original, which has no backing. It reaches production only with the next promotion.
+
+Usage: $4.31 since the previous entry, 113/38,946 tokens, 12,153,779/179,238 cache, rate limit allowed (session total $9.06).
