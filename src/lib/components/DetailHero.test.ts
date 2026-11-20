@@ -46,22 +46,44 @@ function contrast(a: Rgb, b: Rgb): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-/** The element's own background from its unprefixed `bg-*` class (a theme
- *  token or `[#rrggbb]`, with any `/<pct>`), or undefined when it has none. */
-function backing(el: HTMLElement) {
-  for (const cls of el.className.split(/\s+/)) {
-    const m =
-      /^bg-(?:\[(#[0-9a-f]{6})([0-9a-f]{2})?\]|([a-z][a-z0-9-]*))(?:\/(\d+))?$/i.exec(
-        cls,
-      );
-    const hex = m && (m[1] ?? THEME[m[3]]);
-    if (!m || !hex) continue;
-    const alpha =
-      (m[2] ? parseInt(m[2], 16) / 255 : 1) *
-      (m[4] === undefined ? 1 : Number(m[4]) / 100);
-    return { rgb: hexRgb(hex), alpha };
+const BG =
+  /^bg-(?:\[(#[0-9a-f]{6})([0-9a-f]{2})?\]|([a-z][a-z0-9-]*))(?:\/(\d+))?$/i;
+
+/** A `bg-*` class's colour and alpha (a theme token or `[#rrggbb]`, with any
+ *  `/<pct>`), or undefined when the utility is not a colour. */
+function fill(utility: string) {
+  const m = BG.exec(utility);
+  const hex = m && (m[1] ?? THEME[m[3]]);
+  if (!m || !hex) return undefined;
+  const alpha =
+    (m[2] ? parseInt(m[2], 16) / 255 : 1) *
+    (m[4] === undefined ? 1 : Number(m[4]) / 100);
+  return { rgb: hexRgb(hex), alpha };
+}
+
+/** Every background the crumb can show: its one unprefixed `bg-*` (two would
+ *  leave the winner to CSS order, so that fails), plus any state variant
+ *  (`hover:`, `focus-visible:`, `active:` …) that replaces it. An inline
+ *  background or an `opacity-*` on the crumb or its wrapper would let the
+ *  photo through, so either fails too. */
+function backings(el: HTMLElement) {
+  expect(
+    el.style.background + el.style.backgroundColor,
+    "no inline background",
+  ).toBe("");
+  for (const node of [el, el.parentElement!]) {
+    const fades = node.className
+      .split(/\s+/)
+      .filter((c) => /(^|:)opacity-/.test(c));
+    expect(fades, "no opacity class on the crumb or its wrapper").toEqual([]);
   }
-  return undefined;
+  const classes = el.className.split(/\s+/);
+  const base = classes.filter((c) => fill(c));
+  expect(base, "exactly one base background").toHaveLength(1);
+  const states = classes
+    .filter((c) => c.includes(":") && BG.test(c.split(":").pop()!))
+    .map((c) => ({ state: c, f: fill(c.split(":").pop()!) }));
+  return [{ state: "rest", f: fill(base[0]) }, ...states];
 }
 
 /** The inline text colour (`#fff` or `rgb(…)`). */
@@ -88,10 +110,14 @@ describe("DetailHero breadcrumb", () => {
         props: { ...props, labelSize: "crumb" },
       });
       const crumb = getByText(props.label);
-      const bg = backing(crumb);
-      expect(bg, "the crumb has its own background").toBeDefined();
-      expect(bg!.alpha, "no photo shows through it").toBe(1);
-      expect(contrast(inkOf(crumb), bg!.rgb)).toBeGreaterThanOrEqual(4.5);
+      for (const { state, f } of backings(crumb)) {
+        expect(f, `${state}: a colour`).toBeDefined();
+        expect(f!.alpha, `${state}: no photo shows through it`).toBe(1);
+        expect(
+          contrast(inkOf(crumb), f!.rgb),
+          `${state}: text contrast`,
+        ).toBeGreaterThanOrEqual(4.5);
+      }
     });
   }
 });
