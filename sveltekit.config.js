@@ -236,6 +236,10 @@ const config = {
         "data:",
         "https://images.prismic.io",
         "https://*.prismic.io",
+        // Every Prismic image field has an Unsplash picker, and a photo picked
+        // there is served from this host, not images.prismic.io. Without it the
+        // 2026-11-20 article hero rendered only its alt text.
+        "https://images.unsplash.com",
         // GA4 falls back to image beacons when sendBeacon/fetch is blocked.
         "https://*.google-analytics.com",
         "https://*.googletagmanager.com",
