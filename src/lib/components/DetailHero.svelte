@@ -11,18 +11,24 @@
   // legibility wash, and the flip wave seaming into the white section below.
   //   • labelSize "name"  → the person's NAME as an h1 (64px) — team-member.
   //   • labelSize "crumb" → a small breadcrumb (30px) — service / question,
-  //     whose real <h1> title lives in the DetailIntro band below.
+  //     whose real <h1> title lives in the DetailIntro band below. With `href`
+  //     the crumb is a link (a question's "Blog / View All Posts" →
+  //     /ask-the-doctor, as live's `<a href="/ask-the-doctor">` wraps it —
+  //     matching/SPEC.md §B.2.5); without it, plain text (a service's
+  //     "Services / <category>", which live never linked).
   // A person page also overhangs a circular headshot past the wave; it's passed
   // as the `overlay` snippet (which positions itself) so this stays generic.
   let {
     backgroundImage,
     label,
     labelSize = "crumb",
+    href,
     overlay,
   }: {
     backgroundImage?: ImageField | null;
     label: string;
     labelSize?: "name" | "crumb";
+    href?: string;
     overlay?: Snippet;
   } = $props();
 </script>
@@ -110,12 +116,27 @@
              40px/50 at >=992, museo-slab LIGHT (w300 — NOT the name's thin).
              The "20px @390" this comment used to claim was wrong: the style
              census reads 21px there on live. -->
-        <p
-          class="font-slab text-[21px] leading-[26px] font-light lg:text-[40px] lg:leading-[50px]"
-          style="color:#fff"
-        >
-          {label}
-        </p>
+        {#if href}
+          <!-- Live dims this link to opacity .61 on hover (SPEC.md qa
+               interaction table #1). Not here: a fade lowers white-on-photo
+               contrast, the defect OutlineButton and Nav removed for the same
+               reason. Hover underlines instead. The focus ring is white: the
+               site's teal floor (app.css) is invisible over the cyan wash. -->
+          <a
+            {href}
+            class="block font-slab text-[21px] leading-[26px] font-light underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white lg:text-[40px] lg:leading-[50px]"
+            style="color:#fff"
+          >
+            {label}
+          </a>
+        {:else}
+          <p
+            class="font-slab text-[21px] leading-[26px] font-light lg:text-[40px] lg:leading-[50px]"
+            style="color:#fff"
+          >
+            {label}
+          </p>
+        {/if}
       {/if}
     </div>
 
