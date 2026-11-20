@@ -88,6 +88,33 @@
           "select": null
         }
       }
+    },
+    "SEO & Metadata": {
+      "meta_title": {
+        "type": "Text",
+        "config": {
+          "label": "Meta Title",
+          "placeholder": "A title for search engines and social media. The site adds \"Beachfront Dentistry | \" in front; keep the whole thing ≤ 70 characters. Empty = the page title."
+        }
+      },
+      "meta_description": {
+        "type": "Text",
+        "config": {
+          "label": "Meta Description",
+          "placeholder": "A brief summary of the page. Empty = the start of the body. Meta Image empty = the main image (media)."
+        }
+      },
+      "meta_image": {
+        "type": "Image",
+        "config": {
+          "label": "Meta Image",
+          "constraint": {
+            "width": 2400,
+            "height": 1260
+          },
+          "thumbnails": []
+        }
+      }
     }
   }
 }

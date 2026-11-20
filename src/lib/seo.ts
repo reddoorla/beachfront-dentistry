@@ -19,9 +19,11 @@ export const DEFAULT_DESCRIPTION = "";
 export const DEFAULT_OG_IMAGE = "";
 
 /** Social-card canvas. Prismic og images are cropped to this exact box so a
- *  card never ships a multi-MB original, and width/height can be advertised. */
-export const OG_IMAGE_WIDTH = 1200;
-export const OG_IMAGE_HEIGHT = 630;
+ *  card never ships a multi-MB original, and width/height can be advertised.
+ *  2400×1260 is the SEO & Metadata tab's Meta Image constraint (the `page`
+ *  type's and Vineyard's): twice the 1200×630 card, for sharp retina cards. */
+export const OG_IMAGE_WIDTH = 2400;
+export const OG_IMAGE_HEIGHT = 1260;
 
 /**
  * Route prefixes that must never be indexed: dev fixtures, the slice simulator,

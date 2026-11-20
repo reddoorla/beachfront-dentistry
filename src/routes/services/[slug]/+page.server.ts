@@ -1,6 +1,7 @@
 import { error } from "@sveltejs/kit";
 import { asText } from "@prismicio/client";
 import { createClient, isPlaceholderRepo } from "$lib/prismicio";
+import { detailMeta } from "$lib/detail-meta";
 import type { CollectionItemDocument } from "../../../../prismicio-types";
 
 // Mirrors src/routes/products/[slug]/+page.server.ts's shape (entries +
@@ -25,8 +26,13 @@ export async function load({ params, fetch, cookies }) {
       // a parsed multi-category list.
       category: doc.data.tags || "",
       title,
-      meta_description: (asText(doc.data.body) || "").slice(0, 155),
-      meta_image: doc.data.media?.url,
+      ...detailMeta({
+        seoTitle: doc.data.meta_title,
+        metaDescription: doc.data.meta_description,
+        metaImage: doc.data.meta_image,
+        body: doc.data.body,
+        media: doc.data.media,
+      }),
     };
   } catch {
     error(404, "Service not found");

@@ -1,6 +1,7 @@
 import { error } from "@sveltejs/kit";
 import { asText, isFilled } from "@prismicio/client";
 import { createClient, isPlaceholderRepo } from "$lib/prismicio";
+import { detailMeta } from "$lib/detail-meta";
 import type { PersonDocument } from "../../../../prismicio-types";
 
 // Same shape as services/[slug] and questions/[slug], against `person`.
@@ -27,8 +28,14 @@ export async function load({ params, fetch, cookies }) {
       // comma-separated-string field shape as collection_item/news_article.
       role: doc.data.tags || "",
       title,
-      meta_description: (asText(doc.data.body) || "").slice(0, 155),
-      meta_image: doc.data.media?.url,
+      ...detailMeta({
+        seoTitle: doc.data.meta_title,
+        metaDescription: doc.data.meta_description,
+        metaImage: doc.data.meta_image,
+        excerpt: doc.data.teaser,
+        body: doc.data.body,
+        media: doc.data.media,
+      }),
     };
   } catch {
     error(404, "Team member not found");

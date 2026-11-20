@@ -22,7 +22,7 @@
       "meta_title": {
         "type": "Text",
         "config": {
-          "label": "meta title (SEO <title> override — layout composes \"Beachfront Dentistry | …\"; keep composed length ≤ 70)"
+          "label": "meta title (older override, still used when the SEO & Metadata tab's Meta Title is empty)"
         }
       },
       "body": {
@@ -92,6 +92,33 @@
           "label": "link",
           "allowTargetBlank": true,
           "select": null
+        }
+      }
+    },
+    "SEO & Metadata": {
+      "seo_title": {
+        "type": "Text",
+        "config": {
+          "label": "Meta Title",
+          "placeholder": "A title for search engines and social media. The site adds \"Beachfront Dentistry | \" in front; keep the whole thing ≤ 70 characters. Empty = the older meta title on the Main tab, then the page title."
+        }
+      },
+      "meta_description": {
+        "type": "Text",
+        "config": {
+          "label": "Meta Description",
+          "placeholder": "A brief summary of the page. Empty = the summary, then the start of the body. Meta Image empty = the main image (media)."
+        }
+      },
+      "meta_image": {
+        "type": "Image",
+        "config": {
+          "label": "Meta Image",
+          "constraint": {
+            "width": 2400,
+            "height": 1260
+          },
+          "thumbnails": []
         }
       }
     }
