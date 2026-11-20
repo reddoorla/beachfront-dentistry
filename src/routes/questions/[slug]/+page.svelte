@@ -25,6 +25,7 @@
   backgroundImage={data.doc.data.media}
   label="Blog / View All Posts"
   labelSize="crumb"
+  href="/ask-the-doctor"
 />
 
 <DetailIntro title={data.title} lede={split.lede} titleSize="lg" />
