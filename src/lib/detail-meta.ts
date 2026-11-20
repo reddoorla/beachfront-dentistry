@@ -20,9 +20,11 @@ import {
   type RichTextField,
 } from "@prismicio/client";
 
-/** Search-result snippets cut around here; the body-text fallback is trimmed
- *  to it. Authored text (the Meta Description, a summary or teaser) is never
- *  cut: a search engine shortens it at a word, where a slice would not. */
+/** Search-result snippets cut around here. Authored text (the Meta
+ *  Description, a summary or teaser) is never cut: a search engine shortens it
+ *  at a word. The body-text fallback keeps the routes' existing hard slice at
+ *  155, which can end mid-word (unchanged by this tab; see the issue linked
+ *  from beachfront-dentistry#153). */
 export const META_DESCRIPTION_MAX = 155;
 
 export interface DetailMetaInput {
