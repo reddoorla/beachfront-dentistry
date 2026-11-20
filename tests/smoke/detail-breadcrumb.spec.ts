@@ -22,8 +22,18 @@ test(
     const crumb = page.getByRole("link", { name: CRUMB, exact: true });
     await expect(crumb).toHaveAttribute("href", "/ask-the-doctor");
 
-    await crumb.focus();
-    await expect(crumb).toBeFocused();
+    // Reached by Tab from the top of the page (a `tabindex="-1"` would take
+    // it out of the order, which `focus()` would not notice).
+    let reached = false;
+    for (let i = 0; i < 20 && !reached; i++) {
+      await page.keyboard.press("Tab");
+      reached = await crumb.evaluate((el) => el === document.activeElement);
+    }
+    expect(reached, "Tab reaches the breadcrumb link").toBe(true);
+    // Not covered by the wave or anything else: `trial` runs Playwright's
+    // actionability checks without clicking. After the Tab walk, because the
+    // pointer move resets where Chromium's sequential focus starts.
+    await crumb.click({ trial: true });
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/\/ask-the-doctor\/?$/);
   },
