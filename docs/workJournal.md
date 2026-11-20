@@ -1017,3 +1017,9 @@ To get #154 (the promotion) off `behind`, #155 merged `main` into `staging` with
 The work ran across two sessions; the first handed off at 302k tokens of context.
 
 Usage: first session $10.05, 12,701/90,898 tokens, 23,795,724/620,202 cache; this session $1.46, 557/8,349 tokens, 3,267,856/79,847 cache, rate limit allowed.
+
+## 2026-11-20 — Promoted: the Unsplash fix and the SEO & Metadata tab are live (#154, `f7fdacb`)
+
+The previous entry ended with the promotion waiting on the operator. He chose to merge at about 2:35pm PT, and #154 landed on `main` as a merge commit at 2:35pm PT, pinned to head `5decca2`, the same way #148 and #151 did. A minute later, a Playwright load of the abscess article on production gave its Unsplash hero a `naturalWidth` of 1280, with no CSP errors (0 at 1:49pm PT). On the homepage, all three Unsplash images load once scrolled into view, at 599, 599 and 1280 px. Two of them belong to older articles that also use Unsplash photos, so the fix reached more than the article Tim reported. A first check of production read 0 for all three. They are `loading="lazy"` and the probe had not scrolled, so that was a fault in the instrument, not the site. A header check for the CSP was also wrong: this site sends it as a `<meta http-equiv>` tag, so `curl -I` can never see it. `prismic-models` apply on `f7fdacb` pushed 3 of 3 models, and 36 already matched. Prismic's own `news_article` now has the "SEO & Metadata" tab, and `meta_title` is still on Main, with Tim's article still holding "Dental Abscess Warning Signs You Shouldn't Ignore | Redondo Beach".
+
+Usage: unchanged from the previous entry's reading ($1.46 this session); the worker restarted twice, so the figure may lag the last turns.
