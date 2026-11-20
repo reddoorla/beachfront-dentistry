@@ -84,7 +84,11 @@
          The offset is now the divider's own box-height ladder (WaveDivider
          `heightClass`, 72/96/120), so the label clears the whole box with a
          measured 11.8/17.4/23px to spare. Absolute box — the band's height and
-         everything below it are untouched. -->
+         everything below it are untouched.
+         (2026-11-20: the crumb's opaque tag adds padding that grows upward,
+         so the tag's bottom edge now sits flush on the top of the wave's box
+         — gap 0 at 390/834/1440 — and still clears the curve itself. The
+         clearance figures above are for the bare text.) -->
     <!-- `data-detail-label` is the interaction suite's handle on this block.
          It used to select on `[class*="bottom-[10%]"]`, which meant a spacing
          change (H4's) silently broke a test about HORIZONTAL alignment. -->
@@ -112,6 +116,16 @@
           {label}
         </h1>
       {:else}
+        <!-- Contrast (the operator, 2026-11-20, workspace decision
+             2026-11-20-2308-beachfront-detail-crumb-contrast): live's white
+             crumb sits on the photo itself and measured below AA on every
+             sampled article and service (worst 1.47:1 over a light face,
+             sand or sea); no shadow fixed it. It now sits on an opaque
+             --primary-deep tag, white on #0e7799 = 4.98:1 on any photo.
+             A deliberate departure from live. DetailHero.test.ts holds it.
+             `w-fit` + max-w keeps a right gutter equal to the left one, so a
+             long category wraps inside the tag instead of running to the
+             viewport edge. -->
         <!-- Live's breadcrumb h3: 21px/26 from 390 right through 991, then
              40px/50 at >=992, museo-slab LIGHT (w300 — NOT the name's thin).
              The "20px @390" this comment used to claim was wrong: the style
@@ -124,14 +138,14 @@
                site's teal floor (app.css) is invisible over the cyan wash. -->
           <a
             {href}
-            class="block font-slab text-[21px] leading-[26px] font-light underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white lg:text-[40px] lg:leading-[50px]"
+            class="block w-fit max-w-[calc(100vw-40px)] md:max-w-[calc(100vw-96px)] lg:max-w-[min(1280px,calc(100vw-120px))] rounded-md bg-primary-deep px-3 py-1 font-slab text-[21px] leading-[26px] font-light underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white lg:text-[40px] lg:leading-[50px]"
             style="color:#fff"
           >
             {label}
           </a>
         {:else}
           <p
-            class="font-slab text-[21px] leading-[26px] font-light lg:text-[40px] lg:leading-[50px]"
+            class="w-fit max-w-[calc(100vw-40px)] md:max-w-[calc(100vw-96px)] lg:max-w-[min(1280px,calc(100vw-120px))] rounded-md bg-primary-deep px-3 py-1 font-slab text-[21px] leading-[26px] font-light lg:text-[40px] lg:leading-[50px]"
             style="color:#fff"
           >
             {label}
