@@ -1,6 +1,7 @@
 import { error } from "@sveltejs/kit";
 import { asText } from "@prismicio/client";
 import { createClient, isPlaceholderRepo } from "$lib/prismicio";
+import { detailMeta } from "$lib/detail-meta";
 import type { NewsArticleDocument } from "../../../../prismicio-types";
 
 // Same shape as services/[slug] (itself mirroring products/[slug]), against
@@ -20,9 +21,17 @@ export async function load({ params, fetch, cookies }) {
       // SEO-only <title> override (layout: meta_title || title). The visible
       // H1/card title is pixel-gated against live and must not shorten; the
       // composed <title> must stay ≤ 70 chars for the fleet browser audit.
-      meta_title: doc.data.meta_title,
-      meta_description: (asText(doc.data.body) || "").slice(0, 155),
-      meta_image: doc.data.media?.url,
+      // The SEO & Metadata tab's `seo_title` wins; the older Main-tab
+      // `meta_title` (filled on nine articles) is still read after it.
+      ...detailMeta({
+        seoTitle: doc.data.seo_title,
+        legacyMetaTitle: doc.data.meta_title,
+        metaDescription: doc.data.meta_description,
+        metaImage: doc.data.meta_image,
+        excerpt: doc.data.summary,
+        body: doc.data.body,
+        media: doc.data.media,
+      }),
     };
   } catch {
     error(404, "Question not found");

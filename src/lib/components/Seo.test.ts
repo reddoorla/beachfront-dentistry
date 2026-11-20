@@ -60,10 +60,10 @@ describe("Seo head output", () => {
       imageAlt: "The team",
     });
     const img = attr('meta[property="og:image"]');
-    expect(img).toContain("w=1200");
-    expect(img).toContain("h=630");
-    expect(attr('meta[property="og:image:width"]')).toBe("1200");
-    expect(attr('meta[property="og:image:height"]')).toBe("630");
+    expect(img).toContain("w=2400");
+    expect(img).toContain("h=1260");
+    expect(attr('meta[property="og:image:width"]')).toBe("2400");
+    expect(attr('meta[property="og:image:height"]')).toBe("1260");
     expect(attr('meta[property="og:image:alt"]')).toBe("The team");
     expect(attr('meta[name="twitter:card"]')).toBe("summary_large_image");
   });
