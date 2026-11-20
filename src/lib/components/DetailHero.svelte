@@ -112,6 +112,13 @@
           {label}
         </h1>
       {:else}
+        <!-- Contrast (the operator, 2026-11-20, workspace decision
+             2026-11-20-2308-beachfront-detail-crumb-contrast): live's white
+             crumb sits on the photo itself and measured below AA on every
+             sampled article and service (worst 1.47:1 over a light face,
+             sand or sea); no shadow fixed it. It now sits on an opaque
+             --primary-deep tag, white on #0e7799 = 4.98:1 on any photo.
+             A deliberate departure from live. DetailHero.test.ts holds it. -->
         <!-- Live's breadcrumb h3: 21px/26 from 390 right through 991, then
              40px/50 at >=992, museo-slab LIGHT (w300 — NOT the name's thin).
              The "20px @390" this comment used to claim was wrong: the style
@@ -124,14 +131,14 @@
                site's teal floor (app.css) is invisible over the cyan wash. -->
           <a
             {href}
-            class="block font-slab text-[21px] leading-[26px] font-light underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white lg:text-[40px] lg:leading-[50px]"
+            class="block rounded-md bg-primary-deep px-3 py-1 font-slab text-[21px] leading-[26px] font-light underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white lg:text-[40px] lg:leading-[50px]"
             style="color:#fff"
           >
             {label}
           </a>
         {:else}
           <p
-            class="font-slab text-[21px] leading-[26px] font-light lg:text-[40px] lg:leading-[50px]"
+            class="rounded-md bg-primary-deep px-3 py-1 font-slab text-[21px] leading-[26px] font-light lg:text-[40px] lg:leading-[50px]"
             style="color:#fff"
           >
             {label}
