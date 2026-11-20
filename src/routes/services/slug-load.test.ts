@@ -304,7 +304,9 @@ describe("SEO & Metadata tab fallbacks on the detail routes", () => {
     mocks.getByUID.mockResolvedValue(article({ meta_image: emptyImage }));
     const result = await loadQuestion(stubEvent("abscess") as never);
     expect(result!.meta_image).toBe("https://images.prismic.io/site/hero.jpg");
-    expect(result!.meta_image_alt).toBe("grayscale photo of a woman");
+    // The main image's alt is often another page's name (shared library
+    // photos), so the fallback leaves the alt to the layout (the page title).
+    expect(result!.meta_image_alt).toBeUndefined();
   });
 
   it("news_article: an Unsplash main image is the fallback, as-is", async () => {
@@ -344,6 +346,17 @@ describe("SEO & Metadata tab fallbacks on the detail routes", () => {
     );
     const result = await loadQuestion(stubEvent("abscess") as never);
     expect(result!.meta_description).toBe("The card excerpt.");
+  });
+
+  it("news_article: an authored summary is used whole, never cut mid-word", async () => {
+    const summary =
+      "Bad breath that brushing does not fix can be a sign of tooth decay. Here is how the two are linked, what to look for at home, and why you're more likely to notice it in the morning.";
+    mocks.getByUID.mockResolvedValue(
+      article({ meta_description: null, summary }),
+    );
+    const result = await loadQuestion(stubEvent("abscess") as never);
+    expect(summary.length).toBeGreaterThan(155);
+    expect(result!.meta_description).toBe(summary);
   });
 
   it("news_article: with no summary either, it falls back to the body lead", async () => {

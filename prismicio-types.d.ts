@@ -176,7 +176,7 @@ interface CollectionItemDocumentData {
 	 * Meta Title field in *Collection Item*
 	 *
 	 * - **Field Type**: Text
-	 * - **Placeholder**: A title for search engines and social media. The site adds "Beachfront Dentistry | " in front; keep the whole thing ≤ 70 characters. Empty = the page title.
+	 * - **Placeholder**: A title for search engines and social media. The site puts "Beachfront Dentistry | " in front unless the title already says it; keep the whole thing ≤ 70 characters. Empty = the page title.
 	 * - **API ID Path**: collection_item.meta_title
 	 * - **Tab**: SEO & Metadata
 	 * - **Documentation**: https://prismic.io/docs/fields/text
@@ -187,7 +187,7 @@ interface CollectionItemDocumentData {
 	 * Meta Description field in *Collection Item*
 	 *
 	 * - **Field Type**: Text
-	 * - **Placeholder**: A brief summary of the page. Empty = the start of the body. Meta Image empty = the main image (media).
+	 * - **Placeholder**: A brief summary of the page. Empty = the start of the body.
 	 * - **API ID Path**: collection_item.meta_description
 	 * - **Tab**: SEO & Metadata
 	 * - **Documentation**: https://prismic.io/docs/fields/text
@@ -195,7 +195,7 @@ interface CollectionItemDocumentData {
 	meta_description: prismic.KeyTextField;
 	
 	/**
-	 * Meta Image field in *Collection Item*
+	 * Meta Image (empty = the main image, media) field in *Collection Item*
 	 *
 	 * - **Field Type**: Image
 	 * - **Placeholder**: *None*
@@ -549,7 +549,7 @@ interface NewsArticleDocumentData {
 	 * Meta Title field in *News Article*
 	 *
 	 * - **Field Type**: Text
-	 * - **Placeholder**: A title for search engines and social media. The site adds "Beachfront Dentistry | " in front; keep the whole thing ≤ 70 characters. Empty = the older meta title on the Main tab, then the page title.
+	 * - **Placeholder**: A title for search engines and social media. The site puts "Beachfront Dentistry | " in front unless the title already says it; keep the whole thing ≤ 70 characters. Empty = the older meta title on the Main tab, then the page title.
 	 * - **API ID Path**: news_article.seo_title
 	 * - **Tab**: SEO & Metadata
 	 * - **Documentation**: https://prismic.io/docs/fields/text
@@ -560,7 +560,7 @@ interface NewsArticleDocumentData {
 	 * Meta Description field in *News Article*
 	 *
 	 * - **Field Type**: Text
-	 * - **Placeholder**: A brief summary of the page. Empty = the summary, then the start of the body. Meta Image empty = the main image (media).
+	 * - **Placeholder**: A brief summary of the page. Empty = the summary, then the start of the body.
 	 * - **API ID Path**: news_article.meta_description
 	 * - **Tab**: SEO & Metadata
 	 * - **Documentation**: https://prismic.io/docs/fields/text
@@ -568,7 +568,7 @@ interface NewsArticleDocumentData {
 	meta_description: prismic.KeyTextField;
 	
 	/**
-	 * Meta Image field in *News Article*
+	 * Meta Image (empty = the main image, media) field in *News Article*
 	 *
 	 * - **Field Type**: Image
 	 * - **Placeholder**: *None*
@@ -791,7 +791,7 @@ interface PersonDocumentData {
 	 * Meta Title field in *Person*
 	 *
 	 * - **Field Type**: Text
-	 * - **Placeholder**: A title for search engines and social media. The site adds "Beachfront Dentistry | " in front; keep the whole thing ≤ 70 characters. Empty = the page title.
+	 * - **Placeholder**: A title for search engines and social media. The site puts "Beachfront Dentistry | " in front unless the title already says it; keep the whole thing ≤ 70 characters. Empty = the page title.
 	 * - **API ID Path**: person.meta_title
 	 * - **Tab**: SEO & Metadata
 	 * - **Documentation**: https://prismic.io/docs/fields/text
@@ -802,7 +802,7 @@ interface PersonDocumentData {
 	 * Meta Description field in *Person*
 	 *
 	 * - **Field Type**: Text
-	 * - **Placeholder**: A brief summary of the page. Empty = the teaser, then the start of the body. Meta Image empty = the main image (media).
+	 * - **Placeholder**: A brief summary of the page. Empty = the teaser, then the start of the body.
 	 * - **API ID Path**: person.meta_description
 	 * - **Tab**: SEO & Metadata
 	 * - **Documentation**: https://prismic.io/docs/fields/text
@@ -810,7 +810,7 @@ interface PersonDocumentData {
 	meta_description: prismic.KeyTextField;
 	
 	/**
-	 * Meta Image field in *Person*
+	 * Meta Image (empty = the main image, media) field in *Person*
 	 *
 	 * - **Field Type**: Image
 	 * - **Placeholder**: *None*

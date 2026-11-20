@@ -20,8 +20,9 @@ import {
   type RichTextField,
 } from "@prismicio/client";
 
-/** Search-result snippets cut around here; a computed fallback is trimmed to
- *  it. An editor's own Meta Description is never cut. */
+/** Search-result snippets cut around here; the body-text fallback is trimmed
+ *  to it. Authored text (the Meta Description, a summary or teaser) is never
+ *  cut: a search engine shortens it at a word, where a slice would not. */
 export const META_DESCRIPTION_MAX = 155;
 
 export interface DetailMetaInput {
@@ -49,19 +50,22 @@ const text = (value: string | null | undefined): string | undefined =>
   value?.trim() || undefined;
 
 export function detailMeta(input: DetailMetaInput): DetailMeta {
-  const fallbackDescription =
-    text(input.excerpt) ?? text(asText(input.body ?? []));
-  const image = isFilled.image(input.metaImage)
+  const metaImage = isFilled.image(input.metaImage)
     ? input.metaImage
-    : isFilled.image(input.media)
-      ? input.media
-      : undefined;
+    : undefined;
+  const image =
+    metaImage ?? (isFilled.image(input.media) ? input.media : undefined);
   return {
     meta_title: text(input.seoTitle) ?? text(input.legacyMetaTitle),
     meta_description:
       text(input.metaDescription) ??
-      fallbackDescription?.slice(0, META_DESCRIPTION_MAX),
+      text(input.excerpt) ??
+      text(asText(input.body ?? []))?.slice(0, META_DESCRIPTION_MAX),
     meta_image: image?.url ?? undefined,
-    meta_image_alt: text(image?.alt),
+    // Only the tab's own image brings its alt. A main image's alt is often
+    // another page's name, because the library's photos are shared (an
+    // article's media alt read "Dental Exams"), so the fallback card keeps
+    // the layout's default alt, the page title.
+    meta_image_alt: text(metaImage?.alt),
   };
 }

@@ -100,20 +100,20 @@
         "type": "Text",
         "config": {
           "label": "Meta Title",
-          "placeholder": "A title for search engines and social media. The site adds \"Beachfront Dentistry | \" in front; keep the whole thing ≤ 70 characters. Empty = the older meta title on the Main tab, then the page title."
+          "placeholder": "A title for search engines and social media. The site puts \"Beachfront Dentistry | \" in front unless the title already says it; keep the whole thing ≤ 70 characters. Empty = the older meta title on the Main tab, then the page title."
         }
       },
       "meta_description": {
         "type": "Text",
         "config": {
           "label": "Meta Description",
-          "placeholder": "A brief summary of the page. Empty = the summary, then the start of the body. Meta Image empty = the main image (media)."
+          "placeholder": "A brief summary of the page. Empty = the summary, then the start of the body."
         }
       },
       "meta_image": {
         "type": "Image",
         "config": {
-          "label": "Meta Image",
+          "label": "Meta Image (empty = the main image, media)",
           "constraint": {
             "width": 2400,
             "height": 1260
