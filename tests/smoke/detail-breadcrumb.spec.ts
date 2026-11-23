@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-// The breadcrumb in an article's hero is a way back to the questions grid.
+// The breadcrumb above an article's title is a way back to the questions grid.
 // Live Webflow wraps it in `<a href="/ask-the-doctor">`
 // (matching/SPEC.md §B.2.5 and the qa interaction table, from
 // `detail-qa.html:113`); the rebuild rendered it as plain text, so a visitor
@@ -13,6 +13,10 @@ import { test, expect } from "@playwright/test";
 // decision 2026-11-23-1947-beachfront-faq-typography-direction) only "View All
 // Questions" is the link; "Ask the Doctor" beside it is the category, as text.
 //
+// Since Tim's Figma of the same afternoon, the crumb is no longer in the
+// photo: "moved it out of the image header and just connected it to the main
+// title". It is the line directly above the article's h1, on white.
+//
 // Asserted the way a visitor meets it: a link by its accessible name, where it
 // points, that the keyboard reaches it, and that following it lands on the
 // grid. Nothing here reads a class, a size or a colour.
@@ -20,18 +24,18 @@ const ARTICLE = "/questions/how-to-stop-a-toothache-fast";
 const CRUMB = "View All Questions";
 
 test(
-  "an article's hero breadcrumb links back to the questions grid",
+  "an article's breadcrumb links back to the questions grid",
   { tag: "@smoke" },
   async ({ page }) => {
     await page.goto(ARTICLE, { waitUntil: "domcontentloaded" });
 
     const crumb = page.getByRole("link", { name: CRUMB, exact: true });
     await expect(crumb).toHaveAttribute("href", "/ask-the-doctor");
-    // The category reads beside it, in the hero, and is not itself a link.
-    const hero = page.locator("[data-detail-label]");
-    await expect(hero).toContainText("Ask the Doctor");
+    // The category reads beside it and is not itself a link.
+    const line = page.locator("[data-detail-crumb]");
+    await expect(line).toContainText("Ask the Doctor");
     await expect(
-      hero.getByRole("link", { name: /Ask the Doctor/ }),
+      line.getByRole("link", { name: /Ask the Doctor/ }),
     ).toHaveCount(0);
 
     // Reached by Tab from the top of the page (a `tabindex="-1"` would take
@@ -65,3 +69,32 @@ test.describe("without JavaScript", () => {
     },
   );
 });
+
+// Where it sits (Tim's Figma, 2026-11-23): joined to the title, not laid over
+// the photo. The line holding the link is the h1's own previous sibling, and
+// the hero carries no label at all. Putting the crumb back into the image
+// header fails both.
+test(
+  "an article's breadcrumb sits directly above its title, not in the photo",
+  { tag: "@smoke" },
+  async ({ page }) => {
+    await page.goto(ARTICLE, { waitUntil: "domcontentloaded" });
+    // Found by a loose name so that a crumb moved back into the photo, in
+    // whatever words, fails on where it is rather than on what it says.
+    const crumb = page.getByRole("link", { name: /View All Questions/i });
+    const placement = await crumb.evaluate((a) => {
+      const h1 = document.querySelector("main h1, h1");
+      const line = a.closest("p, div, nav");
+      return {
+        precedesTitle: !!h1 && h1.previousElementSibling === line,
+        inHero: !!a.closest("[data-detail-label]"),
+      };
+    });
+    expect(
+      placement.precedesTitle,
+      "the crumb's line is right above the h1",
+    ).toBe(true);
+    expect(placement.inHero, "the crumb is not in the hero").toBe(false);
+    await expect(page.locator("[data-detail-label]")).toHaveCount(0);
+  },
+);

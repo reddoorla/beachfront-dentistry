@@ -75,11 +75,11 @@
     },
     {
       id: "crumb",
-      title: "Detail hero label: the Ask the Doctor crumb",
-      note: "DetailHero, labelSize crumb: every /questions/… article.",
+      title: "Article crumb: Ask the Doctor / View All Questions",
+      note: "DetailIntro crumb, above the title of every /questions/… article. The homepage's “Meet Your Team” eyebrow style.",
       targets: [
-        { sel: "[data-detail-label] p", name: "crumb text" },
-        { sel: "[data-detail-label] a", name: "crumb link", link: true },
+        { sel: "[data-detail-crumb]", name: "crumb text" },
+        { sel: "[data-detail-crumb] a", name: "crumb link", link: true },
       ],
     },
     {
@@ -520,11 +520,15 @@
           <blockquote>A bare blockquote</blockquote>
         </div>
       {:else if s.id === "crumb"}
-        <DetailHero
-          label="Ask the Doctor"
-          linkLabel="View All Questions"
-          labelSize="crumb"
-          href="/ask-the-doctor"
+        <DetailIntro
+          title="How do I know if a toothache is an emergency?"
+          titleSize="lg"
+          variant="editorial"
+          crumb={{
+            label: "Ask the Doctor",
+            linkLabel: "View All Questions",
+            href: "/ask-the-doctor",
+          }}
         />
       {:else if s.id === "hero-name"}
         <DetailHero label="Dr. Example Name" labelSize="name" />

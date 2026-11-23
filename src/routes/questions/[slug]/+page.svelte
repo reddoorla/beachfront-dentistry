@@ -7,9 +7,9 @@
   import { splitLede } from "$lib/detail-lede";
   import type { PageData } from "./$types";
 
-  // Matches live `/questions/<uid>`: the question's OWN image as a hero band
-  // with a breadcrumb linking back to the questions grid, then the big cyan
-  // title + cyan right-indented lede, then the dark body, a "Have another
+  // Live `/questions/<uid>`'s order: the question's OWN image as a hero band,
+  // then (since 2026-11-23, above the title) the crumb back to the questions
+  // grid, the big + cyan right-indented lede, then the dark body, a "Have another
   // question?" link, and the shared closing CTA.
 
   let { data }: { data: PageData } = $props();
@@ -35,19 +35,23 @@
      plain text and only "View All Questions" links; the title, lede and body
      take the editorial scale, and the body column is 640px (73 characters a
      line, where live's 1024px read 111). -->
-<DetailHero
-  backgroundImage={data.doc.data.media}
-  label="Ask the Doctor"
-  linkLabel="View All Questions"
-  labelSize="crumb"
-  href="/ask-the-doctor"
-/>
+<!-- Tim's Figma, 2026-11-23: the crumb "moved out of the image header and
+     just connected it to the main title", in "a heading style from the home
+     page" (the "Meet Your Team" eyebrow). The hero is now the photo and wave
+     alone; the crumb sits above the h1 in DetailIntro, on white. Its words are
+     unchanged from #168. -->
+<DetailHero backgroundImage={data.doc.data.media} />
 
 <DetailIntro
   title={data.title}
   lede={split.lede}
   titleSize="lg"
   variant="editorial"
+  crumb={{
+    label: "Ask the Doctor",
+    linkLabel: "View All Questions",
+    href: "/ask-the-doctor",
+  }}
 />
 
 <!-- Live's lede→body gap is 20px mobile / 40px desktop, as a MARGIN (page-diff

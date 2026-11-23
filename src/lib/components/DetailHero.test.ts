@@ -100,7 +100,7 @@ function inkOf(el: HTMLElement): Rgb {
 describe("DetailHero breadcrumb", () => {
   for (const [variant, props] of [
     [
-      "single-link (no page uses it since 2026-11-23)",
+      "single-link (no page uses it since 2026-11-23; the article crumb is DetailIntro's)",
       { label: "Ask the Doctor / View All Questions", href: "/ask-the-doctor" },
     ],
     ["plain (a service's)", { label: "Services / General Dentistry" }],
@@ -120,41 +120,4 @@ describe("DetailHero breadcrumb", () => {
       }
     });
   }
-
-  // An article's crumb since 2026-11-23: "Ask the Doctor" as plain text and
-  // only "View All Questions" as the link, both inside the one tag. The link
-  // paints on the tag, so its own ink must clear AA on the tag's backing too,
-  // and it must not bring a backing of its own that could differ.
-  it("the split (an article's) crumb's tag and link both clear AA on an opaque backing", () => {
-    const { container, getByRole } = render(DetailHero, {
-      props: {
-        label: "Ask the Doctor",
-        linkLabel: "View All Questions",
-        href: "/ask-the-doctor",
-        labelSize: "crumb",
-      },
-    });
-    const tag = container.querySelector<HTMLElement>(
-      "[data-detail-label] > *",
-    )!;
-    const link = getByRole("link", { name: "View All Questions" });
-    expect(tag.contains(link), "the link sits inside the tag").toBe(true);
-    expect(
-      link.className.split(/\s+/).filter((c) => fill(c.split(":").pop()!)),
-      "the link has no backing of its own",
-    ).toEqual([]);
-    for (const { state, f } of backings(tag)) {
-      expect(f, `${state}: a colour`).toBeDefined();
-      expect(f!.alpha, `${state}: no photo shows through it`).toBe(1);
-      for (const [what, el] of [
-        ["category text", tag],
-        ["link text", link],
-      ] as const) {
-        expect(
-          contrast(inkOf(el), f!.rgb),
-          `${state}: ${what} contrast`,
-        ).toBeGreaterThanOrEqual(4.5);
-      }
-    }
-  });
 });
