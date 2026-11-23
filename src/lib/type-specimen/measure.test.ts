@@ -31,7 +31,6 @@ const m = (size: string): Measurement => ({
 });
 const hit = (page: string, path: string, size: string): ScanHit => ({
   page,
-  path,
   key: path,
   interactive: false,
   tag: "p",
@@ -126,17 +125,35 @@ describe("one-off size inventory", () => {
 
 describe("hover rules", () => {
   it("answers hover and pointer queries for the column's device, not the host", () => {
-    const at = (innerWidth: number) =>
+    const asked: string[] = [];
+    const at = (innerWidth: number, host = true) =>
       ({
         innerWidth,
-        matchMedia: () => ({ matches: true }),
+        matchMedia: (q: string) => {
+          asked.push(q);
+          return { matches: q === "not all" ? false : host };
+        },
       }) as unknown as Window;
     expect(mediaMatches(at(1280), "(hover: hover)")).toBe(true);
     expect(mediaMatches(at(390), "(hover: hover)")).toBe(false);
     expect(mediaMatches(at(390), "(pointer: coarse)")).toBe(true);
+    asked.length = 0;
     expect(mediaMatches(at(1280), "(min-width: 10px) and (hover: hover)")).toBe(
       true,
     );
+    expect(asked).toEqual(["(min-width: 10px)"]);
+    // A negated query goes to the browser whole, never inverted.
+    asked.length = 0;
+    mediaMatches(at(1280), "not all and (hover: hover)");
+    expect(asked).toEqual(["not all and (hover: hover)"]);
+  });
+
+  it("passes a parent link's hover opacity to the text inside it", () => {
+    document.head.innerHTML =
+      "<style>.f { &:hover { opacity: 0.67; background-color: red; } }</style>";
+    document.body.innerHTML = '<a class="f" href="#"><h3>Title</h3></a>';
+    const got = statesFor(document.querySelector("h3")!, stateRules(document));
+    expect(got.hover).toEqual({ opacity: "0.67" });
   });
 
   it("resolves a nested hover rule and its var() for the hovered link", () => {

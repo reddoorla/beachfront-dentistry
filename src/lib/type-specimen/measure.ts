@@ -143,19 +143,6 @@ export function ownText(el: Element, max = 80): string {
   return t.length > max ? t.slice(0, max - 1) + "…" : t;
 }
 
-/** A stable address for an element within one prerendered page, so the same
- *  element can be matched across the three widths' documents. */
-export function domPath(el: Element): string {
-  const parts: string[] = [];
-  let cur: Element | null = el;
-  while (cur && cur.parentElement) {
-    const idx = [...cur.parentElement.children].indexOf(cur);
-    parts.unshift(`${cur.tagName.toLowerCase()}:${idx}`);
-    cur = cur.parentElement;
-  }
-  return parts.join(">");
-}
-
 /** Classes that set type, kept for the label: Tailwind's text/font/leading/
  *  tracking/case utilities (any variant chain), and the site's own named type
  *  hooks. Layout utilities would only bury them. */
@@ -190,11 +177,18 @@ export function context(el: Element): string {
 type StateRule = { selector: string; state: string; decls: [string, string][] };
 
 /** Does a media condition hold in `win`? Input-capability features
- *  (`hover`, `pointer`) are answered for the device the column stands for, not
+ *  (`hover`, `pointer`) in a hover/visited rule's media query are answered for
+ *  the device the column stands for, not
  *  the reviewer's: a frame inherits its host's hover ability, so a laptop would
  *  report hover colours under "Mobile 390" that a phone never shows. Widths of
- *  768 and up count as a mouse; below, a touch screen. */
+ *  768 and up count as a mouse; below, a touch screen. Limit: computed styles
+ *  (getComputedStyle) still answer such queries for the host device, so a
+ *  `[@media(hover:none)]:` style shows in the 390 column only when the page
+ *  is opened on a phone. */
 export function mediaMatches(win: Window, cond: string): boolean {
+  // A negated or comma-listed query is passed through as the browser answers
+  // it: folding an input feature into those would invert or widen it.
+  if (/\bnot\b|,/.test(cond)) return win.matchMedia(cond).matches;
   const mouse = win.innerWidth >= 768;
   const INPUT = /\((?:any-)?(?:hover|pointer):\s*([a-z]+)\)/g;
   let ok = true;
@@ -304,7 +298,7 @@ export function statesFor(
   // Approximate by design: rules apply in stylesheet order, without weighing
   // layers or specificity. A rule on the enclosing link or button counts for
   // the text element only for what the text visibly takes from it (colour
-  // inherits; an underline paints through), never its box (background, border).
+  // inherits, opacity fades it, an underline paints through), never its box (background, border).
   const out: Record<string, Record<string, string>> = {};
   for (const r of rules) {
     const bare = r.selector.replaceAll(`:${r.state}`, "");
@@ -325,7 +319,14 @@ export function statesFor(
       const prop = p === "text-decoration" ? "text-decoration-line" : p;
       if (!STATE_PROPS.has(prop) && !prop.startsWith("text-decoration"))
         continue;
-      if (!self && !(prop === "color" || prop.startsWith("text-decoration")))
+      if (
+        !self &&
+        !(
+          prop === "color" ||
+          prop === "opacity" ||
+          prop.startsWith("text-decoration")
+        )
+      )
         continue;
       if (!self && prop === "color" && ownColour(el)) continue;
       (out[r.state] ??= {})[prop] = resolve(v);
@@ -338,8 +339,8 @@ export function statesFor(
  *  reach it through inheritance. */
 function ownColour(el: Element): boolean {
   return [...el.classList].some((c) =>
-    /^text-(\[#|white|black|primary|dark|secondary|accent|light|current)/.test(
-      c,
+    /^text-(\[#|white|black|primary|dark|secondary|accent|light)/.test(
+      c.slice(c.lastIndexOf(":") + 1),
     ),
   );
 }
@@ -441,7 +442,6 @@ export interface ScanHit {
    *  render different markup on a phone. */
   key: string;
   interactive: boolean;
-  path: string;
   tag: string;
   context: string;
   classes: string[];
@@ -460,7 +460,6 @@ export function scanDocument(doc: Document, page: string): ScanHit[] {
     return {
       key: `${id}|${n}`,
       page,
-      path: domPath(el),
       tag: el.tagName.toLowerCase(),
       interactive: !!el.closest("a, button"),
       context: context(el),
@@ -507,7 +506,7 @@ export function groupStyles(
     const key =
       WIDTHS.map((w) => styleKey(by[w.key]?.style)).join("§") +
       "§" +
-      JSON.stringify(by.desktop?.states ?? by.mobile?.states ?? {});
+      JSON.stringify(WIDTHS.map((w) => by[w.key]?.states ?? null));
     const g = groups.get(key) ?? {
       by,
       tags: new Set(),

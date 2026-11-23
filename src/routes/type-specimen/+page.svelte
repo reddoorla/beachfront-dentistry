@@ -246,11 +246,14 @@
   }
 
   async function runScan() {
-    const xml = await (await fetch("/sitemap.xml")).text();
+    const res = await fetch("/sitemap.xml");
+    if (!res.ok) throw new Error(`/sitemap.xml answered ${res.status}`);
+    const xml = await res.text();
     const paths = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(
       (m) => new URL(m[1]).pathname,
     );
     const pages = pickPages(paths);
+    if (!pages.length) throw new Error("/sitemap.xml listed no pages");
     const scans: Partial<Record<WidthKey, ScanHit[]>> = {};
     let done = 0;
     const jobs = pages.flatMap((p) => WIDTHS.map((w) => ({ p, w })));
@@ -625,7 +628,10 @@
       Read from these pages at all three widths: one of each template, and every
       top-level page, taken from the sitemap. Two elements count as one style
       only when they match at every width. Largest desktop size first. The
-      sample is the measured style applied to the element's own text.
+      sample is the measured style applied to the element's own text. Hover is
+      shown for a mouse at 1280 and 834 and not at 390. A style that only
+      applies on touch screens shows in the 390 column only when this page is
+      opened on a phone.
     </p>
     {#if scanned.length}
       <p class="mt-2 text-[14px] leading-[22px] text-[#5d6c7b]">
@@ -684,7 +690,7 @@
         {@render valuesTable(
           (col) => (col === "here" ? undefined : g.by[col]),
           g.interactive,
-          "not on the page at this width",
+          "no element with this text at this width",
         )}
       </article>
     {/each}
