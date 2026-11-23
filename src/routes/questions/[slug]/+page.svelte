@@ -23,7 +23,10 @@
      "ask the doctor" is the category, "View All Questions" the link). Live
      Webflow said "Blog / View All Posts", but there is no blog: every
      news_article renders here, under the one category, and /blog is a 404.
-     news_article has no category field, so the route is the category.
+     news_article has no category field. Its `tags` Text field (which the
+     service crumb reads as its category) is empty on all 41 published
+     articles (2026-11-23) and is labelled as comma-separated keywords, so it
+     is not read here: the route is the category.
      Hero bg is this question's own media (a Prismic imgix url — clears the app
      CSP directly, no static asset needed). -->
 <DetailHero
