@@ -1159,3 +1159,37 @@ Earlier, the local build had also matched the footer hours and the 140/168 → 5
 - The live `DetailBody` is 12px/18px at 390.
 
 Usage: see the workspace pointer entry for this session.
+
+## 2026-11-23 — The Ask the Doctor crumb leaves the photo and sits above the title, in the home "Meet Your Team" eyebrow (#178, `6db8c75`, into `staging`); promotion #180 waits on the operator
+
+Tim, Discord, 2:45–2:46pm PT: "made adjustments to the heading on the blog "Ask the doctor" individual template", "moved it out of the image header and just connected it to the main title", "I used a heading style from the home page". His Figma has no new frame for it. Two text nodes, `503:76` and `503:83`, lie over two screenshots of production, `502:75` and `502:73`, with the crumb painted out of the photo. Neither node carries a named text style or variable. The style therefore came from the code: Museo Slab 500, uppercase, 0.05em tracking, `#365b6d`, 24px on desktop. That is exactly the homepage's "Meet Your Team" eyebrow in `CollectionList`, whose class string comes from live's h6 combo. That string now lives in `src/lib/styles/eyebrow.ts`, used by both places, so they cannot drift. No new size was invented.
+
+On `/questions/<uid>`, `DetailHero` is now the photo, the cyan wash and the wave only. Its `label` is optional, and the split-crumb branch #172 added is gone, since it had no caller left. `DetailIntro` takes a `crumb` and renders "Ask the Doctor / View All Questions" as the h1's previous sibling, with only "View All Questions" linked and underlined. The words are #168's, not the frame's "Ask the doctor / View all", as the brief said.
+
+**Beliefs corrected on contact.**
+
+- The frame's sizes are not real-screen sizes. The phone screenshot is 1:1: its 36px title measures a 26px cap height. There, the crumb is 14px against the home style's 12px, and the home style was used. The desktop screenshot is scaled about 1.5×: a 72px title measures 75 units of cap height. So its "24px" crumb is about 16px on screen, and the shipped 24px reads larger beside the title than in the mock. Both differences are listed in #178 for Tim.
+- With the label gone, the hero's cyan wash lost its stated purpose: "so the white label reads over the photo". The review asked whether it should go too. Tim's frame still shows the tinted photo, so it stays, and the comment now says why.
+
+**Tests.** `tests/smoke/detail-breadcrumb.spec.ts` gains a placement test: the link's line is the `main h1`'s previous sibling and is not inside `[data-detail-label]`. The test finds the link by a loose name, so a crumb moved back into the photo fails on where it is, not on what it says. The first version found the link by its exact name. Under the mutation it timed out instead of failing its own assertion, which proved nothing about placement. The new scaffold spec, `tests/interaction/article-crumb-style.spec.ts`, compares the crumb's and the link's computed type with the "Meet Your Team" heading at 1280 and 390, element to element, naming no value.
+
+Both mutations the brief named turned checks red:
+
+- The crumb put back into the hero failed the placement test: Expected true, Received false.
+- The class swapped for the home "Step 01" label class, identical apart from weight 400, failed both parity tests on `font-weight` 500 against 400.
+
+Locally: vitest 875 passed (4 skipped), `@smoke` 89 passed, and `tests/a11y` with the wave and nav suites 56 passed. These ran on the preinstalled Chromium (`chromium-1243/chrome-linux64`) through an uncommitted config, as on #168.
+
+**Review.** One Opus round was clean, minors and nits only, folded into `9272324`:
+
+- dropped a smoke assertion on a hook no visitor sees;
+- narrowed the h1 query to `main h1`;
+- fixed three stale comments.
+
+`land-prs.mjs` refused the first landing until the PR body named the two edited test files under a "Test changes:" heading.
+
+**Checked live.** The deploy preview at 3:03pm PT and `staging` at 3:12pm PT both served the new crumb. At 1280 and 390, `/services/dental-exams` and `/team-members/alicia` kept the same hero label text and class string as production. The screenshots beside Tim's frame are in the workspace at `briefs/2026-11-23-beachfront-atd-heading/images/`.
+
+**Landing.** #179 merged `main` into `staging` as a merge commit (`b8b0779`, pinned to its head, no file changes), because `staging` again lacked a promotion's merge commit (#173's `91345d4`). The promotion #180 is open; merging it is the operator's. Until he does, production still shows the crumb in the photo.
+
+Usage: $7.36, 2,239/54,563 tokens, 19,604,786/337,622 cache, rate limit allowed (read at 3:19pm PT, before this entry).
