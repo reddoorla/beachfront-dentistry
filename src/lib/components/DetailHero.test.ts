@@ -100,7 +100,7 @@ function inkOf(el: HTMLElement): Rgb {
 describe("DetailHero breadcrumb", () => {
   for (const [variant, props] of [
     [
-      "linked (an article's)",
+      "single-link (no page uses it since 2026-11-23)",
       { label: "Ask the Doctor / View All Questions", href: "/ask-the-doctor" },
     ],
     ["plain (a service's)", { label: "Services / General Dentistry" }],

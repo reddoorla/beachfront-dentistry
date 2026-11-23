@@ -11,7 +11,7 @@
   // variant "editorial" (questions only; the operator's pick, 2026-11-23,
   // workspace decision 2026-11-23-1947-beachfront-faq-typography-direction):
   // a light deep-teal title on a calmer 36→56→72 scale, and the lede as a
-  // left-ruled deep-teal pull quote instead of live's right-indented cyan.
+  // deep-teal pull quote with a cyan rule instead of live's right-indented cyan.
   // Deep teal (#0e7799, 5.1:1 on white) because the cyan lede was 3.09:1 at
   // 20px, below AA for normal-size text at 390 and 834.
   let {

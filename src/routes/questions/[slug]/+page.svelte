@@ -57,8 +57,8 @@
   class="mx-auto mt-[20px] max-w-[1440px] px-5 md:mt-[40px] md:px-12 lg:mt-[40px] lg:px-20"
 >
   <!-- The Q&A bodies were authored with a trailing <br> above each sub-heading
-       rather than the empty block the service bodies use (28px vs 38px) — see
-       DetailBody. -->
+       (live's 28px gap); the editorial variant sets its own 40/48/56px above a
+       sub-heading and ignores `subheadingGap` — see DetailBody. -->
   <DetailBody field={split.rest} class="max-w-[640px]" variant="editorial" />
 </section>
 
