@@ -506,7 +506,17 @@ export function groupStyles(
     const key =
       WIDTHS.map((w) => styleKey(by[w.key]?.style)).join("§") +
       "§" +
-      JSON.stringify(WIDTHS.map((w) => by[w.key]?.states ?? null));
+      JSON.stringify(
+        WIDTHS.map((w) => {
+          const st = by[w.key]?.states;
+          // Sorted, so the same values found in a different rule order match.
+          return st
+            ? Object.entries(st)
+                .sort()
+                .map(([k, v]) => [k, Object.entries(v).sort()])
+            : null;
+        }),
+      );
     const g = groups.get(key) ?? {
       by,
       tags: new Set(),
