@@ -29,14 +29,26 @@
      is not read here: the route is the category.
      Hero bg is this question's own media (a Prismic imgix url — clears the app
      CSP directly, no static asset needed). -->
+<!-- 2026-11-23 typography pass (the operator's pick, "B · Editorial" with the
+     split crumb; workspace decision
+     2026-11-23-1947-beachfront-faq-typography-direction): "Ask the Doctor" is
+     plain text and only "View All Questions" links; the title, lede and body
+     take the editorial scale, and the body column is 640px (73 characters a
+     line, where live's 1024px read 111). -->
 <DetailHero
   backgroundImage={data.doc.data.media}
-  label="Ask the Doctor / View All Questions"
+  label="Ask the Doctor"
+  linkLabel="View All Questions"
   labelSize="crumb"
   href="/ask-the-doctor"
 />
 
-<DetailIntro title={data.title} lede={split.lede} titleSize="lg" />
+<DetailIntro
+  title={data.title}
+  lede={split.lede}
+  titleSize="lg"
+  variant="editorial"
+/>
 
 <!-- Live's lede→body gap is 20px mobile / 40px desktop, as a MARGIN (page-diff
      cuts at this section's box top, so padding would fold the gap into the body
@@ -45,9 +57,9 @@
   class="mx-auto mt-[20px] max-w-[1440px] px-5 md:mt-[40px] md:px-12 lg:mt-[40px] lg:px-20"
 >
   <!-- The Q&A bodies were authored with a trailing <br> above each sub-heading
-       rather than the empty block the service bodies use (28px vs 38px) — see
-       DetailBody. -->
-  <DetailBody field={split.rest} class="max-w-[1024px]" subheadingGap="break" />
+       (live's 28px gap); the editorial variant sets its own 40/48/56px above a
+       sub-heading and ignores `subheadingGap` — see DetailBody. -->
+  <DetailBody field={split.rest} class="max-w-[640px]" variant="editorial" />
 </section>
 
 <!-- Live's `.other-questions-section`: a centered cyan "Have another question?"

@@ -9,11 +9,15 @@ import { test, expect } from "@playwright/test";
 // 2026-11-23: "'ask the doctor' is the actually category and 'View All
 // Questions' should be the link".
 //
+// Since the 2026-11-23 typography pass (the operator's pick, workspace
+// decision 2026-11-23-1947-beachfront-faq-typography-direction) only "View All
+// Questions" is the link; "Ask the Doctor" beside it is the category, as text.
+//
 // Asserted the way a visitor meets it: a link by its accessible name, where it
 // points, that the keyboard reaches it, and that following it lands on the
 // grid. Nothing here reads a class, a size or a colour.
 const ARTICLE = "/questions/how-to-stop-a-toothache-fast";
-const CRUMB = "Ask the Doctor / View All Questions";
+const CRUMB = "View All Questions";
 
 test(
   "an article's hero breadcrumb links back to the questions grid",
@@ -23,6 +27,12 @@ test(
 
     const crumb = page.getByRole("link", { name: CRUMB, exact: true });
     await expect(crumb).toHaveAttribute("href", "/ask-the-doctor");
+    // The category reads beside it, in the hero, and is not itself a link.
+    const hero = page.locator("[data-detail-label]");
+    await expect(hero).toContainText("Ask the Doctor");
+    await expect(
+      hero.getByRole("link", { name: /Ask the Doctor/ }),
+    ).toHaveCount(0);
 
     // Reached by Tab from the top of the page (a `tabindex="-1"` would take
     // it out of the order, which `focus()` would not notice).

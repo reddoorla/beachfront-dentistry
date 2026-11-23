@@ -23,12 +23,17 @@
     label,
     labelSize = "crumb",
     href,
+    linkLabel,
     overlay,
   }: {
     backgroundImage?: ImageField | null;
     label: string;
     labelSize?: "name" | "crumb";
     href?: string;
+    /** With `href`: only these words are the link, after `label` as plain
+     *  text ("Ask the Doctor / View All Questions", the operator's pick,
+     *  2026-11-23). Without it, `href` makes the whole label one link. */
+    linkLabel?: string;
     overlay?: Snippet;
   } = $props();
 </script>
@@ -130,7 +135,28 @@
              40px/50 at >=992, museo-slab LIGHT (w300 — NOT the name's thin).
              The "20px @390" this comment used to claim was wrong: the style
              census reads 21px there on live. -->
-        {#if href}
+        {#if href && linkLabel}
+          <!-- Split crumb (the operator, 2026-11-23, workspace decision
+               2026-11-23-1947-beachfront-faq-typography-direction): the
+               category is plain text and only "View All Questions" is the
+               link, underlined, so it is plain which words go somewhere (Tim,
+               2026-11-23: "'ask the doctor' is the actually category and
+               'View All Questions' should be the link"). Same opaque tag and
+               white ink as the single link below, on a 16 → 18 → 24px scale. -->
+          <p
+            class="w-fit max-w-[calc(100vw-40px)] md:max-w-[calc(100vw-96px)] lg:max-w-[min(1280px,calc(100vw-120px))] rounded-md bg-primary-deep px-3 py-1 font-slab text-[16px] leading-[24px] font-light md:text-[18px] md:leading-[26px] lg:text-[24px] lg:leading-[32px]"
+            style="color:#fff"
+          >
+            {label} <span aria-hidden="true">/</span>
+            <a
+              {href}
+              class="underline underline-offset-4 hover:decoration-2 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              style="color:#fff"
+            >
+              {linkLabel}
+            </a>
+          </p>
+        {:else if href}
           <!-- Live dims this link to opacity .61 on hover (SPEC.md qa
                interaction table #1). Not here: a fade lowers white-on-photo
                contrast, the defect OutlineButton and Nav removed for the same
