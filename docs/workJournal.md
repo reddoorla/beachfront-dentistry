@@ -1063,3 +1063,56 @@ The gate is `tests/smoke/detail-breadcrumb.spec.ts`, which finds the link by its
 The staging deploy showed the new words at 10:13am PT. To get the promotion #169 off `behind`, #170 merged `main` into `staging` as a merge commit (`ad60082`; no file changes), as #155 did on 11-20: `main` held #165's merge commit, which `staging` lacked. Promotion is the operator's. Until he merges #169, production still reads "Blog / View All Posts".
 
 Usage: $5.14, 1,195/31,434 tokens, 14,279,372/227,765 cache, rate limit allowed.
+
+## 2026-11-23 — Ask the Doctor typography: the editorial scale and the split crumb are live (#172, #173)
+
+The operator asked for a design pass on the typography of "the FAQs" (Mon 11-23, about 10:42am PT). The site has no page called FAQ: `/faq` and `/faqs` both 404. The surfaces turned out to be the 41 `/questions/*` articles, the `/ask-the-doctor` listing's 41 expandable cards, and the homepage's six teaser cards. The `Accordion` slice is not used for Q&A anywhere on production.
+
+**What production measured before (11:40am PT, Playwright, line boxes counted from real client rects).** The type was still the Webflow pixel-match's:
+
+- Body copy was 12px/18 at 390.
+- Lines ran 104 characters at 834 and 111 at 1440 (`max-w-[1024px]` at 20px).
+- The cyan lede (#129ecc on white, 3.09:1) failed AA at 390 and 834, where it is 20px normal-size text. It passes only at 1440, where it is 30px and counts as large text.
+- Sub-headings were body-sized (12/16/20), set apart only by bold.
+- At 834 list items were 20px/36 beside 16px/24 paragraphs.
+- Paragraphs sat a fixed 10px apart, less than one line.
+- The title was 100px at 834, the same as desktop, so a question took four lines (about 480px) before the lede.
+
+The axe gate never caught the lede, because it audits at Playwright's default 1280-wide viewport, where the lede is 30px.
+
+**Two directions, mocked on the real pages.** Rather than drawing comps, I injected each direction's CSS (and, for the split crumb, a DOM swap) into the production pages and screenshotted them at 390/834/1440. That kept the real content and real photos in every comparison. The two directions were A "Tighten" (same fonts, same thin cyan title and indented lede, a calmer scale) and B "Editorial". My pick was A. The operator chose B, with the split crumb, at 11:50am PT (workspace `decisions/2026-11-23-1947-beachfront-faq-typography-direction.md`; comparison artifact https://claude.ai/artifact/CYhiA2AHG3QnzHFYA9bw6g).
+
+**What B is.** `DetailIntro` and `DetailBody` take a `variant="editorial"` that only the question route passes; services and team keep live's class strings token for token. The values:
+
+- Title: museo-slab light in deep teal #0e7799 (5.1:1), 36/44 → 56/64 → 72/80.
+- Lede: the same deep teal with a 4px cyan rule, no longer indented, 20/32 → 24/36 → 28/42.
+- Body and lists: the same size together, 18/30 → 19/32 → 20/34, in a 640px column. That reads 46 / 73 / 73 characters a line, against live's 67 / 104 / 111.
+- Sub-headings: slab, deep teal, 22 → 26 → 30, with 40 → 48 → 56px above.
+- List numbers: bold deep teal.
+- Crumb: `DetailHero` gains `linkLabel`, so "Ask the Doctor /" is text and only "View All Questions" is the underlined link, inside the same opaque #0e7799 tag.
+- Question cards: titles move from museo-sans medium to slab light.
+
+The build's computed values matched the mock on all 234 measured values. Staging matched them too (12:24pm PT), and so did production after the promotion (12:52pm PT).
+
+**The defect the mock hid.** The mock was only checked on the listing, whose card text box is 240–320px tall. The homepage teaser's collapsed box is 72px at 390. At the listing's 24px size, "Beyond the Smile: Supporting Your Whole-Body Health" ran to three lines there and was cut by 30px. The teasers therefore step down: 16/22 below 390, 18/26 to 767, 24/30, 30/38. At 320 that title still loses 6px off its top line. Live already lost 30px there before this change, so the 320 clip is old, now smaller. Every listing title keeps at least 108px of headroom from 320 to 1920.
+
+**Tests.** `DetailHero.test.ts` gains a split-crumb case: the tag's ink and the link's ink both reach >= 4.5 on an opaque backing. The breadcrumb smoke test now names the link "View All Questions" and checks that "Ask the Doctor" is text, not a link. Both mutations named in the brief turned a check red, then were reverted:
+
+- The article body set to `#9db3bd`: axe failed with `#9db3bd on #ffffff`.
+- The crumb href set to `/services`: the smoke test failed with Expected `/ask-the-doctor`, Received `/services`.
+
+Local runs: vitest 863 passed, `@smoke` 88 passed, and the 218 scaffold specs that touch these pages passed. They ran on the preinstalled Chromium through an uncommitted config, as on #168. One Opus review round came back clean; its minor (a test name claiming the article crumb while it tested the now-unused single-link branch) and two comment nits were folded into `674bf47`.
+
+**Landing.** #172 squash-merged into `staging` (`81404c2`). The promotion #173 read `behind`, because `staging` lacked #169's merge commit. #174 merged `main` into `staging` as a merge commit (`5258ec0`, no file changes). Squashing it would have dropped `main`'s commit from `staging`'s history again, and `land-prs.mjs` squashes wherever the base allows, so #174 went through a direct `merge_method=merge` call pinned to its head. On the operator's word at 12:50pm PT, #173 merged as `91345d4`. Production showed the split crumb 46 seconds later. All 41 articles render the 18px body and the split crumb at 390; `/services/dental-exams` and `/team-members/alicia` keep 12px.
+
+**Beliefs corrected.**
+
+- "The FAQs" was not a page.
+- A mock checked on one card variant says nothing about the other: the teaser's fixed 72px box is the binding constraint for card titles on this site.
+- A staging check that greps for "View All Questions</a" passes on the old crumb too. The separator `<span aria-hidden="true">/</span>` is the string that proves the new build is live.
+
+Screenshots from the live URLs, before and after at each width, are in the workspace at `briefs/2026-11-23-beachfront-faq-typography/images/`.
+
+The session's main thread passed 300k tokens of context at the last seam. It finished here instead of handing off, because only these journals remained.
+
+Usage: $11.57, 294/88,087 tokens, 32,895,960/447,289 cache, rate limit allowed (read at 12:54pm PT, before this entry and the workspace pointer were written).
