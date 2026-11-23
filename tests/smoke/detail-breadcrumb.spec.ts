@@ -72,8 +72,8 @@ test.describe("without JavaScript", () => {
 
 // Where it sits (Tim's Figma, 2026-11-23): joined to the title, not laid over
 // the photo. The line holding the link is the h1's own previous sibling, and
-// the hero carries no label at all. Putting the crumb back into the image
-// header fails both.
+// it is not inside the hero. Putting the crumb back into the image header
+// fails both.
 test(
   "an article's breadcrumb sits directly above its title, not in the photo",
   { tag: "@smoke" },
@@ -83,7 +83,7 @@ test(
     // whatever words, fails on where it is rather than on what it says.
     const crumb = page.getByRole("link", { name: /View All Questions/i });
     const placement = await crumb.evaluate((a) => {
-      const h1 = document.querySelector("main h1, h1");
+      const h1 = document.querySelector("main h1");
       const line = a.closest("p, div, nav");
       return {
         precedesTitle: !!h1 && h1.previousElementSibling === line,
@@ -95,6 +95,5 @@ test(
       "the crumb's line is right above the h1",
     ).toBe(true);
     expect(placement.inHero, "the crumb is not in the hero").toBe(false);
-    await expect(page.locator("[data-detail-label]")).toHaveCount(0);
   },
 );

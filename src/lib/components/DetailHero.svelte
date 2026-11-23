@@ -10,7 +10,7 @@
   // SubpageHero — 95vw→70→60→33), a bottom-left WHITE thin-slab label, the cyan
   // legibility wash, and the flip wave seaming into the white section below.
   //   • labelSize "name"  → the person's NAME as an h1 (64px) — team-member.
-  //   • labelSize "crumb" → a small breadcrumb (30px) — service / question,
+  //   • labelSize "crumb" → a small breadcrumb (30px) — service,
   //     whose real <h1> title lives in the DetailIntro band below. With `href`
   //     the crumb is one link; without it, plain text (a service's
   //     "Services / <category>", which live never linked).
@@ -48,7 +48,8 @@
     {/if}
     <!-- Same cyan wash as SubpageHero: a top cyan tint fading out + a
          transparent→cyan bottom wash, so the white label reads over the
-         photo. -->
+         photo. A question page has no label since 2026-11-23 and keeps the
+         wash: it is the tinted photo Tim's Figma shows. -->
     <div
       class="pointer-events-none absolute inset-x-0 top-0 h-1/3"
       style="background:linear-gradient(rgba(18,158,204,0.8), rgba(0,0,0,0))"

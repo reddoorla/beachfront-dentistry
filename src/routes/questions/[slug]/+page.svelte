@@ -9,7 +9,7 @@
 
   // Live `/questions/<uid>`'s order: the question's OWN image as a hero band,
   // then (since 2026-11-23, above the title) the crumb back to the questions
-  // grid, the big + cyan right-indented lede, then the dark body, a "Have another
+  // grid, the editorial title and pull-quote lede, then the body, a "Have another
   // question?" link, and the shared closing CTA.
 
   let { data }: { data: PageData } = $props();
