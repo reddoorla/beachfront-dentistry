@@ -1049,3 +1049,17 @@ One Opus round, minors only, all folded into `9e4eee3`:
 The tag is a deliberate departure from the Webflow original, which has no backing. It reaches production only with the next promotion.
 
 Usage: $4.31 since the previous entry, 113/38,946 tokens, 12,153,779/179,238 cache, rate limit allowed (session total $9.06).
+
+## 2026-11-23 — The article crumb reads "Ask the Doctor / View All Questions" (#168, `2008859`, into `staging`); promotion #169 waits on the operator
+
+Tim, Mon 9:41am PT, about the article template: "The "Blog" and "View all Posts" aren't working on that template either. "ask the doctor" is the actually category and "View All Questions" should be the link." The control, read on production at 9:55am PT: `/questions/dental-abscess-warning-signs` rendered one linked crumb, "Blog / View All Posts", pointing at `/ask-the-doctor`, which answers 200 with the title "Beachfront Dentistry | Ask the Doctor". So the link already worked, since #160 and its promotion #162; what Tim saw as broken was the words, copied from Webflow. There is no blog. `/blog` is a 404, and `/ask-the-doctor` is the only questions listing, the one the nav, the homepage's "View All Questions" button and the article's own "Have another question?" pill all reach.
+
+The brief asked for the article's real category if the label came from Prismic. It did not: the string was hard-coded in `src/routes/questions/[slug]/+page.svelte`. A Prismic query of all 41 published `news_article` documents found none with `tags`, and the type has no category field. So the route is the category, and the label stays hard-coded as "Ask the Doctor / View All Questions". A belief corrected on contact, caught by the review: I first wrote "news_article has no category field" as if nothing could hold one. It has a `tags` Text field, the same one the service crumb reads as its category. It is left unread because it is labelled "tags (comma-separated)", so reading it would put a keyword list in the crumb the day an editor fills it. The comment now says that.
+
+Words only. The crumb is still the one deep-teal linked tag from #163, the whole tag a single link. Tim said he would look at existing styles for how these should look, and the operator's Friday typography question is open with him, so whether "Ask the Doctor" should become plain text with only "View All Questions" linked is left to that pass. `matching/SPEC.md` §B.2.5 now carries a note that the words depart from live on purpose, so a future match pass does not set them back.
+
+The gate is `tests/smoke/detail-breadcrumb.spec.ts`, which finds the link by its accessible name. Both mutations named in the brief turned both of its tests red locally: `href="/blog"` fails `toHaveAttribute`, and the label set back to "Blog / View All Posts" leaves the name lookup with nothing to find. Vitest 862 passed, 4 skipped. One Opus review round, clean (one minor, two nits, folded into `a1d95e9`). The local Playwright run needed the preinstalled Chromium (`chromium-1243`) through a throwaway config, because this repo pins a newer Playwright whose browser is not in the image.
+
+The staging deploy showed the new words at 10:13am PT. To get the promotion #169 off `behind`, #170 merged `main` into `staging` as a merge commit (`ad60082`; no file changes), as #155 did on 11-20: `main` held #165's merge commit, which `staging` lacked. Promotion is the operator's. Until he merges #169, production still reads "Blog / View All Posts".
+
+Usage: $5.14, 1,195/31,434 tokens, 14,279,372/227,765 cache, rate limit allowed.
