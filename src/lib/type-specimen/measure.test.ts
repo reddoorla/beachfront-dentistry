@@ -11,6 +11,7 @@ import {
   type ScanHit,
 } from "./measure";
 import { inlineSizes } from "./inventory";
+import { mediaMatches, scanDocument, statesFor, stateRules } from "./measure";
 
 const m = (size: string): Measurement => ({
   style: {
@@ -31,6 +32,7 @@ const m = (size: string): Measurement => ({
 const hit = (page: string, path: string, size: string): ScanHit => ({
   page,
   path,
+  key: path,
   interactive: false,
   tag: "p",
   context: "Main",
@@ -119,5 +121,43 @@ describe("one-off size inventory", () => {
         '<!-- was text-[40px] -->\n<p class="text-[20px]">x</p> <!-- see https://x.com -->',
     });
     expect(got.map((r) => r.token)).toEqual(["text-[20px]"]);
+  });
+});
+
+describe("hover rules", () => {
+  it("answers hover and pointer queries for the column's device, not the host", () => {
+    const at = (innerWidth: number) =>
+      ({
+        innerWidth,
+        matchMedia: () => ({ matches: true }),
+      }) as unknown as Window;
+    expect(mediaMatches(at(1280), "(hover: hover)")).toBe(true);
+    expect(mediaMatches(at(390), "(hover: hover)")).toBe(false);
+    expect(mediaMatches(at(390), "(pointer: coarse)")).toBe(true);
+    expect(mediaMatches(at(1280), "(min-width: 10px) and (hover: hover)")).toBe(
+      true,
+    );
+  });
+
+  it("resolves a nested hover rule and its var() for the hovered link", () => {
+    document.head.innerHTML =
+      "<style>:root{--c:rgb(1, 2, 3)} .h { &:hover { color: var(--c); } }</style>";
+    document.body.innerHTML = '<a class="h" href="#">x</a><a href="#">y</a>';
+    const rules = stateRules(document);
+    const [a, b] = document.querySelectorAll("a");
+    expect(statesFor(a, rules).hover?.color).toBe("rgb(1, 2, 3)");
+    expect(statesFor(b, rules).hover).toBeUndefined();
+  });
+});
+
+describe("matching elements across widths", () => {
+  // SectionGrid renders a phone card with different markup from the desktop
+  // one; the same label must still land in one style, not two.
+  it("keys an element by what it says, not where it sits", () => {
+    document.body.innerHTML = "<main><div><p>Finally</p></div></main>";
+    const wide = scanDocument(document, "/x")[0].key;
+    document.body.innerHTML =
+      "<main><section><span></span><p>Finally</p></section></main>";
+    expect(scanDocument(document, "/x")[0].key).toBe(wide);
   });
 });

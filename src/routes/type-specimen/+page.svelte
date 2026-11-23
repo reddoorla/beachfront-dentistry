@@ -212,7 +212,10 @@
   type Values = Partial<Record<WidthKey | "here", Measurement>>;
   let partOne = $state<Record<string, Values>>({});
   let hereWidth = $state(0);
+  // `status` is the live region (start and finish only); `progress` is the
+  // per-page counter, shown but not announced.
   let status = $state("Measuring…");
+  let progress = $state("");
   let groups = $state<StyleGroup[]>([]);
   let scanned = $state<string[]>([]);
   let scanError = $state("");
@@ -268,18 +271,20 @@
           scanError += `${(e as Error).message}. `;
         }
         done++;
-        status = `Reading the live pages: ${done} of ${total} (page × width) loaded…`;
+        progress = `Reading the live pages: ${done} of ${total} (page × width) loaded…`;
       }
     };
     await Promise.all([worker(), worker(), worker()]);
     groups = groupStyles(scans);
     scanned = pages;
-    status = "";
+    progress = "";
+    status = `Done: ${groups.length} distinct styles found.`;
   }
 
   onMount(async () => {
     hereWidth = window.innerWidth;
     merge("here", readPartOne(document));
+    await document.fonts.ready;
     const kit = [...document.fonts].filter((f) => /museo/i.test(f.family));
     fontsNote = kit.some((f) => f.status === "loaded")
       ? "The Adobe museo fonts are loading on this address, so the samples show the real faces."
@@ -292,12 +297,27 @@
       return;
     }
     for (const w of WIDTHS) {
-      merge(
-        w.key,
-        await inFrame("/type-specimen?frame=1", w.width, w.height, readPartOne),
-      );
+      try {
+        merge(
+          w.key,
+          await inFrame(
+            "/type-specimen?frame=1",
+            w.width,
+            w.height,
+            readPartOne,
+          ),
+        );
+      } catch (e) {
+        scanError += `${(e as Error).message}. `;
+      }
     }
-    await runScan();
+    try {
+      await runScan();
+    } catch (e) {
+      scanError += `Could not read the sitemap: ${(e as Error).message}. `;
+      progress = "";
+      status = "Stopped: see the error under Part 2's heading.";
+    }
   });
 
   const ROWS: [string, (m: Measurement) => string][] = [
@@ -357,6 +377,7 @@
 {#snippet valuesTable(
   get: (col: WidthKey | "here") => Measurement | undefined,
   interactive = false,
+  absent = "…",
 )}
   <div class="overflow-x-auto">
     <table
@@ -385,7 +406,7 @@
                 class="py-1 pr-2 align-top font-mono break-words"
                 data-spec-value={`${c.key}:${label}`}
               >
-                {m ? fmt(m) : "…"}{#if m && !m.visible && label === "Family"}
+                {m ? fmt(m) : absent}{#if m && !m.visible && label === "Family"}
                   <span class="block font-sans text-[#5d6c7b]">
                     (hidden at this width)
                   </span>{/if}
@@ -437,12 +458,10 @@
         staging address for all three widths and the full list.
       </p>
     {/if}
-    {#if status}<p
-        class="mt-3 text-[14px] font-bold text-white"
-        aria-live="polite"
-      >
-        {status}
-      </p>{/if}
+    <p class="mt-3 text-[14px] font-bold text-white" aria-live="polite">
+      {status}
+    </p>
+    {#if progress}<p class="text-[14px] text-white">{progress}</p>{/if}
   </div>
 </div>
 
@@ -665,6 +684,7 @@
         {@render valuesTable(
           (col) => (col === "here" ? undefined : g.by[col]),
           g.interactive,
+          "not on the page at this width",
         )}
       </article>
     {/each}
@@ -688,13 +708,13 @@
     </p>
     {#each filesWithSizes as [file, rows] (file)}
       <h3
-        class="mt-5 font-mono text-[14px] leading-[20px] font-semibold"
+        class="mt-5 font-mono text-[14px] leading-[20px] font-semibold break-all"
         style="color:#222"
       >
-        {file} <span class="font-normal text-[#5d6c7b]">({rows?.length})</span>
+        {file} <span class="font-normal text-[#5d6c7b]">({rows.length})</span>
       </h3>
       <ul class="mt-1 font-mono text-[12px] leading-[18px]">
-        {#each rows ?? [] as r, j (j)}
+        {#each rows as r, j (j)}
           <li><span class="text-[#5d6c7b]">:{r.line}</span> {r.token}</li>
         {/each}
       </ul>

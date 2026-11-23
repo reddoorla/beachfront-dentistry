@@ -189,6 +189,33 @@ export function context(el: Element): string {
 
 type StateRule = { selector: string; state: string; decls: [string, string][] };
 
+/** Does a media condition hold in `win`? Input-capability features
+ *  (`hover`, `pointer`) are answered for the device the column stands for, not
+ *  the reviewer's: a frame inherits its host's hover ability, so a laptop would
+ *  report hover colours under "Mobile 390" that a phone never shows. Widths of
+ *  768 and up count as a mouse; below, a touch screen. */
+export function mediaMatches(win: Window, cond: string): boolean {
+  const mouse = win.innerWidth >= 768;
+  const INPUT = /\((?:any-)?(?:hover|pointer):\s*([a-z]+)\)/g;
+  let ok = true;
+  const rest = cond
+    .replace(INPUT, (_, v: string) => {
+      const holds =
+        v === "hover" || v === "fine"
+          ? mouse
+          : v === "none" || v === "coarse"
+            ? !mouse
+            : true;
+      ok &&= holds;
+      return "";
+    })
+    .replace(/^\s*and\s+|\s+and\s*$/g, "")
+    .replace(/\s+and\s+and\s+/g, " and ")
+    .trim();
+  if (!ok) return false;
+  return rest === "" || win.matchMedia(rest).matches;
+}
+
 /** Every `:hover` / `:visited` rule that applies at this document's width,
  *  with nested rules resolved to full selectors (Tailwind v4 emits
  *  `.hover\:x { &:hover { @media (hover:hover) { … } } }`). */
@@ -198,14 +225,9 @@ export function stateRules(doc: Document): StateRule[] {
   const visit = (rules: CSSRuleList, parent: string | null) => {
     for (const r of rules) {
       if (r instanceof win.CSSMediaRule) {
-        if (win.matchMedia(r.conditionText).matches) visit(r.cssRules, parent);
+        if (mediaMatches(win, r.conditionText)) visit(r.cssRules, parent);
       } else if (r instanceof win.CSSSupportsRule) {
         visit(r.cssRules, parent);
-      } else if (
-        "cssRules" in r &&
-        r.constructor.name === "CSSLayerBlockRule"
-      ) {
-        visit((r as CSSGroupingRule).cssRules, parent);
       } else if (r instanceof win.CSSStyleRule) {
         const sel = parent
           ? r.selectorText.includes("&")
@@ -279,26 +301,47 @@ export function statesFor(
       const got = cs.getPropertyValue(name).trim();
       return got || m;
     });
+  // Approximate by design: rules apply in stylesheet order, without weighing
+  // layers or specificity. A rule on the enclosing link or button counts for
+  // the text element only for what the text visibly takes from it (colour
+  // inherits; an underline paints through), never its box (background, border).
   const out: Record<string, Record<string, string>> = {};
   for (const r of rules) {
     const bare = r.selector.replaceAll(`:${r.state}`, "");
-    let hit = false;
+    let self = false;
+    let parent = false;
     for (const s of subjects) {
       try {
-        if (s.matches(bare)) hit = true;
+        if (s.matches(bare)) {
+          if (s === el) self = true;
+          else parent = true;
+        }
       } catch {
-        /* a selector jsdom/Chromium cannot test */
+        /* a selector the browser cannot test */
       }
     }
-    if (!hit) continue;
+    if (!self && !parent) continue;
     for (const [p, v] of r.decls) {
       const prop = p === "text-decoration" ? "text-decoration-line" : p;
       if (!STATE_PROPS.has(prop) && !prop.startsWith("text-decoration"))
         continue;
+      if (!self && !(prop === "color" || prop.startsWith("text-decoration")))
+        continue;
+      if (!self && prop === "color" && ownColour(el)) continue;
       (out[r.state] ??= {})[prop] = resolve(v);
     }
   }
   return out;
+}
+
+/** Whether `el` sets its own colour class, so a parent's hover colour does not
+ *  reach it through inheritance. */
+function ownColour(el: Element): boolean {
+  return [...el.classList].some((c) =>
+    /^text-(\[#|white|black|primary|dark|secondary|accent|light|current)/.test(
+      c,
+    ),
+  );
 }
 
 export function measure(el: Element, rules: StateRule[]): Measurement {
@@ -309,6 +352,34 @@ export function measure(el: Element, rules: StateRule[]): Measurement {
     visible: el.getClientRects().length > 0 && cs.visibility !== "hidden",
     states: el.closest("a, button") ? statesFor(el, rules) : {},
   };
+}
+
+/** Resolve once the document has gone `quietMs` without a DOM change, or
+ *  after `maxMs`. The prerendered HTML is laid out for a 1024px viewport;
+ *  components that branch on width (SectionGrid's phone cards, the Slider's
+ *  copies) swap their markup on hydration, and reading before that would put
+ *  the desktop markup's values under a phone column. */
+export function settled(doc: Document, quietMs = 500, maxMs = 5000) {
+  return new Promise<void>((resolve) => {
+    let quiet: ReturnType<typeof setTimeout>;
+    const obs = new MutationObserver(() => {
+      clearTimeout(quiet);
+      quiet = setTimeout(done, quietMs);
+    });
+    const done = () => {
+      obs.disconnect();
+      clearTimeout(cap);
+      resolve();
+    };
+    const cap = setTimeout(done, maxMs);
+    obs.observe(doc.documentElement, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      characterData: true,
+    });
+    quiet = setTimeout(done, quietMs);
+  });
 }
 
 /** Load `url` in an off-screen iframe `width` wide and hand its document to
@@ -335,8 +406,7 @@ export function inFrame<T>(
       try {
         const doc = f.contentDocument!;
         await doc.fonts?.ready;
-        // One frame for hydration to settle any class it toggles on mount.
-        await new Promise((r) => setTimeout(r, 300));
+        await settled(doc);
         if (prepare) await prepare(doc);
         resolve(read(doc));
       } catch (e) {
@@ -366,6 +436,10 @@ export async function openNavMenu(doc: Document): Promise<void> {
 
 export interface ScanHit {
   page: string;
+  /** Identity across widths: page, context, tag and text, numbered within
+   *  the page. Position in the DOM is not stable, because some components
+   *  render different markup on a phone. */
+  key: string;
   interactive: boolean;
   path: string;
   tag: string;
@@ -378,16 +452,23 @@ export interface ScanHit {
 /** Every text-owning element of a document, measured. */
 export function scanDocument(doc: Document, page: string): ScanHit[] {
   const rules = stateRules(doc);
-  return textElements(doc.body).map((el) => ({
-    page,
-    path: domPath(el),
-    tag: el.tagName.toLowerCase(),
-    interactive: !!el.closest("a, button"),
-    context: context(el),
-    classes: typeClasses(el),
-    text: ownText(el),
-    m: measure(el, rules),
-  }));
+  const seen = new Map<string, number>();
+  return textElements(doc.body).map((el) => {
+    const id = `${context(el)}|${el.tagName}|${ownText(el, 200)}`;
+    const n = (seen.get(id) ?? 0) + 1;
+    seen.set(id, n);
+    return {
+      key: `${id}|${n}`,
+      page,
+      path: domPath(el),
+      tag: el.tagName.toLowerCase(),
+      interactive: !!el.closest("a, button"),
+      context: context(el),
+      classes: typeClasses(el),
+      text: ownText(el),
+      m: measure(el, rules),
+    };
+  });
 }
 
 export interface StyleGroup {
@@ -415,7 +496,7 @@ export function groupStyles(
   >();
   for (const { key } of WIDTHS) {
     for (const hit of scans[key] ?? []) {
-      const id = `${hit.page}#${hit.path}`;
+      const id = `${hit.page}#${hit.key}`;
       const rec = byEl.get(id) ?? { hit, by: {} };
       rec.by[key] = hit.m;
       byEl.set(id, rec);
