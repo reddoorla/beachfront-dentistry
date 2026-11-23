@@ -1,5 +1,6 @@
 <script lang="ts">
   import { animateIn, ABOVE_FOLD_REVEAL } from "$lib/actions/animateIn";
+  import { EYEBROW } from "$lib/styles/eyebrow";
 
   // Live's `.service-page-title-subtitle-section` / question `.headings-section`
   // (identical treatment): a big cyan museo-slab-thin title on the left, then a
@@ -14,16 +15,24 @@
   // deep-teal pull quote with a cyan rule instead of live's right-indented cyan.
   // Deep teal (#0e7799, 5.1:1 on white) because the cyan lede was 3.09:1 at
   // 20px, below AA for normal-size text at 390 and 834.
+  // `crumb` (questions only; Tim's Figma, 2026-11-23: "moved it out of the
+  // image header and just connected it to the main title", "I used a heading
+  // style from the home page"): the "Ask the Doctor / View All Questions"
+  // line sits directly above the title in the homepage's "Meet Your Team"
+  // eyebrow style ($lib/styles/eyebrow). The category is text; only
+  // `linkLabel` is the link, underlined, since it shares the text's colour.
   let {
     title,
     lede,
     titleSize = "xl",
     variant = "live",
+    crumb,
   }: {
     title: string;
     lede?: string;
     titleSize?: "xl" | "lg";
     variant?: "live" | "editorial";
+    crumb?: { label: string; linkLabel: string; href: string };
   } = $props();
 
   const editorial = $derived(variant === "editorial");
@@ -51,6 +60,25 @@
          The lg (question) title also carries live's 20px top padding inside
          the box (the xl service title has none), so its text sits 20px lower
          and the box is one pad taller. -->
+    {#if crumb}
+      <!-- On white, below the wave, flush on the title's own top padding:
+           the eyebrow's 8px gap is the frame's crumb-to-title spacing at 375
+           (Figma node 503:83 over the phone screenshot 502:73). -->
+      <p
+        class="{EYEBROW} mb-2"
+        data-detail-crumb
+        data-reveal
+        use:animateIn={ABOVE_FOLD_REVEAL}
+      >
+        {crumb.label} <span aria-hidden="true">/</span>
+        <a
+          href={crumb.href}
+          class="underline underline-offset-4 hover:decoration-2"
+        >
+          {crumb.linkLabel}
+        </a>
+      </p>
+    {/if}
     <h1
       class="font-slab {titleClass}"
       data-reveal

@@ -165,6 +165,7 @@ export function context(el: Element): string {
   if (el.closest("footer")) return "Footer";
   if (el.closest("dialog, [role='dialog']")) return "Dialog";
   if (el.closest("[data-detail-label]")) return "Detail hero label";
+  if (el.closest("[data-detail-crumb]")) return "Article crumb";
   const slice = el.closest<HTMLElement>("[data-slice-type]");
   if (slice) {
     const v = slice.dataset.sliceVariation;

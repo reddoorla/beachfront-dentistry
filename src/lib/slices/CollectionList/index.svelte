@@ -12,6 +12,7 @@
   import { animateIn, LIVE_REVEAL } from "$lib/actions/animateIn";
   import { ENTITY_ROUTE_PREFIX } from "$lib/blux-catalog/entity-routes";
   import { SvelteSet } from "svelte/reactivity";
+  import { EYEBROW } from "$lib/styles/eyebrow";
 
   /** Items (by uid) whose card has played its entrance. The infinite Slider
    *  renders an item as up to three cells, and the reader meets it in
@@ -512,9 +513,7 @@
         class="mx-auto w-full max-w-[1400px] px-[5%] xs:px-[8%] md:px-12 lg:px-[60px]"
         use:animateIn={LIVE_REVEAL}
       >
-        <p
-          class="font-slab mb-6 text-[12px] leading-[15px] font-medium tracking-[1.28px] text-[#365b6d] uppercase md:mb-8 lg:mb-10 lg:text-[24px] lg:leading-[30px]"
-        >
+        <p class="{EYEBROW} mb-6 md:mb-8 lg:mb-10">
           {asText(slice.primary.heading)}
         </p>
       </div>

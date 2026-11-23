@@ -198,9 +198,9 @@ test("1354x930 (the pin's capture size): whole menu fits without scrolling", asy
 
 // --- the DetailHero label joins the same gutter (thread 738ad46b… pin #2) ---
 // 1354/1294 are the OFF-MATRIX widths where the old lg:left-20 sat 20px
-// adrift; 1440 guards the cap-side value. Shared component — the team name,
-// service crumb and question crumb all move together, so one route pins all
-// three templates.
+// adrift; 1440 guards the cap-side value. Shared component — the team name
+// and the service crumb move together, so one route pins both templates (the
+// question crumb left the hero on 2026-11-23).
 for (const w of [1440, 1354, 1294, 834, 390]) {
   test(`team-member hero name sits on the content gutter @${w}`, async ({
     page,
