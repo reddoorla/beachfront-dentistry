@@ -28,7 +28,7 @@ export const OG_IMAGE_HEIGHT = 1260;
 
 /**
  * Route prefixes that must never be indexed: dev fixtures, the slice simulator,
- * and Prismic preview URLs (which canonicalize to the real page anyway).
+ * the internal type specimen, and Prismic preview URLs (which canonicalize to the real page anyway).
  *
  * ONE list, two consumers — robots.txt's Disallow lines and the layout's
  * `noindex` meta — because they answer different questions and only one of them
@@ -40,7 +40,14 @@ export const OG_IMAGE_HEIGHT = 1260;
  * Keeping both from the same constant means adding a prefix cannot fix one and
  * forget the other (see seo.test.ts's drift guard).
  */
-export const NOINDEX_PREFIXES = ["/dev/", "/slice-simulator", "/preview/"];
+export const NOINDEX_PREFIXES = [
+  "/dev/",
+  "/slice-simulator",
+  "/preview/",
+  // The type specimen: an internal review page for Reddoor and the designer,
+  // linked from nowhere (Tim, Discord 2026-11-23).
+  "/type-specimen",
+];
 
 /** Whether a pathname falls under NOINDEX_PREFIXES. */
 export function isNoindexPath(pathname: string): boolean {

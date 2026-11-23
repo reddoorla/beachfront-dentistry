@@ -181,12 +181,20 @@ describe("organizationJsonLd", () => {
 // URL it discovered elsewhere and listing it with no snippet. Both now come
 // from NOINDEX_PREFIXES; these keep them from drifting apart again.
 describe("noindex routes", () => {
-  it("covers the dev fixtures, the slice simulator and preview URLs", () => {
+  it("covers the dev fixtures, the slice simulator, preview URLs and the type specimen", () => {
     expect(NOINDEX_PREFIXES).toEqual([
       "/dev/",
       "/slice-simulator",
       "/preview/",
+      "/type-specimen",
     ]);
+  });
+
+  // The specimen is an internal review page (Tim, 2026-11-23): it ships with
+  // the site but must never be listed in search.
+  it("marks the type specimen noindex", () => {
+    expect(isNoindexPath("/type-specimen")).toBe(true);
+    expect(isNoindexPath("/type-specimen/")).toBe(true);
   });
 
   it("marks every fixture route noindex", () => {
