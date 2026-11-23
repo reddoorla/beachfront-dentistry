@@ -343,13 +343,25 @@
          79-83% "colour delta" and of `top`'s 34.6/28.7/36.0% height failure —
          see matching/LEDGER.md "ANCHOR PARITY SWEEP". -->
     <div class="flex flex-col justify-end overflow-hidden {textBoxClass}">
-      <!-- `.qa-question`: museo-SANS (not the base h3 slab), absolute inside
-           `.qa-text`, `margin-bottom: .5rem` = 12 / 16 / 20. -->
+      <!-- The question: museo-slab LIGHT (the operator's Ask the Doctor
+           typography pick, 2026-11-23, "B · Editorial"; workspace decision
+           2026-11-23-1947-beachfront-faq-typography-direction). Live's
+           `.qa-question` was museo-SANS medium 20/30 → 30/40. The listing's
+           cards (a 240 → 256 → 320px text box) take 24/30 → 26/32 → 34/42.
+           The home teasers' collapsed box is only 72 → 96 → 120px, and at
+           24px the longest title ("Beyond the Smile: Supporting Your
+           Whole-Body Health") ran to three lines and was cut 30px at 390, so
+           they step down: 16/22 below 390, 18/26 to 767, 24/30, 30/38. (At
+           320 that title still loses 6px off its top line; live loses 30.)
+           Still absolute inside `.qa-text`, `margin-bottom: .5rem` = 12 / 16
+           / 20. -->
       <h3
-        class="absolute inset-x-0 bottom-3 font-sans text-[1.25rem] leading-[30px] font-medium transition-opacity duration-200 motion-reduce:transition-none md:bottom-4 lg:bottom-5 lg:text-[1.875rem] {variant ===
+        class="absolute inset-x-0 bottom-3 font-slab font-light transition-opacity duration-200 motion-reduce:transition-none md:bottom-4 lg:bottom-5 {variant ===
         'teaser'
-          ? 'lg:leading-[45px]'
-          : 'lg:leading-[40px]'} {expanded ? 'opacity-0' : 'opacity-100'}"
+          ? 'text-[18px] leading-[26px] max-[389.98px]:text-[16px] max-[389.98px]:leading-[22px] md:text-[24px] md:leading-[30px] lg:text-[30px] lg:leading-[38px]'
+          : 'text-[24px] leading-[30px] md:text-[26px] md:leading-[32px] lg:text-[34px] lg:leading-[42px]'} {expanded
+          ? 'opacity-0'
+          : 'opacity-100'}"
         style="color:#fff"
       >
         {titleText}
