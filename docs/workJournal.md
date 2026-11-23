@@ -1116,3 +1116,46 @@ Screenshots from the live URLs, before and after at each width, are in the works
 The session's main thread passed 300k tokens of context at the last seam. It finished here instead of handing off, because only these journals remained.
 
 Usage: $11.57, 294/88,087 tokens, 32,895,960/447,289 cache, rate limit allowed (read at 12:54pm PT, before this entry and the workspace pointer were written).
+
+## 2026-11-23 — A hidden /type-specimen page lists every text style at 1280, 834 and 390 (#176, `a4c2abb`)
+
+Tim asked in Discord at 12:10pm PT for one page with "all these styles on it", meaning H1, H2, H3, body and the rest, plus their mobile sizes, "because the mobile is super messed up". The site was built pre-Figma, so nobody can name its type scale. The page is at `/type-specimen` and changes no style. Fixing mobile type comes after Tim reviews it, as its own card.
+
+**Read, never typed.** Every value comes from `getComputedStyle`. The page loads itself, and the site's pages, into off-screen same-origin iframes 1280, 834 and 390 wide. A media query or a `vw` clamp only answers for the viewport it is evaluated in, so this is the only way to get three widths on one page. The 834 column is there because live's ladder has a tablet tier (calibrate md at 834, never 768). The page has three parts:
+
+- **Part 1:** the core styles, rendered through the real components (DetailHero's crumb, DetailIntro, DetailBody in both variants, CtaBand, the pills, Field).
+- **Part 2:** every top-level page plus one page per nested template, taken from `/sitemap.xml`. Each frame opens the nav menu first, because its links exist only while it is open. The scan folds the elements into 83 distinct styles across 9 pages, in about 20s.
+- **Part 3:** every `text-[…]` and `font-size` set inside a component, read from the source at build time with `import.meta.glob(?raw)`. There are 259 of them in 20 files. That count is the finding: nearly every size on this site is a one-off pixel match to Webflow, not a scale.
+
+**Mutations.**
+
+- Changing `app.css`'s h2 clamp maximum from 3.75rem to 3rem moved the specimen's desktop h2 label from 57.44px to 48px.
+- Taking `/type-specimen` out of `NOINDEX_PREFIXES` turns three tests red.
+
+**Spot check.** I compared the staging specimen with production at 1280 and 390, six fields per style, and every value was equal:
+
+- the article paragraph: 20/34 at desktop, 18/30 on a phone
+- the crumb link: 24/32 at desktop, 16/24 on a phone
+- the nav menu link: 40/50 at desktop, 30/40 on a phone
+
+Earlier, the local build had also matched the footer hours and the 140/168 → 56/70 subpage hero h2. The first run of that check reported a false DIFF: my script picked the nav's white "Request Appointment" instead of the footer pill. It agreed once each lookup was scoped to the right region.
+
+**Defects review found** (three Opus rounds; round 3 had minors only):
+
+1. Matching an element across widths by DOM position split SectionGrid's cards into two half-empty styles. SectionGrid renders different phone markup (`isMobile`), so the 30px → 24px card label, exactly what Tim asked to see, never sat on one row. Elements are now keyed by page, context, tag and text, and each frame is read once the DOM has gone 500ms without a change.
+2. Tailwind v4 wraps every `hover:` utility in `@media (hover: hover)`, and a frame answers that for the host device. On a laptop the 390 column showed hover colours a phone never shows; on an iPad the desktop column showed none. Hover and pointer queries are now answered for the column.
+3. Limiting a parent link's hover to colour dropped `opacity`, the site's commonest hover (16 uses). The FirstVisitToc cards fade to 0.67 again.
+
+**Known limits.**
+
+- Computed styles still answer `[@media(hover:none)]:` for the host device.
+- An element whose text changes with width (the slider's "Slides 1 through 3 of 11") appears as one row per width.
+
+**Production.** On the live hostnames the three-width measuring is off, because each framed load would be a GA4 visit. There the page shows this window only and points to staging. The page ships with the next promotion, unlinked, `noindex`, with a robots `Disallow` line and not in the sitemap; the promotion is the operator's.
+
+**For the next card.**
+
+- Links in the editorial article body have the body's colour and no underline.
+- The live `DetailBody` is 12px/18px at 390.
+
+Usage: see the workspace pointer entry for this session.
