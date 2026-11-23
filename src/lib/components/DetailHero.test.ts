@@ -101,7 +101,7 @@ describe("DetailHero breadcrumb", () => {
   for (const [variant, props] of [
     [
       "linked (an article's)",
-      { label: "Blog / View All Posts", href: "/ask-the-doctor" },
+      { label: "Ask the Doctor / View All Questions", href: "/ask-the-doctor" },
     ],
     ["plain (a service's)", { label: "Services / General Dentistry" }],
   ] as const) {
