@@ -8,9 +8,9 @@
   import type { PageData } from "./$types";
 
   // Matches live `/questions/<uid>`: the question's OWN image as a hero band
-  // with a "Blog / View All Posts" breadcrumb, then the big cyan title + cyan
-  // right-indented lede, then the dark body, a "Have another question?" link,
-  // and the shared closing CTA.
+  // with a breadcrumb linking back to the questions grid, then the big cyan
+  // title + cyan right-indented lede, then the dark body, a "Have another
+  // question?" link, and the shared closing CTA.
 
   let { data }: { data: PageData } = $props();
 
@@ -19,11 +19,16 @@
   const split = $derived(splitLede(data.doc.data.body));
 </script>
 
-<!-- Hero bg is this question's own media (a Prismic imgix url — clears the app
+<!-- The crumb reads "Ask the Doctor / View All Questions" (Tim, 2026-11-23:
+     "ask the doctor" is the category, "View All Questions" the link). Live
+     Webflow said "Blog / View All Posts", but there is no blog: every
+     news_article renders here, under the one category, and /blog is a 404.
+     news_article has no category field, so the route is the category.
+     Hero bg is this question's own media (a Prismic imgix url — clears the app
      CSP directly, no static asset needed). -->
 <DetailHero
   backgroundImage={data.doc.data.media}
-  label="Blog / View All Posts"
+  label="Ask the Doctor / View All Questions"
   labelSize="crumb"
   href="/ask-the-doctor"
 />
