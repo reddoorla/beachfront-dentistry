@@ -12,10 +12,10 @@
   //   • labelSize "name"  → the person's NAME as an h1 (64px) — team-member.
   //   • labelSize "crumb" → a small breadcrumb (30px) — service / question,
   //     whose real <h1> title lives in the DetailIntro band below. With `href`
-  //     the crumb is a link (a question's "Blog / View All Posts" →
-  //     /ask-the-doctor, as live's `<a href="/ask-the-doctor">` wraps it —
-  //     matching/SPEC.md §B.2.5); without it, plain text (a service's
-  //     "Services / <category>", which live never linked).
+  //     the crumb is a link (a question's "Ask the Doctor / View All
+  //     Questions" → /ask-the-doctor, as live's `<a href="/ask-the-doctor">`
+  //     wraps it — matching/SPEC.md §B.2.5); without it, plain text (a
+  //     service's "Services / <category>", which live never linked).
   // A person page also overhangs a circular headshot past the wave; it's passed
   // as the `overlay` snippet (which positions itself) so this stays generic.
   let {

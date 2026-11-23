@@ -10418,6 +10418,11 @@ wave is 96px inside a 327px hero; at 991 it is 96px inside a 595px hero.
 
 **B.2.5 The blog back-link — `Blog / View All Posts`**
 
+> 2026-11-23: the rebuild's words are now "Ask the Doctor / View All
+> Questions" (Tim: "ask the doctor" is the category, "View All Questions" the
+> link), a deliberate departure from live, same href. Do not match the words
+> back to live; the geometry below still describes live.
+
 `.service-label-container` `beachfront.css:6508-6512`:
 `display:flex; position:absolute; bottom:10%`. No `left` — static-position
 resolves against the `.content-width` padding box, so its x is exactly the
