@@ -48,3 +48,28 @@ for (const width of [1280, 390]) {
     expect(link).toEqual(home);
   });
 }
+
+// Tim, Discord, 11-23 2:47pm PT: "we can remove the lower blue gradient since
+// we moved the text off the image". The bottom wash only served the white
+// label, so an article hero (no label) has none, while a service hero (label
+// still on the photo) keeps it: the service page is the positive control that
+// proves the probe can see a wash at all.
+test("the article hero drops the lower wash; a service hero keeps it", async ({
+  page,
+}) => {
+  const lowerWashes = () =>
+    page.evaluate(
+      () =>
+        [...document.querySelectorAll<HTMLElement>("section *")].filter((el) =>
+          /linear-gradient\(rgba\(0, 0, 0, 0\), rgba\(18, 158, 204/.test(
+            getComputedStyle(el).backgroundImage,
+          ),
+        ).length,
+    );
+  await page.goto("/services/dental-exams", { waitUntil: "domcontentloaded" });
+  expect(await lowerWashes(), "control: the service hero's wash").toBe(1);
+  await page.goto("/questions/how-to-stop-a-toothache-fast", {
+    waitUntil: "domcontentloaded",
+  });
+  expect(await lowerWashes(), "the article hero has no lower wash").toBe(0);
+});
