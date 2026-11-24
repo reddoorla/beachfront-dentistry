@@ -1,0 +1,349 @@
+{
+  "version": 1,
+  "counts": {
+    "src/lib/blux/site-config.json": {
+      "address\t1706 S Elena Ave. Suite B": 1,
+      "copy\tAsk the Doctor": 2,
+      "copy\tCONTACT": 1,
+      "copy\tContact": 1,
+      "copy\tFirst Visit": 1,
+      "copy\tMake a Payment": 1,
+      "copy\tMeet Our Team": 1,
+      "copy\tOFFICE HOURS": 1,
+      "copy\tOur Team": 1,
+      "copy\tRedondo Beach, CA 90277": 1,
+      "copy\tSaturday - Sunday / Closed": 1,
+      "copy\tServices": 2,
+      "copy\tYour First Visit": 1,
+      "copy\t© Beachfront Dentistry": 1,
+      "hours\tFriday / 7am - 2pm": 1,
+      "hours\tMonday - Thursday / 7am - 4pm": 1,
+      "link\t/ask-the-doctor": 2,
+      "link\t/contact-us": 1,
+      "link\t/logo-white.svg": 1,
+      "link\t/our-team": 2,
+      "link\t/services": 2,
+      "link\t/your-first-visit": 2,
+      "link\thttps://app.modento.io/beachfront-dentistry": 1,
+      "phone\t(310) 378-9241": 1,
+      "phone\ttel:+13103789241": 1,
+      "social\thttps://www.facebook.com/RedondoDentists": 1
+    },
+    "src/lib/components/AppointmentModal.svelte": {
+      "button\tRequest Appointment": 1,
+      "button\tSending…": 1,
+      "copy\tAnything we should know?": 1,
+      "copy\tEmail": 1,
+      "copy\tName": 1,
+      "copy\tPhone": 1,
+      "copy\tRequest an appointment": 1,
+      "copy\tThanks — we'll reach out to schedule your visit.": 1,
+      "copy\tYou can also call us at": 1,
+      "heading\tRequest an appointment": 1
+    },
+    "src/lib/components/CtaBand.svelte": {
+      "button\tRequest Appointment": 1,
+      "copy\tReady for great dental health?": 1
+    },
+    "src/lib/components/Field.svelte": {
+      "copy\t(required)": 1
+    },
+    "src/lib/components/Footer.svelte": {
+      "copy\tFacebook": 1,
+      "copy\tInstagram": 1,
+      "copy\tLinkedIn": 2,
+      "copy\tPinterest": 1,
+      "copy\tReddit": 1,
+      "copy\tTwitter": 1,
+      "copy\tYouTube": 1,
+      "heading\tMap to Beachfront Dentistry — site footer": 1
+    },
+    "src/lib/components/LandscapeModal.svelte": {
+      "heading\tPlease Switch to Portrait Mode": 1
+    },
+    "src/lib/components/MapEmbed.svelte": {
+      "link\thttps://www.google.com/maps?q=": 1
+    },
+    "src/lib/components/Modal.svelte": {
+      "copy\tClose": 1
+    },
+    "src/lib/components/Nav.svelte": {
+      "alt\tHome": 2,
+      "copy\tClose menu": 2,
+      "copy\tHome Page": 1,
+      "copy\tLogo": 1,
+      "copy\tMake a Payment": 2,
+      "copy\tMenu": 2,
+      "copy\tMenu links": 1,
+      "copy\tOpen menu": 2,
+      "copy\tRequest Appointment": 1,
+      "copy\tRequest an Appointment": 1,
+      "image\t/icons/menu-close-white.svg": 1,
+      "image\t/menu-beach.jpg": 1,
+      "link\t/": 4
+    },
+    "src/lib/components/ProductDetail.svelte": {
+      "copy\tShare": 1,
+      "copy\tShare on Facebook": 1,
+      "copy\tShare on Pinterest": 1,
+      "copy\tShare on Twitter": 1,
+      "copy\tView image ${…} of ${…}": 1
+    },
+    "src/lib/components/ReadReviewsExpander.svelte": {
+      "button\tRead Reviews": 1,
+      "copy\tRead our reviews on ${…}": 1,
+      "image\t/icons/minus.svg": 1,
+      "image\t/icons/plus.svg": 1
+    },
+    "src/lib/components/Slider.svelte": {
+      "copy\t${…} of ${…}": 2,
+      "copy\tGo to slide ${…}": 1,
+      "copy\tNext slide": 2,
+      "copy\tPause slides": 1,
+      "copy\tPlay slides": 1,
+      "copy\tPrevious slide": 2,
+      "copy\tSlide": 1,
+      "copy\tSlides": 1,
+      "copy\tof": 2,
+      "copy\tthrough": 1
+    },
+    "src/lib/seo.ts": {
+      "copy\tBeachfront Dentistry": 1,
+      "copy\tDental appointment": 1
+    },
+    "src/lib/site.ts": {
+      "address\t1706 S Elena Ave. Suite B": 1,
+      "address\tRedondo Beach, CA 90277": 1,
+      "copy\tFacebook": 1,
+      "copy\tGoogle": 1,
+      "copy\tYelp": 1,
+      "hours\t7am - 2pm": 1,
+      "hours\t7am - 4pm": 1,
+      "hours\tClosed": 1,
+      "hours\tFriday": 1,
+      "hours\tMonday - Thursday": 1,
+      "hours\tSaturday - Sunday": 1,
+      "image\t/icons/facebook-f.svg": 1,
+      "image\t/icons/google-g.svg": 1,
+      "image\t/icons/yelp-logo.png": 1,
+      "link\thttps://www.google.com/maps/place/Beachfront+Dentistry/@33.8176193,-118.3853988,17z/data=!3m1!4b1!4m8!3m7!1s0x80dd4b509861c4ad:0x133845da52f7533d!8m2!3d33.8176193!4d-118.3853988!9m1!1b1!16s%2Fg%2F1tfbcghd?entry=ttu": 1,
+      "phone\t(310) 378-9241": 1,
+      "phone\ttel:+13103789241": 1,
+      "social\thttps://www.facebook.com/RedondoDentists": 1,
+      "social\thttps://www.yelp.com/biz/beachfront-dentistry-redondo-beach": 1
+    },
+    "src/lib/slices/Carousel/index.svelte": {
+      "copy\t${…} of ${…}": 1,
+      "copy\tCONTACT": 1,
+      "copy\tGoogle": 1,
+      "copy\tNext slide": 1,
+      "copy\tOFFICE HOURS": 1,
+      "copy\tPrevious slide": 1,
+      "copy\tRead this review on ${…}": 1,
+      "copy\tSlide": 1,
+      "copy\tYelp": 1,
+      "copy\tof": 1,
+      "image\t/annotations/what-they-say-arrow.svg": 1,
+      "image\t/annotations/what-they-say.webp": 1,
+      "image\t/icons/google-g.svg": 1,
+      "image\t/icons/review-arrow-left.svg": 1,
+      "image\t/icons/review-arrow-right.svg": 1,
+      "image\t/icons/yelp-logo.png": 1
+    },
+    "src/lib/slices/CollectionList/index.svelte": {
+      "copy\tRead More": 1,
+      "copy\tRead more about ${…}": 1,
+      "image\t/icons/team-arrow-left.svg": 2,
+      "image\t/icons/team-arrow-right.svg": 2
+    },
+    "src/lib/slices/FirstVisitToc/index.svelte": {
+      "image\t/icons/download-arrow.svg": 1
+    },
+    "src/lib/slices/Hero/index.svelte": {
+      "copy\tFIJI ISLANDS": 1,
+      "video\t/hero/beachfront-hero-poster.jpg": 1,
+      "video\t/hero/beachfront-hero.mp4": 1,
+      "video\t/hero/beachfront-hero.webm": 1
+    },
+    "src/lib/slices/QuestionList/QuestionCard.svelte": {
+      "copy\tCollapse": 1,
+      "copy\tExpand": 1,
+      "copy\tRead More": 1,
+      "image\t/icons/minus.svg": 1,
+      "image\t/icons/plus.svg": 1
+    },
+    "src/lib/slices/QuestionList/index.svelte": {
+      "copy\tBack to Top": 1,
+      "copy\tView All Questions": 1,
+      "image\t/annotations/ask-the-doctor.webp": 1,
+      "link\t/ask-the-doctor": 1
+    },
+    "src/lib/slices/SectionGrid/index.svelte": {
+      "copy\tStep": 1,
+      "image\t/icons/big-teal-tooth.svg": 1,
+      "image\t/icons/minus.svg": 1,
+      "image\t/icons/plus.svg": 1,
+      "image\t/icons/tooth-1.svg": 1,
+      "image\t/icons/tooth-2.svg": 1,
+      "image\t/icons/tooth-3.svg": 1
+    },
+    "src/lib/slices/ServiceCategoryBand/index.svelte": {
+      "image\t/icons/service-tooth.svg": 1
+    },
+    "src/lib/styles/eyebrow.ts": {
+      "heading\tfont-slab text-[12px] leading-[15px] font-medium tracking-[1.28px] text-[#365b6d] uppercase lg:text-[24px] lg:leading-[30px]": 1
+    },
+    "src/lib/type-specimen/measure.ts": {
+      "copy\tDesktop 1280": 1,
+      "copy\tMobile 390": 1,
+      "copy\tTablet 834": 1,
+      "copy\tposition:absolute;left:-20000px;top:0;width:${…}px;height:${…}px;border:0;visibility:hidden;pointer-events:none": 1
+    },
+    "src/routes/+error.svelte": {
+      "copy\tGo home": 1,
+      "link\t/": 1
+    },
+    "src/routes/+layout.svelte": {
+      "copy\tSkip to main content": 1,
+      "heading\tWant to learn more?": 1,
+      "image\t/icons/menu-white.svg": 1
+    },
+    "src/routes/[[preview=preview]]/+page.server.ts": {
+      "copy\tPage not found": 1
+    },
+    "src/routes/[[preview=preview]]/[uid]/+page.server.ts": {
+      "copy\tPage not found": 1
+    },
+    "src/routes/contact-us/+page.server.ts": {
+      "heading\tContact": 1,
+      "seo\tCall Beachfront Dentistry at (310) 378-9241 or send us a message. Find our Redondo Beach office hours, address and directions on the map.": 1
+    },
+    "src/routes/contact-us/+page.svelte": {
+      "button\tRequest Appointment": 1,
+      "copy\tContact Us": 1,
+      "copy\tFIJI ISLANDS": 1,
+      "copy\tReady for great dental health?": 1,
+      "copy\tRequest Appointment": 1,
+      "heading\tContact": 1,
+      "heading\tMap to Beachfront Dentistry — Contact": 1,
+      "heading\tOffice Hours": 1
+    },
+    "src/routes/products/[slug]/+page.server.ts": {
+      "copy\tProduct not found": 1
+    },
+    "src/routes/questions/[slug]/+page.server.ts": {
+      "copy\tQuestion not found": 1
+    },
+    "src/routes/questions/[slug]/+page.svelte": {
+      "copy\tAsk the Doctor": 1,
+      "copy\tFIJI ISLANDS": 1,
+      "copy\tHave another question?": 1,
+      "copy\tView All Questions": 1,
+      "link\t/ask-the-doctor": 2
+    },
+    "src/routes/services/[slug]/+page.server.ts": {
+      "copy\tService not found": 1
+    },
+    "src/routes/services/[slug]/+page.svelte": {
+      "copy\t${…} video": 1,
+      "copy\tBack to All Services": 1,
+      "copy\tFIJI ISLANDS": 1,
+      "link\t/services": 1
+    },
+    "src/routes/team-members/[slug]/+page.server.ts": {
+      "copy\tTeam member not found": 1
+    },
+    "src/routes/team-members/[slug]/+page.svelte": {
+      "copy\tBack to Team": 1,
+      "copy\tFIJI ISLANDS": 1,
+      "link\t/our-team": 1
+    },
+    "src/routes/type-specimen/+page.server.ts": {
+      "heading\tType specimen": 1
+    },
+    "src/routes/type-specimen/+page.svelte": {
+      "copy\t(hidden at this width)": 1,
+      "copy\t, and": 1,
+      "copy\tA bare bulleted list item": 1,
+      "copy\tA bare numbered list item": 1,
+      "copy\tA bulleted list item": 1,
+      "copy\tA field's description line.": 1,
+      "copy\tA numbered list item": 1,
+      "copy\tA paragraph of article body, long enough to wrap so the line height shows. It holds ${…} and some bold words.": 1,
+      "copy\tA second list item": 1,
+      "copy\tAsk the Doctor": 1,
+      "copy\tAt 1280": 1,
+      "copy\tAt 390": 1,
+      "copy\tBody paragraph. Beachfront Dentistry has cared for families in Redondo Beach for years, with": 1,
+      "copy\tDefault button": 1,
+      "copy\tDefaultButton": 1,
+      "copy\tDr. Example Name": 1,
+      "copy\tEvery font size a component sets for itself (a Tailwind": 1,
+      "copy\tEvery text style the site uses, with its values at desktop (1280px), tablet (834px) and phone (390px). Nothing here is typed in: the page loads the site at each width and reads the values the browser computes from the site's real CSS, so a change to a style shows up here on the next build. Part 1 is the core styles rendered through the real components. Part 2 is every distinct style found on the live pages. Part 3 lists the sizes set one-off inside components.": 1,
+      "copy\tFull name": 1,
+      "copy\tHave another question?": 1,
+      "copy\tInternal review page · not linked, not indexed": 1,
+      "copy\tLearn More": 1,
+      "copy\tMeasuring…": 1,
+      "copy\tMessage": 1,
+      "copy\tMost tooth pain has a simple cause, and the sooner it is looked at the simpler the fix tends to be.": 1,
+      "copy\tOn the live address this page shows only this window's values: measuring at three widths loads the site's pages in the background, and here each load would count as a visit in the practice's analytics. Open it on the staging address for all three widths and the full list.": 1,
+      "copy\tOutlineButton cyan": 1,
+      "copy\tOutlineButton teal": 1,
+      "copy\tRead from these pages at all three widths: one of each template, and every top-level page, taken from the sitemap. Two elements count as one style only when they match at every width. Largest desktop size first. The sample is the measured style applied to the element's own text. Hover is shown for a mouse at 1280 and 834 and not at 390. A style that only applies on touch screens shows in the 390 column only when this page is opened on a phone.": 1,
+      "copy\tSeen on:": 1,
+      "copy\tStopped: see the error under Part 2's heading.": 1,
+      "copy\tThe Adobe museo fonts are loading on this address, so the samples show the real faces.": 1,
+      "copy\tThe Adobe museo fonts are not loading on this address (the kit is locked to the live domains), so the samples render in the fallback faces named in the stack. The values are the same either way.": 1,
+      "copy\tThe quick brown fox,": 1,
+      "copy\tThis window (${…}px)": 1,
+      "copy\tView All Questions": 1,
+      "copy\ta (link in body)": 1,
+      "copy\ta plain link": 1,
+      "copy\tcrumb link": 1,
+      "copy\tcrumb text": 1,
+      "copy\tdeclaration) instead of taking it from a shared style:": 1,
+      "copy\tdisplay heading (h2)": 1,
+      "copy\tdistinct styles across": 1,
+      "copy\temphasised words": 1,
+      "copy\tfiles, read from the source at build time.": 1,
+      "copy\tin": 1,
+      "copy\tinside the same paragraph.": 1,
+      "copy\tlist item": 2,
+      "copy\tname (h1)": 1,
+      "copy\tno element with this text at this width": 1,
+      "copy\tol li": 1,
+      "copy\tpill button": 1,
+      "copy\tsmall print": 1,
+      "copy\tstrong words": 1,
+      "copy\ttitle (h1)": 2,
+      "copy\tul li": 1,
+      "copy\tvalue or a": 1,
+      "heading\tArticle body, editorial": 1,
+      "heading\tArticle crumb: Ask the Doctor / View All Questions": 1,
+      "heading\tButtons": 1,
+      "heading\tClosing CTA band: display heading and pill": 1,
+      "heading\tDental Exams": 1,
+      "heading\tDetail body, live": 1,
+      "heading\tDetail hero label: a team member's name": 1,
+      "heading\tDetail intro, editorial: article title and lede": 1,
+      "heading\tDetail intro, live xl: service title and lede": 1,
+      "heading\tForm fields": 1,
+      "heading\tH${…}, the site-wide default": 1,
+      "heading\tHow do I know if a toothache is an emergency?": 2,
+      "heading\tLists and blockquote, unstyled": 1,
+      "heading\tParagraph body, the site-wide default": 1,
+      "heading\tPart 1 · Core styles, rendered through the real components": 1,
+      "heading\tPart 2 · Every distinct text style on the live pages": 1,
+      "heading\tPart 3 · Sizes set one-off inside components": 1,
+      "heading\tType specimen": 1,
+      "heading\tWhat to do before your appointment": 1,
+      "heading\ton": 1,
+      "heading\tpage": 1,
+      "link\t/ask-the-doctor": 4,
+      "link\t/contact-us": 1,
+      "link\t/our-team": 1,
+      "testimonial\tA bare blockquote": 1
+    }
+  }
+}
