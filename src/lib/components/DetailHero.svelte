@@ -10,12 +10,13 @@
   // SubpageHero — 95vw→70→60→33), a bottom-left WHITE thin-slab label, the cyan
   // legibility wash, and the flip wave seaming into the white section below.
   //   • labelSize "name"  → the person's NAME as an h1 (64px) — team-member.
-  //   • labelSize "crumb" → a small breadcrumb (30px) — service / question,
+  //   • labelSize "crumb" → a small breadcrumb (30px) — service,
   //     whose real <h1> title lives in the DetailIntro band below. With `href`
-  //     the crumb is a link (a question's "Ask the Doctor / View All
-  //     Questions" → /ask-the-doctor, as live's `<a href="/ask-the-doctor">`
-  //     wraps it — matching/SPEC.md §B.2.5); without it, plain text (a
-  //     service's "Services / <category>", which live never linked).
+  //     the crumb is one link; without it, plain text (a service's
+  //     "Services / <category>", which live never linked).
+  //   • no `label` → the photo and wave only. A question page since
+  //     2026-11-23 (Tim's Figma: the crumb "moved out of the image header and
+  //     just connected it to the main title"); its crumb is DetailIntro's.
   // A person page also overhangs a circular headshot past the wave; it's passed
   // as the `overlay` snippet (which positions itself) so this stays generic.
   let {
@@ -23,17 +24,12 @@
     label,
     labelSize = "crumb",
     href,
-    linkLabel,
     overlay,
   }: {
     backgroundImage?: ImageField | null;
-    label: string;
+    label?: string;
     labelSize?: "name" | "crumb";
     href?: string;
-    /** With `href`: only these words are the link, after `label` as plain
-     *  text ("Ask the Doctor / View All Questions", the operator's pick,
-     *  2026-11-23). Without it, `href` makes the whole label one link. */
-    linkLabel?: string;
     overlay?: Snippet;
   } = $props();
 </script>
@@ -52,17 +48,23 @@
     {/if}
     <!-- Same cyan wash as SubpageHero: a top cyan tint fading out + a
          transparent→cyan bottom wash, so the white label reads over the
-         photo. -->
+         photo. The bottom wash exists for the label alone, so a hero with
+         no label (a question page since 2026-11-23) drops it: Tim, Discord,
+         11-23 2:47pm PT, "we can remove the lower blue gradient since we
+         moved the text off the image". The top tint stays for the nav. -->
     <div
       class="pointer-events-none absolute inset-x-0 top-0 h-1/3"
       style="background:linear-gradient(rgba(18,158,204,0.8), rgba(0,0,0,0))"
       aria-hidden="true"
     ></div>
-    <div
-      class="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
-      style="background:linear-gradient(rgba(0,0,0,0), rgba(18,158,204,0.8))"
-      aria-hidden="true"
-    ></div>
+    {#if label}
+      <div
+        class="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
+        style="background:linear-gradient(rgba(0,0,0,0), rgba(18,158,204,0.8))"
+        aria-hidden="true"
+        data-label-wash
+      ></div>
+    {/if}
 
     <!-- Bottom-left label. Inline white defeats the global `main h1–h3`
          primary-colour rule (same trap SubpageHero documents).
@@ -103,25 +105,26 @@
          the name being painted and then yanked. Its 1500ms stays: this is the
          known-flaky target, so it gets the tighter deadline rather than the
          2500ms shared preset. -->
-    <div
-      data-reveal
-      data-detail-label
-      class="absolute bottom-[72px] left-5 z-10 md:bottom-[96px] md:left-12 lg:bottom-[120px] lg:left-[max(60px,calc(50%-640px))]"
-      use:animateIn={{ ...LIVE_REVEAL, failSafe: 1500 }}
-    >
-      {#if labelSize === "name"}
-        <!-- Live's name h1 (`.hero` title): 25px/38 @390 (must clear the
+    {#if label}
+      <div
+        data-reveal
+        data-detail-label
+        class="absolute bottom-[72px] left-5 z-10 md:bottom-[96px] md:left-12 lg:bottom-[120px] lg:left-[max(60px,calc(50%-640px))]"
+        use:animateIn={{ ...LIVE_REVEAL, failSafe: 1500 }}
+      >
+        {#if labelSize === "name"}
+          <!-- Live's name h1 (`.hero` title): 25px/38 @390 (must clear the
              headshot on the right) → 60px/72 @1440, museo-slab THIN (w100).
              The md tier is live's own measured 28px/38 — flat right across
              768–991; the 44px here was never calibrated against live. -->
-        <h1
-          class="font-slab text-[25px] leading-[38px] font-thin md:text-[28px] md:leading-[38px] lg:text-[60px] lg:leading-[72px]"
-          style="color:#fff"
-        >
-          {label}
-        </h1>
-      {:else}
-        <!-- Contrast (the operator, 2026-11-20, workspace decision
+          <h1
+            class="font-slab text-[25px] leading-[38px] font-thin md:text-[28px] md:leading-[38px] lg:text-[60px] lg:leading-[72px]"
+            style="color:#fff"
+          >
+            {label}
+          </h1>
+        {:else}
+          <!-- Contrast (the operator, 2026-11-20, workspace decision
              2026-11-20-2308-beachfront-detail-crumb-contrast): live's white
              crumb sits on the photo itself and measured below AA on every
              sampled article and service (worst 1.47:1 over a light face,
@@ -131,54 +134,34 @@
              `w-fit` + max-w keeps a right gutter equal to the left one, so a
              long category wraps inside the tag instead of running to the
              viewport edge. -->
-        <!-- Live's breadcrumb h3: 21px/26 from 390 right through 991, then
+          <!-- Live's breadcrumb h3: 21px/26 from 390 right through 991, then
              40px/50 at >=992, museo-slab LIGHT (w300 — NOT the name's thin).
              The "20px @390" this comment used to claim was wrong: the style
              census reads 21px there on live. -->
-        {#if href && linkLabel}
-          <!-- Split crumb (the operator, 2026-11-23, workspace decision
-               2026-11-23-1947-beachfront-faq-typography-direction): the
-               category is plain text and only "View All Questions" is the
-               link, underlined, so it is plain which words go somewhere (Tim,
-               2026-11-23: "'ask the doctor' is the actually category and
-               'View All Questions' should be the link"). Same opaque tag and
-               white ink as the single link below, on a 16 → 18 → 24px scale. -->
-          <p
-            class="w-fit max-w-[calc(100vw-40px)] md:max-w-[calc(100vw-96px)] lg:max-w-[min(1280px,calc(100vw-120px))] rounded-md bg-primary-deep px-3 py-1 font-slab text-[16px] leading-[24px] font-light md:text-[18px] md:leading-[26px] lg:text-[24px] lg:leading-[32px]"
-            style="color:#fff"
-          >
-            {label} <span aria-hidden="true">/</span>
-            <a
-              {href}
-              class="underline underline-offset-4 hover:decoration-2 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-              style="color:#fff"
-            >
-              {linkLabel}
-            </a>
-          </p>
-        {:else if href}
-          <!-- Live dims this link to opacity .61 on hover (SPEC.md qa
+          {#if href}
+            <!-- Live dims this link to opacity .61 on hover (SPEC.md qa
                interaction table #1). Not here: a fade lowers white-on-photo
                contrast, the defect OutlineButton and Nav removed for the same
                reason. Hover underlines instead. The focus ring is white: the
                site's teal floor (app.css) is invisible over the cyan wash. -->
-          <a
-            {href}
-            class="block w-fit max-w-[calc(100vw-40px)] md:max-w-[calc(100vw-96px)] lg:max-w-[min(1280px,calc(100vw-120px))] rounded-md bg-primary-deep px-3 py-1 font-slab text-[21px] leading-[26px] font-light underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white lg:text-[40px] lg:leading-[50px]"
-            style="color:#fff"
-          >
-            {label}
-          </a>
-        {:else}
-          <p
-            class="w-fit max-w-[calc(100vw-40px)] md:max-w-[calc(100vw-96px)] lg:max-w-[min(1280px,calc(100vw-120px))] rounded-md bg-primary-deep px-3 py-1 font-slab text-[21px] leading-[26px] font-light lg:text-[40px] lg:leading-[50px]"
-            style="color:#fff"
-          >
-            {label}
-          </p>
+            <a
+              {href}
+              class="block w-fit max-w-[calc(100vw-40px)] md:max-w-[calc(100vw-96px)] lg:max-w-[min(1280px,calc(100vw-120px))] rounded-md bg-primary-deep px-3 py-1 font-slab text-[21px] leading-[26px] font-light underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white lg:text-[40px] lg:leading-[50px]"
+              style="color:#fff"
+            >
+              {label}
+            </a>
+          {:else}
+            <p
+              class="w-fit max-w-[calc(100vw-40px)] md:max-w-[calc(100vw-96px)] lg:max-w-[min(1280px,calc(100vw-120px))] rounded-md bg-primary-deep px-3 py-1 font-slab text-[21px] leading-[26px] font-light lg:text-[40px] lg:leading-[50px]"
+              style="color:#fff"
+            >
+              {label}
+            </p>
+          {/if}
         {/if}
-      {/if}
-    </div>
+      </div>
+    {/if}
 
     <!-- Live's hero wave (`.bot-wave.flip`): white next-section edge waving up
          into the band. -->

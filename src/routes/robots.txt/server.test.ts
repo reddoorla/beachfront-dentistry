@@ -13,10 +13,15 @@ describe("GET /robots.txt", () => {
     expect(body).toContain("User-agent: *");
   });
 
-  it("fences off the dev/tooling and preview routes, nothing else", async () => {
+  it("fences off the dev/tooling, preview and type-specimen routes, nothing else", async () => {
     const body = await (await get("https://example.com")).text();
     const disallowed = [...body.matchAll(/Disallow: (\S+)/g)].map((m) => m[1]);
-    expect(disallowed).toEqual(["/dev/", "/slice-simulator", "/preview/"]);
+    expect(disallowed).toEqual([
+      "/dev/",
+      "/slice-simulator",
+      "/preview/",
+      "/type-specimen",
+    ]);
   });
 
   it("points at the sitemap with an absolute URL on the request origin", async () => {

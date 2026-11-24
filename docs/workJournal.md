@@ -1063,3 +1063,152 @@ The gate is `tests/smoke/detail-breadcrumb.spec.ts`, which finds the link by its
 The staging deploy showed the new words at 10:13am PT. To get the promotion #169 off `behind`, #170 merged `main` into `staging` as a merge commit (`ad60082`; no file changes), as #155 did on 11-20: `main` held #165's merge commit, which `staging` lacked. Promotion is the operator's. Until he merges #169, production still reads "Blog / View All Posts".
 
 Usage: $5.14, 1,195/31,434 tokens, 14,279,372/227,765 cache, rate limit allowed.
+
+## 2026-11-23 — Ask the Doctor typography: the editorial scale and the split crumb are live (#172, #173)
+
+The operator asked for a design pass on the typography of "the FAQs" (Mon 11-23, about 10:42am PT). The site has no page called FAQ: `/faq` and `/faqs` both 404. The surfaces turned out to be the 41 `/questions/*` articles, the `/ask-the-doctor` listing's 41 expandable cards, and the homepage's six teaser cards. The `Accordion` slice is not used for Q&A anywhere on production.
+
+**What production measured before (11:40am PT, Playwright, line boxes counted from real client rects).** The type was still the Webflow pixel-match's:
+
+- Body copy was 12px/18 at 390.
+- Lines ran 104 characters at 834 and 111 at 1440 (`max-w-[1024px]` at 20px).
+- The cyan lede (#129ecc on white, 3.09:1) failed AA at 390 and 834, where it is 20px normal-size text. It passes only at 1440, where it is 30px and counts as large text.
+- Sub-headings were body-sized (12/16/20), set apart only by bold.
+- At 834 list items were 20px/36 beside 16px/24 paragraphs.
+- Paragraphs sat a fixed 10px apart, less than one line.
+- The title was 100px at 834, the same as desktop, so a question took four lines (about 480px) before the lede.
+
+The axe gate never caught the lede, because it audits at Playwright's default 1280-wide viewport, where the lede is 30px.
+
+**Two directions, mocked on the real pages.** Rather than drawing comps, I injected each direction's CSS (and, for the split crumb, a DOM swap) into the production pages and screenshotted them at 390/834/1440. That kept the real content and real photos in every comparison. The two directions were A "Tighten" (same fonts, same thin cyan title and indented lede, a calmer scale) and B "Editorial". My pick was A. The operator chose B, with the split crumb, at 11:50am PT (workspace `decisions/2026-11-23-1947-beachfront-faq-typography-direction.md`; comparison artifact https://claude.ai/artifact/CYhiA2AHG3QnzHFYA9bw6g).
+
+**What B is.** `DetailIntro` and `DetailBody` take a `variant="editorial"` that only the question route passes; services and team keep live's class strings token for token. The values:
+
+- Title: museo-slab light in deep teal #0e7799 (5.1:1), 36/44 → 56/64 → 72/80.
+- Lede: the same deep teal with a 4px cyan rule, no longer indented, 20/32 → 24/36 → 28/42.
+- Body and lists: the same size together, 18/30 → 19/32 → 20/34, in a 640px column. That reads 46 / 73 / 73 characters a line, against live's 67 / 104 / 111.
+- Sub-headings: slab, deep teal, 22 → 26 → 30, with 40 → 48 → 56px above.
+- List numbers: bold deep teal.
+- Crumb: `DetailHero` gains `linkLabel`, so "Ask the Doctor /" is text and only "View All Questions" is the underlined link, inside the same opaque #0e7799 tag.
+- Question cards: titles move from museo-sans medium to slab light.
+
+The build's computed values matched the mock on all 234 measured values. Staging matched them too (12:24pm PT), and so did production after the promotion (12:52pm PT).
+
+**The defect the mock hid.** The mock was only checked on the listing, whose card text box is 240–320px tall. The homepage teaser's collapsed box is 72px at 390. At the listing's 24px size, "Beyond the Smile: Supporting Your Whole-Body Health" ran to three lines there and was cut by 30px. The teasers therefore step down: 16/22 below 390, 18/26 to 767, 24/30, 30/38. At 320 that title still loses 6px off its top line. Live already lost 30px there before this change, so the 320 clip is old, now smaller. Every listing title keeps at least 108px of headroom from 320 to 1920.
+
+**Tests.** `DetailHero.test.ts` gains a split-crumb case: the tag's ink and the link's ink both reach >= 4.5 on an opaque backing. The breadcrumb smoke test now names the link "View All Questions" and checks that "Ask the Doctor" is text, not a link. Both mutations named in the brief turned a check red, then were reverted:
+
+- The article body set to `#9db3bd`: axe failed with `#9db3bd on #ffffff`.
+- The crumb href set to `/services`: the smoke test failed with Expected `/ask-the-doctor`, Received `/services`.
+
+Local runs: vitest 863 passed, `@smoke` 88 passed, and the 218 scaffold specs that touch these pages passed. They ran on the preinstalled Chromium through an uncommitted config, as on #168. One Opus review round came back clean; its minor (a test name claiming the article crumb while it tested the now-unused single-link branch) and two comment nits were folded into `674bf47`.
+
+**Landing.** #172 squash-merged into `staging` (`81404c2`). The promotion #173 read `behind`, because `staging` lacked #169's merge commit. #174 merged `main` into `staging` as a merge commit (`5258ec0`, no file changes). Squashing it would have dropped `main`'s commit from `staging`'s history again, and `land-prs.mjs` squashes wherever the base allows, so #174 went through a direct `merge_method=merge` call pinned to its head. On the operator's word at 12:50pm PT, #173 merged as `91345d4`. Production showed the split crumb 46 seconds later. All 41 articles render the 18px body and the split crumb at 390; `/services/dental-exams` and `/team-members/alicia` keep 12px.
+
+**Beliefs corrected.**
+
+- "The FAQs" was not a page.
+- A mock checked on one card variant says nothing about the other: the teaser's fixed 72px box is the binding constraint for card titles on this site.
+- A staging check that greps for "View All Questions</a" passes on the old crumb too. The separator `<span aria-hidden="true">/</span>` is the string that proves the new build is live.
+
+Screenshots from the live URLs, before and after at each width, are in the workspace at `briefs/2026-11-23-beachfront-faq-typography/images/`.
+
+The session's main thread passed 300k tokens of context at the last seam. It finished here instead of handing off, because only these journals remained.
+
+Usage: $11.57, 294/88,087 tokens, 32,895,960/447,289 cache, rate limit allowed (read at 12:54pm PT, before this entry and the workspace pointer were written).
+
+## 2026-11-23 — A hidden /type-specimen page lists every text style at 1280, 834 and 390 (#176, `a4c2abb`)
+
+Tim asked in Discord at 12:10pm PT for one page with "all these styles on it", meaning H1, H2, H3, body and the rest, plus their mobile sizes, "because the mobile is super messed up". The site was built pre-Figma, so nobody can name its type scale. The page is at `/type-specimen` and changes no style. Fixing mobile type comes after Tim reviews it, as its own card.
+
+**Read, never typed.** Every value comes from `getComputedStyle`. The page loads itself, and the site's pages, into off-screen same-origin iframes 1280, 834 and 390 wide. A media query or a `vw` clamp only answers for the viewport it is evaluated in, so this is the only way to get three widths on one page. The 834 column is there because live's ladder has a tablet tier (calibrate md at 834, never 768). The page has three parts:
+
+- **Part 1:** the core styles, rendered through the real components (DetailHero's crumb, DetailIntro, DetailBody in both variants, CtaBand, the pills, Field).
+- **Part 2:** every top-level page plus one page per nested template, taken from `/sitemap.xml`. Each frame opens the nav menu first, because its links exist only while it is open. The scan folds the elements into 83 distinct styles across 9 pages, in about 20s.
+- **Part 3:** every `text-[…]` and `font-size` set inside a component, read from the source at build time with `import.meta.glob(?raw)`. There are 259 of them in 20 files. That count is the finding: nearly every size on this site is a one-off pixel match to Webflow, not a scale.
+
+**Mutations.**
+
+- Changing `app.css`'s h2 clamp maximum from 3.75rem to 3rem moved the specimen's desktop h2 label from 57.44px to 48px.
+- Taking `/type-specimen` out of `NOINDEX_PREFIXES` turns three tests red.
+
+**Spot check.** I compared the staging specimen with production at 1280 and 390, six fields per style, and every value was equal:
+
+- the article paragraph: 20/34 at desktop, 18/30 on a phone
+- the crumb link: 24/32 at desktop, 16/24 on a phone
+- the nav menu link: 40/50 at desktop, 30/40 on a phone
+
+Earlier, the local build had also matched the footer hours and the 140/168 → 56/70 subpage hero h2. The first run of that check reported a false DIFF: my script picked the nav's white "Request Appointment" instead of the footer pill. It agreed once each lookup was scoped to the right region.
+
+**Defects review found** (three Opus rounds; round 3 had minors only):
+
+1. Matching an element across widths by DOM position split SectionGrid's cards into two half-empty styles. SectionGrid renders different phone markup (`isMobile`), so the 30px → 24px card label, exactly what Tim asked to see, never sat on one row. Elements are now keyed by page, context, tag and text, and each frame is read once the DOM has gone 500ms without a change.
+2. Tailwind v4 wraps every `hover:` utility in `@media (hover: hover)`, and a frame answers that for the host device. On a laptop the 390 column showed hover colours a phone never shows; on an iPad the desktop column showed none. Hover and pointer queries are now answered for the column.
+3. Limiting a parent link's hover to colour dropped `opacity`, the site's commonest hover (16 uses). The FirstVisitToc cards fade to 0.67 again.
+
+**Known limits.**
+
+- Computed styles still answer `[@media(hover:none)]:` for the host device.
+- An element whose text changes with width (the slider's "Slides 1 through 3 of 11") appears as one row per width.
+
+**Production.** On the live hostnames the three-width measuring is off, because each framed load would be a GA4 visit. There the page shows this window only and points to staging. The page ships with the next promotion, unlinked, `noindex`, with a robots `Disallow` line and not in the sitemap; the promotion is the operator's.
+
+**For the next card.**
+
+- Links in the editorial article body have the body's colour and no underline.
+- The live `DetailBody` is 12px/18px at 390.
+
+Usage: see the workspace pointer entry for this session.
+
+## 2026-11-23 — The Ask the Doctor crumb leaves the photo and sits above the title, in the home "Meet Your Team" eyebrow (#178, `6db8c75`, into `staging`); promotion #180 waits on the operator
+
+> Superseded in part by 2026-11-23 — The article hero drops its lower cyan wash; #178's sixth call was wrong.
+
+Tim, Discord, 2:45–2:46pm PT: "made adjustments to the heading on the blog "Ask the doctor" individual template", "moved it out of the image header and just connected it to the main title", "I used a heading style from the home page". His Figma has no new frame for it. Two text nodes, `503:76` and `503:83`, lie over two screenshots of production, `502:75` and `502:73`, with the crumb painted out of the photo. Neither node carries a named text style or variable. The style therefore came from the code: Museo Slab 500, uppercase, 0.05em tracking, `#365b6d`, 24px on desktop. That is exactly the homepage's "Meet Your Team" eyebrow in `CollectionList`, whose class string comes from live's h6 combo. That string now lives in `src/lib/styles/eyebrow.ts`, used by both places, so they cannot drift. No new size was invented.
+
+On `/questions/<uid>`, `DetailHero` is now the photo, the cyan wash and the wave only. Its `label` is optional, and the split-crumb branch #172 added is gone, since it had no caller left. `DetailIntro` takes a `crumb` and renders "Ask the Doctor / View All Questions" as the h1's previous sibling, with only "View All Questions" linked and underlined. The words are #168's, not the frame's "Ask the doctor / View all", as the brief said.
+
+**Beliefs corrected on contact.**
+
+- The frame's sizes are not real-screen sizes. The phone screenshot is 1:1: its 36px title measures a 26px cap height. There, the crumb is 14px against the home style's 12px, and the home style was used. The desktop screenshot is scaled about 1.5×: a 72px title measures 75 units of cap height. So its "24px" crumb is about 16px on screen, and the shipped 24px reads larger beside the title than in the mock. Both differences are listed in #178 for Tim.
+- With the label gone, the hero's cyan wash lost its stated purpose: "so the white label reads over the photo". The review asked whether it should go too. Tim's frame still shows the tinted photo, so it stays, and the comment now says why.
+
+**Tests.** `tests/smoke/detail-breadcrumb.spec.ts` gains a placement test: the link's line is the `main h1`'s previous sibling and is not inside `[data-detail-label]`. The test finds the link by a loose name, so a crumb moved back into the photo fails on where it is, not on what it says. The first version found the link by its exact name. Under the mutation it timed out instead of failing its own assertion, which proved nothing about placement. The new scaffold spec, `tests/interaction/article-crumb-style.spec.ts`, compares the crumb's and the link's computed type with the "Meet Your Team" heading at 1280 and 390, element to element, naming no value.
+
+Both mutations the brief named turned checks red:
+
+- The crumb put back into the hero failed the placement test: Expected true, Received false.
+- The class swapped for the home "Step 01" label class, identical apart from weight 400, failed both parity tests on `font-weight` 500 against 400.
+
+Locally: vitest 875 passed (4 skipped), `@smoke` 89 passed, and `tests/a11y` with the wave and nav suites 56 passed. These ran on the preinstalled Chromium (`chromium-1243/chrome-linux64`) through an uncommitted config, as on #168.
+
+**Review.** One Opus round was clean, minors and nits only, folded into `9272324`:
+
+- dropped a smoke assertion on a hook no visitor sees;
+- narrowed the h1 query to `main h1`;
+- fixed three stale comments.
+
+`land-prs.mjs` refused the first landing until the PR body named the two edited test files under a "Test changes:" heading.
+
+**Checked live.** The deploy preview at 3:03pm PT and `staging` at 3:12pm PT both served the new crumb. At 1280 and 390, `/services/dental-exams` and `/team-members/alicia` kept the same hero label text and class string as production. The screenshots beside Tim's frame are in the workspace at `briefs/2026-11-23-beachfront-atd-heading/images/`.
+
+**Landing.** #179 merged `main` into `staging` as a merge commit (`b8b0779`, pinned to its head, no file changes), because `staging` again lacked a promotion's merge commit (#173's `91345d4`). The promotion #180 is open; merging it is the operator's. Until he does, production still shows the crumb in the photo.
+
+Usage: $7.36, 2,239/54,563 tokens, 19,604,786/337,622 cache, rate limit allowed (read at 3:19pm PT, before this entry).
+
+## 2026-11-23 — The article hero drops its lower cyan wash; #178's sixth call was wrong (#182, `c265cd9`, into `staging`)
+
+> Corrects 2026-11-23 — The Ask the Doctor crumb leaves the photo and sits above the title (#178), on the cyan wash.
+
+Tim did not stop at the three messages the brief quoted. At 2:46pm PT he posted an image of the frame, and at 2:47pm PT he wrote: "That being said, we can remove the lower blue gradient since we moved the text off the image." #178 had kept the wash, reasoning that "Tim's frame shows the tinted photo". That reading came from the frame alone, because the session never read the channel itself. The operator asked at about 9:45pm PT whether I had seen "the other message from Tim". I had not. That is the belief corrected here: a brief's quote of a Discord thread is not the thread. Before building from a designer's message, read the channel from that message to now.
+
+In `DetailHero`, the bottom wash (transparent to cyan over the lower half of the band) now renders only when there is a label. Its sole purpose was to let the white label read over the photo. The top tint stays for the nav. The four callers check out:
+
+- the question route passes no label, so it loses the wash;
+- the service route passes "Services…", team passes the person's name, and the specimen passes a sample name, so all three keep it.
+
+The scaffold spec now asserts no lower-wash element on an article and exactly one on `/services/dental-exams`, which serves as the positive control. Forcing the wash on gave `Expected: 0, Received: 1`. One Opus review round was clean, with two nits left as they are: the `data-label-wash` hook is unused, and one comment's first sentence is now loose. At 9:55pm PT on staging, the article served 0 washes and the service page 1.
+
+The promotion #180 now carries this too. Production still shows the crumb in the photo until the operator merges it.
+
+Usage: $2.25 since the previous entry ($9.61 session total), 52/8,748 tokens, 6,962,187/84,178 cache, rate limit allowed.
