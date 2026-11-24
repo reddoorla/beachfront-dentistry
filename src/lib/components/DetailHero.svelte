@@ -48,18 +48,23 @@
     {/if}
     <!-- Same cyan wash as SubpageHero: a top cyan tint fading out + a
          transparent→cyan bottom wash, so the white label reads over the
-         photo. A question page has no label since 2026-11-23 and keeps the
-         wash: it is the tinted photo Tim's Figma shows. -->
+         photo. The bottom wash exists for the label alone, so a hero with
+         no label (a question page since 2026-11-23) drops it: Tim, Discord,
+         11-23 2:47pm PT, "we can remove the lower blue gradient since we
+         moved the text off the image". The top tint stays for the nav. -->
     <div
       class="pointer-events-none absolute inset-x-0 top-0 h-1/3"
       style="background:linear-gradient(rgba(18,158,204,0.8), rgba(0,0,0,0))"
       aria-hidden="true"
     ></div>
-    <div
-      class="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
-      style="background:linear-gradient(rgba(0,0,0,0), rgba(18,158,204,0.8))"
-      aria-hidden="true"
-    ></div>
+    {#if label}
+      <div
+        class="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
+        style="background:linear-gradient(rgba(0,0,0,0), rgba(18,158,204,0.8))"
+        aria-hidden="true"
+        data-label-wash
+      ></div>
+    {/if}
 
     <!-- Bottom-left label. Inline white defeats the global `main h1–h3`
          primary-colour rule (same trap SubpageHero documents).
