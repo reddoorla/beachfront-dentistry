@@ -1162,6 +1162,8 @@ Usage: see the workspace pointer entry for this session.
 
 ## 2026-11-23 — The Ask the Doctor crumb leaves the photo and sits above the title, in the home "Meet Your Team" eyebrow (#178, `6db8c75`, into `staging`); promotion #180 waits on the operator
 
+> Superseded in part by 2026-11-23 — The article hero drops its lower cyan wash; #178's sixth call was wrong.
+
 Tim, Discord, 2:45–2:46pm PT: "made adjustments to the heading on the blog "Ask the doctor" individual template", "moved it out of the image header and just connected it to the main title", "I used a heading style from the home page". His Figma has no new frame for it. Two text nodes, `503:76` and `503:83`, lie over two screenshots of production, `502:75` and `502:73`, with the crumb painted out of the photo. Neither node carries a named text style or variable. The style therefore came from the code: Museo Slab 500, uppercase, 0.05em tracking, `#365b6d`, 24px on desktop. That is exactly the homepage's "Meet Your Team" eyebrow in `CollectionList`, whose class string comes from live's h6 combo. That string now lives in `src/lib/styles/eyebrow.ts`, used by both places, so they cannot drift. No new size was invented.
 
 On `/questions/<uid>`, `DetailHero` is now the photo, the cyan wash and the wave only. Its `label` is optional, and the split-crumb branch #172 added is gone, since it had no caller left. `DetailIntro` takes a `crumb` and renders "Ask the Doctor / View All Questions" as the h1's previous sibling, with only "View All Questions" linked and underlined. The words are #168's, not the frame's "Ask the doctor / View all", as the brief said.
