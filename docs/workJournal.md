@@ -1193,3 +1193,20 @@ Locally: vitest 875 passed (4 skipped), `@smoke` 89 passed, and `tests/a11y` wit
 **Landing.** #179 merged `main` into `staging` as a merge commit (`b8b0779`, pinned to its head, no file changes), because `staging` again lacked a promotion's merge commit (#173's `91345d4`). The promotion #180 is open; merging it is the operator's. Until he does, production still shows the crumb in the photo.
 
 Usage: $7.36, 2,239/54,563 tokens, 19,604,786/337,622 cache, rate limit allowed (read at 3:19pm PT, before this entry).
+
+## 2026-11-23 — The article hero drops its lower cyan wash; #178's sixth call was wrong (#182, `c265cd9`, into `staging`)
+
+> Corrects 2026-11-23 — The Ask the Doctor crumb leaves the photo and sits above the title (#178), on the cyan wash.
+
+Tim did not stop at the three messages the brief quoted. At 2:46pm PT he posted an image of the frame, and at 2:47pm PT he wrote: "That being said, we can remove the lower blue gradient since we moved the text off the image." #178 had kept the wash, reasoning that "Tim's frame shows the tinted photo". That reading came from the frame alone, because the session never read the channel itself. The operator asked at about 9:45pm PT whether I had seen "the other message from Tim". I had not. That is the belief corrected here: a brief's quote of a Discord thread is not the thread. Before building from a designer's message, read the channel from that message to now.
+
+In `DetailHero`, the bottom wash (transparent to cyan over the lower half of the band) now renders only when there is a label. Its sole purpose was to let the white label read over the photo. The top tint stays for the nav. The four callers check out:
+
+- the question route passes no label, so it loses the wash;
+- the service route passes "Services…", team passes the person's name, and the specimen passes a sample name, so all three keep it.
+
+The scaffold spec now asserts no lower-wash element on an article and exactly one on `/services/dental-exams`, which serves as the positive control. Forcing the wash on gave `Expected: 0, Received: 1`. One Opus review round was clean, with two nits left as they are: the `data-label-wash` hook is unused, and one comment's first sentence is now loose. At 9:55pm PT on staging, the article served 0 washes and the service page 1.
+
+The promotion #180 now carries this too. Production still shows the crumb in the photo until the operator merges it.
+
+Usage: $2.25 since the previous entry ($9.61 session total), 52/8,748 tokens, 6,962,187/84,178 cache, rate limit allowed.
